@@ -49,8 +49,10 @@ func (a *application) personalLibrarySwitch(cx *core.Scope, page screen) core.No
 type detailActionRenderer func(*core.Scope, string, string, *core.SVG, bool, func() bool, func()) core.Node
 
 type detailPersonalActions struct {
-	buttons func(*core.Scope, detailResult, detailActionRenderer) []core.Node
-	error   core.Node
+	favorite func()
+	busy     func() bool
+	buttons  func(*core.Scope, detailResult, detailActionRenderer) []core.Node
+	error    core.Node
 }
 
 func (a *application) detailPersonal(cx *core.Scope, current route, loaded *core.Resource[detailResult]) detailPersonalActions {
@@ -129,6 +131,8 @@ func (a *application) detailPersonal(cx *core.Scope, current route, loaded *core
 		}()
 	}
 	return detailPersonalActions{
+		favorite: func() { edit(false) },
+		busy:     func() bool { return busy.Get() || loaded.Loading() },
 		buttons: func(cx *core.Scope, result detailResult, render detailActionRenderer) []core.Node {
 			button := func(id string, label string, icon func() *core.SVG, selected, watch bool) core.Node {
 				disabled := func() bool { return busy.Get() || loaded.Loading() }

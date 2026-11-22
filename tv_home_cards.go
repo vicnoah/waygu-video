@@ -204,7 +204,7 @@ func (a *application) tvHeroFavorite(cx *core.Scope, l tvLayout, entry catalogIt
 	})
 }
 
-func tvShelf(l tvLayout, id, title, stripe string, badge, all core.Node, cards []core.Node) core.Node {
+func tvShelf(l tvLayout, id, title, stripe string, badge, all core.Node, cardGap core.Points, cards []core.Node) core.Node {
 	label := l.text(title, 30, "font-bold tracking-tight text-zinc-900 dark:text-zinc-100")
 	return core.View{TestID: id, Style: core.Style{Gap: l.points(24)}, Children: []core.Node{
 		core.View{Class: "flex-row items-center justify-between", Style: core.Style{Padding: l.padding(96, 0)}, Children: []core.Node{
@@ -216,7 +216,7 @@ func tvShelf(l tvLayout, id, title, stripe string, badge, all core.Node, cards [
 		}},
 		core.Scroll{Horizontal: true, HideIndicator: true, TestID: id + "-rail",
 			Style: core.Style{Margin: core.Edges{Left: l.points(90), Right: l.points(96)}}, Children: []core.Node{
-				core.View{Class: "flex-row", Style: core.Style{Gap: l.points(32), Padding: l.padding(6, 0)}, Children: cards},
+				core.View{Class: "flex-row", Style: core.Style{Gap: l.points(cardGap), Padding: l.padding(6, 0)}, Children: cards},
 			}},
 	}}
 }
@@ -254,7 +254,7 @@ func (a *application) tvPosters(cx *core.Scope, l tvLayout, id, title, stripe st
 		cards = append(cards, l.cardWithFocus(cx, card, art,
 			l.text(item.Title, 20, "font-medium"), l.text(strings.Join(details, " · "), 16, tvMuted)))
 	}
-	return tvShelf(l, id, title, stripe, badge, all, cards)
+	return tvShelf(l, id, title, stripe, badge, all, 32, cards)
 }
 
 func tvQuality(entry catalogItem) string {

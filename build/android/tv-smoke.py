@@ -66,16 +66,20 @@ def key(*codes):
     adb("shell", "input", "keyevent", *(f"KEYCODE_{code}" for code in codes))
 
 
-def select_with_remote(test_id, direction="KEYCODE_DPAD_DOWN"):
+def focus_with_remote(test_id, direction):
     visible(test_id)
     focused = ""
     for _ in range(8):
         focused = focused_id()
         if focused == test_id:
-            adb("shell", "input", "keyevent", "KEYCODE_DPAD_CENTER")
             return
         adb("shell", "input", "keyevent", direction)
     raise RuntimeError(f"D-pad focus did not reach {test_id!r}. Last focus was {focused!r}.")
+
+
+def select_with_remote(test_id, direction="KEYCODE_DPAD_DOWN"):
+    focus_with_remote(test_id, direction)
+    key("DPAD_CENTER")
 
 
 def onboarding_smoke():
@@ -95,13 +99,16 @@ def onboarding_smoke():
     visible("settings-add-source")
     print("Android TV onboarding, server setup and settings passed using only the remote.")
 
-def library_smoke():
+
+def open_featured_details():
     visible("home-hero-play")
     expect_focus("home-hero-play")
-    key("DPAD_RIGHT")
-    expect_focus("home-hero-details")
-    key("DPAD_CENTER")
-    visible("detail-play")
+    key("DPAD_RIGHT", "DPAD_CENTER")
+    expect_focus("detail-play")
+
+
+def library_smoke():
+    open_featured_details()
     key("BACK")
     expect_focus("home-hero-play")
     key("DPAD_DOWN")
@@ -114,11 +121,34 @@ def library_smoke():
     print("Android TV home opened details and moved between both media shelves using the remote.")
 
 
+def detail_smoke():
+    open_featured_details()
+    select_with_remote("playback-version", "KEYCODE_DPAD_RIGHT")
+    expect_focus("tv-version-auto")
+    key("BACK")
+    expect_focus("playback-version")
+    focus_with_remote("detail-play", "KEYCODE_DPAD_LEFT")
+    visible("tv-detail-cast")
+    key("DPAD_DOWN")
+    expect_focus("tv-cast-")
+    key("DPAD_DOWN")
+    expect_focus("tv-detail-related-title-")
+    key("DPAD_CENTER")
+    expect_focus("detail-play")
+    print("Android TV detail passed version, credits and recommendation navigation.")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--with-library", action="store_true",
-                        help="test the home screen with a connected media library and two resume bookmarks")
-    if parser.parse_args().with_library:
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--with-library", action="store_true",
+                      help="test the home screen with a connected media library and two resume bookmarks")
+    mode.add_argument("--with-detail", action="store_true",
+                      help="test a featured movie with versions, credits and recommendations")
+    args = parser.parse_args()
+    if args.with_detail:
+        detail_smoke()
+    elif args.with_library:
         library_smoke()
     else:
         onboarding_smoke()

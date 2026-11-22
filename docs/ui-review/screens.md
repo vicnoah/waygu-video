@@ -54,8 +54,8 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [电影详情 · 深色](../../design/tablet-detail.scenra#L160) | dark | `tablet · 1180 × 820` | — | [Compared](tablet-detail.md) |
 | [平板/首页](../../design/tablet-home.scenra#L1) | light | `tablet · 1180 × 820` | — | [Compared](tablet-home.md) |
 | [首页 · 深色](../../design/tablet-home.scenra#L85) | dark | `tablet · 1180 × 820` | — | [Compared](tablet-home.md) |
-| [TV/详情](../../design/tv-detail.scenra#L1) | light | `desktop · 1920 × 1640` | — | Pending |
-| [详情 · 深色](../../design/tv-detail.scenra#L165) | dark | `desktop · 1920 × 1640` | — | Pending |
+| [TV/详情](../../design/tv-detail.scenra#L1) | light | `desktop · 1920 × 1640` | — | [Compared](tv-detail.md) |
+| [详情 · 深色](../../design/tv-detail.scenra#L165) | dark | `desktop · 1920 × 1640` | — | [Compared](tv-detail.md) |
 | [TV/首页](../../design/tv-home.scenra#L1) | light | `desktop · 1920 × 1760` | — | [Compared](tv-home.md) |
 | [首页 · 深色](../../design/tv-home.scenra#L157) | dark | `desktop · 1920 × 1760` | — | [Compared](tv-home.md) |
 | [TV/播放器](../../design/tv-player.scenra#L1) | default | `desktop · 1920 × 1080` | — | Pending |

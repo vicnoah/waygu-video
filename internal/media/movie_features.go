@@ -34,6 +34,7 @@ func (m *mediaBrowser) Extras(ctx context.Context, item Item) ([]Item, error) {
 			if entry.ID != item.ID && !seen[entry.ID] {
 				seen[entry.ID] = true
 				entry.Kind, entry.LibraryID = Video, item.LibraryID
+				entry.Trailer = entry.Trailer || endpoint == "/LocalTrailers"
 				extras = append(extras, entry)
 			}
 		}

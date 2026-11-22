@@ -119,6 +119,10 @@ var Parameters = map[string][]string{
 	"PhonePlayerRemoveRule":          {"rule"},
 	"TvAllTitles":                    {"count"},
 	"TvFromSource":                   {"source"},
+	"TvResumeAt":                     {"position"},
+	"TvDetailProgress":               {"position", "remaining"},
+	"TvDetailVersion":                {"resolution"},
+	"TvStarring":                     {"names"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -203,6 +207,10 @@ type Translation struct {
 	PhonePlayerRemoveRule          func(rule string) string
 	TvAllTitles                    func(count string) string
 	TvFromSource                   func(source string) string
+	TvResumeAt                     func(position string) string
+	TvDetailProgress               func(position string, remaining string) string
+	TvDetailVersion                func(resolution string) string
+	TvStarring                     func(names string) string
 }
 
 var supplied = map[string]Translation{}
@@ -638,6 +646,12 @@ const (
 	textPhonePlayerDanmakuSpeed
 	textTvAddedThisWeek
 	textTvRemoveFromContinueWatching
+	textTvBackHint
+	textTvTrailer
+	textTvCast
+	textTvComposer
+	textTvChineseSubtitles
+	textTvRating
 	numTexts
 )
 
@@ -1073,6 +1087,12 @@ var keyOfText = [numTexts]string{
 	"phonePlayerDanmakuSpeed",
 	"tvAddedThisWeek",
 	"tvRemoveFromContinueWatching",
+	"tvBackHint",
+	"tvTrailer",
+	"tvCast",
+	"tvComposer",
+	"tvChineseSubtitles",
+	"tvRating",
 }
 
 // textsEn are the messages without arguments in en.
@@ -1505,7 +1525,13 @@ var textsEn = i18n.NewTexts(""+
 	"Hide colored danmaku"+
 	"Danmaku follows the current playback speed."+
 	"Added this week"+
-	"Remove from Continue Watching",
+	"Remove from Continue Watching"+
+	"Press Back to return"+
+	"Trailer"+
+	"Cast and crew"+
+	"Music"+
+	"Chinese subtitles"+
+	"Rating",
 	[]uint16{
 		11,
 		47,
@@ -1936,6 +1962,12 @@ var textsEn = i18n.NewTexts(""+
 		43,
 		15,
 		29,
+		20,
+		7,
+		13,
+		5,
+		17,
+		6,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -2368,7 +2400,13 @@ var textsZhHans = i18n.NewTexts(""+
 	"屏蔽彩色弹幕"+
 	"弹幕速度随播放倍速同步。"+
 	"本周新增"+
-	"从继续观看移除",
+	"从继续观看移除"+
+	"按 返回 键返回"+
+	"预告片"+
+	"演职人员"+
+	"配乐"+
+	"中文字幕"+
+	"评分",
 	[]uint16{
 		12,
 		45,
@@ -2799,6 +2837,12 @@ var textsZhHans = i18n.NewTexts(""+
 		36,
 		12,
 		21,
+		20,
+		9,
+		12,
+		6,
+		12,
+		6,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -3082,6 +3126,18 @@ func Supply(lang string, t Translation) {
 	}
 	if t.TvFromSource != nil {
 		s.TvFromSource = t.TvFromSource
+	}
+	if t.TvResumeAt != nil {
+		s.TvResumeAt = t.TvResumeAt
+	}
+	if t.TvDetailProgress != nil {
+		s.TvDetailProgress = t.TvDetailProgress
+	}
+	if t.TvDetailVersion != nil {
+		s.TvDetailVersion = t.TvDetailVersion
+	}
+	if t.TvStarring != nil {
+		s.TvStarring = t.TvStarring
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -7968,3 +8024,137 @@ func TvRemoveFromContinueWatching(cx *core.Scope) string {
 func (msgs Messages) TvRemoveFromContinueWatching() string {
 	return msgs.text(textTvRemoveFromContinueWatching)
 }
+
+// TvBackHint says "Press Back to return"
+// in the language the app shows under cx.
+func TvBackHint(cx *core.Scope) string { return For(cx).TvBackHint() }
+
+// TvBackHint is the package's TvBackHint in the language of msgs.
+func (msgs Messages) TvBackHint() string { return msgs.text(textTvBackHint) }
+
+// TvResumeAt says "Resume {position}"
+// in the language the app shows under cx.
+func TvResumeAt(cx *core.Scope, position string) string { return For(cx).TvResumeAt(position) }
+
+// TvResumeAt is the package's TvResumeAt in the language of msgs.
+func (msgs Messages) TvResumeAt(position string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.TvResumeAt(position))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].TvResumeAt; f != nil {
+			return f(position)
+		}
+		switch lang {
+		case "", "en":
+			return "Resume " + msgs.arg(position)
+		case "zh-Hans":
+			return "继续播放 " + position
+		}
+	}
+}
+
+// TvDetailProgress says "Watched {position} · {remaining} left"
+// in the language the app shows under cx.
+func TvDetailProgress(cx *core.Scope, position string, remaining string) string {
+	return For(cx).TvDetailProgress(position, remaining)
+}
+
+// TvDetailProgress is the package's TvDetailProgress in the language of msgs.
+func (msgs Messages) TvDetailProgress(position string, remaining string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.TvDetailProgress(position, remaining))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].TvDetailProgress; f != nil {
+			return f(position, remaining)
+		}
+		switch lang {
+		case "", "en":
+			return "Watched " + msgs.arg(position) + " · " + msgs.arg(remaining) + " left"
+		case "zh-Hans":
+			return "已观看 " + position + " · 剩余 " + remaining
+		}
+	}
+}
+
+// TvDetailVersion says "Version {resolution}"
+// in the language the app shows under cx.
+func TvDetailVersion(cx *core.Scope, resolution string) string {
+	return For(cx).TvDetailVersion(resolution)
+}
+
+// TvDetailVersion is the package's TvDetailVersion in the language of msgs.
+func (msgs Messages) TvDetailVersion(resolution string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.TvDetailVersion(resolution))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].TvDetailVersion; f != nil {
+			return f(resolution)
+		}
+		switch lang {
+		case "", "en":
+			return "Version " + msgs.arg(resolution)
+		case "zh-Hans":
+			return "版本 " + resolution
+		}
+	}
+}
+
+// TvTrailer says "Trailer"
+// in the language the app shows under cx.
+func TvTrailer(cx *core.Scope) string { return For(cx).TvTrailer() }
+
+// TvTrailer is the package's TvTrailer in the language of msgs.
+func (msgs Messages) TvTrailer() string { return msgs.text(textTvTrailer) }
+
+// TvStarring says "Starring {names}"
+// in the language the app shows under cx.
+func TvStarring(cx *core.Scope, names string) string { return For(cx).TvStarring(names) }
+
+// TvStarring is the package's TvStarring in the language of msgs.
+func (msgs Messages) TvStarring(names string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.TvStarring(names))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].TvStarring; f != nil {
+			return f(names)
+		}
+		switch lang {
+		case "", "en":
+			return "Starring " + msgs.arg(names)
+		case "zh-Hans":
+			return "主演 " + names
+		}
+	}
+}
+
+// TvCast says "Cast and crew"
+// in the language the app shows under cx.
+func TvCast(cx *core.Scope) string { return For(cx).TvCast() }
+
+// TvCast is the package's TvCast in the language of msgs.
+func (msgs Messages) TvCast() string { return msgs.text(textTvCast) }
+
+// TvComposer says "Music"
+// in the language the app shows under cx.
+func TvComposer(cx *core.Scope) string { return For(cx).TvComposer() }
+
+// TvComposer is the package's TvComposer in the language of msgs.
+func (msgs Messages) TvComposer() string { return msgs.text(textTvComposer) }
+
+// TvChineseSubtitles says "Chinese subtitles"
+// in the language the app shows under cx.
+func TvChineseSubtitles(cx *core.Scope) string { return For(cx).TvChineseSubtitles() }
+
+// TvChineseSubtitles is the package's TvChineseSubtitles in the language of msgs.
+func (msgs Messages) TvChineseSubtitles() string { return msgs.text(textTvChineseSubtitles) }
+
+// TvRating says "Rating"
+// in the language the app shows under cx.
+func TvRating(cx *core.Scope) string { return For(cx).TvRating() }
+
+// TvRating is the package's TvRating in the language of msgs.
+func (msgs Messages) TvRating() string { return msgs.text(textTvRating) }

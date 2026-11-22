@@ -99,6 +99,8 @@ type Item struct {
 	EpisodeCount      int
 	UnplayedCount     *int
 	People            []Person
+	Logo              string
+	Trailer           bool
 	Poster            string
 	Backdrop          string
 	ExternalIDs       map[string]string

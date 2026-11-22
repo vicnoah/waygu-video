@@ -123,7 +123,7 @@ func (a *application) versionResource(cx *core.Scope, current route) *core.Resou
 		if err != nil {
 			return nil, err
 		}
-		if versioned, ok := client.(media.VersionClient); ok {
+		if versioned, ok := client.(media.VersionClient); ok && playable(current.item) {
 			return versioned.Versions(ctx, current.item)
 		}
 		return nil, nil

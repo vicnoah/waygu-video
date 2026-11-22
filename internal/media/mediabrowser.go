@@ -133,6 +133,7 @@ type browserList struct {
 type browserItem struct {
 	ID                             string
 	Name                           string
+	ExtraType                      string
 	OriginalTitle                  string
 	OfficialRating                 string
 	Overview                       string
@@ -339,6 +340,10 @@ func (m *mediaBrowser) item(entry browserItem) Item {
 	for _, source := range entry.MediaSources {
 		addStreams(source.MediaStreams)
 	}
+	if tag := entry.ImageTags["Logo"]; tag != "" {
+		item.Logo = m.image(entry.ID, "Logo", tag)
+	}
+	item.Trailer = strings.EqualFold(entry.ExtraType, "Trailer") || strings.EqualFold(entry.Type, "Trailer")
 	if tag := entry.ImageTags["Primary"]; tag != "" {
 		item.Poster = m.image(entry.ID, "Primary", tag)
 	}

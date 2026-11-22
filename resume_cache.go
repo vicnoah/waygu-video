@@ -55,7 +55,7 @@ func (a *application) saveResumeCache(update resumeCacheUpdate) {
 
 func offlineItem(item media.Item) media.Item {
 	// The offline progress records need metadata, never signed artwork URLs.
-	item.Poster, item.Backdrop = "", ""
+	item.Poster, item.Backdrop, item.Logo = "", "", ""
 	item.People = nil
 	return item
 }

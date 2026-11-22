@@ -61,6 +61,18 @@ func (l tvLayout) focusRing() *core.Style {
 	return &core.Style{Shadows: []core.BoxShadow{core.Ring(max(2, l.points(4)), core.RGB(0x8b5cf6))}}
 }
 
+func tvClock(cx *core.Scope, l tvLayout) core.Text {
+	clock := core.NewSignal(cx, cx.Now().Format("15:04"))
+	cx.Effect(func() {
+		clock.Get()
+		next := cx.Now().Truncate(time.Minute).Add(time.Minute)
+		cx.AfterFunc(next.Sub(cx.Now()), func() { clock.Set(cx.Now().Format("15:04")) })
+	})
+	text := l.text("", 30, "font-medium text-white")
+	text.ContentFunc = clock.Get
+	return text
+}
+
 type tvShellHomeOptions struct {
 	header     core.Node
 	openRecent func()
@@ -167,12 +179,6 @@ func (a *application) tvHeader(cx *core.Scope, l tvLayout, page func() screen, c
 		}
 		nodes = append(nodes, button)
 	}
-	clock := core.NewSignal(cx, cx.Now().Format("15:04"))
-	cx.Effect(func() {
-		clock.Get()
-		next := cx.Now().Truncate(time.Minute).Add(time.Minute)
-		cx.AfterFunc(next.Sub(cx.Now()), func() { clock.Set(cx.Now().Format("15:04")) })
-	})
 	return core.View{Class: "flex-row items-center justify-between", TestID: "tv-header",
 		Style: core.Style{Padding: core.Edges{Top: l.points(48), Left: l.points(96), Right: l.points(96), Bottom: l.points(16)}},
 		Children: []core.Node{
@@ -183,7 +189,7 @@ func (a *application) tvHeader(cx *core.Scope, l tvLayout, page func() screen, c
 			core.View{Class: "flex-row items-center rounded-full border border-white/15 bg-black/35 shadow-2xl",
 				Style: core.Style{Padding: core.All(l.points(8)), Gap: l.points(4)}, Children: nodes},
 			core.View{Class: "flex-row items-center", Style: core.Style{Gap: l.points(24)}, Children: []core.Node{
-				core.Text{ContentFunc: clock.Get, Class: "font-medium text-white", Style: core.Style{FontSize: l.points(30)}},
+				tvClock(cx, l),
 				core.View{Class: "items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/40 ring-2 ring-white/30",
 					Style: core.Style{Width: l.length(56), Height: l.length(56)}, Children: []core.Node{
 						core.Dynamic(func(cx *core.Scope) core.Node {
@@ -245,7 +251,7 @@ func (a *application) tvHome(cx *core.Scope, results *core.Resource[catalogResul
 						return nil
 					}
 					return tvShelf(l, "tv-resume", locales.ContinueWatching(cx), "bg-violet-500",
-						l.text(locales.HomeItemCount(cx, strconv.Itoa(len(cards))), 20, tvMuted), nil, cards)
+						l.text(locales.HomeItemCount(cx, strconv.Itoa(len(cards))), 20, tvMuted), nil, 32, cards)
 				}))
 			}
 			if len(recent) > 0 {

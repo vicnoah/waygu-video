@@ -38,7 +38,7 @@ type plexContainer struct {
 
 type plexMetadata struct {
 	RatingKey, Type, Title, Summary, Thumb, Art string
-	Reason, ReasonTitle                         string
+	Reason, ReasonTitle, Subtype                string
 	OriginalTitle, ContentRating                string
 	ParentRatingKey, GrandparentRatingKey       string
 	GrandparentTitle                            string
@@ -257,6 +257,7 @@ func (p *plexClient) items(entries []plexMetadata) []Item {
 func (p *plexClient) item(entry plexMetadata) Item {
 	item := Item{ID: entry.RatingKey, Kind: Kind(entry.Type), Title: entry.Title, Year: entry.Year,
 		Overview: entry.Summary, Rating: entry.Rating, Duration: millis(entry.Duration),
+		Trailer:       strings.EqualFold(entry.Subtype, "trailer") || strings.EqualFold(entry.Type, "trailer"),
 		OriginalTitle: entry.OriginalTitle, ContentRating: entry.ContentRating,
 		Position: millis(entry.ViewOffset), Watched: entry.ViewCount > 0, SeriesTitle: entry.GrandparentTitle,
 		Poster: p.mediaURL(entry.Thumb, nil), Backdrop: p.mediaURL(entry.Art, nil),

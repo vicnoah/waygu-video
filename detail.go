@@ -45,6 +45,9 @@ func (a *application) detailLayout(cx *core.Scope, current route, idiom core.Idi
 			titleDetail = a.phoneSeriesDetail
 		}
 	}
+	if idiom == core.IdiomTV {
+		titleDetail = a.tvMediaDetail
+	}
 	if current.match == nil {
 		if titleDetail != nil {
 			return titleDetail(cx, current, nil, nil)
