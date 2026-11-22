@@ -4,6 +4,7 @@ package mpv
 import (
 	"errors"
 	"image"
+	"strconv"
 	"time"
 
 	"waygu-video/internal/danmaku"
@@ -44,6 +45,10 @@ func (p *Player) Pause(paused bool) error {
 }
 
 func (p *Player) Seek(position time.Duration) error { return p.seek(max(0, position)) }
+
+func (p *Player) Speed(rate float32) error {
+	return p.property("speed", strconv.FormatFloat(float64(rate), 'f', -1, 32))
+}
 
 func (p *Player) Poll() Event { return p.poll() }
 

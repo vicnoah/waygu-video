@@ -116,7 +116,7 @@ def scan_jellyfin_fixtures(base, user_id, headers):
             "UserId": user_id, "Recursive": "true", "IncludeItemTypes": "Movie,Series",
         })
         titles = [item["Name"] for item in catalog["Items"]]
-        for title in ("Waygu Test Movie", "Waygu Resume Test", "Waygu Test Series"):
+        for title in ("Waygu Test Movie", "Waygu Resume Test", "Waygu Track Test", "Waygu Test Series"):
             if not any(name.startswith(title) for name in titles):
                 raise ValueError(f"Jellyfin scan has not indexed fixture {title!r}")
         return True

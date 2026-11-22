@@ -67,6 +67,23 @@ resume: Resume
 fromStart: Play from beginning
 pause: Pause
 closePlayer: Close player
+playerTracks: Subtitles and audio
+subtitles: Subtitles
+subtitlesOff: Turn subtitles off
+openSubtitleFile: Open subtitle file
+subtitleLoadError: Could not load the subtitle file.
+subtitleDelay: "Subtitle delay {seconds} s"
+subtitleEarlier: Show subtitles earlier
+subtitleLater: Show subtitles later
+forcedSubtitle: Forced
+externalSubtitle: External
+audioTracks: Audio tracks
+noAudioTracks: No selectable audio tracks for this source.
+audioSwitchError: Could not switch audio tracks.
+trackNumber: "Track {number}"
+playbackSpeed: Speed
+playbackSpeedUnavailable: This player cannot change speed for the current stream.
+tracksDone: Done
 retry: Retry
 loading: Loading…
 serverError: Could not load data from the server. Try again.

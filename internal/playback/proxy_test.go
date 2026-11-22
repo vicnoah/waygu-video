@@ -45,6 +45,9 @@ func TestProxyPreservesRangeAndAuthenticatesHLSResources(t *testing.T) {
 		}
 		switch r.URL.Path {
 		case "/media/show/index.m3u8":
+			if r.Header.Get("Range") != "" {
+				t.Error("the proxy requested a partial playlist")
+			}
 			w.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
 			fmt.Fprint(w, "#EXTM3U\n#EXT-X-MAP:URI=\"/media/header.mp4\"\n#EXTINF:4,\nsegment.m4s?quality=1\n")
 		case "/media/show/segment.m4s":
@@ -67,7 +70,12 @@ func TestProxyPreservesRangeAndAuthenticatesHLSResources(t *testing.T) {
 	}
 	defer close()
 	base, _ := url.Parse(address)
-	response, err := http.Get(address)
+	manifest, err := http.NewRequest(http.MethodGet, address, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest.Header.Set("Range", "bytes=0-")
+	response, err := http.DefaultClient.Do(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}

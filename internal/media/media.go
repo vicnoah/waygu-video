@@ -117,6 +117,8 @@ type Track struct {
 	URL      string
 	Default  bool
 	Forced   bool
+	Selected bool
+	External bool
 }
 
 type PlayMethod string

@@ -23,6 +23,7 @@ type mpvCommand struct {
 	seek   time.Duration
 	seekID uint64
 	track  *danmaku.Track
+	rate   float32
 }
 
 const (
@@ -44,7 +45,8 @@ func mpvVideo(cx *core.Scope, native core.Video) desktopVideo {
 	}
 	cx.Effect(func() {
 		paused := native.PausedFunc()
-		update(func(c *mpvCommand) { c.paused = paused })
+		speed := native.RateFunc()
+		update(func(c *mpvCommand) { c.paused, c.rate = paused, speed })
 	})
 	viewContext := cx.Context()
 	go playMPV(viewContext, cx, native, &desired, mode, pixels)
@@ -109,6 +111,9 @@ func playMPV(ctx context.Context, cx *core.Scope, events core.Video, desired *at
 			if command.seekID != applied.seekID {
 				_ = player.Seek(command.seek)
 			}
+			if command.rate > 0 && command.rate != applied.rate {
+				_ = player.Speed(command.rate)
+			}
 			if command.track != applied.track {
 				player.Danmaku(command.track)
 			}
@@ -125,7 +130,7 @@ func playMPV(ctx context.Context, cx *core.Scope, events core.Video, desired *at
 			if event.Loaded && !ready {
 				ready = true
 				post(func() {
-					events.OnLoad(core.VideoInfo{Duration: status.Duration,
+					events.OnLoad(core.VideoInfo{Duration: status.Duration, RateChangeable: true,
 						Size: core.Size{Width: core.Points(status.Width), Height: core.Points(status.Height)}})
 				})
 			}

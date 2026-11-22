@@ -22,7 +22,7 @@ type videoSample struct {
 }
 
 func playerDanmaku(cx *core.Scope, sample *core.Signal[videoSample], size *core.Signal[core.Size], paused, buffering *core.Signal[bool],
-	useCanvas func() bool, showOnMPV func(*danmaku.Track)) danmakuControls {
+	rate func() float32, useCanvas func() bool, showOnMPV func(*danmaku.Track)) danmakuControls {
 	track := core.NewSignal[*danmaku.Track](cx, nil)
 	open := core.NewSignal(cx, false)
 	invalid := core.NewSignal(cx, false)
@@ -85,11 +85,12 @@ func playerDanmaku(cx *core.Scope, sample *core.Signal[videoSample], size *core.
 		if !open.Get() || !useCanvas() || paused.Get() || buffering.Get() || value.seen.IsZero() {
 			return
 		}
+		speed := float64(rate())
 		var next func()
 		var animate func(time.Time)
 		animate = func(now time.Time) {
 			elapsed := min(max(0, now.Sub(value.seen)), 250*time.Millisecond)
-			clock.Set(value.position + elapsed)
+			clock.Set(value.position + time.Duration(float64(elapsed)*speed))
 			if elapsed < 250*time.Millisecond {
 				next = cx.RequestAnimationFrame(animate)
 			}

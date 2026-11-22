@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/nsgo-dev/nsgo/core"
@@ -20,6 +22,7 @@ type playerMedia struct {
 	client media.Client
 	stream media.Stream
 	url    string
+	close  func()
 }
 
 func (a *application) player(cx *core.Scope, current route) core.Node {
@@ -28,25 +31,17 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	cx.SetTheme(theme)
 	platform := cx.Env().OS()
 	bitrate := a.bitrateLimit.GetUntracked()
+	noServerSubtitles := -1
 	resource := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (playerMedia, error) {
 		client, err := a.client(current.source)
 		if err != nil {
 			return playerMedia{}, err
 		}
-		stream, err := client.Playback(ctx, current.item, media.PlaybackOptions{MaxBitrate: bitrate})
+		stream, err := client.Playback(ctx, current.item, media.PlaybackOptions{MaxBitrate: bitrate, SubtitleIndex: &noServerSubtitles})
 		if err != nil {
 			return playerMedia{}, err
 		}
-		address := stream.URL
-		if len(stream.Headers) > 0 || (platform == core.OSAndroid && strings.HasPrefix(address, "http://")) {
-			var close func()
-			address, close, err = playback.Open(stream.URL, stream.Headers)
-			if err != nil {
-				return playerMedia{}, err
-			}
-			context.AfterFunc(ctx, close)
-		}
-		return playerMedia{client, stream, address}, nil
+		return prepareVideo(ctx, client, stream, platform == core.OSAndroid)
 	})
 	return core.View{Class: "flex-1 bg-black", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
 		core.Dynamic(func(cx *core.Scope) core.Node {
@@ -66,23 +61,53 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	}}
 }
 
-func (a *application) playerView(cx *core.Scope, current route, medium playerMedia) core.Node {
+func prepareVideo(lifetime context.Context, client media.Client, stream media.Stream, android bool) (playerMedia, error) {
+	medium := playerMedia{client: client, stream: stream, url: stream.URL, close: func() {}}
+	if len(stream.Headers) == 0 && !(android && strings.HasPrefix(stream.URL, "http://")) {
+		return medium, nil
+	}
+	address, closeProxy, err := playback.Open(stream.URL, stream.Headers)
+	if err != nil {
+		return playerMedia{}, err
+	}
+	stop := context.AfterFunc(lifetime, closeProxy)
+	medium.url = address
+	medium.close = func() {
+		if stop() {
+			closeProxy()
+		}
+	}
+	return medium, nil
+}
+
+func (a *application) playerView(cx *core.Scope, current route, initial playerMedia) core.Node {
+	medium := core.NewSignalFunc(cx, initial, nil)
 	ref := &core.Ref{}
 	seekVideo := ref.Seek
 	position := core.NewSignal(cx, time.Duration(0))
-	duration := core.NewSignal(cx, medium.stream.Duration)
+	if current.resume {
+		position.Set(initial.stream.Position)
+	}
+	duration := core.NewSignal(cx, initial.stream.Duration)
 	ended := core.NewSignal(cx, false)
-	nextEpisode := a.nextEpisodeCard(cx, current, medium.client, position, duration, ended)
+	nextEpisode := a.nextEpisodeCard(cx, current, initial.client, position, duration, ended)
 	sample := core.NewSignal(cx, videoSample{})
 	picture := core.NewSignal(cx, core.Size{})
 	paused := core.NewSignal(cx, false)
+	rate := core.NewSignal(cx, float32(1))
+	canChangeRate := core.NewSignal(cx, false)
 	failure := core.NewSignal(cx, false)
 	buffering := core.NewSignal(cx, false)
+	switchingAudio := core.NewSignal(cx, false)
+	audioError := core.NewSignal(cx, false)
+	usingMPV := core.NewSignal(cx, false)
+	var danmakuTrack *danmaku.Track
+	var setMPVDanmaku func(*danmaku.Track)
 	loaded := false
 	var lastReport time.Time
-	enqueue, finish := playbackReports(medium.client)
+	enqueue, finish := playbackReports(initial.client)
 	snapshot := func(event media.PlaybackEvent) media.PlaybackState {
-		stream := medium.stream
+		stream := medium.GetUntracked().stream
 		stream.Duration = duration.GetUntracked()
 		return media.PlaybackState{Event: event, Stream: stream, Position: position.GetUntracked(), Paused: paused.GetUntracked()}
 	}
@@ -93,6 +118,7 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 		}
 	}
 	cx.Cleanup(func() {
+		medium.GetUntracked().close()
 		if loaded && !ended.GetUntracked() {
 			final := snapshot(media.Stopped)
 			finish(&final)
@@ -111,68 +137,134 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 		seekVideo(at)
 		report(media.Progress)
 	}
-	video := core.Video{Source: medium.url, PausedFunc: paused.Get, Ref: ref,
-		TestID: "video-player", Class: "absolute inset-0", ResizeMode: core.Contain, ProgressInterval: 250 * time.Millisecond,
-		AudioSession: core.AudioSessionPlayback,
-		OnLoad: func(info core.VideoInfo) {
-			picture.Set(info.Size)
-			if info.Duration > 0 {
-				duration.Set(info.Duration)
-			}
-			loaded = true
-			if current.resume && medium.stream.Position > 0 && medium.stream.Position < duration.GetUntracked() {
-				position.Set(medium.stream.Position)
-				sample.Set(videoSample{medium.stream.Position, cx.Now()})
-				seekVideo(medium.stream.Position)
-			}
-			report(media.Started)
-		},
-		OnProgress: func(at, length time.Duration) {
-			position.Set(at)
-			sample.Set(videoSample{at, cx.Now()})
-			if length > 0 {
-				duration.Set(length)
-			}
-			if !ended.GetUntracked() && cx.Now().Sub(lastReport) >= 10*time.Second {
-				report(media.Progress)
-			}
-		},
-		OnPause: func(core.VideoPauseReason) {
-			if !paused.GetUntracked() && !ended.GetUntracked() {
-				paused.Set(true)
-				report(media.Progress)
-			}
-		},
-		OnPlay: func() {
-			if paused.GetUntracked() {
-				paused.Set(false)
-				report(media.Progress)
-			}
-		},
-		OnBuffer: buffering.Set, OnError: func(error) { failure.Set(true) },
-		OnEnd: func() {
-			position.Set(duration.GetUntracked())
-			paused.Set(true)
-			ended.Set(true)
-			report(media.Stopped)
-		},
-	}
-	var image core.Node = video
-	var showOnMPV func(*danmaku.Track)
-	useCanvas := func() bool { return true }
-	if cx.Env().Desktop() && a.mpvPreferred.GetUntracked() {
-		desktop := mpvVideo(cx, video)
-		image, showOnMPV = desktop.node, desktop.comments
-		useCanvas = func() bool { return !desktop.active() }
-		seekVideo = func(at time.Duration) {
-			if desktop.active() {
-				desktop.seek(at)
-			} else {
-				ref.Seek(at)
-			}
+	playerContext := cx.Context()
+	preferMPV := cx.Env().Desktop() && a.mpvPreferred.GetUntracked()
+	android := cx.Env().OS() == core.OSAndroid
+	bitrate := a.bitrateLimit.GetUntracked()
+	noServerSubtitles := -1
+	chooseAudio := func(track media.Track) {
+		index, err := strconv.Atoi(track.ID)
+		if err != nil || track.Selected || switchingAudio.GetUntracked() {
+			return
 		}
+		previous := medium.GetUntracked()
+		switchingAudio.Set(true)
+		audioError.Set(false)
+		go func() {
+			ctx, cancel := context.WithTimeout(playerContext, 35*time.Second)
+			defer cancel()
+			stream, err := previous.client.Playback(ctx, current.item, media.PlaybackOptions{
+				SourceID: previous.stream.SourceID, MaxBitrate: bitrate, AudioIndex: &index, SubtitleIndex: &noServerSubtitles,
+			})
+			var next playerMedia
+			if err == nil {
+				next, err = prepareVideo(playerContext, previous.client, stream, android)
+			}
+			cx.Post(func() {
+				switchingAudio.Set(false)
+				if err != nil {
+					audioError.Set(true)
+					return
+				}
+				if loaded && !ended.GetUntracked() {
+					enqueue(snapshot(media.Stopped))
+				}
+				if ended.GetUntracked() {
+					position.Set(0)
+				}
+				loaded = false
+				ended.Set(false)
+				failure.Set(false)
+				buffering.Set(true)
+				canChangeRate.Set(false)
+				usingMPV.Set(false)
+				previous.close()
+				medium.Set(next)
+			})
+		}()
 	}
-	comments := playerDanmaku(cx, sample, picture, paused, buffering, useCanvas, showOnMPV)
+	image := core.Dynamic(func(cx *core.Scope) core.Node {
+		active := medium.Get()
+		video := core.Video{Source: active.url, PausedFunc: paused.Get, RateFunc: rate.Get, Ref: ref,
+			TestID: "video-player", Class: "absolute inset-0", ResizeMode: core.Contain, ProgressInterval: 150 * time.Millisecond,
+			AudioSession: core.AudioSessionPlayback,
+			OnLoad: func(info core.VideoInfo) {
+				picture.Set(info.Size)
+				if info.Duration > 0 {
+					duration.Set(info.Duration)
+				}
+				loaded = true
+				buffering.Set(false)
+				canChangeRate.Set(info.RateChangeable)
+				if !info.RateChangeable {
+					rate.Set(1)
+				}
+				at := position.GetUntracked()
+				if at > 0 && (duration.GetUntracked() <= 0 || at < duration.GetUntracked()) {
+					sample.Set(videoSample{at, cx.Now()})
+					seekVideo(at)
+				} else {
+					position.Set(0)
+					sample.Set(videoSample{0, cx.Now()})
+				}
+				report(media.Started)
+			},
+			OnProgress: func(at, length time.Duration) {
+				if !loaded {
+					return
+				}
+				position.Set(at)
+				sample.Set(videoSample{at, cx.Now()})
+				if length > 0 {
+					duration.Set(length)
+				}
+				if !ended.GetUntracked() && cx.Now().Sub(lastReport) >= 10*time.Second {
+					report(media.Progress)
+				}
+			},
+			OnPause: func(core.VideoPauseReason) {
+				if !paused.GetUntracked() && !ended.GetUntracked() {
+					paused.Set(true)
+					report(media.Progress)
+				}
+			},
+			OnPlay: func() {
+				if paused.GetUntracked() {
+					paused.Set(false)
+					report(media.Progress)
+				}
+			},
+			OnBuffer: buffering.Set, OnError: func(error) { failure.Set(true) },
+			OnEnd: func() {
+				position.Set(duration.GetUntracked())
+				paused.Set(true)
+				ended.Set(true)
+				report(media.Stopped)
+			},
+		}
+		if preferMPV {
+			desktop := mpvVideo(cx, video)
+			setMPVDanmaku = desktop.comments
+			setMPVDanmaku(danmakuTrack)
+			cx.Effect(func() { usingMPV.Set(desktop.active()) })
+			seekVideo = func(at time.Duration) {
+				if desktop.active() {
+					desktop.seek(at)
+				} else {
+					ref.Seek(at)
+				}
+			}
+			return desktop.node
+		}
+		return video
+	})
+	comments := playerDanmaku(cx, sample, picture, paused, buffering, rate.Get, func() bool { return !usingMPV.Get() }, func(track *danmaku.Track) {
+		danmakuTrack = track
+		if setMPVDanmaku != nil {
+			setMPVDanmaku(track)
+		}
+	})
+	tracks := playerTracks(cx, func() []media.Track { return medium.Get().stream.Tracks }, position, rate, canChangeRate, switchingAudio, audioError, chooseAudio)
 	toggle := func() {
 		if ended.GetUntracked() {
 			seek(0)
@@ -184,14 +276,16 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 	return core.View{Class: "relative flex-1 overflow-hidden bg-black", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
 		image,
 		comments.overlay,
+		tracks.captions,
 		core.View{Class: "absolute left-0 right-0 top-0 flex-row items-center gap-3 bg-linear-to-b from-black/90 to-transparent p-5",
 			Style: core.Style{PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea}}, Children: []core.Node{
 				ui.Button{Label: locales.ClosePlayer(cx), Icon: lucide.ChevronLeft, Variant: ui.ButtonSecondary, OnPress: a.back, TestID: "close-player"},
 				core.View{Class: "flex-1 gap-1", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
 					core.Text{Content: current.item.Title, Class: "text-lg font-semibold text-white", TestID: "player-title"},
-					core.Text{Content: current.source.Name + " · " + playMethod(cx, medium.stream.Method), Class: "text-xs text-zinc-300"},
+					core.Text{ContentFunc: func() string { return current.source.Name + " · " + playMethod(cx, medium.Get().stream.Method) }, Class: "text-xs text-zinc-300"},
 				}},
 				comments.buttons,
+				tracks.button,
 			}},
 		core.Show{When: func() bool { return buffering.Get() || failure.Get() }, Then: func(cx *core.Scope) core.Node {
 			return core.View{Class: "absolute inset-0 items-center justify-center", Children: []core.Node{
@@ -207,7 +301,7 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 			Style: core.Style{PaddingEnv: core.EnvEdges{Bottom: core.EnvSafeArea}}, Children: []core.Node{
 				nextEpisode,
 				core.View{Class: "flex-row items-center gap-3", Children: []core.Node{
-					core.Text{ContentFunc: func() string { return playbackClock(position.Get()) }, Class: "text-xs text-white"},
+					core.Text{ContentFunc: func() string { return playbackClock(position.Get()) }, Class: "text-xs text-white", TestID: "player-position"},
 					ui.Slider{Label: locales.PlaybackPosition(cx), Value: func() float64 { return position.Get().Seconds() },
 						MaxFunc: func() float64 { return duration.Get().Seconds() }, Disabled: func() bool { return duration.Get() <= 0 },
 						OnChange: func(seconds float64) { seek(time.Duration(seconds * float64(time.Second))) },
@@ -228,33 +322,60 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 						OnPress: func() { seek(position.GetUntracked() + 10*time.Second) }},
 				}},
 			}},
+		tracks.dialog,
 	}}
 }
 
 func playbackReports(client media.Client) (func(media.PlaybackState), func(*media.PlaybackState)) {
-	updates := make(chan media.PlaybackState, 12)
-	done := make(chan *media.PlaybackState, 1)
+	var mu sync.Mutex
+	var updates []media.PlaybackState
+	closed := false
+	wake := make(chan struct{}, 1)
+	notify := func() {
+		select {
+		case wake <- struct{}{}:
+		default:
+		}
+	}
 	go func() {
-		report := func(state media.PlaybackState) {
+		for {
+			mu.Lock()
+			if len(updates) == 0 {
+				done := closed
+				mu.Unlock()
+				if done {
+					return
+				}
+				<-wake
+				continue
+			}
+			state := updates[0]
+			updates[0] = media.PlaybackState{}
+			updates = updates[1:]
+			mu.Unlock()
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
 			_ = client.Report(ctx, state)
-		}
-		for state := range updates {
-			report(state)
-		}
-		if final := <-done; final != nil {
-			report(*final)
+			cancel()
 		}
 	}()
 	return func(value media.PlaybackState) {
-			select {
-			case updates <- value:
-			default:
+			mu.Lock()
+			last := len(updates) - 1
+			if last >= 0 && updates[last].Event == media.Progress && value.Event == media.Progress {
+				updates[last] = value
+			} else {
+				updates = append(updates, value)
 			}
+			mu.Unlock()
+			notify()
 		}, func(final *media.PlaybackState) {
-			done <- final
-			close(updates)
+			mu.Lock()
+			if final != nil {
+				updates = append(updates, *final)
+			}
+			closed = true
+			mu.Unlock()
+			notify()
 		}
 }
 

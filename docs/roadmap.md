@@ -11,7 +11,8 @@ The Scenra files in `design/` define the product. The current app connects to Em
 
 ## Playback and library
 
-- Verify codec-driven direct stream and transcode decisions. Add network-specific bitrate preferences. Validate track selection, external and online subtitles, audio controls and offline progress replay. Verify next-episode playback across seasons on TV devices and add intro and credits markers.
+- The player switches Emby, Jellyfin and Plex audio at the current position, supports local SRT and WebVTT files, text subtitles from Emby and Jellyfin, external SRT and WebVTT from Plex, subtitle delay and playback speed on capable backends.
+- Verify codec-driven direct stream and transcode decisions. Add network-specific bitrate preferences, Flymoo track selection, embedded Plex and image subtitles, subtitle language preferences, online search, caption styles, audio controls and offline progress replay. Verify next-episode playback across seasons on TV devices and add intro and credits markers.
 - Add DandanPlay matching, comment binding and cache, additional comment import formats, and the player settings from `design/`.
 - Implement offline downloads, casting, settings, parental controls and iCloud sync. Complete the phone, tablet, desktop and TV views from `design/`.
 

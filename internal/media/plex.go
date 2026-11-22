@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -55,20 +56,24 @@ type plexMedia struct {
 }
 
 type plexPart struct {
+	ID       int
 	Key      string
 	Duration int64
 	Stream   []plexTrack
 }
 
 type plexTrack struct {
-	ID         int
-	StreamType int
-	Codec      string
-	Language   string
-	Title      string
-	Key        string
-	Default    bool
-	Forced     bool
+	ID           int
+	StreamType   int
+	Codec        string
+	Language     string
+	LanguageCode string
+	Title        string
+	DisplayTitle string
+	Key          string
+	Default      bool
+	Forced       bool
+	Selected     bool
 }
 
 func (p *plexClient) auth() http.Header {
@@ -297,22 +302,43 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			continue
 		}
 		part := version.Part[0]
+		audio := options.AudioIndex
+		if audio != nil && (part.ID <= 0 || !slices.ContainsFunc(part.Stream, func(track plexTrack) bool {
+			return track.StreamType == 2 && track.ID == *audio
+		})) {
+			continue
+		}
 		stream := Stream{ItemID: item.ID, SourceID: sourceID, SessionID: rand.Text(),
 			Position: millis(entry.ViewOffset), Duration: millis(max(entry.Duration, part.Duration)),
 			URL: p.mediaURL(part.Key, nil), Method: DirectPlay}
-		if !plexDirect(version, options) {
+		switchAudio := audio != nil || plexAlternativeAudio(part.Stream)
+		if switchAudio || !plexDirect(version, options) {
 			params := url.Values{"path": {plexItemRoute(item.ID)}, "mediaIndex": {strconv.Itoa(index)}, "partIndex": {"0"},
 				"protocol": {"hls"}, "directPlay": {"0"}, "directStream": {"1"}, "session": {stream.SessionID},
 				"X-Plex-Client-Identifier": {p.device.ID}, "X-Plex-Session-Identifier": {stream.SessionID},
 				"X-Plex-Product": {"Waygu Video"}, "X-Plex-Platform": {"Chrome"}}
-			if options.MaxBitrate > 0 {
-				params.Set("maxVideoBitrate", strconv.Itoa(options.MaxBitrate/1000))
+			if options.SubtitleIndex != nil && *options.SubtitleIndex < 0 {
+				params.Set("subtitles", "none")
+			}
+			if options.MaxBitrate > 0 || switchAudio {
 				params.Set("directStream", "0")
 			}
+			if options.MaxBitrate > 0 {
+				params.Set("maxVideoBitrate", strconv.Itoa(options.MaxBitrate/1000))
+			}
 			stream.URL, stream.Method = p.mediaURL("/video/:/transcode/universal/start.m3u8", params), Transcode
+			stream.Headers = p.auth()
 		}
 		if stream.URL == "" {
 			continue
+		}
+		if audio != nil {
+			// Plex stores the user's selected track on the part. Its
+			// transcoder uses that selection for the next playback session.
+			params := url.Values{"audioStreamID": {strconv.Itoa(*audio)}}
+			if err := p.request(ctx, http.MethodPut, "/library/parts/"+strconv.Itoa(part.ID), params, p.auth(), nil, nil); err != nil {
+				return Stream{}, err
+			}
 		}
 		for _, track := range part.Stream {
 			kind := "audio"
@@ -323,13 +349,44 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			default:
 				continue
 			}
-			stream.Tracks = append(stream.Tracks, Track{ID: strconv.Itoa(track.ID), Type: kind, Title: track.Title,
-				Language: track.Language, Codec: track.Codec, Default: track.Default, Forced: track.Forced,
-				URL: p.mediaURL(track.Key, nil)})
+			title, language := track.Title, track.LanguageCode
+			if title == "" {
+				title = track.DisplayTitle
+			}
+			if language == "" {
+				language = track.Language
+			}
+			current := Track{ID: strconv.Itoa(track.ID), Type: kind, Title: title,
+				Language: language, Codec: track.Codec, Default: track.Default, Forced: track.Forced, Selected: track.Selected}
+			if kind == "audio" && audio != nil {
+				current.Selected = track.ID == *audio
+			}
+			if kind == "subtitle" && track.Key != "" {
+				current.External = true
+				switch strings.ToLower(track.Codec) {
+				case "srt", "subrip", "vtt", "webvtt":
+					current.URL = p.mediaURL(track.Key, nil)
+				}
+			}
+			stream.Tracks = append(stream.Tracks, current)
 		}
 		return stream, nil
 	}
 	return Stream{}, ErrNoStream
+}
+
+func plexAlternativeAudio(tracks []plexTrack) bool {
+	index := 0
+	for _, track := range tracks {
+		if track.StreamType != 2 {
+			continue
+		}
+		if track.Selected {
+			return index > 0
+		}
+		index++
+	}
+	return false
 }
 
 func plexDirect(version plexMedia, options PlaybackOptions) bool {

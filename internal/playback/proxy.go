@@ -84,7 +84,14 @@ func (p *streamProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for name, values := range p.headers {
 		request.Header[name] = values
 	}
+	playlistPath := strings.HasSuffix(r.URL.Path, ".m3u8")
 	for _, name := range []string{"Range", "If-Range", "If-None-Match", "If-Modified-Since"} {
+		if playlistPath {
+			// Playlist contents are rewritten in full. A 206 response can't
+			// be passed through because its relative URLs bypass proxy routes.
+			request.Header.Del(name)
+			continue
+		}
 		if value := r.Header.Get(name); value != "" {
 			request.Header.Set(name, value)
 		}
@@ -101,7 +108,7 @@ func (p *streamProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	contentType := response.Header.Get("Content-Type")
 	if r.Method == http.MethodGet && response.StatusCode == http.StatusOK &&
-		(strings.HasSuffix(r.URL.Path, ".m3u8") || strings.Contains(strings.ToLower(contentType), "mpegurl")) {
+		(playlistPath || strings.Contains(strings.ToLower(contentType), "mpegurl")) {
 		data, err := p.playlist(response.Request.URL, response.Body)
 		if err != nil {
 			http.Error(w, "Invalid stream playlist", http.StatusBadGateway)

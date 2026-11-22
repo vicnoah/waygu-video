@@ -48,6 +48,8 @@ var Parameters = map[string][]string{
 	"ShowNamedLibraryOnHome":  {"name"},
 	"MoveLibraryUp":           {"name"},
 	"MoveLibraryDown":         {"name"},
+	"SubtitleDelay":           {"seconds"},
+	"TrackNumber":             {"number"},
 	"BitrateMegabits":         {"bitrate"},
 	"NextEpisodeCountdown":    {"seconds"},
 	"EpisodeLabel":            {"number"},
@@ -66,6 +68,8 @@ type Translation struct {
 	ShowNamedLibraryOnHome  func(name string) string
 	MoveLibraryUp           func(name string) string
 	MoveLibraryDown         func(name string) string
+	SubtitleDelay           func(seconds string) string
+	TrackNumber             func(number string) string
 	BitrateMegabits         func(bitrate string) string
 	NextEpisodeCountdown    func(seconds string) string
 	EpisodeLabel            func(number string) string
@@ -141,6 +145,21 @@ const (
 	textFromStart
 	textPause
 	textClosePlayer
+	textPlayerTracks
+	textSubtitles
+	textSubtitlesOff
+	textOpenSubtitleFile
+	textSubtitleLoadError
+	textSubtitleEarlier
+	textSubtitleLater
+	textForcedSubtitle
+	textExternalSubtitle
+	textAudioTracks
+	textNoAudioTracks
+	textAudioSwitchError
+	textPlaybackSpeed
+	textPlaybackSpeedUnavailable
+	textTracksDone
 	textRetry
 	textLoading
 	textServerError
@@ -250,6 +269,21 @@ var keyOfText = [numTexts]string{
 	"fromStart",
 	"pause",
 	"closePlayer",
+	"playerTracks",
+	"subtitles",
+	"subtitlesOff",
+	"openSubtitleFile",
+	"subtitleLoadError",
+	"subtitleEarlier",
+	"subtitleLater",
+	"forcedSubtitle",
+	"externalSubtitle",
+	"audioTracks",
+	"noAudioTracks",
+	"audioSwitchError",
+	"playbackSpeed",
+	"playbackSpeedUnavailable",
+	"tracksDone",
 	"retry",
 	"loading",
 	"serverError",
@@ -357,6 +391,21 @@ var textsEn = i18n.NewTexts(""+
 	"Play from beginning"+
 	"Pause"+
 	"Close player"+
+	"Subtitles and audio"+
+	"Subtitles"+
+	"Turn subtitles off"+
+	"Open subtitle file"+
+	"Could not load the subtitle file."+
+	"Show subtitles earlier"+
+	"Show subtitles later"+
+	"Forced"+
+	"External"+
+	"Audio tracks"+
+	"No selectable audio tracks for this source."+
+	"Could not switch audio tracks."+
+	"Speed"+
+	"This player cannot change speed for the current stream."+
+	"Done"+
 	"Retry"+
 	"Loading…"+
 	"Could not load data from the server. Try again."+
@@ -461,6 +510,21 @@ var textsEn = i18n.NewTexts(""+
 		19,
 		5,
 		12,
+		19,
+		9,
+		18,
+		18,
+		33,
+		22,
+		20,
+		6,
+		8,
+		12,
+		43,
+		30,
+		5,
+		55,
+		4,
 		5,
 		10,
 		47,
@@ -568,6 +632,21 @@ var textsZhHans = i18n.NewTexts(""+
 	"从头播放"+
 	"暂停"+
 	"关闭播放器"+
+	"字幕与音轨"+
+	"字幕"+
+	"关闭字幕"+
+	"打开字幕文件"+
+	"无法加载字幕文件。"+
+	"提前显示字幕"+
+	"延后显示字幕"+
+	"强制字幕"+
+	"外挂"+
+	"音轨"+
+	"此媒体源未提供可切换的音轨。"+
+	"无法切换音轨。"+
+	"倍速"+
+	"当前视频流不能调整播放速度。"+
+	"完成"+
 	"重试"+
 	"正在加载…"+
 	"无法读取服务器数据，请重试。"+
@@ -672,6 +751,21 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		6,
 		15,
+		15,
+		6,
+		12,
+		18,
+		27,
+		18,
+		18,
+		12,
+		6,
+		6,
+		42,
+		21,
+		6,
+		42,
+		6,
 		6,
 		15,
 		42,
@@ -781,6 +875,12 @@ func Supply(lang string, t Translation) {
 	}
 	if t.MoveLibraryDown != nil {
 		s.MoveLibraryDown = t.MoveLibraryDown
+	}
+	if t.SubtitleDelay != nil {
+		s.SubtitleDelay = t.SubtitleDelay
+	}
+	if t.TrackNumber != nil {
+		s.TrackNumber = t.TrackNumber
 	}
 	if t.BitrateMegabits != nil {
 		s.BitrateMegabits = t.BitrateMegabits
@@ -1381,6 +1481,157 @@ func ClosePlayer(cx *core.Scope) string { return For(cx).ClosePlayer() }
 
 // ClosePlayer is the package's ClosePlayer in the language of msgs.
 func (msgs Messages) ClosePlayer() string { return msgs.text(textClosePlayer) }
+
+// PlayerTracks says "Subtitles and audio"
+// in the language the app shows under cx.
+func PlayerTracks(cx *core.Scope) string { return For(cx).PlayerTracks() }
+
+// PlayerTracks is the package's PlayerTracks in the language of msgs.
+func (msgs Messages) PlayerTracks() string { return msgs.text(textPlayerTracks) }
+
+// Subtitles says "Subtitles"
+// in the language the app shows under cx.
+func Subtitles(cx *core.Scope) string { return For(cx).Subtitles() }
+
+// Subtitles is the package's Subtitles in the language of msgs.
+func (msgs Messages) Subtitles() string { return msgs.text(textSubtitles) }
+
+// SubtitlesOff says "Turn subtitles off"
+// in the language the app shows under cx.
+func SubtitlesOff(cx *core.Scope) string { return For(cx).SubtitlesOff() }
+
+// SubtitlesOff is the package's SubtitlesOff in the language of msgs.
+func (msgs Messages) SubtitlesOff() string { return msgs.text(textSubtitlesOff) }
+
+// OpenSubtitleFile says "Open subtitle file"
+// in the language the app shows under cx.
+func OpenSubtitleFile(cx *core.Scope) string { return For(cx).OpenSubtitleFile() }
+
+// OpenSubtitleFile is the package's OpenSubtitleFile in the language of msgs.
+func (msgs Messages) OpenSubtitleFile() string { return msgs.text(textOpenSubtitleFile) }
+
+// SubtitleLoadError says "Could not load the subtitle file."
+// in the language the app shows under cx.
+func SubtitleLoadError(cx *core.Scope) string { return For(cx).SubtitleLoadError() }
+
+// SubtitleLoadError is the package's SubtitleLoadError in the language of msgs.
+func (msgs Messages) SubtitleLoadError() string { return msgs.text(textSubtitleLoadError) }
+
+// SubtitleDelay says "Subtitle delay {seconds} s"
+// in the language the app shows under cx.
+func SubtitleDelay(cx *core.Scope, seconds string) string { return For(cx).SubtitleDelay(seconds) }
+
+// SubtitleDelay is the package's SubtitleDelay in the language of msgs.
+func (msgs Messages) SubtitleDelay(seconds string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SubtitleDelay(seconds))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SubtitleDelay; f != nil {
+			return f(seconds)
+		}
+		switch lang {
+		case "", "en":
+			return "Subtitle delay " + msgs.arg(seconds) + " s"
+		case "zh-Hans":
+			return "字幕延迟 " + seconds + " 秒"
+		}
+	}
+}
+
+// SubtitleEarlier says "Show subtitles earlier"
+// in the language the app shows under cx.
+func SubtitleEarlier(cx *core.Scope) string { return For(cx).SubtitleEarlier() }
+
+// SubtitleEarlier is the package's SubtitleEarlier in the language of msgs.
+func (msgs Messages) SubtitleEarlier() string { return msgs.text(textSubtitleEarlier) }
+
+// SubtitleLater says "Show subtitles later"
+// in the language the app shows under cx.
+func SubtitleLater(cx *core.Scope) string { return For(cx).SubtitleLater() }
+
+// SubtitleLater is the package's SubtitleLater in the language of msgs.
+func (msgs Messages) SubtitleLater() string { return msgs.text(textSubtitleLater) }
+
+// ForcedSubtitle says "Forced"
+// in the language the app shows under cx.
+func ForcedSubtitle(cx *core.Scope) string { return For(cx).ForcedSubtitle() }
+
+// ForcedSubtitle is the package's ForcedSubtitle in the language of msgs.
+func (msgs Messages) ForcedSubtitle() string { return msgs.text(textForcedSubtitle) }
+
+// ExternalSubtitle says "External"
+// in the language the app shows under cx.
+func ExternalSubtitle(cx *core.Scope) string { return For(cx).ExternalSubtitle() }
+
+// ExternalSubtitle is the package's ExternalSubtitle in the language of msgs.
+func (msgs Messages) ExternalSubtitle() string { return msgs.text(textExternalSubtitle) }
+
+// AudioTracks says "Audio tracks"
+// in the language the app shows under cx.
+func AudioTracks(cx *core.Scope) string { return For(cx).AudioTracks() }
+
+// AudioTracks is the package's AudioTracks in the language of msgs.
+func (msgs Messages) AudioTracks() string { return msgs.text(textAudioTracks) }
+
+// NoAudioTracks says "No selectable audio tracks for this source."
+// in the language the app shows under cx.
+func NoAudioTracks(cx *core.Scope) string { return For(cx).NoAudioTracks() }
+
+// NoAudioTracks is the package's NoAudioTracks in the language of msgs.
+func (msgs Messages) NoAudioTracks() string { return msgs.text(textNoAudioTracks) }
+
+// AudioSwitchError says "Could not switch audio tracks."
+// in the language the app shows under cx.
+func AudioSwitchError(cx *core.Scope) string { return For(cx).AudioSwitchError() }
+
+// AudioSwitchError is the package's AudioSwitchError in the language of msgs.
+func (msgs Messages) AudioSwitchError() string { return msgs.text(textAudioSwitchError) }
+
+// TrackNumber says "Track {number}"
+// in the language the app shows under cx.
+func TrackNumber(cx *core.Scope, number string) string { return For(cx).TrackNumber(number) }
+
+// TrackNumber is the package's TrackNumber in the language of msgs.
+func (msgs Messages) TrackNumber(number string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.TrackNumber(number))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].TrackNumber; f != nil {
+			return f(number)
+		}
+		switch lang {
+		case "", "en":
+			return "Track " + msgs.arg(number)
+		case "zh-Hans":
+			return "轨道 " + number
+		}
+	}
+}
+
+// PlaybackSpeed says "Speed"
+// in the language the app shows under cx.
+func PlaybackSpeed(cx *core.Scope) string { return For(cx).PlaybackSpeed() }
+
+// PlaybackSpeed is the package's PlaybackSpeed in the language of msgs.
+func (msgs Messages) PlaybackSpeed() string { return msgs.text(textPlaybackSpeed) }
+
+// PlaybackSpeedUnavailable says "This player cannot change speed for the current stream."
+// in the language the app shows under cx.
+func PlaybackSpeedUnavailable(cx *core.Scope) string { return For(cx).PlaybackSpeedUnavailable() }
+
+// PlaybackSpeedUnavailable is the package's PlaybackSpeedUnavailable in the language of msgs.
+func (msgs Messages) PlaybackSpeedUnavailable() string {
+	return msgs.text(textPlaybackSpeedUnavailable)
+}
+
+// TracksDone says "Done"
+// in the language the app shows under cx.
+func TracksDone(cx *core.Scope) string { return For(cx).TracksDone() }
+
+// TracksDone is the package's TracksDone in the language of msgs.
+func (msgs Messages) TracksDone() string { return msgs.text(textTracksDone) }
 
 // Retry says "Retry"
 // in the language the app shows under cx.

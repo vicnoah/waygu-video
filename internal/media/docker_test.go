@@ -3,11 +3,14 @@ package media
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -93,7 +96,78 @@ func TestDockerServers(t *testing.T) {
 			verifyDockerMP4(t, ctx, stream)
 			verifyDockerHLS(t, ctx, client, movie)
 			verifyDockerResume(t, ctx, client, movieLibrary, showLibrary)
+			verifyDockerTracks(t, ctx, client, movieLibrary, server.kind)
 		})
+	}
+}
+
+func verifyDockerTracks(t *testing.T, ctx context.Context, client Client, library string, provider Provider) {
+	t.Helper()
+	movie := findDockerItem(t, ctx, client, Query{LibraryID: library}, Movie, "Waygu Track Test")
+	stream, err := client.Playback(ctx, movie, PlaybackOptions{})
+	if err != nil {
+		t.Fatal("load tracks:", err)
+	}
+	var secondAudio *Track
+	var availableCaptions []Track
+	for _, track := range stream.Tracks {
+		switch {
+		case track.Type == "audio" && (track.Language == "jpn" || track.Language == "ja" || strings.Contains(track.Title, "Japanese")):
+			secondAudio = &track
+		case track.Type == "subtitle" && track.URL != "":
+			availableCaptions = append(availableCaptions, track)
+		}
+	}
+	if secondAudio == nil {
+		t.Fatal("the Japanese audio track was not listed")
+	}
+	var checkedEmbedded, checkedExternal bool
+	for _, track := range availableCaptions {
+		cues, err := playback.FetchCaptions(ctx, track.URL)
+		if err != nil || cues.At(2*time.Second) != "Waygu track selection fixture" {
+			t.Fatalf("read subtitle track %s: %v", track.ID, err)
+		}
+		if track.External {
+			checkedExternal = true
+		} else {
+			checkedEmbedded = true
+		}
+	}
+	if !checkedExternal || (provider != Plex && !checkedEmbedded) {
+		t.Fatal("the expected text subtitle tracks were not offered")
+	}
+
+	index, err := strconv.Atoi(secondAudio.ID)
+	if err != nil {
+		t.Fatal("invalid audio track ID")
+	}
+	off := -1
+	alternate, err := client.Playback(ctx, movie, PlaybackOptions{SourceID: stream.SourceID, AudioIndex: &index, SubtitleIndex: &off})
+	if err != nil || alternate.Method != Transcode || !slices.ContainsFunc(alternate.Tracks, func(track Track) bool {
+		return track.Type == "audio" && track.ID == secondAudio.ID && track.Selected
+	}) {
+		t.Fatalf("switch to the Japanese track: method %s, %v", alternate.Method, err)
+	}
+	address, closeProxy, err := playback.Open(alternate.URL, alternate.Headers)
+	if err != nil {
+		t.Fatal("proxy the selected audio stream:", err)
+	}
+	defer closeProxy()
+	samples, err := exec.CommandContext(ctx, "ffmpeg", "-nostdin", "-loglevel", "error", "-i", address,
+		"-map", "0:a:0", "-ss", "1", "-t", "1", "-ac", "1", "-ar", "8000", "-f", "s16le", "pipe:1").Output()
+	if err != nil || len(samples) < 8000 {
+		t.Fatalf("decode selected audio: %v", err)
+	}
+	var changes int
+	for i := 2; i+1 < len(samples); i += 2 {
+		before, after := int16(binary.LittleEndian.Uint16(samples[i-2:])), int16(binary.LittleEndian.Uint16(samples[i:]))
+		if before < 0 && after >= 0 {
+			changes++
+		}
+	}
+	hertz := changes * 16000 / len(samples)
+	if hertz < 820 || hertz > 940 {
+		t.Fatalf("selected audio measured %d Hz, expected the 880 Hz Japanese track", hertz)
 	}
 }
 
