@@ -16,7 +16,7 @@ adb start-server
 
 report="$ANDROID_USER_HOME/emulator.log"
 "$ANDROID_HOME/emulator/emulator" -avd waygu_tv -port "${ANDROID_SERIAL#emulator-}" -accel on -memory 2048 \
-    -no-window -no-snapshot -noaudio -no-boot-anim -no-metrics -gpu swiftshader -feature -Vulkan >"$report" 2>&1 &
+    -no-window -no-snapshot -noaudio -no-boot-anim -no-metrics -gpu swangle -feature -Vulkan >"$report" 2>&1 &
 emulator_pid=$!
 cleanup() {
     status=$?

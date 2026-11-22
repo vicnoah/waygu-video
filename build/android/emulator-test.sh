@@ -12,7 +12,11 @@ if [ "$1" = tv ]; then
     test "$activity" = "$app_id/dev.oneo.nsgo.NsgoActivity"
     timeout 45s adb -s "$ANDROID_SERIAL" shell am start -W \
         -a android.intent.action.MAIN -c android.intent.category.LEANBACK_LAUNCHER -n "$activity"
-    exec python3 build/android/tv-smoke.py
+    if ! python3 build/android/tv-smoke.py; then
+        timeout 8s adb -s "$ANDROID_SERIAL" logcat -d -v brief -s AndroidRuntime:E ActivityTaskManager:I libc:E | tail -120
+        exit 1
+    fi
+    exit 0
 fi
 if ! go tool nsgo test -target android -device "$ANDROID_SERIAL" \
     -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes)$' -timeout 2m .; then

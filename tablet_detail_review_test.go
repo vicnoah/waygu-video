@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -58,7 +59,6 @@ func TestDockerTabletDetailReview(t *testing.T) {
 	}
 	config, secrets := homeReviewSources(t)
 	title := reviewFixtureTitle(t, config, secrets, "emby", "Waygu Track Test")
-	versionFixture := reviewFixtureTitle(t, config, secrets, "emby", "Waygu Version Test")
 	resumeFixture := reviewFixtureTitle(t, config, secrets, "emby", "Waygu Resume Test")
 	sharedFixture := reviewFixtureTitle(t, config, secrets, "emby", "Waygu Resume Across Sources")
 	for _, variant := range reviewAppearances {
@@ -136,11 +136,26 @@ func TestDockerTabletDetailReview(t *testing.T) {
 				app.Press("id:title-emby-" + item)
 				app.WaitFor("id:tablet-detail-poster", 5*time.Second)
 			}
-			open(versionFixture)
+			openVersions := func() {
+				// A grouped Emby title can use either rendition as its catalog item.
+				var id string
+				app.WaitUntil(5*time.Second, func() bool {
+					for _, card := range app.Query("role:button /Waygu Version Test/") {
+						if strings.HasPrefix(card.Props.TestID, "title-emby-") {
+							id = card.Props.TestID
+							return true
+						}
+					}
+					return false
+				})
+				app.Press("id:" + id)
+				app.WaitFor("id:tablet-detail-poster", 5*time.Second)
+			}
+			openVersions()
 			app.WaitFor("id:playback-version", 5*time.Second)
 			version := selectOption("playback-version", "180p")
 			app.Press("id:back")
-			open(versionFixture)
+			openVersions()
 			app.WaitFor("id:playback-version", 5*time.Second)
 			if got := app.Find("id:playback-version-value").Text; got != version {
 				t.Fatalf("remembered version = %q, want %q", got, version)
