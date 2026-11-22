@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"os"
+	"os/exec"
 	"slices"
 	"testing"
 	"time"
@@ -10,6 +13,7 @@ import (
 	"github.com/nsgo-dev/nsgo/nsgotest"
 
 	"waygu-video/internal/media"
+	"waygu-video/internal/playback"
 )
 
 func TestPlaybackQualityChangesAtCurrentPosition(t *testing.T) {
@@ -68,7 +72,8 @@ func TestPlaybackQualityChangesAtCurrentPosition(t *testing.T) {
 		<-requests // initial playback, rejected version and successful version switch
 	}
 	options := <-requests
-	if options.SourceID != "small" || options.AudioIndex == nil || *options.AudioIndex != 2 || options.MaxBitrate != 4_000_000 {
+	if options.SourceID != "small" || options.AudioIndex == nil || *options.AudioIndex != 2 ||
+		options.MaxBitrate != 4_000_000 || options.MaxHeight != 480 {
 		t.Fatalf("bitrate override lost the version or audio selection: %+v", options)
 	}
 
@@ -92,6 +97,52 @@ func TestPlaybackQualityChangesAtCurrentPosition(t *testing.T) {
 		if event := events[i]; event.Event != want.event || event.Stream.VersionID() != want.id || (i > 0 && event.Position != at) {
 			t.Fatalf("incorrect report %d: %s %s at %s", i, event.Event, event.Stream.VersionID(), event.Position)
 		}
+	}
+}
+
+func TestDockerPlaybackHeightLimit(t *testing.T) {
+	if os.Getenv("WAYGU_TEST_SERVERS") != "1" {
+		t.Skip("requires the Docker media servers")
+	}
+	config, secrets := homeReviewSources(t)
+	for _, provider := range []string{"emby", "jellyfin", "plex"} {
+		t.Run(provider, func(t *testing.T) {
+			client, movie := reviewFixtureItem(t, config, secrets, provider, "Waygu Test Movie")
+			ctx, cancel := context.WithTimeout(t.Context(), 25*time.Second)
+			defer cancel()
+			const height = 180
+			original, err := client.Playback(ctx, movie, media.PlaybackOptions{})
+			if err != nil || original.Rendition.Height <= height {
+				t.Fatalf("fixture should exceed %dp in original quality, got %dp, %v", height, original.Rendition.Height, err)
+			}
+			limited, err := client.Playback(ctx, movie, media.PlaybackOptions{MaxHeight: height, MaxBitrate: 4_000_000})
+			if err != nil || limited.Method != media.Transcode || limited.VersionID() != original.VersionID() {
+				t.Fatalf("expected a transcode of the original version, got %s, %v", limited.Method, err)
+			}
+			address, stop, err := playback.Open(limited.Resource())
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer stop()
+			defer func() {
+				if err := client.Report(ctx, media.PlaybackState{Event: media.Stopped, Stream: limited, Position: original.Position}); err != nil {
+					t.Errorf("stop limited playback: %v", err)
+				}
+			}()
+			raw, err := exec.CommandContext(ctx, "ffprobe", "-v", "error", "-select_streams", "v:0",
+				"-show_entries", "stream=height", "-of", "json", address).Output()
+			if err != nil {
+				t.Fatalf("decode the limited stream: %v", err)
+			}
+			var measured struct {
+				Streams []struct{ Height int }
+			}
+			if err := json.Unmarshal(raw, &measured); err != nil || len(measured.Streams) != 1 ||
+				measured.Streams[0].Height <= 0 || measured.Streams[0].Height > height {
+				t.Fatalf("expected a decodable stream of at most %dp, got %+v, %v", height, measured, err)
+			}
+			t.Logf("decoded %dp from the %dp original", measured.Streams[0].Height, original.Rendition.Height)
+		})
 	}
 }
 

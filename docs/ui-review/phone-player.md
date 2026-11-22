@@ -38,6 +38,8 @@ The scan and ellipsis icons retain their position in the main comparison. Their 
 
 ![Quality tab comparison](images/phone-player-tracks-quality.png)
 
+The quality panel pairs the 48 pt original row with three 40 pt preset rows. The original row shows the selected file's resolution, codec and bitrate when the server supplies them. The presets show 1080p at 20 Mbps, 720p at 8 Mbps and 480p at 4 Mbps. The status card reports the stream's current playback method. The Emby, Jellyfin and Plex players pass the preset's height and bitrate limits to the server and resume from the same position after switching. Flymoo shows the versions and qualities its server advertises. [Emby HLS parameters](https://dev.emby.media/doc/restapi/Http-Live-Streaming.html) · [Plex Universal Transcoder](https://developer.plex.tv/pms/)
+
 ![Speed tab comparison](images/phone-player-tracks-speed.png)
 
 ## Danmaku

@@ -45,6 +45,9 @@ func versionSelectionKey(current route) string {
 
 func (a *application) initialPlaybackOptions(current route) (media.PlaybackOptions, bool) {
 	options, remembered := a.automaticPlaybackOptions(current)
+	if current.recovery != nil {
+		options.MaxBitrate = current.recovery.bitrate
+	}
 	if current.versionID != "" {
 		options.SourceID, remembered = current.versionID, false
 	} else if selected := a.savedVersion(versionSelectionKey(current)); selected != "" {

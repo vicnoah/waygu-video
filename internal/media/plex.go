@@ -456,7 +456,8 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			URL: original, Method: DirectPlay,
 			File: SourceFile{Name: videoFileName(part.File), Size: part.Size, URL: original, Headers: p.headers}}
 		switchAudio := audio != nil || plexAlternativeAudio(part.Stream)
-		if switchAudio || options.ForceTranscode || !plexDirect(version, options) {
+		transcode := options.ForceTranscode || options.MaxHeight > 0
+		if switchAudio || transcode || !plexDirect(version, options) {
 			params := url.Values{"path": {plexItemRoute(item.ID)}, "mediaIndex": {strconv.Itoa(index)}, "partIndex": {"0"},
 				"protocol": {"hls"}, "directPlay": {"0"}, "directStream": {"1"}, "session": {stream.SessionID},
 				"X-Plex-Client-Identifier": {p.device.ID}, "X-Plex-Session-Identifier": {stream.SessionID},
@@ -464,11 +465,15 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			if options.SubtitleIndex != nil && *options.SubtitleIndex < 0 {
 				params.Set("subtitles", "none")
 			}
-			if options.MaxBitrate > 0 || switchAudio || options.ForceTranscode {
+			if options.MaxBitrate > 0 || switchAudio || transcode {
 				params.Set("directStream", "0")
 			}
 			if options.MaxBitrate > 0 {
 				params.Set("maxVideoBitrate", strconv.Itoa(options.MaxBitrate/1000))
+			}
+			if height := options.MaxHeight; height > 0 {
+				width := (height*16/9 + 1) &^ 1
+				params.Set("videoResolution", fmt.Sprintf("%dx%d", width, height))
 			}
 			stream.URL, stream.Method = p.mediaURL("/video/:/transcode/universal/start.m3u8", params), Transcode
 			stream.Headers = p.auth()

@@ -192,7 +192,20 @@ func TestDockerPhonePlayerDesignReview(t *testing.T) {
 	app.Press("id:track-tab-audio")
 	capture("player-tracks-panel-audio")
 	app.Press("id:track-tab-quality")
-	app.WaitFor("id:player-bitrate-4000000", time.Second)
+	for _, preset := range []struct{ id, label string }{
+		{"id:player-bitrate-20000000", "1080p · 20 Mbps"},
+		{"id:player-bitrate-8000000", "720p · 8 Mbps"},
+		{"id:player-bitrate-4000000", "480p · 4 Mbps"},
+	} {
+		option := app.WaitFor(preset.id, time.Second)
+		if option.Props.Label != preset.label || option.Frame.Size.Height != 40 {
+			t.Fatalf("quality option = %q at %v pt, want %q at 40 pt", option.Props.Label, option.Frame.Size.Height, preset.label)
+		}
+	}
+	if original := app.Find("id:player-bitrate-0"); !original.Props.Checked || original.Frame.Size.Height != 48 {
+		t.Fatal("the original quality should start selected in the 48 pt row")
+	}
+	app.WaitFor("text:原画 · "+strconv.Itoa(stream.Rendition.Height)+"p", time.Second)
 	capture("player-tracks-panel-quality")
 	app.Press("id:track-tab-speed")
 	if rateAvailable {

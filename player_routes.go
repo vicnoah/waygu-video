@@ -15,6 +15,7 @@ type playerRecovery struct {
 	from     string
 	position time.Duration
 	paused   bool
+	bitrate  int
 }
 
 func playbackRouteError(err error) bool {
@@ -42,7 +43,7 @@ func (a *application) recoverPlayer(current route, active playerMedia, position 
 			break
 		}
 	}
-	next.recovery = &playerRecovery{from: active.endpoint.address, position: position, paused: paused}
+	next.recovery = &playerRecovery{from: active.endpoint.address, position: position, paused: paused, bitrate: active.requestedBitrate}
 	stack = slices.Clone(stack)
 	stack[len(stack)-1] = next
 	a.routes.Set(stack)

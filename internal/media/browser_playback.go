@@ -118,10 +118,14 @@ func (m *mediaBrowser) Playback(ctx context.Context, item Item, options Playback
 		"EnableDirectPlay": true, "EnableDirectStream": true, "EnableTranscoding": true,
 		"AllowVideoStreamCopy": true, "AllowAudioStreamCopy": true,
 	}
-	if options.ForceTranscode {
+	transcode := options.ForceTranscode || options.MaxHeight > 0
+	if transcode {
 		params.Set("EnableDirectPlay", "false")
 		params.Set("EnableDirectStream", "false")
 		body["EnableDirectPlay"], body["EnableDirectStream"] = false, false
+	}
+	if options.MaxHeight > 0 {
+		body["AllowVideoStreamCopy"] = false
 	}
 	if options.SourceID != "" {
 		params.Set("MediaSourceId", options.SourceID)
@@ -154,17 +158,17 @@ func (m *mediaBrowser) Playback(ctx context.Context, item Item, options Playback
 		if options.SourceID != "" && options.SourceID != source.ID {
 			continue
 		}
-		if options.ForceTranscode {
+		if transcode {
 			source.SupportsDirectPlay, source.SupportsDirectStream = false, false
 		}
-		if stream, ok := m.browserStream(item, source, dto.PlaySessionId, bitrate, options.AudioIndex); ok {
+		if stream, ok := m.browserStream(item, source, dto.PlaySessionId, bitrate, options); ok {
 			return stream, nil
 		}
 	}
 	return Stream{}, ErrNoStream
 }
 
-func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID string, bitrate int, audio *int) (Stream, bool) {
+func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID string, bitrate int, options PlaybackOptions) (Stream, bool) {
 	if source.ID == "" {
 		return Stream{}, false
 	}
@@ -178,6 +182,7 @@ func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID 
 		Position: item.Position, Duration: max(item.Duration, fromTicks(source.RunTimeTicks)),
 		Rendition: source.version(),
 		File:      SourceFile{Name: videoFileName(source.Path), Size: source.Size, URL: original, Headers: m.headers}}
+	audio := options.AudioIndex
 	if audio != nil {
 		if !slices.ContainsFunc(source.MediaStreams, func(stream browserStream) bool {
 			return stream.Index == *audio && strings.EqualFold(stream.Type, "audio")
@@ -189,7 +194,11 @@ func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID 
 		stream.URL = original
 		stream.Method = DirectPlay
 	} else if source.TranscodingUrl != "" {
-		stream.URL = m.mediaURL(source.TranscodingUrl, nil)
+		var limits url.Values
+		if options.MaxHeight > 0 {
+			limits = url.Values{"MaxHeight": {strconv.Itoa(options.MaxHeight)}, "AllowVideoStreamCopy": {"false"}}
+		}
+		stream.URL = m.mediaURL(source.TranscodingUrl, limits)
 		stream.Headers = m.auth()
 		stream.Method = Transcode
 		if source.SupportsDirectStream && source.Bitrate <= bitrate {

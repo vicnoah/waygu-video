@@ -162,9 +162,11 @@ const (
 )
 
 type PlaybackOptions struct {
-	SourceID       string
-	VersionPolicy  VersionPolicy
-	MaxBitrate     int
+	SourceID      string
+	VersionPolicy VersionPolicy
+	MaxBitrate    int
+	// MaxHeight requests a server-encoded stream no taller than this many pixels.
+	MaxHeight      int
 	ForceTranscode bool
 	AudioIndex     *int
 	SubtitleIndex  *int

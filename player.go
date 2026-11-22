@@ -23,11 +23,12 @@ import (
 )
 
 type playerMedia struct {
-	endpoint sourceEndpoint
-	client   media.Client
-	stream   media.Stream
-	url      string
-	close    func()
+	endpoint         sourceEndpoint
+	client           media.Client
+	stream           media.Stream
+	url              string
+	close            func()
+	requestedBitrate int
 }
 
 func (a *application) player(cx *core.Scope, current route) core.Node {
@@ -77,6 +78,8 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 			}
 		}
 		options := options
+		preset := options.MaxBitrate
+		options.MaxHeight = playbackPresetHeight(preset)
 		options.MaxBitrate = current.source.capBitrate(endpoint, options.MaxBitrate)
 		stream, err := openPlaybackVersion(ctx, client, current.item, options, remembered)
 		if err != nil {
@@ -94,6 +97,7 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 		}
 		active, err := prepareVideo(ctx, client, stream, platform == core.OSAndroid)
 		active.endpoint = endpoint
+		active.requestedBitrate = preset
 		return active, err
 	}
 	resource := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (playerMedia, error) {
@@ -350,7 +354,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	playerContext := cx.Context()
 	preferMPV := cx.Env().Desktop() && a.mpvPreferred.GetUntracked()
 	android := cx.Env().OS() == core.OSAndroid
-	bitrate := core.NewSignal(cx, current.source.capBitrate(initial.endpoint, a.bitrateLimit.GetUntracked()))
+	bitrate := func() int { return medium.Get().requestedBitrate }
 	noServerSubtitles := -1
 	switchStream := func(options media.PlaybackOptions, failed *core.Signal[bool]) {
 		if switchingPlayback.GetUntracked() || projection.active() {
@@ -358,6 +362,8 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		}
 		options.SubtitleIndex = &noServerSubtitles
 		previous := medium.GetUntracked()
+		preset := options.MaxBitrate
+		options.MaxHeight = playbackPresetHeight(preset)
 		options.MaxBitrate = current.source.capBitrate(previous.endpoint, options.MaxBitrate)
 		switchingPlayback.Set(true)
 		failed.Set(false)
@@ -369,6 +375,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			if err == nil {
 				next, err = prepareVideo(playerContext, previous.client, stream, android)
 				next.endpoint = previous.endpoint
+				next.requestedBitrate = preset
 			}
 			cx.Post(func() {
 				switchingPlayback.Set(false)
@@ -389,7 +396,6 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				buffering.Set(true)
 				canChangeRate.Set(false)
 				desktop.Set(nil)
-				bitrate.Set(options.MaxBitrate)
 				if next.stream.VersionID() != previous.stream.VersionID() {
 					loop.clear()
 					skip = markerSkip{manual: -1}
@@ -402,8 +408,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	chooseAudio := func(track media.Track) {
 		index, err := strconv.Atoi(track.ID)
 		if err == nil && !track.Selected {
-			switchStream(media.PlaybackOptions{SourceID: medium.GetUntracked().stream.VersionID(),
-				MaxBitrate: bitrate.GetUntracked(), AudioIndex: &index}, audioError)
+			active := medium.GetUntracked()
+			switchStream(media.PlaybackOptions{SourceID: active.stream.VersionID(),
+				MaxBitrate: active.requestedBitrate, AudioIndex: &index}, audioError)
 		}
 	}
 	image := core.Dynamic(func(cx *core.Scope) core.Node {
@@ -564,7 +571,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	activeStream := func() media.Stream { return medium.Get().stream }
 	var quality func(*core.Scope) core.Node
 	if !offline {
-		quality = playerQuality(current, initial.client, activeStream, bitrate.Get, switchingPlayback.Get, qualityError.Get,
+		quality = playerQuality(current, initial.client, activeStream, bitrate, switchingPlayback.Get, qualityError.Get,
 			func(options media.PlaybackOptions) { switchStream(options, qualityError) })
 	}
 	tracks := playerTracks(cx, activeStream, directDecoder, current.subtitleTrack, a.subtitlePrefs.Get, position, rate, canChangeRate, switchingPlayback, audioError, chooseAudio, quality, a.playerSubtitleStyle)
@@ -640,7 +647,10 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			return core.Func(func(cx *core.Scope) core.Node {
 				return a.tvPlayer(cx, tvPlayerControls{
 					current: current, position: position, duration: duration, paused: paused,
-					rate: rate, canRate: canChangeRate, bitrate: bitrate.Get, seek: seek, toggle: toggle,
+					rate: rate, canRate: canChangeRate, bitrate: func() int {
+						active := medium.Get()
+						return current.source.capBitrate(active.endpoint, active.requestedBitrate)
+					}, seek: seek, toggle: toggle,
 					stream: activeStream, client: initial.client, tracks: tracks, comments: comments,
 					qualityAvailable: quality != nil, next: nextEpisode.card, hints: showTVHints(),
 				}, tvSettings)
