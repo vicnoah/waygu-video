@@ -23,12 +23,13 @@ type catalogItem struct {
 }
 
 type catalogRequest struct {
-	sources []source
-	filter  string
-	library string
-	search  string
-	limit   int
-	resume  bool
+	sources  []source
+	filter   string
+	library  string
+	search   string
+	limit    int
+	home     bool
+	category libraryCategory
 }
 
 type catalogResult struct {
@@ -86,12 +87,13 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 	query := core.NewSignal(cx, "")
 	draft := core.NewSignal(cx, "")
 	library := core.NewSignal(cx, "")
+	category := core.NewSignal(cx, libraryCategory(""))
 	limit := core.NewSignal(cx, 36)
 	results := core.NewResource(cx, func() (catalogRequest, bool) {
 		sources := a.sources.Get()
 		term := query.Get()
 		return catalogRequest{sources: sources, filter: a.sourceFilter.Get(), library: library.Get(), search: term,
-			limit: limit.Get(), resume: page == screenHome}, len(sources) > 0 && (page != screenSearch || term != "")
+			limit: limit.Get(), home: page == screenHome, category: category.Get()}, len(sources) > 0 && (page != screenSearch || term != "")
 	}, func(ctx context.Context, request catalogRequest, _ core.ResourceInfo) (catalogResult, error) {
 		return a.loadCatalog(ctx, request), nil
 	})
@@ -119,23 +121,35 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 		}},
 	}
 	if page == screenLibrary {
-		controls = append(controls, core.Dynamic(func(cx *core.Scope) core.Node {
-			choices := []ui.Option[string]{{Label: locales.AllLibraries(cx)}}
-			filter := a.sourceFilter.Get()
-			for _, source := range a.sources.Get() {
-				if filter != "" && source.ID != filter {
-					continue
+		options := libraryCategories(cx, locales.AllCategories(cx))
+		controls = append(controls, core.View{Class: "flex-row flex-wrap items-center gap-3", Children: []core.Node{
+			ui.Select[libraryCategory]{Label: locales.LibraryCategory(cx), TestID: "catalog-category", Options: options,
+				Value: category.Get, OnChange: func(value libraryCategory) {
+					category.Set(value)
+					library.Set("")
+					limit.Set(36)
+				}},
+			core.Dynamic(func(cx *core.Scope) core.Node {
+				choices := []ui.Option[string]{{Label: locales.AllLibraries(cx)}}
+				filter := a.sourceFilter.Get()
+				request := catalogRequest{category: category.Get()}
+				for _, source := range a.sources.Get() {
+					if filter != "" && source.ID != filter {
+						continue
+					}
+					for _, library := range source.Libraries {
+						if request.includesLibrary(source.ID, library) {
+							choices = append(choices, ui.Option[string]{Value: source.ID + "/" + library.ID, Label: library.Name + " · " + source.Name})
+						}
+					}
 				}
-				for _, library := range source.Libraries {
-					choices = append(choices, ui.Option[string]{Value: source.ID + "/" + library.ID, Label: library.Name + " · " + source.Name})
+				if len(choices) <= 1 {
+					return nil
 				}
-			}
-			if len(choices) <= 1 {
-				return nil
-			}
-			return ui.Select[string]{Label: locales.Library(cx), Options: choices, Value: library.Get,
-				OnChange: func(id string) { library.Set(id); limit.Set(36) }}
-		}))
+				return ui.Select[string]{Label: locales.Library(cx), TestID: "catalog-library", Options: choices, Value: library.Get,
+					OnChange: func(id string) { library.Set(id); limit.Set(36) }}
+			}),
+		}})
 	}
 	if page == screenSearch {
 		submit := func() { query.Set(strings.TrimSpace(draft.GetUntracked())); limit.Set(36) }
@@ -174,12 +188,16 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 			children = append(children, notice(errorText(cx, result.failure)), ui.Button{Text: locales.Retry(cx),
 				Variant: ui.ButtonOutline, OnPress: results.Refetch})
 		}
-		if page == screenHome && len(result.items) > 0 {
-			children = append(children, a.hero(cx, result.items[0]))
+		if page == screenHome {
+			if len(result.items) > 0 {
+				children = append(children, a.hero(cx, result.items[0]))
+			}
 			if len(result.resume) > 0 {
 				children = append(children, heading(locales.ContinueWatching(cx)), a.posterShelf(cx, result.resume))
 			}
-			children = append(children, heading(locales.Recent(cx)))
+			if len(result.items) > 0 {
+				children = append(children, heading(locales.Recent(cx)))
+			}
 		}
 		if len(result.items) > 0 {
 			cards := make([]core.Node, 0, len(result.items))
@@ -187,7 +205,7 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 				cards = append(cards, a.posterCard(cx, entry, false))
 			}
 			children = append(children, core.View{Class: "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6", Children: cards})
-		} else if result.failure == nil {
+		} else if result.failure == nil && len(result.resume) == 0 {
 			children = append(children, notice(locales.EmptyLibrary(cx)))
 		}
 		if result.hasMore && limit.Get() < 200 {
@@ -223,19 +241,34 @@ func (a *application) loadCatalog(ctx context.Context, q catalogRequest) catalog
 	return all
 }
 
+func (q catalogRequest) includesLibrary(sourceID string, library sourceLibrary) bool {
+	if library.Hidden || (q.home && library.HideFromHome) || (q.library != "" && q.library != sourceID+"/"+library.ID) {
+		return false
+	}
+	category := library.category()
+	return q.category == "" || category == "" || category == q.category
+}
+
 func (a *application) loadServerCatalog(ctx context.Context, source source, q catalogRequest) catalogResult {
+	libraries := make([]sourceLibrary, 0, len(source.Libraries))
+	for _, library := range source.Libraries {
+		if q.includesLibrary(source.ID, library) {
+			libraries = append(libraries, library)
+		}
+	}
+	if len(libraries) == 0 {
+		return catalogResult{}
+	}
 	client, err := a.client(source)
 	if err != nil {
 		return catalogResult{failure: err}
 	}
 	var result catalogResult
 	seen := make(map[string]bool)
-	for _, library := range source.Libraries {
-		if q.library != "" && q.library != source.ID+"/"+library.ID {
-			continue
-		}
+	for _, library := range libraries {
 		page, err := client.Catalog(ctx, media.Query{LibraryID: library.ID, Limit: q.limit, Search: q.search})
-		if err != nil && source.Provider == media.Flymoo && q.search != "" && q.library == "" {
+		globalSearch := err != nil && source.Provider == media.Flymoo && q.search != "" && q.library == ""
+		if globalSearch {
 			// Older FnOS servers omit the library ID on global search results.
 			page, err = client.Catalog(ctx, media.Query{Limit: q.limit, Search: q.search})
 		}
@@ -244,24 +277,57 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 			continue
 		}
 		for _, item := range page.Items {
-			if !seen[item.ID] {
+			if globalSearch && (len(libraries) < len(source.Libraries) || q.category != "") && item.LibraryID != library.ID {
+				continue
+			}
+			if !seen[item.ID] && library.matchesCategory(q.category, item) {
 				result.items = append(result.items, catalogItem{source, item})
 				seen[item.ID] = true
 			}
 		}
 		result.hasMore = result.hasMore || page.Total > len(page.Items)
 	}
-	if q.resume {
-		previous, err := client.Resume(ctx)
-		if err == nil {
-			for _, item := range previous {
-				if item.Position > 0 {
-					result.resume = append(result.resume, catalogItem{source, item})
+	if q.home {
+		result.resume = resumeShelf(ctx, client, source, libraries)
+	}
+	return result
+}
+
+func resumeShelf(ctx context.Context, client media.Client, source source, visible []sourceLibrary) []catalogItem {
+	const shelfLimit = 24
+	restricted := len(visible) < len(source.Libraries)
+	var shelf []catalogItem
+	seen := make(map[string]bool)
+	add := func(item media.Item) {
+		if len(shelf) < shelfLimit && item.ID != "" && item.Position > 0 && !seen[item.ID] {
+			shelf = append(shelf, catalogItem{source, item})
+			seen[item.ID] = true
+		}
+	}
+	if scoped, ok := client.(media.LibraryResumeClient); ok && restricted {
+		for _, library := range visible {
+			if len(shelf) == shelfLimit || ctx.Err() != nil {
+				break
+			}
+			items, err := scoped.ResumeLibrary(ctx, library.ID)
+			if err == nil {
+				for _, item := range items {
+					add(item)
 				}
 			}
 		}
+		return shelf
 	}
-	return result
+	items, err := client.Resume(ctx)
+	if err == nil {
+		for _, item := range items {
+			visibleLibrary := slices.ContainsFunc(visible, func(library sourceLibrary) bool { return item.LibraryID == library.ID })
+			if visibleLibrary || (item.LibraryID == "" && !restricted) {
+				add(item)
+			}
+		}
+	}
+	return shelf
 }
 
 func (a *application) hero(cx *core.Scope, entry catalogItem) core.Node {

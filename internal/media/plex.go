@@ -244,6 +244,9 @@ func (p *plexClient) item(entry plexMetadata) Item {
 	for _, genre := range entry.Genre {
 		item.Genres = append(item.Genres, genre.Tag)
 	}
+	if entry.LibrarySectionID > 0 {
+		item.LibraryID = strconv.Itoa(entry.LibrarySectionID)
+	}
 	for _, guid := range entry.Guid {
 		if key, id, ok := strings.Cut(guid.ID, "://"); ok {
 			item.ExternalIDs[key] = id

@@ -131,6 +131,9 @@ func (f *flymooClient) resumeItem(ctx context.Context, row map[string]any) (Item
 		details = item
 	}
 	item := f.item(details)
+	if item.LibraryID == "" {
+		item.LibraryID, _ = flymooLibraryID(row)
+	}
 	recordID := flymooText(row, "item_guid", "guid")
 	if recordID == "" {
 		recordID = item.ID

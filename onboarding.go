@@ -85,9 +85,10 @@ const (
 )
 
 type candidateSource struct {
-	source  source
-	info    media.ServerInfo
-	session media.Session
+	source    source
+	info      media.ServerInfo
+	session   media.Session
+	libraries []media.Library
 }
 
 func (a *application) connect(cx *core.Scope, current route) core.Node {
@@ -249,8 +250,8 @@ func (a *application) connectServer(ctx context.Context, form source, input medi
 			form.Name = form.Address
 		}
 	}
-	form.AccountID, form.ServerID, form.Libraries = session.UserID, info.ID, libraries
-	return candidateSource{source: form, info: info, session: session}, nil
+	form.AccountID, form.ServerID = session.UserID, info.ID
+	return candidateSource{source: form, info: info, session: session, libraries: libraries}, nil
 }
 
 func awaitQuickConnect(ctx context.Context, guest media.Client, showCode func(string)) (media.Session, error) {
@@ -279,42 +280,34 @@ func awaitQuickConnect(ctx context.Context, guest media.Client, showCode func(st
 }
 
 func (a *application) importSource(cx *core.Scope, candidate candidateSource, back func()) core.Node {
-	selected := core.NewSignalFunc(cx, slices.Clone(candidate.source.Libraries), nil)
+	previous := a.matchSource(candidate.source)
+	var saved []sourceLibrary
+	if previous.ID != "" && previous.Provider == candidate.source.Provider &&
+		previous.ServerID == candidate.source.ServerID &&
+		(previous.ServerID != "" || previous.Address == candidate.source.Address) {
+		saved = previous.Libraries
+	}
+	libraries := mergeLibraries(candidate.libraries, saved, false)
+	draft := core.NewSignalFunc(cx, libraries, nil)
 	busy := core.NewSignal(cx, false)
 	failure := core.NewSignal[error](cx, nil)
 	viewContext := cx.Context()
 	list := []core.Node{heading(locales.ImportLibraries(cx))}
-	if len(candidate.source.Libraries) == 0 {
+	if len(libraries) == 0 {
 		list = append(list, hint(locales.NoLibraries(cx)))
 	}
-	for _, library := range candidate.source.Libraries {
-		list = append(list, ui.Checkbox{Text: library.Name, TestID: "import-library-" + library.ID,
-			Checked: func() bool { return slices.Contains(selected.Get(), library) },
-			OnChange: func(checked bool) {
-				current := slices.Clone(selected.GetUntracked())
-				if checked && !slices.Contains(current, library) {
-					current = append(current, library)
-				} else if !checked {
-					current = slices.DeleteFunc(current, func(entry media.Library) bool { return entry.ID == library.ID })
-				}
-				selected.Set(current)
-			}, Disabled: busy.Get})
-	}
+	list = append(list, libraryEditor(cx, draft, true, busy.Get))
 	store := func() {
 		if busy.GetUntracked() {
 			return
 		}
 		form := candidate.source
-		form.Libraries = selected.GetUntracked()
+		form.Libraries = draft.GetUntracked()
+		previous := a.matchSource(form)
 		var previousKey string
-		for _, existing := range a.sources.GetUntracked() {
-			matchesAddress := form.ID == "" && existing.Provider == form.Provider && existing.Address == form.Address &&
-				existing.Username == form.Username && existing.PlexLinked == form.PlexLinked
-			if matchesAddress || (form.ID != "" && existing.ID == form.ID) {
-				form.ID = existing.ID
-				previousKey = existing.credentialKey()
-				break
-			}
+		if previous.ID != "" {
+			form.ID = previous.ID
+			previousKey = previous.credentialKey()
 		}
 		if form.ID == "" {
 			form.ID = rand.Text()
@@ -372,7 +365,25 @@ func (a *application) importSource(cx *core.Scope, candidate candidateSource, ba
 	}), core.View{Class: "flex-row flex-wrap gap-3 pt-2", Children: []core.Node{
 		ui.Button{Text: locales.Back(cx), Variant: ui.ButtonGhost, Disabled: busy.Get, TestID: "import-back", OnPress: back},
 		ui.Button{Text: locales.ImportAction(cx), Busy: busy.Get, Size: ui.SizeLarge, TestID: "import-libraries",
-			Disabled: func() bool { return len(selected.Get()) == 0 }, OnPress: store},
+			Disabled: func() bool {
+				return !slices.ContainsFunc(draft.Get(), func(library sourceLibrary) bool { return !library.Hidden })
+			}, OnPress: store},
 	}})
 	return core.View{Class: "gap-4 rounded-3xl border border-border bg-card p-5", Children: list}
+}
+
+func (a *application) matchSource(form source) source {
+	for _, existing := range a.sources.GetUntracked() {
+		if form.ID != "" {
+			if existing.ID == form.ID {
+				return existing
+			}
+			continue
+		}
+		if existing.Provider == form.Provider && existing.Address == form.Address &&
+			existing.Username == form.Username && existing.PlexLinked == form.PlexLinked {
+			return existing
+		}
+	}
+	return source{}
 }

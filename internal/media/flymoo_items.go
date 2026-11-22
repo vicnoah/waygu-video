@@ -162,6 +162,7 @@ func (f *flymooClient) item(row map[string]any) Item {
 		Favorite:    flymooBool(row["favorite"]) || flymooBool(row["is_favorite"]) || flymooBool(row["isFavorite"]),
 		ExternalIDs: make(map[string]string),
 	}
+	item.LibraryID, _ = flymooLibraryID(row)
 	item.Poster = f.artwork(row, "poster", "posters", "poster_list", "poster_url", "posterUrl", "image", "image_url", "cover", "poster_path", "posterPath", "thumb")
 	item.Backdrop = f.artwork(row, "backdrops", "backdrop", "backdrop_path", "backdrop_url")
 	if genres, ok := row["genres"].([]any); ok {

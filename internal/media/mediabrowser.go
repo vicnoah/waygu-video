@@ -224,10 +224,17 @@ func (m *mediaBrowser) Children(ctx context.Context, parent Item) ([]Item, error
 }
 
 func (m *mediaBrowser) Resume(ctx context.Context) ([]Item, error) {
+	return m.ResumeLibrary(ctx, "")
+}
+
+func (m *mediaBrowser) ResumeLibrary(ctx context.Context, libraryID string) ([]Item, error) {
 	params := m.userQuery()
 	params.Set("Fields", browserItemFields)
 	params.Set("Limit", "24")
 	params.Set("MediaTypes", "Video")
+	if libraryID != "" {
+		params.Set("ParentId", libraryID)
+	}
 	route := "UserItems/Resume"
 	if m.kind == Emby {
 		route = m.userRoute() + "/Items/Resume"

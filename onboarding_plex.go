@@ -117,11 +117,11 @@ func (a *application) plexServerImport(cx *core.Scope, current source, account p
 			return candidateSource{}, err
 		}
 		form := source{ID: current.ID, Provider: media.Plex, PlexLinked: true,
-			ServerID: link.Info.ID, Name: link.Info.Name, Address: link.Address, Libraries: link.Libraries}
+			ServerID: link.Info.ID, Name: link.Info.Name, Address: link.Address}
 		if current.Name != "" {
 			form.Name = current.Name
 		}
-		return candidateSource{source: form, info: link.Info, session: link.Session}, nil
+		return candidateSource{source: form, info: link.Info, session: link.Session, libraries: link.Libraries}, nil
 	})
 	return core.Dynamic(func(cx *core.Scope) core.Node {
 		if result, ok := connected.Get(); ok {

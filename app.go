@@ -18,16 +18,17 @@ import (
 type screen string
 
 const (
-	screenWelcome  screen = "welcome"
-	screenSources  screen = "sources"
-	screenConnect  screen = "connect"
-	screenPlexLink screen = "plex-link"
-	screenHome     screen = "home"
-	screenLibrary  screen = "library"
-	screenSearch   screen = "search"
-	screenSettings screen = "settings"
-	screenDetail   screen = "detail"
-	screenPlayer   screen = "player"
+	screenWelcome         screen = "welcome"
+	screenSources         screen = "sources"
+	screenConnect         screen = "connect"
+	screenPlexLink        screen = "plex-link"
+	screenHome            screen = "home"
+	screenLibrary         screen = "library"
+	screenSearch          screen = "search"
+	screenSettings        screen = "settings"
+	screenManageLibraries screen = "manage-libraries"
+	screenDetail          screen = "detail"
+	screenPlayer          screen = "player"
 )
 
 type route struct {
@@ -48,7 +49,7 @@ type source struct {
 	Username      string
 	PlexLinked    bool   `json:",omitempty"`
 	CredentialKey string `json:",omitempty"`
-	Libraries     []media.Library
+	Libraries     []sourceLibrary
 	Volatile      bool `json:"-"`
 }
 
@@ -148,6 +149,8 @@ func appRoot(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer) c
 					account = media.NewPlexAccount(a.device)
 				}
 				return a.linkPlex(screenScope, current.source, account)
+			case screenManageLibraries:
+				return a.manageLibraries(screenScope, current.source)
 			case screenDetail:
 				return a.detail(screenScope, current)
 			case screenPlayer:

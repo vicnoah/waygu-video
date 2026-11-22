@@ -37,6 +37,23 @@ search: Search
 settings: Settings
 allSources: All media sources
 allLibraries: All libraries
+allCategories: All categories
+manageLibraries: Manage libraries
+libraryCategory: Library category
+libraryAutomaticCategory: Automatic
+libraryMovies: Movies
+librarySeries: Series
+libraryAnime: Anime
+libraryDocumentaries: Documentaries
+showLibrary: Show library
+showNamedLibrary: "Show {name}"
+showLibraryOnHome: Show on Home
+showNamedLibraryOnHome: "Show {name} on Home"
+moveLibraryUp: "Move {name} up"
+moveLibraryDown: "Move {name} down"
+refreshLibraries: Refresh library list
+saveLibraries: Save libraries
+librarySaveError: Could not save the library settings.
 mediaSources: Media sources
 noSources: Add a media source to browse your movies and shows.
 emptyLibrary: No matching titles

@@ -5,7 +5,8 @@ The Scenra files in `design/` define the product. The current app connects to Em
 ## Media sources
 
 - Add LAN discovery and Flymoo FN Connect.
-- Add multi-address failover, account recovery, media library management, cross-server title matching and version selection.
+- Imported libraries support category, visibility, home visibility and per-source ordering. Refresh the server's library list from source settings.
+- Add multi-address failover, account recovery, scheduled library refresh, cross-server title matching and version selection.
 - Verify Plex account authorization with a real account and a claimed server, including remote and relay connections. Extend Flymoo fixture coverage for artwork, authentication redirects and version-specific payloads.
 
 ## Playback and library

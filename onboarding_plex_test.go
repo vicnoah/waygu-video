@@ -39,7 +39,8 @@ func TestPlexLinkAndImport(t *testing.T) {
 			if target.reconnect {
 				options = append(options,
 					nsgotest.Storage(map[string]string{sourcesKey: `[{"ID":"previous-plex","Provider":"plex",
-						"Address":"https://old.example.test","Name":"Custom Plex Name","ServerID":"second","PlexLinked":true}]`}),
+						"Address":"https://old.example.test","Name":"Custom Plex Name","ServerID":"second","PlexLinked":true,
+						"Libraries":[{"ID":"library-second","Name":"Old name","Kind":"movie","Category":"documentaries"}]}]`}),
 					nsgotest.Secrets(map[string]string{oldSource: "old-plex-token"}))
 			}
 			var secrets core.Secrets
@@ -97,6 +98,9 @@ func TestPlexLinkAndImport(t *testing.T) {
 			}
 			if s := saved[0]; target.reconnect && (s.ID != oldSource || s.Name != "Custom Plex Name" || s.credentialKey() == oldSource) {
 				t.Fatal("reconnect did not retain source details with a new credential key")
+			}
+			if l := saved[0].Libraries[0]; target.reconnect && (l.Category != libraryDocumentaries || l.Name != "Movies") {
+				t.Fatal("reconnect did not preserve the library category while updating its name")
 			}
 			if token, found, err := secrets.Get(saved[0].credentialKey()); err != nil || !found || token != "fixture-token" {
 				t.Fatal("the selected server token was not persisted in the credential store")

@@ -98,6 +98,10 @@ func (a *application) settings(cx *core.Scope) core.Node {
 						}
 					} else {
 						actions = []core.Node{
+							ui.Button{Text: locales.ManageLibraries(cx), Icon: lucide.LibraryBig, Variant: ui.ButtonOutline,
+								TestID: "manage-libraries-" + selected.ID, OnPress: func() {
+									a.push(route{screen: screenManageLibraries, source: selected})
+								}},
 							ui.Button{Text: locales.Reconnect(cx), Variant: ui.ButtonOutline, OnPress: func() {
 								a.push(route{screen: screenConnect, provider: selected.Provider, source: selected})
 							}},

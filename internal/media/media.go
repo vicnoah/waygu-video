@@ -69,6 +69,7 @@ const (
 
 type Item struct {
 	ID          string
+	LibraryID   string
 	Kind        Kind
 	Title       string
 	SeriesID    string
@@ -177,6 +178,11 @@ type Client interface {
 	Resume(context.Context) ([]Item, error)
 	Playback(context.Context, Item, PlaybackOptions) (Stream, error)
 	Report(context.Context, PlaybackState) error
+}
+
+// LibraryResumeClient supports asking the server for resume items within one library.
+type LibraryResumeClient interface {
+	ResumeLibrary(context.Context, string) ([]Item, error)
 }
 
 func NewClient(kind Provider, address string, device Device, session Session) (Client, error) {

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -91,7 +92,7 @@ func TestDockerServers(t *testing.T) {
 			}
 			verifyDockerMP4(t, ctx, stream)
 			verifyDockerHLS(t, ctx, client, movie)
-			verifyDockerResume(t, ctx, client, movieLibrary)
+			verifyDockerResume(t, ctx, client, movieLibrary, showLibrary)
 		})
 	}
 }
@@ -170,7 +171,7 @@ func verifyDockerQuickConnect(t *testing.T, ctx context.Context, address string,
 	}
 }
 
-func verifyDockerResume(t *testing.T, ctx context.Context, client Client, movieLibrary string) {
+func verifyDockerResume(t *testing.T, ctx context.Context, client Client, movieLibrary, showLibrary string) {
 	t.Helper()
 	movie := findDockerItem(t, ctx, client, Query{LibraryID: movieLibrary}, Movie, "Waygu Resume Test")
 	stream, err := client.Playback(ctx, movie, PlaybackOptions{})
@@ -196,6 +197,18 @@ func verifyDockerResume(t *testing.T, ctx context.Context, client Client, movieL
 		}
 		for _, item := range recent {
 			if item.ID == movie.ID && item.Position >= 63*time.Second && item.Position <= 65*time.Second {
+				if scoped, ok := client.(LibraryResumeClient); ok {
+					movies, err := scoped.ResumeLibrary(ctx, movieLibrary)
+					if err != nil || !slices.ContainsFunc(movies, func(item Item) bool { return item.ID == movie.ID }) {
+						t.Fatalf("movie library resume did not include the fixture: %v", err)
+					}
+					shows, err := scoped.ResumeLibrary(ctx, showLibrary)
+					if err != nil || slices.ContainsFunc(shows, func(item Item) bool { return item.ID == movie.ID }) {
+						t.Fatalf("show library resume returned a movie from another library: %v", err)
+					}
+				} else if item.LibraryID != movieLibrary {
+					t.Fatalf("Plex resume library ID is %q, want %q", item.LibraryID, movieLibrary)
+				}
 				return
 			}
 		}

@@ -44,6 +44,10 @@ func For(cx *core.Scope) Messages {
 // (tsx.RegisterMessages).
 var Parameters = map[string][]string{
 	"Connected":               {"name"},
+	"ShowNamedLibrary":        {"name"},
+	"ShowNamedLibraryOnHome":  {"name"},
+	"MoveLibraryUp":           {"name"},
+	"MoveLibraryDown":         {"name"},
 	"BitrateMegabits":         {"bitrate"},
 	"NextEpisodeCountdown":    {"seconds"},
 	"EpisodeLabel":            {"number"},
@@ -58,6 +62,10 @@ var Parameters = map[string][]string{
 type Translation struct {
 	Texts                   map[string]string
 	Connected               func(name string) string
+	ShowNamedLibrary        func(name string) string
+	ShowNamedLibraryOnHome  func(name string) string
+	MoveLibraryUp           func(name string) string
+	MoveLibraryDown         func(name string) string
 	BitrateMegabits         func(bitrate string) string
 	NextEpisodeCountdown    func(seconds string) string
 	EpisodeLabel            func(number string) string
@@ -107,6 +115,19 @@ const (
 	textSettings
 	textAllSources
 	textAllLibraries
+	textAllCategories
+	textManageLibraries
+	textLibraryCategory
+	textLibraryAutomaticCategory
+	textLibraryMovies
+	textLibrarySeries
+	textLibraryAnime
+	textLibraryDocumentaries
+	textShowLibrary
+	textShowLibraryOnHome
+	textRefreshLibraries
+	textSaveLibraries
+	textLibrarySaveError
 	textMediaSources
 	textNoSources
 	textEmptyLibrary
@@ -203,6 +224,19 @@ var keyOfText = [numTexts]string{
 	"settings",
 	"allSources",
 	"allLibraries",
+	"allCategories",
+	"manageLibraries",
+	"libraryCategory",
+	"libraryAutomaticCategory",
+	"libraryMovies",
+	"librarySeries",
+	"libraryAnime",
+	"libraryDocumentaries",
+	"showLibrary",
+	"showLibraryOnHome",
+	"refreshLibraries",
+	"saveLibraries",
+	"librarySaveError",
 	"mediaSources",
 	"noSources",
 	"emptyLibrary",
@@ -297,6 +331,19 @@ var textsEn = i18n.NewTexts(""+
 	"Settings"+
 	"All media sources"+
 	"All libraries"+
+	"All categories"+
+	"Manage libraries"+
+	"Library category"+
+	"Automatic"+
+	"Movies"+
+	"Series"+
+	"Anime"+
+	"Documentaries"+
+	"Show library"+
+	"Show on Home"+
+	"Refresh library list"+
+	"Save libraries"+
+	"Could not save the library settings."+
 	"Media sources"+
 	"Add a media source to browse your movies and shows."+
 	"No matching titles"+
@@ -388,6 +435,19 @@ var textsEn = i18n.NewTexts(""+
 		8,
 		17,
 		13,
+		14,
+		16,
+		16,
+		9,
+		6,
+		6,
+		5,
+		13,
+		12,
+		12,
+		20,
+		14,
+		36,
 		13,
 		51,
 		18,
@@ -482,6 +542,19 @@ var textsZhHans = i18n.NewTexts(""+
 	"设置"+
 	"全部媒体源"+
 	"全部媒体库"+
+	"全部分类"+
+	"管理媒体库"+
+	"媒体库分类"+
+	"自动分类"+
+	"电影"+
+	"剧集"+
+	"动漫"+
+	"纪录片"+
+	"显示媒体库"+
+	"在首页显示"+
+	"刷新媒体库列表"+
+	"保存媒体库设置"+
+	"无法保存媒体库设置。"+
 	"媒体源"+
 	"添加媒体源，开始浏览电影与剧集。"+
 	"没有找到匹配的影片"+
@@ -573,6 +646,19 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		15,
 		15,
+		12,
+		15,
+		15,
+		12,
+		6,
+		6,
+		6,
+		9,
+		15,
+		15,
+		21,
+		21,
+		30,
 		9,
 		48,
 		27,
@@ -683,6 +769,18 @@ func Supply(lang string, t Translation) {
 	s := supplied[lang]
 	if t.Connected != nil {
 		s.Connected = t.Connected
+	}
+	if t.ShowNamedLibrary != nil {
+		s.ShowNamedLibrary = t.ShowNamedLibrary
+	}
+	if t.ShowNamedLibraryOnHome != nil {
+		s.ShowNamedLibraryOnHome = t.ShowNamedLibraryOnHome
+	}
+	if t.MoveLibraryUp != nil {
+		s.MoveLibraryUp = t.MoveLibraryUp
+	}
+	if t.MoveLibraryDown != nil {
+		s.MoveLibraryDown = t.MoveLibraryDown
 	}
 	if t.BitrateMegabits != nil {
 		s.BitrateMegabits = t.BitrateMegabits
@@ -1009,6 +1107,189 @@ func AllLibraries(cx *core.Scope) string { return For(cx).AllLibraries() }
 
 // AllLibraries is the package's AllLibraries in the language of msgs.
 func (msgs Messages) AllLibraries() string { return msgs.text(textAllLibraries) }
+
+// AllCategories says "All categories"
+// in the language the app shows under cx.
+func AllCategories(cx *core.Scope) string { return For(cx).AllCategories() }
+
+// AllCategories is the package's AllCategories in the language of msgs.
+func (msgs Messages) AllCategories() string { return msgs.text(textAllCategories) }
+
+// ManageLibraries says "Manage libraries"
+// in the language the app shows under cx.
+func ManageLibraries(cx *core.Scope) string { return For(cx).ManageLibraries() }
+
+// ManageLibraries is the package's ManageLibraries in the language of msgs.
+func (msgs Messages) ManageLibraries() string { return msgs.text(textManageLibraries) }
+
+// LibraryCategory says "Library category"
+// in the language the app shows under cx.
+func LibraryCategory(cx *core.Scope) string { return For(cx).LibraryCategory() }
+
+// LibraryCategory is the package's LibraryCategory in the language of msgs.
+func (msgs Messages) LibraryCategory() string { return msgs.text(textLibraryCategory) }
+
+// LibraryAutomaticCategory says "Automatic"
+// in the language the app shows under cx.
+func LibraryAutomaticCategory(cx *core.Scope) string { return For(cx).LibraryAutomaticCategory() }
+
+// LibraryAutomaticCategory is the package's LibraryAutomaticCategory in the language of msgs.
+func (msgs Messages) LibraryAutomaticCategory() string {
+	return msgs.text(textLibraryAutomaticCategory)
+}
+
+// LibraryMovies says "Movies"
+// in the language the app shows under cx.
+func LibraryMovies(cx *core.Scope) string { return For(cx).LibraryMovies() }
+
+// LibraryMovies is the package's LibraryMovies in the language of msgs.
+func (msgs Messages) LibraryMovies() string { return msgs.text(textLibraryMovies) }
+
+// LibrarySeries says "Series"
+// in the language the app shows under cx.
+func LibrarySeries(cx *core.Scope) string { return For(cx).LibrarySeries() }
+
+// LibrarySeries is the package's LibrarySeries in the language of msgs.
+func (msgs Messages) LibrarySeries() string { return msgs.text(textLibrarySeries) }
+
+// LibraryAnime says "Anime"
+// in the language the app shows under cx.
+func LibraryAnime(cx *core.Scope) string { return For(cx).LibraryAnime() }
+
+// LibraryAnime is the package's LibraryAnime in the language of msgs.
+func (msgs Messages) LibraryAnime() string { return msgs.text(textLibraryAnime) }
+
+// LibraryDocumentaries says "Documentaries"
+// in the language the app shows under cx.
+func LibraryDocumentaries(cx *core.Scope) string { return For(cx).LibraryDocumentaries() }
+
+// LibraryDocumentaries is the package's LibraryDocumentaries in the language of msgs.
+func (msgs Messages) LibraryDocumentaries() string { return msgs.text(textLibraryDocumentaries) }
+
+// ShowLibrary says "Show library"
+// in the language the app shows under cx.
+func ShowLibrary(cx *core.Scope) string { return For(cx).ShowLibrary() }
+
+// ShowLibrary is the package's ShowLibrary in the language of msgs.
+func (msgs Messages) ShowLibrary() string { return msgs.text(textShowLibrary) }
+
+// ShowNamedLibrary says "Show {name}"
+// in the language the app shows under cx.
+func ShowNamedLibrary(cx *core.Scope, name string) string { return For(cx).ShowNamedLibrary(name) }
+
+// ShowNamedLibrary is the package's ShowNamedLibrary in the language of msgs.
+func (msgs Messages) ShowNamedLibrary(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.ShowNamedLibrary(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].ShowNamedLibrary; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Show " + msgs.arg(name)
+		case "zh-Hans":
+			return "显示" + name
+		}
+	}
+}
+
+// ShowLibraryOnHome says "Show on Home"
+// in the language the app shows under cx.
+func ShowLibraryOnHome(cx *core.Scope) string { return For(cx).ShowLibraryOnHome() }
+
+// ShowLibraryOnHome is the package's ShowLibraryOnHome in the language of msgs.
+func (msgs Messages) ShowLibraryOnHome() string { return msgs.text(textShowLibraryOnHome) }
+
+// ShowNamedLibraryOnHome says "Show {name} on Home"
+// in the language the app shows under cx.
+func ShowNamedLibraryOnHome(cx *core.Scope, name string) string {
+	return For(cx).ShowNamedLibraryOnHome(name)
+}
+
+// ShowNamedLibraryOnHome is the package's ShowNamedLibraryOnHome in the language of msgs.
+func (msgs Messages) ShowNamedLibraryOnHome(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.ShowNamedLibraryOnHome(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].ShowNamedLibraryOnHome; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Show " + msgs.arg(name) + " on Home"
+		case "zh-Hans":
+			return "在首页显示" + name
+		}
+	}
+}
+
+// MoveLibraryUp says "Move {name} up"
+// in the language the app shows under cx.
+func MoveLibraryUp(cx *core.Scope, name string) string { return For(cx).MoveLibraryUp(name) }
+
+// MoveLibraryUp is the package's MoveLibraryUp in the language of msgs.
+func (msgs Messages) MoveLibraryUp(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MoveLibraryUp(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MoveLibraryUp; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Move " + msgs.arg(name) + " up"
+		case "zh-Hans":
+			return "上移" + name
+		}
+	}
+}
+
+// MoveLibraryDown says "Move {name} down"
+// in the language the app shows under cx.
+func MoveLibraryDown(cx *core.Scope, name string) string { return For(cx).MoveLibraryDown(name) }
+
+// MoveLibraryDown is the package's MoveLibraryDown in the language of msgs.
+func (msgs Messages) MoveLibraryDown(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MoveLibraryDown(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MoveLibraryDown; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Move " + msgs.arg(name) + " down"
+		case "zh-Hans":
+			return "下移" + name
+		}
+	}
+}
+
+// RefreshLibraries says "Refresh library list"
+// in the language the app shows under cx.
+func RefreshLibraries(cx *core.Scope) string { return For(cx).RefreshLibraries() }
+
+// RefreshLibraries is the package's RefreshLibraries in the language of msgs.
+func (msgs Messages) RefreshLibraries() string { return msgs.text(textRefreshLibraries) }
+
+// SaveLibraries says "Save libraries"
+// in the language the app shows under cx.
+func SaveLibraries(cx *core.Scope) string { return For(cx).SaveLibraries() }
+
+// SaveLibraries is the package's SaveLibraries in the language of msgs.
+func (msgs Messages) SaveLibraries() string { return msgs.text(textSaveLibraries) }
+
+// LibrarySaveError says "Could not save the library settings."
+// in the language the app shows under cx.
+func LibrarySaveError(cx *core.Scope) string { return For(cx).LibrarySaveError() }
+
+// LibrarySaveError is the package's LibrarySaveError in the language of msgs.
+func (msgs Messages) LibrarySaveError() string { return msgs.text(textLibrarySaveError) }
 
 // MediaSources says "Media sources"
 // in the language the app shows under cx.
