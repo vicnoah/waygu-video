@@ -16,6 +16,12 @@ The main comparison shows the chapter ticks at 18%, 55%, and 80% of the timeline
 
 ![Four Emby chapters in the chapter panel](images/phone-player-chapters.png)
 
+### Flymoo online and offline playback
+
+The first panel shows Scenra’s main player. The next two show the actual Flymoo fixture after dragging the timeline and after opening the downloaded clip with the server disconnected. The play button, seek buttons, timeline and control groups use the shared phone layout. The Flymoo fixture has no chapter metadata or comments, the two native captures are paused, and the offline status dims casting. GTK renders black margins around the 16:9 clip, where the design draws a rounded phone frame around its placeholder. Both app appearances ran the same signed playback and offline checks. [Flymoo media fixture](../../integration/servers/TESTING.md#flymoo-media-gateway)
+
+![Scenra player, Flymoo after seeking, and the downloaded clip playing offline](images/phone-player-flymoo.png)
+
 ## Picture ratio and playback actions
 
 The scan and ellipsis icons retain their position in the main comparison. Their Scenra notes specify the ratio options and actions. The open menus use the 360 pt panel and the row styles from the tracks design, since those two open states have no standalone Scenra frame. The captures show the six choices and the actual 4:3 output, followed by the action menu, the active A/B segment, and a selected 30-minute timer.

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"waygu-video/internal/mediahttp"
 )
 
 func TestProxyPreservesRangeWithoutUpstreamHeaders(t *testing.T) {
@@ -16,7 +17,7 @@ func TestProxyPreservesRangeWithoutUpstreamHeaders(t *testing.T) {
 		http.ServeContent(w, r, "sample.mp4", time.Time{}, strings.NewReader("0123456789"))
 	}))
 	defer upstream.Close()
-	address, stop, err := Open(upstream.URL+"/sample.mp4", nil)
+	address, stop, err := Open(mediahttp.Resource{URL: upstream.URL + "/sample.mp4"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +65,7 @@ func TestProxyPreservesRangeAndAuthenticatesHLSResources(t *testing.T) {
 		}
 	}))
 	defer upstream.Close()
-	address, close, err := Open(upstream.URL+"/media/show/index.m3u8", http.Header{"Authorization": {"fixture-token"}})
+	address, close, err := Open(mediahttp.Resource{URL: upstream.URL + "/media/show/index.m3u8", Headers: http.Header{"Authorization": {"fixture-token"}}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -114,7 +115,7 @@ func TestProxySharesReadLimitAcrossRequests(t *testing.T) {
 		_, _ = io.WriteString(w, "0123456789")
 	}))
 	defer upstream.Close()
-	address, stop, err := OpenWithReadLimit(upstream.URL, nil, 13)
+	address, stop, err := OpenWithReadLimit(mediahttp.Resource{URL: upstream.URL}, 13)
 	if err != nil {
 		t.Fatal(err)
 	}

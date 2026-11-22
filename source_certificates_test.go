@@ -25,6 +25,7 @@ import (
 
 	"waygu-video/internal/downloads"
 	"waygu-video/internal/media"
+	"waygu-video/internal/mediahttp"
 	"waygu-video/internal/mediatls"
 	"waygu-video/internal/playback"
 )
@@ -134,7 +135,7 @@ func TestDockerApprovedServerCertificates(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			artwork, err := playback.OpenArtwork(address, nil, pin)
+			artwork, err := playback.OpenArtwork(mediahttp.Resource{URL: address, Trust: pin})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -153,7 +154,7 @@ func TestDockerApprovedServerCertificates(t *testing.T) {
 			if err != nil || stream.Trust != pin {
 				t.Fatalf("TLS playback metadata: %v", err)
 			}
-			video, closeVideo, err := playback.Open(stream.File.URL, stream.File.Headers, stream.Trust)
+			video, closeVideo, err := playback.Open(stream.Original())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -164,8 +165,7 @@ func TestDockerApprovedServerCertificates(t *testing.T) {
 			}
 			if id == "emby" {
 				store := downloads.Store{Dir: t.TempDir()}
-				file, err := store.Transfer(ctx, strings.Repeat("a", 64), downloads.Source{URL: stream.File.URL, Name: stream.File.Name,
-					MediaID: stream.SourceID, Size: stream.File.Size, Headers: stream.File.Headers, Trust: stream.Trust}, downloads.Limits{}, nil)
+				file, err := store.Transfer(ctx, strings.Repeat("a", 64), downloads.Source{Resource: stream.Original(), Name: stream.File.Name, MediaID: stream.SourceID, Size: stream.File.Size}, downloads.Limits{}, nil)
 				if err != nil || file.Size == 0 {
 					t.Fatalf("download through pinned transport: %v", err)
 				}

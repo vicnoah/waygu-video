@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"waygu-video/internal/mediahttp"
 	"waygu-video/internal/mediatls"
 )
 
@@ -287,15 +288,15 @@ func decodeDanmakuJSON(reader io.Reader, response any) error {
 // Fingerprint reads only the initial range of an original video file. A
 // server ignoring Range is treated as unsupported so it cannot download a
 // whole movie in the background.
-func Fingerprint(ctx context.Context, address string, headers http.Header, pins ...mediatls.Trust) (string, int64, error) {
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, address, nil)
+func Fingerprint(ctx context.Context, source mediahttp.Resource) (string, int64, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, source.URL, nil)
 	if err != nil {
 		return "", 0, err
 	}
 	if request.URL.Scheme != "https" && request.URL.Scheme != "http" {
 		return "", 0, errors.New("unsupported fingerprint URL")
 	}
-	for key, values := range headers {
+	for key, values := range source.Headers {
 		request.Header[key] = values
 	}
 	request.Header.Set("Range", "bytes=0-"+strconv.Itoa(matchBytes-1))
@@ -306,12 +307,13 @@ func Fingerprint(ctx context.Context, address string, headers http.Header, pins 
 		}
 		return nil
 	}}
-	if transport, err := mediatls.Transport(address, pins...); err != nil {
+	if transport, err := mediatls.Transport(source.URL, source.Trust); err != nil {
 		return "", 0, err
 	} else if transport != nil {
 		defer transport.CloseIdleConnections()
 		client.Transport = transport
 	}
+	client.Transport = source.Authorize.Transport(client.Transport)
 	response, err := client.Do(request)
 	if err != nil {
 		return "", 0, err

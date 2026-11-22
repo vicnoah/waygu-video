@@ -201,6 +201,12 @@ func (f *flymooClient) artwork(row map[string]any, keys ...string) string {
 		if isHTTP(parsed) {
 			return f.artworkAddress(parsed.String())
 		}
+		if parsed.Scheme != "" || parsed.Host != "" {
+			continue
+		}
+		if strings.HasPrefix(parsed.Path, f.base.Path+"/") {
+			return f.artworkAddress(f.base.ResolveReference(parsed).String())
+		}
 		cleaned := strings.TrimPrefix(path.Clean("/"+parsed.Path), "/")
 		switch {
 		case strings.HasPrefix(cleaned, "api/"):

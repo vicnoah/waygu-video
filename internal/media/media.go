@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"waygu-video/internal/mediahttp"
 	"waygu-video/internal/mediatls"
 )
 
@@ -190,6 +191,7 @@ type Stream struct {
 	File            SourceFile
 	Trust           mediatls.Trust
 	SubtitleHeaders http.Header
+	authorize       mediahttp.Authorize
 }
 
 // SourceFile is the original file of the selected version, even when the
@@ -199,6 +201,16 @@ type SourceFile struct {
 	Size    int64
 	URL     string
 	Headers http.Header
+}
+
+// Resource is the HTTP stream selected for playback.
+func (s Stream) Resource() mediahttp.Resource {
+	return mediahttp.Resource{URL: s.URL, Headers: s.Headers, Trust: s.Trust, Authorize: s.authorize}
+}
+
+// Original is the selected version's original file.
+func (s Stream) Original() mediahttp.Resource {
+	return mediahttp.Resource{URL: s.File.URL, Headers: s.File.Headers, Trust: s.Trust, Authorize: s.authorize}
 }
 
 // VersionID identifies the selection. SourceID remains the server's media ID for progress reports.

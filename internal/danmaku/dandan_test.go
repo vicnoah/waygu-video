@@ -14,6 +14,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"waygu-video/internal/mediahttp"
 )
 
 type dandanTransport func(*http.Request) (*http.Response, error)
@@ -124,12 +125,12 @@ func TestFingerprintReadsOnlyTheFirst16MiB(t *testing.T) {
 		fmt.Fprint(w, file[:matchBytes])
 	}))
 	defer server.Close()
-	got, size, err := Fingerprint(t.Context(), server.URL, http.Header{"Authorization": {"fixture-header"}})
+	got, size, err := Fingerprint(t.Context(), mediahttp.Resource{URL: server.URL, Headers: http.Header{"Authorization": {"fixture-header"}}})
 	want := fmt.Sprintf("%x", md5.Sum([]byte(file[:matchBytes])))
 	if err != nil || got != want || size != int64(len(file)) {
 		t.Fatalf("fingerprint = %s, %d, %v", got, size, err)
 	}
-	if _, _, err := Fingerprint(t.Context(), server.URL+"/no-range", nil); err == nil {
+	if _, _, err := Fingerprint(t.Context(), mediahttp.Resource{URL: server.URL + "/no-range"}); err == nil {
 		t.Fatal("treated a full response as a byte range")
 	}
 }

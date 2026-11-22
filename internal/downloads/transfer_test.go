@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+	"waygu-video/internal/mediahttp"
 )
 
 func TestTransferResumesVerifiedFile(t *testing.T) {
@@ -50,7 +51,7 @@ func TestTransferResumesVerifiedFile(t *testing.T) {
 	dir := t.TempDir()
 	store := &Store{Dir: dir}
 	id := fmt.Sprintf("%x", sha256.Sum256([]byte("fixture")))
-	src := Source{URL: server.URL, Name: "fixture.mp4", MediaID: "first", Headers: http.Header{"Authorization": {"Bearer local-fixture"}}}
+	src := Source{Resource: mediahttp.Resource{URL: server.URL, Headers: http.Header{"Authorization": {"Bearer local-fixture"}}}, Name: "fixture.mp4", MediaID: "first"}
 	ctx, stop := context.WithCancel(t.Context())
 	defer stop()
 	_, err := store.Transfer(ctx, id, src, Limits{}, func(actual, _ int64) {
@@ -80,7 +81,7 @@ func TestTransferResumesVerifiedFile(t *testing.T) {
 	}
 	tooLittle := int64(len(contents) - 1)
 	if _, err := store.Transfer(t.Context(), fmt.Sprintf("%x", sha256.Sum256([]byte("other"))),
-		Source{URL: server.URL, Name: "fixture.mkv", MediaID: "second", Headers: src.Headers}, Limits{Quota: tooLittle}, nil); !errors.Is(err, ErrNoSpace) {
+		Source{Resource: src.Resource, Name: "fixture.mkv", MediaID: "second"}, Limits{Quota: tooLittle}, nil); !errors.Is(err, ErrNoSpace) {
 		t.Fatalf("expected quota refusal, got %v", err)
 	}
 	if err := store.Remove(id); err != nil || store.Bytes(id) != 0 {

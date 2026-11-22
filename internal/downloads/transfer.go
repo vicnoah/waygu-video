@@ -18,14 +18,14 @@ import (
 	"strings"
 	"time"
 
+	"waygu-video/internal/mediahttp"
 	"waygu-video/internal/mediatls"
 )
 
 type Source struct {
-	URL, Name, MediaID string
-	Size               int64
-	Headers            http.Header
-	Trust              mediatls.Trust
+	mediahttp.Resource
+	Name, MediaID string
+	Size          int64
 }
 
 type revision struct {
@@ -98,6 +98,7 @@ func (s *Store) Transfer(ctx context.Context, id string, src Source, limits Limi
 		defer transport.CloseIdleConnections()
 		client.Transport = transport
 	}
+	client.Transport = src.Authorize.Transport(client.Transport)
 	response, err := client.Do(request)
 	if err != nil {
 		// The URL may carry a media server token.

@@ -96,7 +96,7 @@ func TestDockerServers(t *testing.T) {
 				t.Fatalf("playback: method %s, %v", stream.Method, err)
 			}
 			verifyDockerMP4(t, ctx, stream)
-			digest, size, err := danmaku.Fingerprint(ctx, stream.File.URL, stream.File.Headers)
+			digest, size, err := danmaku.Fingerprint(ctx, stream.Original())
 			if err != nil || len(digest) != 32 || size <= 0 || stream.File.Name == "" {
 				t.Fatalf("fingerprint the original video: bytes=%d, %v", size, err)
 			}
@@ -270,7 +270,7 @@ func verifyDockerVersions(t *testing.T, ctx context.Context, client Client, libr
 		if check.options.SourceID == "" {
 			continue
 		}
-		address, closeProxy, err := playback.Open(stream.URL, stream.Headers)
+		address, closeProxy, err := playback.Open(stream.Resource())
 		if err != nil {
 			t.Fatal("proxy the selected version:", err)
 		}
@@ -334,7 +334,7 @@ func verifyDockerTracks(t *testing.T, ctx context.Context, client Client, librar
 	}) {
 		t.Fatalf("switch to the Japanese track: method %s, %v", alternate.Method, err)
 	}
-	address, closeProxy, err := playback.Open(alternate.URL, alternate.Headers)
+	address, closeProxy, err := playback.Open(alternate.Resource())
 	if err != nil {
 		t.Fatal("proxy the selected audio stream:", err)
 	}
@@ -363,10 +363,10 @@ func verifyDockerHLS(t *testing.T, ctx context.Context, client Client, movie Ite
 	if err != nil || stream.Method != Transcode {
 		t.Fatalf("300 kbps playback: method %s, %v", stream.Method, err)
 	}
-	if digest, _, err := danmaku.Fingerprint(ctx, stream.File.URL, stream.File.Headers); err != nil || digest != originalDigest {
+	if digest, _, err := danmaku.Fingerprint(ctx, stream.Original()); err != nil || digest != originalDigest {
 		t.Fatalf("transcoding did not retain access to the original video: %v", err)
 	}
-	address, stop, err := playback.Open(stream.URL, stream.Headers)
+	address, stop, err := playback.Open(stream.Resource())
 	if err != nil {
 		t.Fatal("could not open the local playback proxy")
 	}

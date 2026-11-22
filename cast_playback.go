@@ -12,9 +12,9 @@ import (
 )
 
 func rendererSource(stream media.Stream) casting.Stream {
-	address, headers := stream.File.URL, stream.File.Headers
-	if address == "" && stream.Method == media.DirectPlay {
-		address, headers = stream.URL, stream.Headers
+	resource := stream.Original()
+	if resource.URL == "" && stream.Method == media.DirectPlay {
+		resource = stream.Resource()
 	}
 	container := strings.ToLower(strings.TrimPrefix(path.Ext(stream.File.Name), "."))
 	if container == "" {
@@ -39,10 +39,10 @@ func rendererSource(stream media.Stream) casting.Stream {
 	case "asf", "wmv":
 		kind = "video/x-ms-wmv"
 	}
-	if kind == "" && address != "" && stream.Method == media.DirectPlay && strings.Contains(strings.ToLower(address), ".mp4") {
+	if kind == "" && resource.URL != "" && stream.Method == media.DirectPlay && strings.Contains(strings.ToLower(resource.URL), ".mp4") {
 		kind = "video/mp4"
 	}
-	return casting.Stream{URL: address, Headers: headers, MIME: kind, Trust: stream.Trust}
+	return casting.Stream{Resource: resource, MIME: kind}
 }
 
 func startRenderer(ctx context.Context, item media.Item, medium playerMedia, device casting.Renderer, at time.Duration, paused bool) (*casting.Session, media.Stream, error) {
@@ -77,6 +77,6 @@ func startRenderer(ctx context.Context, item media.Item, medium playerMedia, dev
 	if stream.Method != media.Transcode || stream.URL == "" {
 		return nil, media.Stream{}, casting.ErrFormat
 	}
-	session, err := casting.Start(ctx, device, casting.Stream{URL: stream.URL, Headers: stream.Headers, MIME: profile, Trust: stream.Trust}, item.Title, at, paused)
+	session, err := casting.Start(ctx, device, casting.Stream{Resource: stream.Resource(), MIME: profile}, item.Title, at, paused)
 	return session, stream, err
 }

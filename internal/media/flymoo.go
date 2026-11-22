@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"waygu-video/internal/mediahttp"
 )
 
 type flymooClient struct {
@@ -70,6 +72,34 @@ func (f *flymooClient) auth(token string) http.Header {
 		headers.Set("Authorization", token)
 	}
 	return headers
+}
+
+func (f *flymooClient) authorizeRead(request *http.Request) {
+	if request.URL.User != nil || !sameOrigin(request.URL, f.base) {
+		request.Header.Del("Authorization")
+		request.Header.Del("authx")
+		return
+	}
+	if f.session.Token != "" {
+		request.Header.Set("Authorization", f.session.Token)
+		request.Header.Set("authx", flymooSignature(request.URL, request.Method, nil, time.Now()))
+	}
+}
+
+// ArtworkAuthorization supplies per-request credentials for a provider whose
+// artwork reads use authenticated API requests.
+func ArtworkAuthorization(client Client) mediahttp.Authorize {
+	f, ok := client.(*flymooClient)
+	if !ok || f.session.Token == "" {
+		return nil
+	}
+	headers := f.auth("")
+	return func(request *http.Request) {
+		for key, values := range headers {
+			request.Header[key] = values
+		}
+		f.authorizeRead(request)
+	}
 }
 
 type flymooError int

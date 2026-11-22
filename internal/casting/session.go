@@ -2,18 +2,15 @@ package casting
 
 import (
 	"context"
-	"net/http"
 	"time"
 
-	"waygu-video/internal/mediatls"
+	"waygu-video/internal/mediahttp"
 	"waygu-video/internal/playback"
 )
 
 type Stream struct {
-	URL     string
-	Headers http.Header
-	MIME    string
-	Trust   mediatls.Trust
+	mediahttp.Resource
+	MIME string
 }
 
 type Session struct {
@@ -25,7 +22,7 @@ type Session struct {
 // Start hands the receiver its scoped URL and starts playback at the
 // sender's bookmark. A failed handoff leaves the local player in control.
 func Start(ctx context.Context, renderer Renderer, source Stream, title string, at time.Duration, paused bool) (*Session, error) {
-	address, release, err := playback.OpenForRenderer(source.URL, source.Headers, renderer.Address, source.MIME, source.Trust)
+	address, release, err := playback.OpenForRenderer(source.Resource, renderer.Address, source.MIME)
 	if err != nil {
 		return nil, err
 	}

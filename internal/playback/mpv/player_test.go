@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"waygu-video/internal/danmaku"
+	"waygu-video/internal/mediahttp"
 	"waygu-video/internal/playback"
 )
 
@@ -124,7 +125,7 @@ func TestSwitchEmbeddedTracksDuringAuthenticatedPlayback(t *testing.T) {
 		http.ServeFile(w, r, fixture)
 	}))
 	defer upstream.Close()
-	address, closeProxy, err := playback.Open(upstream.URL+"/movie", http.Header{"Authorization": {"Bearer fixture"}})
+	address, closeProxy, err := playback.Open(mediahttp.Resource{URL: upstream.URL + "/movie", Headers: http.Header{"Authorization": {"Bearer fixture"}}})
 	if err != nil {
 		t.Fatal(err)
 	}

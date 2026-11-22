@@ -46,7 +46,7 @@ func (f *flymooClient) loadPlayback(ctx context.Context, item Item) (flymooPlayb
 	headers := f.auth(f.session.Token)
 	headers.Set("User-Agent", "FnMovie/0.1")
 	headers = f.withEndpointHeaders(headers)
-	stream := Stream{Trust: f.trust, ItemID: item.ID, SourceID: source, Duration: duration, Position: position, Headers: headers,
+	stream := Stream{Trust: f.trust, ItemID: item.ID, SourceID: source, Duration: duration, Position: position, Headers: headers, authorize: f.authorizeRead,
 		File: SourceFile{Name: videoFileName(flymooText(info, "file_name", "filename")), URL: original.String(), Headers: headers}}
 	return flymooPlayback{info: info, result: result, stream: stream, original: flymooQuality{
 		Version: Version{ID: "original", Original: true, Method: DirectPlay, Width: flymooInt(video, "width"),

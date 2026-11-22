@@ -115,7 +115,7 @@ func TestAppearanceNightAndPosterColor(t *testing.T) {
 	entry := source{Address: server.URL, HeaderSecret: "artwork-credential"}
 	a.artworkSources([]source{entry})
 	defer a.artworkSources(nil)
-	mapped := a.proxyArtwork(entry.artworkAccess(server.URL), http.Header{"X-Artwork-Key": {"fixture"}})
+	mapped := a.proxyArtwork(entry.artworkAccess(server.URL), http.Header{"X-Artwork-Key": {"fixture"}}, nil)
 	item := catalogItem{source: entry, item: media.Item{Poster: mapped(server.URL + "/poster")}}
 	if color := sampleHomePoster(t.Context(), a.sourceBackdrop(item)); color != got {
 		t.Fatalf("source-owned artwork proxy supplied color %#x, want %#x", color, got)

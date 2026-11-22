@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/nsgotest"
 
 	"waygu-video/internal/media"
@@ -22,17 +24,28 @@ import (
 const reviewFlymooToken = "flymoo-review-token"
 
 type flymooGatewayFixture struct {
-	server *httptest.Server
-	public atomic.Int64
-	logins atomic.Int64
-	video  atomic.Int64
+	server       *httptest.Server
+	public       atomic.Int64
+	logins       atomic.Int64
+	video        atomic.Int64
+	images       atomic.Int64
+	offline      atomic.Bool
+	offlineReads atomic.Int64
 }
 
-func newFlymooGatewayFixture(t *testing.T, tls bool, prefix string, clip []byte) *flymooGatewayFixture {
+func newFlymooGatewayFixture(t *testing.T, tls bool, prefix string, clip, poster []byte) *flymooGatewayFixture {
 	t.Helper()
 	gateway := new(flymooGatewayFixture)
-	const movie = `{"guid":"movie-1","title":"Waygu Flymoo Review","type":"Movie","mdb_guid":"movies"}`
+	movie := fmt.Sprintf(`{"guid":"movie-1","title":"Waygu Flymoo Review","type":"Movie","mdb_guid":"movies","poster":%q,"backdrop":"fixture.jpg"}`,
+		prefix+"/api/v1/sys/img/fixture.jpg?size=small")
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if gateway.offline.Load() {
+			if strings.HasPrefix(r.URL.Path, prefix+"/api/v1/media/") {
+				gateway.offlineReads.Add(1)
+			}
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
 		route, accepted := strings.CutPrefix(r.URL.Path, prefix+"/api/v1/")
 		if !accepted {
 			http.NotFound(w, r)
@@ -41,12 +54,33 @@ func newFlymooGatewayFixture(t *testing.T, tls bool, prefix string, clip []byte)
 		if r.Header.Get("X-Route-Draft") != "" {
 			t.Error("a custom header from the original port reached the moved gateway")
 		}
-		if route == "media/range/media-1" {
-			if r.Header.Get("Authorization") != reviewFlymooToken || len(clip) == 0 {
+		switch route {
+		case "media/range/media-1", "media/cache/fixture.mp4", "sys/img/fixture.jpg":
+			if r.Header.Get("Authorization") != reviewFlymooToken || r.Header.Get("authx") == "" {
+				t.Error("Flymoo media read lacks the token or request signature")
 				w.WriteHeader(http.StatusForbidden)
 				return
 			}
+			if route == "sys/img/fixture.jpg" {
+				gateway.images.Add(1)
+				if len(poster) == 0 {
+					w.WriteHeader(http.StatusNotFound)
+					return
+				}
+				w.Header().Set("Content-Type", "image/jpeg")
+				_, _ = w.Write(poster)
+				return
+			}
+			if route == "media/range/media-1" {
+				http.Redirect(w, r, prefix+"/api/v1/media/cache/fixture.mp4?range=original", http.StatusTemporaryRedirect)
+				return
+			}
+			if len(clip) == 0 {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
 			gateway.video.Add(1)
+			w.Header().Set("ETag", `"flymoo-review-1"`)
 			w.Header().Set("Content-Type", "video/mp4")
 			http.ServeContent(w, r, "fixture.mp4", time.Time{}, bytes.NewReader(clip))
 			return
@@ -127,7 +161,7 @@ func TestFlymooGatewayCompatibilityAndScope(t *testing.T) {
 	a := application{newMedia: media.NewClient, device: media.NewDevice("Gateway test")}
 	input := media.Credentials{Username: "viewer", Password: "fixture-password"}
 	t.Run("default media path", func(t *testing.T) {
-		gateway := newFlymooGatewayFixture(t, false, "/v", nil)
+		gateway := newFlymooGatewayFixture(t, false, "/v", nil, nil)
 		connected, err := a.connectServer(t.Context(), source{Provider: media.Flymoo, Address: gateway.server.URL}, input, passwordConnection, nil)
 		if err != nil || connected.source.Address != gateway.server.URL+"/v" || connected.session.Token != reviewFlymooToken ||
 			len(connected.libraries) != 1 || gateway.logins.Load() != 1 {
@@ -135,7 +169,7 @@ func TestFlymooGatewayCompatibilityAndScope(t *testing.T) {
 		}
 	})
 	t.Run("TLS upgrade and custom header scope", func(t *testing.T) {
-		gateway := newFlymooGatewayFixture(t, true, "/relay/v", nil)
+		gateway := newFlymooGatewayFixture(t, true, "/relay/v", nil, nil)
 		front := flymooGatewayRedirector(t, gateway.server.URL+"/relay/v")
 		entry := source{Provider: media.Flymoo, Address: front.URL, headerDraft: http.Header{"X-Route-Draft": {"fixture"}}}
 		_, err := a.connectServer(t.Context(), entry, input, passwordConnection, nil)
@@ -155,7 +189,7 @@ func TestFlymooGatewayCompatibilityAndScope(t *testing.T) {
 		}
 	})
 	t.Run("different hostname", func(t *testing.T) {
-		gateway := newFlymooGatewayFixture(t, false, "/v", nil)
+		gateway := newFlymooGatewayFixture(t, false, "/v", nil, nil)
 		different := strings.Replace(gateway.server.URL, "127.0.0.1", "localhost", 1)
 		front := flymooGatewayRedirector(t, different+"/v")
 		_, err := a.connectServer(t.Context(), source{Provider: media.Flymoo, Address: front.URL}, input, passwordConnection, nil)
@@ -185,7 +219,7 @@ func TestFlymooGatewayCompatibilityAndScope(t *testing.T) {
 		}
 	})
 	t.Run("HTTPS downgrade", func(t *testing.T) {
-		gateway := newFlymooGatewayFixture(t, false, "/v", nil)
+		gateway := newFlymooGatewayFixture(t, false, "/v", nil, nil)
 		front := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, gateway.server.URL+"/v/api/v1/sys/config", http.StatusTemporaryRedirect)
 		}))
@@ -203,7 +237,7 @@ func TestFlymooGatewayCompatibilityAndScope(t *testing.T) {
 		}
 	})
 	t.Run("saved server identity", func(t *testing.T) {
-		gateway := newFlymooGatewayFixture(t, false, "/v", nil)
+		gateway := newFlymooGatewayFixture(t, false, "/v", nil, nil)
 		front := flymooGatewayRedirector(t, gateway.server.URL+"/v")
 		_, err := a.connectServer(t.Context(), source{Provider: media.Flymoo, Address: front.URL, ServerID: "different-nas"}, input, passwordConnection, nil)
 		if !errors.Is(err, errDifferentServer) || gateway.logins.Load() != 0 {
@@ -251,7 +285,7 @@ func TestFlymooGatewayConnectionReview(t *testing.T) {
 	if target != "" && target != "linux" {
 		t.Skip("native review runs on the Linux host")
 	}
-	var clip []byte
+	var clip, poster []byte
 	if target == "linux" {
 		path := os.Getenv("WAYGU_TEST_FLYMOO_CLIP")
 		if path == "" {
@@ -262,12 +296,25 @@ func TestFlymooGatewayConnectionReview(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		poster, err = os.ReadFile(filepath.Join(filepath.Dir(path), "fanart.jpg"))
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
-	gateway := newFlymooGatewayFixture(t, false, "/relay/v", clip)
+	gateway := newFlymooGatewayFixture(t, false, "/relay/v", clip, poster)
 	front := flymooGatewayRedirector(t, gateway.server.URL+"/relay/v")
 	for _, variant := range reviewAppearances {
 		t.Run(variant.name, func(t *testing.T) {
-			app := startReview(t, variant.appearance, 1240)
+			gateway.offline.Store(false)
+			height := core.Points(1240)
+			if target == "linux" {
+				height += 37
+			}
+			app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
+				shellIdiom.Provide(cx, core.IdiomPhone)
+				cx.SetSubtreeAppearance(variant.appearance)
+				return Root(cx)
+			}, nsgotest.Size(390, height), nsgotest.Environment(core.Environment{Locale: "zh-Hans"}))
 			app.Press("id:add-source")
 			app.Press("id:choose-flymoo")
 			app.Press("id:flymoo-fn-connect")
@@ -298,6 +345,7 @@ func TestFlymooGatewayConnectionReview(t *testing.T) {
 			if target == "linux" {
 				app.Screenshot("flymoo-gateway-connected-" + variant.name)
 			}
+			beforeArtwork := gateway.images.Load()
 			app.Press("id:import-libraries")
 			app.WaitFor("id:tab-search", 5*time.Second)
 			value, _ := app.Storage().GetItem(sourcesKey)
@@ -318,8 +366,43 @@ func TestFlymooGatewayConnectionReview(t *testing.T) {
 			app.WaitFor("id:video-player", 5*time.Second)
 			if target == "linux" {
 				app.WaitUntil(8*time.Second, func() bool {
-					return gateway.video.Load() > video && app.Find("id:player-position").Text > "00:00"
+					return gateway.video.Load() > video && gateway.images.Load() > beforeArtwork &&
+						app.Find("id:player-position").Text > "00:00:00"
 				})
+				app.Press("id:toggle-play")
+				const rail = "id:phone-player-position-rail"
+				width := app.Find(rail).Frame.Size.Width
+				app.DragAt(rail, core.Point{X: width / 4, Y: 8}, core.Point{X: width / 3})
+				app.WaitUntil(3*time.Second, func() bool { return app.Find("id:player-position").Text > "00:00:12" })
+				seeked := app.Find("id:player-position").Text
+				app.Press("id:toggle-play")
+				app.WaitUntil(5*time.Second, func() bool { return app.Find("id:player-position").Text > seeked })
+				app.Press("id:toggle-play")
+				app.Screenshot("flymoo-signed-playback-" + variant.name)
+			}
+			app.Press("id:close-player")
+			if target != "linux" {
+				return
+			}
+			app.Resize(390, height)
+			app.WaitFor("id:detail-download", 5*time.Second)
+			app.Press("id:detail-download")
+			app.WaitFor("role:button 已下载", 10*time.Second)
+			raw, _ := app.Storage().GetItem(downloadQueueKey)
+			if raw == "" || strings.Contains(raw, reviewFlymooToken) || strings.Contains(raw, gateway.server.URL) {
+				t.Fatal("the download queue must not persist the signed resource")
+			}
+			offlineReads := gateway.offlineReads.Load()
+			gateway.offline.Store(true)
+			app.Press("id:detail-download")
+			app.Resize(844, 390)
+			app.WaitFor("id:video-player", 5*time.Second)
+			app.WaitFor("text:离线播放", 5*time.Second)
+			app.WaitUntil(8*time.Second, func() bool { return app.Find("id:player-position").Text > "00:00:00" })
+			app.Press("id:toggle-play")
+			app.Screenshot("flymoo-signed-offline-" + variant.name)
+			if gateway.offlineReads.Load() != offlineReads {
+				t.Fatal("offline playback sent another media request")
 			}
 			app.Press("id:close-player")
 		})

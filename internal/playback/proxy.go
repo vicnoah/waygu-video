@@ -18,6 +18,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"waygu-video/internal/mediahttp"
 	"waygu-video/internal/mediatls"
 )
 
@@ -25,18 +26,18 @@ const maxPlaylist = 4 << 20
 
 // Open starts a loopback proxy for a player that needs authenticated headers.
 // It forwards byte ranges and keeps the credentials out of the player's URL.
-func Open(address string, headers http.Header, pins ...mediatls.Trust) (string, func(), error) {
-	return openProxy(address, headers, "127.0.0.1:0", netip.Addr{}, "", 0, pins...)
+func Open(source mediahttp.Resource) (string, func(), error) {
+	return openProxy(source, "127.0.0.1:0", netip.Addr{}, "", 0)
 }
 
 // OpenWithReadLimit stops a decoder from reading beyond one shared byte budget.
-func OpenWithReadLimit(address string, headers http.Header, limit int64, pins ...mediatls.Trust) (string, func(), error) {
-	return openProxy(address, headers, "127.0.0.1:0", netip.Addr{}, "", limit, pins...)
+func OpenWithReadLimit(source mediahttp.Resource, limit int64) (string, func(), error) {
+	return openProxy(source, "127.0.0.1:0", netip.Addr{}, "", limit)
 }
 
 // OpenForRenderer publishes a single authenticated stream on the interface
 // that reaches the receiver. Only that receiver may fetch its opaque URLs.
-func OpenForRenderer(address string, headers http.Header, receiver netip.Addr, contentType string, pins ...mediatls.Trust) (string, func(), error) {
+func OpenForRenderer(source mediahttp.Resource, receiver netip.Addr, contentType string) (string, func(), error) {
 	if !receiver.IsValid() || receiver.IsUnspecified() || receiver.IsMulticast() {
 		return "", nil, errors.New("invalid receiver address")
 	}
@@ -46,7 +47,7 @@ func OpenForRenderer(address string, headers http.Header, receiver netip.Addr, c
 	}
 	local := conn.LocalAddr().(*net.UDPAddr).AddrPort().Addr()
 	_ = conn.Close()
-	return openProxy(address, headers, netip.AddrPortFrom(local, 0).String(), receiver.Unmap(), contentType, 0, pins...)
+	return openProxy(source, netip.AddrPortFrom(local, 0).String(), receiver.Unmap(), contentType, 0)
 }
 
 type ArtworkProxy struct {
@@ -57,8 +58,8 @@ type ArtworkProxy struct {
 
 // OpenArtwork supplies server artwork to native image views that use their own
 // HTTP client. Each allowed media URL has its own opaque request path.
-func OpenArtwork(address string, headers http.Header, trust mediatls.Trust) (ArtworkProxy, error) {
-	proxy, local, stop, err := startProxy(address, headers, "127.0.0.1:0", netip.Addr{}, "", 0, trust)
+func OpenArtwork(source mediahttp.Resource) (ArtworkProxy, error) {
+	proxy, local, stop, err := startProxy(source, "127.0.0.1:0", netip.Addr{}, "", 0)
 	if err != nil {
 		return ArtworkProxy{}, err
 	}
@@ -72,34 +73,34 @@ func OpenArtwork(address string, headers http.Header, trust mediatls.Trust) (Art
 	return ArtworkProxy{Address: local, Resolve: resolve, Close: stop}, nil
 }
 
-func openProxy(address string, headers http.Header, bind string, receiver netip.Addr, contentType string, limit int64, pins ...mediatls.Trust) (string, func(), error) {
-	proxy, local, stop, err := startProxy(address, headers, bind, receiver, contentType, limit, pins...)
+func openProxy(source mediahttp.Resource, bind string, receiver netip.Addr, contentType string, limit int64) (string, func(), error) {
+	proxy, local, stop, err := startProxy(source, bind, receiver, contentType, limit)
 	if err != nil {
 		return "", nil, err
 	}
 	return local + proxy.add(proxy.origin), stop, nil
 }
 
-func startProxy(address string, headers http.Header, bind string, receiver netip.Addr, contentType string, limit int64, pins ...mediatls.Trust) (*streamProxy, string, func(), error) {
-	origin, err := url.Parse(address)
+func startProxy(source mediahttp.Resource, bind string, receiver netip.Addr, contentType string, limit int64) (*streamProxy, string, func(), error) {
+	origin, err := url.Parse(source.URL)
 	if err != nil || origin.User != nil || origin.Hostname() == "" || (origin.Scheme != "http" && origin.Scheme != "https") {
 		return nil, "", nil, errors.New("invalid playback URL")
 	}
 	transport := &http.Transport{Proxy: http.ProxyFromEnvironment, ResponseHeaderTimeout: 20 * time.Second}
-	if err := mediatls.Configure(transport, address, pins...); err != nil {
+	if err := mediatls.Configure(transport, source.URL, source.Trust); err != nil {
 		return nil, "", nil, err
 	}
 	listener, err := net.Listen("tcp", bind)
 	if err != nil {
 		return nil, "", nil, err
 	}
-	proxy := &streamProxy{origin: origin, headers: headers.Clone(), prefix: "/" + rand.Text() + "/",
+	proxy := &streamProxy{origin: origin, headers: source.Headers.Clone(), prefix: "/" + rand.Text() + "/",
 		receiver: receiver, mediaType: contentType}
 	if limit > 0 {
 		proxy.budget = new(atomic.Int64)
 		proxy.budget.Store(limit)
 	}
-	proxy.client = &http.Client{Transport: transport, CheckRedirect: func(req *http.Request, prior []*http.Request) error {
+	proxy.client = &http.Client{Transport: source.Authorize.Transport(transport), CheckRedirect: func(req *http.Request, prior []*http.Request) error {
 		if len(prior) >= 5 || !proxy.sameServer(req.URL) {
 			return http.ErrUseLastResponse
 		}

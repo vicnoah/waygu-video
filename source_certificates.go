@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"waygu-video/internal/media"
+	"waygu-video/internal/mediahttp"
 	"waygu-video/internal/mediatls"
 	"waygu-video/internal/playback"
 )
@@ -44,8 +45,8 @@ func routeCertificates(approved []mediatls.Trust, endpoint ...string) []mediatls
 }
 
 type artworkAccess struct {
-	origin, key string
-	trust       mediatls.Trust
+	origin, key, credential string
+	trust                   mediatls.Trust
 }
 
 func (s source) artworkAccess(address string) artworkAccess {
@@ -54,7 +55,11 @@ func (s source) artworkAccess(address string) artworkAccess {
 	if origin == sourceOrigin(s.Address) {
 		key = s.HeaderSecret
 	}
-	return artworkAccess{origin, key, s.certificateFor(address)}
+	access := artworkAccess{origin: origin, key: key, trust: s.certificateFor(address)}
+	if s.Provider == media.Flymoo && origin != "" {
+		access.credential = s.credentialKey()
+	}
+	return access
 }
 
 type sourceArtwork struct {
@@ -68,7 +73,7 @@ func (a *application) artworkSources(entries []source) {
 	for _, entry := range entries {
 		for _, endpoint := range []string{entry.Address, entry.RemoteAddress} {
 			access := entry.artworkAccess(endpoint)
-			if access.trust.Certificate != "" || access.key != "" {
+			if access.trust.Certificate != "" || access.key != "" || access.credential != "" {
 				active[access] = true
 			}
 		}
@@ -85,7 +90,7 @@ func (a *application) artworkSources(entries []source) {
 	art.active = active
 }
 
-func (a *application) proxyArtwork(access artworkAccess, headers http.Header) func(string) string {
+func (a *application) proxyArtwork(access artworkAccess, headers http.Header, authorize mediahttp.Authorize) func(string) string {
 	art := &a.sourceArtwork
 	art.mu.Lock()
 	defer art.mu.Unlock()
@@ -95,7 +100,7 @@ func (a *application) proxyArtwork(access artworkAccess, headers http.Header) fu
 	if route, ok := art.routes[access]; ok {
 		return route.Resolve
 	}
-	route, err := playback.OpenArtwork(access.origin, headers, access.trust)
+	route, err := playback.OpenArtwork(mediahttp.Resource{URL: access.origin, Headers: headers, Trust: access.trust, Authorize: authorize})
 	if err != nil {
 		return nil
 	}
@@ -117,8 +122,11 @@ func (a *application) sourceClient(s source, address string, session media.Sessi
 	}
 	access := s.artworkAccess(address)
 	var mapper func(string) string
-	if includeArtwork && (access.trust.Certificate != "" || len(headers) > 0) {
-		mapper = a.proxyArtwork(access, headers)
+	if includeArtwork {
+		authorize := media.ArtworkAuthorization(client)
+		if access.trust.Certificate != "" || len(headers) > 0 || authorize != nil {
+			mapper = a.proxyArtwork(access, headers, authorize)
+		}
 	}
 	if err := media.ConfigureEndpoint(client, access.trust, headers, mapper); err != nil {
 		return nil, sourceAddressError(address, err)

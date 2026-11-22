@@ -235,7 +235,7 @@ func openMarkerAudio(ctx context.Context, provider media.AudioSampleClient, deco
 	if stream.File.URL == "" {
 		return nil, media.ErrNoStream
 	}
-	address, closeProxy, err := playback.OpenWithReadLimit(stream.File.URL, stream.File.Headers, 24<<20, stream.Trust)
+	address, closeProxy, err := playback.OpenWithReadLimit(stream.Original(), 24<<20)
 	if err != nil {
 		return nil, err
 	}
