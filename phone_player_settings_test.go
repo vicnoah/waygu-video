@@ -112,6 +112,16 @@ func TestPhonePlaybackAndSubtitleSettingsReview(t *testing.T) {
 			app.Press("id:open-phone-subtitle-settings")
 			app.WaitFor("id:phone-subtitle-settings", time.Second)
 			capture("settings-subtitles")
+			app.Press("id:subtitle-convert-chinese")
+			app.Press("id:subtitle-bilingual")
+			app.WaitForGone("id:subtitle-preview-secondary", time.Second)
+			if p := readSubtitlePreferences(app.Storage()); !p.KeepOriginalChinese || !p.DisableBilingual {
+				t.Fatalf("saved text subtitle settings = %+v", p)
+			}
+			capture("settings-subtitles-single-line")
+			app.Press("id:subtitle-convert-chinese")
+			app.Press("id:subtitle-bilingual")
+			app.WaitFor("id:subtitle-preview-secondary", time.Second)
 			app.Press("id:subtitle-color-2")
 			if p := readSubtitlePreferences(app.Storage()); p.Color != subtitleColors[2] {
 				t.Fatalf("saved subtitle style = %+v", p)
@@ -175,6 +185,87 @@ func TestDockerPhonePlayerUsesSettings(t *testing.T) {
 	}
 	for _, provider := range []string{"emby", "jellyfin"} {
 		t.Run(provider, func(t *testing.T) { verifyDockerPhonePlayerSettings(t, provider) })
+	}
+}
+
+func TestDockerBilingualSubtitles(t *testing.T) {
+	target := nsgotest.Target()
+	if os.Getenv("WAYGU_TEST_SERVERS") != "1" || (target != "" && target != "linux") {
+		t.Skip("requires the local Docker fixtures")
+	}
+	for _, provider := range []string{"emby", "jellyfin", "plex"} {
+		t.Run(provider, func(t *testing.T) {
+			config, secrets := homeReviewSources(t)
+			_, movie := reviewFixtureItem(t, config, secrets, provider, "Waygu Test Movie")
+			config[subtitlePreferencesKey] = `{"Languages":["zh-Hant","en"],"Mode":"always"}`
+			config[playbackPreferencesKey] = `{"DisableProgressRecording":true}`
+			window := nsgotest.Size(844, 390)
+			if target == "linux" {
+				window = nsgotest.Size(390, 837)
+			}
+			app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
+				shellIdiom.Provide(cx, core.IdiomPhone)
+				return Root(cx)
+			}, window, nsgotest.Offscreen(), nsgotest.Storage(config), nsgotest.Secrets(secrets))
+			app.Press("id:tab-search")
+			app.Type("id:search-query", "Waygu Test Movie")
+			app.Press("id:search-source-" + provider)
+			title := "id:title-" + provider + "-" + movie.ID
+			app.WaitFor(title, 10*time.Second)
+			app.Press(title)
+			app.WaitFor("id:detail-play", 10*time.Second)
+			if target == "linux" && movie.Position > 0 {
+				app.LongPress("id:detail-play")
+				app.Press("id:detail-from-start")
+			} else {
+				app.Press("id:detail-play")
+			}
+			if target == "linux" {
+				app.Resize(844, 427)
+			}
+			app.WaitFor("id:video-player", 15*time.Second)
+			primary := func(wait time.Duration) {
+				t.Helper()
+				if node := app.WaitFor("text:理髮以後再出發。", wait); node.Props.TestID != "subtitle-caption" {
+					t.Fatal("the converted line was not the primary caption")
+				}
+			}
+			secondary := func(wait time.Duration) {
+				t.Helper()
+				if node := app.WaitFor("text:Waygu Video playback fixture", wait); node.Props.TestID != "subtitle-caption-secondary" {
+					t.Fatal("the English line was not the second caption")
+				}
+			}
+			if target == "linux" {
+				app.WaitFor("id:phone-player-resolution", 10*time.Second)
+				primary(10 * time.Second)
+				secondary(time.Second)
+				app.Press("id:toggle-play")
+				app.Screenshot("bilingual-subtitles-" + provider)
+				return
+			}
+			app.Play("id:video-player", core.VideoInfo{Duration: 18 * time.Second})
+			app.Progress("id:video-player", 2*time.Second, 18*time.Second)
+			primary(10 * time.Second)
+			secondary(10 * time.Second)
+			app.Progress("id:video-player", 4250*time.Millisecond, 18*time.Second)
+			app.WaitForGone("id:subtitle-caption-secondary", time.Second)
+			primary(time.Second)
+			app.Progress("id:video-player", 2*time.Second, 18*time.Second)
+			secondary(time.Second)
+
+			app.Press("id:player-tracks")
+			app.Press("id:player-subtitle-style")
+			app.Press("id:subtitle-bilingual")
+			app.WaitForGone("id:subtitle-caption-secondary", time.Second)
+			primary(time.Second)
+			app.Press("id:subtitle-bilingual")
+			secondary(10 * time.Second)
+			app.Press("id:player-subtitle-style-back")
+			app.Press("id:subtitles-off")
+			app.WaitForGone("id:subtitle-caption", time.Second)
+			app.WaitForGone("id:subtitle-caption-secondary", time.Second)
+		})
 	}
 }
 
@@ -251,6 +342,20 @@ func TestAutomaticSubtitleUsesOrderedLanguagesAndAudioPolicy(t *testing.T) {
 	if match := automaticSubtitle(tracks, prefs); match.ID != "5" {
 		t.Fatalf("ordered selection = %+v", match)
 	}
+	if match := automaticSubtitle(tracks[:4], prefs); match.ID != "4" {
+		t.Fatalf("simplified subtitle fallback = %+v", match)
+	}
+	if match := secondarySubtitleTrack(tracks[:4], "eng", []string{"en", "zh-Hant"}, "zh-Hant"); match.ID != "4" {
+		t.Fatalf("simplified translation fallback = %+v", match)
+	}
+	if match := secondarySubtitleTrack(tracks, "zho", prefs.Languages, "zh-Hant"); match.ID != "3" {
+		t.Fatalf("the two Chinese scripts should not occupy both lines: %+v", match)
+	}
+	prefs.KeepOriginalChinese = true
+	prefs.Languages = []string{"zh-Hant", "en"}
+	if match := automaticSubtitle(tracks[:4], prefs); match.ID != "3" {
+		t.Fatalf("subtitle fallback with conversion disabled = %+v", match)
+	}
 	if index := preferredAudio(tracks, prefs.Audio); index == nil || *index != 2 {
 		t.Fatalf("preferred audio index = %v", index)
 	}
@@ -264,5 +369,18 @@ func TestAutomaticSubtitleUsesOrderedLanguagesAndAudioPolicy(t *testing.T) {
 	prefs.Mode = "off"
 	if match := automaticSubtitle(tracks, prefs); match.ID != "" {
 		t.Fatalf("subtitles selected while disabled: %+v", match)
+	}
+}
+
+func TestCaptionConversionPreservesNonChineseText(t *testing.T) {
+	for _, test := range []struct{ text, language, target, want string }{
+		{"理发以后再出发。\nEnglish", "zho", "zh-Hant", "理髮以後再出發。\nEnglish"},
+		{"我們選擇希望。", "", "zh-Hans", "我们选择希望。"},
+		{"図書館", "ja", "zh-Hans", "図書館"},
+		{"図書館へ行く", "", "zh-Hans", "図書館へ行く"},
+	} {
+		if result := convertSubtitleText(test.text, test.language, test.target); result != test.want {
+			t.Errorf("convert %q for %s = %q, want %q", test.text, test.target, result, test.want)
+		}
 	}
 }

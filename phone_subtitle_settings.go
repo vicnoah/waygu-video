@@ -57,7 +57,10 @@ func (a *application) phoneSubtitleSettings(cx *core.Scope) core.Node {
 			phoneSettingChoice(cx, phoneSetting{locales.SettingsAutoSubtitle(cx), "", "bg-violet-500", lucide.WandSparkles},
 				"subtitle-auto-mode", auto, func() string { return prefs().Mode },
 				func(value string) { save(func(p *subtitlePreferences) { p.Mode = value }) }),
-			unavailableSwitch(locales.SettingsSubtitleConvert(cx), "bg-teal-500", lucide.Repeat),
+			(phoneSetting{locales.SettingsSubtitleConvert(cx), "", "bg-teal-500", lucide.Repeat}).toggle(cx, "subtitle-convert-chinese",
+				func() bool { return !prefs().KeepOriginalChinese }, func(enabled bool) {
+					save(func(p *subtitlePreferences) { p.KeepOriginalChinese = !enabled })
+				}),
 		),
 		setupGroup(locales.SettingsSubtitleStyle(cx), "", subtitleStyleRows(cx, prefs, save)...),
 		setupGroup("ASS / SSA", locales.SettingsSubtitleASSDescription(cx),
@@ -108,7 +111,10 @@ func subtitleStyleRows(cx *core.Scope, prefs func() subtitlePreferences, save fu
 			func() string { return prefs().Background }, func(value string) { save(func(p *subtitlePreferences) { p.Background = value }) }),
 		phoneSettingChoice(cx, phoneSetting{label: locales.SettingsSubtitlePosition(cx)}, "subtitle-position", positions,
 			func() int { return prefs().Position }, func(value int) { save(func(p *subtitlePreferences) { p.Position = value }) }),
-		(phoneSetting{label: locales.SettingsSubtitleBilingual(cx)}).toggle(cx, "", func() bool { return false }, nil),
+		(phoneSetting{label: locales.SettingsSubtitleBilingual(cx)}).toggle(cx, "subtitle-bilingual",
+			func() bool { return !prefs().DisableBilingual }, func(enabled bool) {
+				save(func(p *subtitlePreferences) { p.DisableBilingual = !enabled })
+			}),
 	}
 }
 
@@ -181,10 +187,20 @@ func settingsLanguageName(cx *core.Scope, code string) string {
 	if code == "zh-Hant" {
 		return locales.SettingsTraditionalChinese(cx)
 	}
-	return cmp.Or(display.Languages(language.Make(cx.Env().Locale())).Name(language.Make(code)), code)
+	names := display.Languages(language.Make(cx.Env().Locale()))
+	if names == nil {
+		names = display.Languages(language.English)
+	}
+	return cmp.Or(names.Name(language.Make(code)), code)
 }
 
 func subtitleStylePreview(cx *core.Scope, prefs func() subtitlePreferences) core.Node {
+	sample := locales.SettingsSubtitleSample(cx)
+	translation := "We choose hope."
+	if !strings.HasPrefix(cx.Env().Locale(), "zh") {
+		translation = "我们选择希望。"
+	}
+	text := core.NewMemo(cx, func() string { return convertSubtitleText(sample, "", prefs().chineseCaptionScript()) })
 	return core.View{Class: "relative h-48 bg-white dark:bg-[#1a1b25]", Children: []core.Node{
 		core.View{Class: "h-40 items-center justify-center bg-[#f3f3f3] dark:bg-[#262626]", Children: []core.Node{
 			core.Icon{SVG: lucide.Image(), Class: "size-7 text-neutral-500"},
@@ -193,7 +209,7 @@ func subtitleStylePreview(cx *core.Scope, prefs func() subtitlePreferences) core
 		core.View{Class: "absolute inset-x-0 items-center gap-0.5", StyleFunc: func() core.Style {
 			return core.Style{Bottom: core.Pt(core.Points(8 + float64(prefs().Position)*1.92))}
 		}, Children: []core.Node{
-			core.Text{Content: locales.SettingsSubtitleSample(cx), TestID: "subtitle-preview-sample",
+			core.Text{ContentFunc: text.Get, TestID: "subtitle-preview-sample",
 				Class: "rounded px-2 font-semibold text-center", StyleFunc: func() core.Style {
 					p := prefs()
 					style := p.captionStyle()
@@ -205,7 +221,17 @@ func subtitleStylePreview(cx *core.Scope, prefs func() subtitlePreferences) core
 					}
 					return style
 				}},
-			core.Text{Content: "We choose hope.", Class: "text-sm font-medium text-amber-200"},
+			core.Show{When: func() bool { return !prefs().DisableBilingual }, Then: func(*core.Scope) core.Node {
+				return core.Text{ContentFunc: func() string { return convertSubtitleText(translation, "", prefs().chineseCaptionScript()) },
+					TestID: "subtitle-preview-secondary", Class: "text-center font-medium", StyleFunc: func() core.Style {
+						p := prefs()
+						style := p.secondaryCaptionStyle()
+						if p.Background == "none" {
+							style.TextShadowColor, style.TextShadowOffset, style.TextShadowRadius = 0, core.Point{}, 0
+						}
+						return style
+					}}
+			}},
 		}},
 	}}
 }

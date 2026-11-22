@@ -22,13 +22,15 @@ var subtitleScales = []int{50, 75, 100, 125, 150}
 var subtitleModes = []string{"always", "foreign", "off"}
 
 type subtitlePreferences struct {
-	Languages  []string
-	Audio      string
-	Mode       string
-	Color      uint32
-	Scale      int
-	Position   int
-	Background string
+	Languages           []string
+	Audio               string
+	Mode                string
+	Color               uint32
+	Scale               int
+	Position            int
+	Background          string
+	KeepOriginalChinese bool
+	DisableBilingual    bool
 }
 
 func readSubtitlePreferences(storage core.Storage) subtitlePreferences {
@@ -71,12 +73,25 @@ func readSubtitlePreferences(storage core.Storage) subtitlePreferences {
 	if slices.Contains(subtitleBackgrounds, saved.Background) {
 		p.Background = saved.Background
 	}
+	p.KeepOriginalChinese = saved.KeepOriginalChinese
+	p.DisableBilingual = saved.DisableBilingual
 	return p
+}
+
+func (p subtitlePreferences) chineseCaptionScript() string {
+	if !p.KeepOriginalChinese {
+		for _, code := range p.Languages {
+			if code == "zh-Hans" || code == "zh-Hant" {
+				return code
+			}
+		}
+	}
+	return ""
 }
 
 func subtitleLanguage(value string) string {
 	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "chs", "sc", "zh-sg":
+	case "chi", "zho", "chs", "sc", "zh-sg":
 		return "zh-Hans"
 	case "cht", "tc":
 		return "zh-Hant"
@@ -152,20 +167,38 @@ func automaticSubtitle(tracks []media.Track, p subtitlePreferences) media.Track 
 			return media.Track{}
 		}
 	}
+	target := p.chineseCaptionScript()
 	for _, code := range p.Languages {
-		var match media.Track
-		for _, t := range tracks {
-			if t.Type == "subtitle" && t.URL != "" && subtitleLanguage(t.Language) == code {
-				if match.ID == "" || (t.Default && !match.Default) {
-					match = t
-				}
-			}
-		}
-		if match.ID != "" {
+		if match := textSubtitleForPreference(tracks, code, target); match.ID != "" {
 			return match
 		}
 	}
 	return media.Track{}
+}
+
+func textSubtitleForPreference(tracks []media.Track, code, target string) media.Track {
+	if match := textSubtitleInLanguage(tracks, code); match.ID != "" || code != target {
+		return match
+	}
+	switch code {
+	case "zh-Hant":
+		return textSubtitleInLanguage(tracks, "zh-Hans")
+	case "zh-Hans":
+		return textSubtitleInLanguage(tracks, "zh-Hant")
+	default:
+		return media.Track{}
+	}
+}
+
+func textSubtitleInLanguage(tracks []media.Track, code string) media.Track {
+	var match media.Track
+	for _, track := range tracks {
+		if track.Type == "subtitle" && track.ID != "" && track.URL != "" && subtitleLanguage(track.Language) == code &&
+			(match.ID == "" || track.Default && !match.Default) {
+			match = track
+		}
+	}
+	return match
 }
 
 func (p subtitlePreferences) captionStyle() core.Style {
@@ -179,5 +212,12 @@ func (p subtitlePreferences) captionStyle() core.Style {
 	style.TextShadowColor = core.RGBA(0, 0.9)
 	style.TextShadowOffset = core.Point{Y: 1}
 	style.TextShadowRadius = 2
+	return style
+}
+
+func (p subtitlePreferences) secondaryCaptionStyle() core.Style {
+	style := p.captionStyle()
+	style.FontSize *= 0.7
+	style.Color = core.RGB(0xfde68a)
 	return style
 }

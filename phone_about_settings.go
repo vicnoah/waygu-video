@@ -21,6 +21,9 @@ var (
 
 	//go:embed docs/licenses/third-party.txt
 	thirdPartyLicenses string
+
+	//go:embed internal/playback/opencc/LICENSE
+	openCCLicense string
 )
 
 func (a *application) phoneAboutSettings(cx *core.Scope) core.Node {
@@ -190,7 +193,7 @@ func aboutDetail(cx *core.Scope, panel string, close func()) core.Node {
 			hint(locales.AboutPrivacyDiagnostics(cx)), hint(locales.AboutPrivacyLocation(cx)), hint(locales.AboutTMDBPrivacy(cx))}
 	case "licenses":
 		title = locales.AboutLicenses(cx)
-		body = []core.Node{core.Text{Content: "NSGo\n\n" + nsgoLicense + "\n\n" + thirdPartyLicenses,
+		body = []core.Node{core.Text{Content: "NSGo\n\n" + nsgoLicense + "\n\n" + thirdPartyLicenses + "\n\nOpenCC dictionaries\n\n" + openCCLicense,
 			Class: "text-sm " + setupTitle, Selectable: core.SelectableOn}}
 	default:
 		return nil

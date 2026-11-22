@@ -36,9 +36,10 @@ type trackControls struct {
 }
 
 type subtitleSelection struct {
-	id   string
-	name string
-	cues *playback.Captions
+	id       string
+	name     string
+	language string
+	cues     *playback.Captions
 }
 
 func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *desktopVideo, initialSubtitle string, prefs func() subtitlePreferences, position *core.Signal[time.Duration],
@@ -78,7 +79,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		}
 		finishSubtitles(selection, nil)
 	}
-	load := func(id, name string, read func(context.Context) (*playback.Captions, error)) {
+	load := func(selection subtitleSelection, read func(context.Context) (*playback.Captions, error)) {
 		if loading.GetUntracked() {
 			return
 		}
@@ -88,10 +89,11 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		go func() {
 			cues, err := read(viewContext)
 			cx.Post(func() {
-				if id != "local" && trackSource.GetUntracked() != source {
+				if selection.id != "local" && trackSource.GetUntracked() != source {
 					loading.Set(false)
 				} else if err == nil {
-					applySubtitles(subtitleSelection{id: id, name: name, cues: cues})
+					selection.cues = cues
+					applySubtitles(selection)
 				} else {
 					finishSubtitles(subtitleSelection{}, err)
 				}
@@ -100,7 +102,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 	}
 	selectServerSubtitle := func(track media.Track) {
 		current := core.Untracked(cx, stream)
-		load(track.ID, trackLabel(cx, track), func(ctx context.Context) (*playback.Captions, error) {
+		load(subtitleSelection{id: track.ID, name: trackLabel(cx, track), language: track.Language}, func(ctx context.Context) (*playback.Captions, error) {
 			return playback.FetchCaptions(ctx, track.URL, current.SubtitleHeaders, current.Trust)
 		})
 	}
@@ -202,7 +204,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 				return
 			}
 			file := files[0]
-			load("local", file.Name, func(context.Context) (*playback.Captions, error) {
+			load(subtitleSelection{id: "local", name: file.Name}, func(context.Context) (*playback.Captions, error) {
 				if file.Temporary {
 					defer os.Remove(file.Path)
 				}
@@ -215,13 +217,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			})
 		})
 	}
-	text := core.NewMemo(cx, func() string {
-		selection := subtitles.Get()
-		if selection.cues == nil {
-			return ""
-		}
-		return selection.cues.At(position.Get() - delay.Get())
-	})
+	text := playerCaptionText(cx, subtitles, stream, prefs, position, delay)
 	cx.Effect(func() {
 		if d := decoder(); d != nil {
 			d.subtitleDelay(delay.Get())
@@ -429,16 +425,23 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			}
 			return fallback
 		},
-		captions: core.Show{When: func() bool { return text.Get() != "" }, Then: func(cx *core.Scope) core.Node {
-			return core.View{Class: "absolute inset-x-0 items-center px-8", PointerEvents: core.PointerEventsNone,
+		captions: core.Show{When: func() bool { return text.Get() != (captionLines{}) }, Then: func(cx *core.Scope) core.Node {
+			line := func(id, class string, content func() string, style func() core.Style) core.Node {
+				return core.Show{When: func() bool { return content() != "" }, Then: func(*core.Scope) core.Node {
+					return core.Text{ContentFunc: content, TestID: id, Class: "rounded px-3 py-1 text-center " + class, StyleFunc: style}
+				}}
+			}
+			return core.View{Class: "absolute inset-x-0 items-center px-8 gap-0.5", PointerEvents: core.PointerEventsNone,
 				StyleFunc: func() core.Style {
 					bottom := cx.Env().Window().Height * core.Points(prefs().Position) / 100
 					if phoneLandscape(cx) && open.Get() {
 						return core.Style{Right: core.Pt(360), Bottom: core.Pt(16 + bottom)}
 					}
 					return core.Style{Bottom: core.Pt(104 + bottom)}
-				}, Children: []core.Node{core.Text{ContentFunc: text.Get, TestID: "subtitle-caption",
-					Class: "rounded px-3 py-1 text-center font-semibold", StyleFunc: func() core.Style { return prefs().captionStyle() }}}}
+				}, Children: []core.Node{
+					line("subtitle-caption", "font-semibold", func() string { return text.Get().primary }, func() core.Style { return prefs().captionStyle() }),
+					line("subtitle-caption-secondary", "font-medium", func() string { return text.Get().secondary }, func() core.Style { return prefs().secondaryCaptionStyle() }),
+				}}
 		}},
 	}
 }

@@ -66,6 +66,18 @@ With the same three fixtures, `TestDockerOfflineDownloadReview` saves an origina
 `TestDockerServers` compares the four chapter names and times reported by each service to the embedded chapter metadata. `TestDockerPhonePlayerGesturesAndPreview` plays the Jellyfin copy, jumps to a chapter, and checks slider commits, lock behavior and the thumbnail returned by Jellyfin while the slider is held. The headless case also verifies the temporary speed command and its restoration after cancellation. On an existing Docker setup, run `fixtures.sh` and `bootstrap.py` again to import the chaptered fixture.
 
 
+## Bilingual subtitles
+
+`fixtures.sh` writes independent Chinese and English SRT files next to `Waygu Test Movie`. Regenerate the files and run `bootstrap.py` to refresh existing fixture libraries. On each Docker server the player picks the Chinese track for the Traditional Chinese preference, converts its Simplified text, and renders the English track below. The headless run checks different cue end times, seeking back, and both subtitle toggles in the player. The GTK run decodes the actual clip and captures both lines.
+
+```sh
+WAYGU_TEST_SERVERS=1 go tool nsgo test . -run '^TestDockerBilingualSubtitles$'
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerBilingualSubtitles$' -screenshots .nsgo/ui-review/bilingual-subtitles
+```
+
+The GTK test needs GStreamer with a working H.264/AAC decoder. [Screenshots and comparison](../../docs/ui-review/phone-player-settings.md#chinese-conversion-and-bilingual-captions)
+
 ## ASS danmaku import
 
 `TestReadASSAndSchedule` imports UTF‑8 and UTF‑16 files and checks time, ASS primary colors, direction, sender filters and offsets. Fixed comments use their ASS alignment, and horizontal movement selects the corresponding scrolling direction. The shared scheduler supplies duration, placement and styling from the user's playback settings. The importer uses dialogue text and omits ASS drawing commands. `TestRenderWithASS` schedules imported dialogue and checks the resulting libmpv pixels before and after changing the display settings. [ASS format guide](https://github.com/libass/libass/wiki/ASS-File-Format-Guide)

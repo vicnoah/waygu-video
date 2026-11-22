@@ -1,0 +1,3 @@
+The four compressed dictionaries are unmodified OpenCC text files from [1.1.9](https://github.com/BYVoid/OpenCC/tree/556ed22496d650bd0b13b6c163be9814637970ae/data/dictionary). They are included under the adjacent Apache 2.0 license. The app applies the standard `s2t` and `t2s` phrase and character tables. It uses the first candidate for each entry and performs no regional vocabulary substitution.
+
+To update the data, take `STPhrases.txt`, `STCharacters.txt`, `TSPhrases.txt`, and `TSCharacters.txt` from a pinned OpenCC revision and compress them with `gzip -n`. Check the upstream `s2t` and `t2s` configurations if changing the revision.

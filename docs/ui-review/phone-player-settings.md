@@ -58,6 +58,18 @@ Ordinary iOS background audio remains pending because the current NSGo video bac
 
 ![Subtitle language ordering in light and dark appearance](images/phone-settings-subtitle-order.png)
 
+### Chinese conversion and bilingual captions
+
+The light and dark comparisons show the teal Repeat badge, the two enabled switches, and the preview’s white and smaller amber lines. GTK still omits the Scenra status bar and device corners. The two preview crops below show the result of disabling bilingual captions. Turning either setting off saves immediately. [Scenra subtitle settings](../../design/settings-subtitles.scenra)
+
+![Light and dark GTK previews after turning bilingual captions off](images/phone-settings-subtitle-preview-single.png)
+
+Chinese conversion uses the first Simplified or Traditional Chinese entry in the subtitle priority list. A track in the other script can fill that language preference. Platform-independent OpenCC tables convert phrases and individual characters offline. Chinese conversion applies to the app’s SRT and WebVTT caption overlay. The player preserves explicitly tagged non-Chinese tracks.
+
+![Two captions over the Emby clip playing in the GTK phone player](images/phone-player-bilingual-subtitles.png)
+
+The player chooses a second text track in a different language from the preferences and renders its active cues below the first. Separately authored lines in different scripts can also be stacked within a single subtitle file. Both lines follow the same playback position and subtitle delay. The Linux GTK player decoded the Docker fixture and displayed both lines with Emby, Jellyfin and Plex. The headless test verified independent cue end times, seeking backward, turning the second line off and on, and disabling all subtitles. Embedded ASS and image subtitle rendering still need their own integration. [Fixture and test commands](../../integration/servers/TESTING.md#bilingual-subtitles)
+
 ## Findings
 
 | Area | Result |
@@ -67,7 +79,7 @@ Ordinary iOS background audio remains pending because the current NSGo video bac
 | Playback controls | The two network quality values, direct play preference, cellular warning, auto-next, skipping intros and credits, progress recording, screen swipes, speed, rewind and forward intervals, picture mode and Android background audio save immediately. Decoder and HDR settings, passthrough, volume boost, night mode, and buffer controls still need implementation. |
 | Intro and credit detection | The episode group has the violet badge and the 51 × 31 pt switch shown in both appearances. The detection row displays the design’s server-marker and audio-fingerprint label. The player uses typed markers and named chapters first. A missing range can be inferred from recurring audio in two other episodes from the same season. [Playback evidence](phone-player.md#intro-and-credit-skips) |
 | Picture in Picture | Automatic entry is wired to the iOS video backend. The GTK capture shows the unavailable switch. iPhone and iPad behavior remains to be checked. |
-| Subtitle languages and style | The first language with a matching text track wins. The app previews the chosen size, color, background and position, uses the system font and provides a custom color picker. The Scenra preview has an unresolved image and both captures show its placeholder. Font selection, outline customization, Simplified and Traditional conversion, bilingual display, ASS switches, online subtitle services and sidecar matching remain pending. Plain-text preferences apply to the app's caption overlay. |
+| Subtitle languages and style | The first language with a matching text track wins, with Chinese script fallback when conversion is enabled. The preview reflects bilingual mode, size, color, background and position. Both captures show the placeholder for the unresolved Scenra preview image. The app uses the system font. Font selection, outline customization, ASS switches, online subtitle services and matching device-local sidecars remain pending. |
 | Integration | The settings test covers navigation, auto-next, disabling intro and credit skips, speed and seek choices, preset and custom colors, and changing the subtitle language priority. The Docker test verifies Japanese audio and English subtitle fallback on Emby and Jellyfin, with the player obtaining a scaled rendered caption and the configured speed, aspect and seek intervals. Native GTK video decoding passed separately. |
 
 Android's launcher asks ConnectivityManager for its active network. iPhone and iPad use a Network framework path monitor. Apple TV uses the Wi-Fi/default profile for Wi-Fi and Ethernet. HarmonyOS uses the connection type reported by ArkWeb when available. An unavailable transport also uses the Wi-Fi/default profile. The application-level test changes the reported transport, checks its requested bitrate and height, and verifies that cancelling the warning sends no playback request. [Android network state](https://developer.android.com/reference/android/net/ConnectivityManager) · [Apple Network framework](https://developer.apple.com/documentation/network/network-functions) · [Apple TV network requirements](https://support.apple.com/guide/tv/set-up-apple-tv-4k-atvb73e46488/tvos) · [Network Information API](https://wicg.github.io/netinfo/)

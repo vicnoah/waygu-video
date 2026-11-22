@@ -42,15 +42,19 @@ func TestPlaybackTrackControlsKeepPlaybackState(t *testing.T) {
 	app.Press("id:player-tracks")
 	app.PickFiles = func(nsgotest.FilePick) []core.File {
 		return []core.File{{Name: "fixture.srt", Opener: func() (io.ReadCloser, error) {
-			return io.NopCloser(strings.NewReader("1\n00:00:12,000 --> 00:00:16,000\nFixture caption\n")), nil
+			return io.NopCloser(strings.NewReader("1\n00:00:12,000 --> 00:00:16,000\nFixture caption\n我們選擇希望。\n")), nil
 		}}}
 	}
 	app.Press("id:open-subtitle-file")
 	app.WaitFor("id:subtitle-later", time.Second)
 	app.Press("id:subtitle-later")
 	app.WaitForGone("id:subtitle-caption", time.Second)
+	app.WaitForGone("id:subtitle-caption-secondary", time.Second)
 	app.Press("id:subtitle-earlier")
 	app.WaitFor("id:subtitle-caption", time.Second)
+	if caption := app.WaitFor("text:我们选择希望。", time.Second); caption.Props.TestID != "subtitle-caption-secondary" {
+		t.Fatal("the imported translation did not render as the second caption")
+	}
 
 	app.Press("id:track-tab-speed")
 	app.Press("id:playback-speed-1.5")
@@ -79,6 +83,7 @@ func TestPlaybackTrackControlsKeepPlaybackState(t *testing.T) {
 	app.Press("id:track-tab-subtitles")
 	app.Press("id:subtitles-off")
 	app.WaitForGone("id:subtitle-caption", time.Second)
+	app.WaitForGone("id:subtitle-caption-secondary", time.Second)
 
 	var lifecycle []media.PlaybackState
 	deadline := time.After(time.Second)

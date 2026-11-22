@@ -111,6 +111,12 @@ Waygu Video playback fixture
 Subtitle and seek verification
 EOF
 
+cat > "$movie/Waygu Test Movie (2025).zh.srt" <<'EOF'
+1
+00:00:01,500 --> 00:00:05,000
+理发以后再出发。
+EOF
+
 track_base="$tracks/Waygu Track Test (2025)"
 cat > "$track_base.nfo" <<'EOF'
 <?xml version="1.0" encoding="utf-8"?>
