@@ -55,6 +55,13 @@ flymooFNConnect: 支持 FN Connect 远程访问 ID
 flymooFNTitle: FN Connect
 flymooFNID: FN ID
 flymooFNInvalid: 请输入由字母、数字或连字符组成的 FN ID。
+flymooFNAccessCode: 访问码（选填）
+flymooFNDefaultAddress: 使用默认地址
+flymooFNResolving: 正在查找服务器…
+flymooFNNotFound: FN Connect 未找到此 FN ID。
+flymooFNLookupFailed: FN Connect 暂时无法访问。请重试或使用默认地址。
+flymooFNNoRoute: 未找到可连接的影视线路。请检查服务器，如果已设置访问码，请填写访问码。
+flymooFNCodeRejected: 网关未接受访问码。请核对后重试。
 flymooGatewayRejected: 无法验证新的飞牛影视网关。请检查地址后重新测试。
 trustSourceCertificate: 信任服务器证书
 sourceCertificateRejected: 无法验证服务器证书。

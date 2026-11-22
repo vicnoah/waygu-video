@@ -123,15 +123,14 @@ def flymoo_connect_smoke():
     adb("shell", "input", "text", "living-room7")
     key("BACK")
     time.sleep(0.6)
-    key("DPAD_DOWN")
-    expect_focus("flymoo-fn-cancel")
-    key("DPAD_RIGHT")
-    expect_focus("flymoo-fn-apply")
+    focus_with_remote("flymoo-fn-code", "KEYCODE_DPAD_DOWN")
+    focus_with_remote("flymoo-fn-cancel", "KEYCODE_DPAD_DOWN")
+    focus_with_remote("flymoo-fn-default", "KEYCODE_DPAD_RIGHT")
     key("DPAD_CENTER")
     expect_focus("flymoo-fn-connect")
     if visible_label("server-address") != "living-room7.fnos.net/v":
         raise RuntimeError("The Flymoo FN ID did not fill the gateway address.")
-    print("Android TV Flymoo FN Connect passed focus restoration and Apply.")
+    print("Android TV Flymoo FN Connect passed focus restoration and the default address action.")
 
 
 def open_featured_details():

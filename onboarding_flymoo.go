@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"net"
 	"net/netip"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/nsgo-dev/nsgo/base"
 	"github.com/nsgo-dev/nsgo/core"
@@ -49,15 +51,14 @@ func sourceAddress(provider media.Provider, host, port string, https bool) (*url
 	return address, err
 }
 
+type resolveFNConnect func(context.Context, string, string) (media.FNConnectResult, error)
+
+var fnConnectResolver = core.NewKey("waygu.fnConnectResolver", resolveFNConnect(media.FNConnectClient{}.Resolve))
+
 func flymooRemoteAddress(raw string) string {
-	id := strings.ToLower(strings.TrimSpace(raw))
-	if len(id) < 2 || len(id) > 63 || strings.HasPrefix(id, "-") || strings.HasSuffix(id, "-") {
+	id := media.FNConnectID(raw)
+	if id == "" {
 		return ""
-	}
-	for _, ch := range id {
-		if ch != '-' && !(ch >= 'a' && ch <= 'z') && !(ch >= '0' && ch <= '9') {
-			return ""
-		}
 	}
 	return "https://" + id + ".fnos.net/v"
 }
@@ -75,21 +76,56 @@ func flymooConnectionIntro(cx *core.Scope, ref *core.Ref, disabled func() bool, 
 	}
 }
 
-func flymooFNConnectDialog(cx *core.Scope, back func(), apply func(string)) core.Node {
+func flymooFNConnectDialog(cx *core.Scope, back func(), apply func(media.FNConnectResult)) core.Node {
 	id := core.NewSignal(cx, "")
-	invalid := core.NewSignal(cx, false)
+	code := core.NewSignal(cx, "")
+	failure := core.NewSignal[error](cx, nil)
+	resolving := core.NewSignal(cx, false)
+	resolver := fnConnectResolver.Use(cx)
+	lifetime := cx.Context()
 	var field *core.Ref
 	if appLayoutIdiom(cx) == core.IdiomTV {
 		field = &core.Ref{}
 		cx.Post(field.Focus)
 	}
 	commit := func() {
-		address := flymooRemoteAddress(id.GetUntracked())
-		if address == "" {
-			invalid.Set(true)
+		key := media.FNConnectID(id.GetUntracked())
+		if key == "" {
+			failure.Set(media.ErrFNConnectID)
 			return
 		}
-		apply(address)
+		if resolving.GetUntracked() {
+			return
+		}
+		access := code.GetUntracked()
+		resolving.Set(true)
+		failure.Set(nil)
+		go func() {
+			ctx, cancel := context.WithTimeout(lifetime, 15*time.Second)
+			defer cancel()
+			resolved, err := resolver(ctx, key, access)
+			cx.Post(func() {
+				if lifetime.Err() != nil {
+					return
+				}
+				resolving.Set(false)
+				if err != nil {
+					failure.Set(err)
+					return
+				}
+				code.Set("")
+				apply(resolved)
+				back()
+			})
+		}()
+	}
+	fallback := func() {
+		address := flymooRemoteAddress(id.GetUntracked())
+		if address == "" {
+			failure.Set(media.ErrFNConnectID)
+			return
+		}
+		apply(media.FNConnectResult{Address: address})
 		back()
 	}
 	return ui.Dialog{TestID: "flymoo-fn-dialog", Title: locales.FlymooFNTitle(cx), Open: func() bool { return true },
@@ -100,13 +136,26 @@ func flymooFNConnectDialog(cx *core.Scope, back func(), apply func(string)) core
 		},
 		Children: []core.Node{
 			ui.Input{Ref: field, TestID: "flymoo-fn-id", Label: locales.FlymooFNID(cx), Placeholder: locales.FlymooFNID(cx),
-				NoAutoCorrect: true, Value: id.Get, OnChange: func(value string) { id.Set(value); invalid.Set(false) },
+				NoAutoCorrect: true, Value: id.Get, Disabled: resolving.Get, OnChange: func(value string) { id.Set(value); failure.Set(nil) },
 				OnSubmit: func(string) { commit() }},
-			core.Show{When: invalid.Get, Then: func(cx *core.Scope) core.Node { return notice(locales.FlymooFNInvalid(cx)) }},
+			ui.Input{TestID: "flymoo-fn-code", Label: locales.FlymooFNAccessCode(cx), Placeholder: locales.FlymooFNAccessCode(cx),
+				Masked: true, NoAutoCorrect: true, Value: code.Get, Disabled: resolving.Get,
+				OnChange: func(value string) { code.Set(value); failure.Set(nil) }, OnSubmit: func(string) { commit() }},
+			core.Dynamic(func(cx *core.Scope) core.Node {
+				if err := failure.Get(); err != nil {
+					return notice(errorText(cx, err))
+				}
+				return nil
+			}),
 		},
 		Footer: []core.Node{
 			ui.Button{Text: locales.DesktopSettingsCancel(cx), TestID: "flymoo-fn-cancel", Variant: ui.ButtonGhost, OnPress: back},
-			ui.Button{Text: locales.SourceHeadersApply(cx), TestID: "flymoo-fn-apply", OnPress: commit},
+			core.Show{When: func() bool { return code.Get() == "" }, Then: func(cx *core.Scope) core.Node {
+				return ui.Button{Text: locales.FlymooFNDefaultAddress(cx), TestID: "flymoo-fn-default",
+					Variant: ui.ButtonGhost, Disabled: resolving.Get, OnPress: fallback}
+			}},
+			ui.Button{Text: locales.SourceHeadersApply(cx), TestID: "flymoo-fn-apply", Busy: resolving.Get,
+				BusyLabel: locales.FlymooFNResolving(cx), OnPress: commit},
 		},
 	}
 }

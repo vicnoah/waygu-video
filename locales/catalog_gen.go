@@ -375,6 +375,13 @@ const (
 	textFlymooFNTitle
 	textFlymooFNID
 	textFlymooFNInvalid
+	textFlymooFNAccessCode
+	textFlymooFNDefaultAddress
+	textFlymooFNResolving
+	textFlymooFNNotFound
+	textFlymooFNLookupFailed
+	textFlymooFNNoRoute
+	textFlymooFNCodeRejected
 	textFlymooGatewayRejected
 	textTrustSourceCertificate
 	textSourceCertificateRejected
@@ -1242,6 +1249,13 @@ var keyOfText = [numTexts]string{
 	"flymooFNTitle",
 	"flymooFNID",
 	"flymooFNInvalid",
+	"flymooFNAccessCode",
+	"flymooFNDefaultAddress",
+	"flymooFNResolving",
+	"flymooFNNotFound",
+	"flymooFNLookupFailed",
+	"flymooFNNoRoute",
+	"flymooFNCodeRejected",
 	"flymooGatewayRejected",
 	"trustSourceCertificate",
 	"sourceCertificateRejected",
@@ -2107,6 +2121,13 @@ var textsEn = i18n.NewTexts(""+
 	"FN Connect"+
 	"FN ID"+
 	"Enter an FN ID using letters, numbers, or hyphens."+
+	"Access code (optional)"+
+	"Use default address"+
+	"Finding server…"+
+	"FN Connect could not find this FN ID."+
+	"FN Connect is unavailable. Try again or use the default address."+
+	"No reachable media route was found. Check the server and enter an access code if it requires one."+
+	"The gateway did not accept the access code. Check the code and try again."+
 	"Could not verify the new Flymoo gateway. Check its address and test the connection again."+
 	"Trust server certificate"+
 	"The server certificate could not be verified."+
@@ -2969,6 +2990,13 @@ var textsEn = i18n.NewTexts(""+
 		10,
 		5,
 		50,
+		22,
+		19,
+		17,
+		37,
+		64,
+		97,
+		73,
 		89,
 		24,
 		45,
@@ -3834,6 +3862,13 @@ var textsZhHans = i18n.NewTexts(""+
 	"FN Connect"+
 	"FN ID"+
 	"请输入由字母、数字或连字符组成的 FN ID。"+
+	"访问码（选填）"+
+	"使用默认地址"+
+	"正在查找服务器…"+
+	"FN Connect 未找到此 FN ID。"+
+	"FN Connect 暂时无法访问。请重试或使用默认地址。"+
+	"未找到可连接的影视线路。请检查服务器，如果已设置访问码，请填写访问码。"+
+	"网关未接受访问码。请核对后重试。"+
 	"无法验证新的飞牛影视网关。请检查地址后重新测试。"+
 	"信任服务器证书"+
 	"无法验证服务器证书。"+
@@ -4696,6 +4731,13 @@ var textsZhHans = i18n.NewTexts(""+
 		10,
 		5,
 		57,
+		21,
+		18,
+		24,
+		32,
+		65,
+		105,
+		48,
 		72,
 		21,
 		30,
@@ -6446,6 +6488,55 @@ func FlymooFNInvalid(cx *core.Scope) string { return For(cx).FlymooFNInvalid() }
 
 // FlymooFNInvalid is the package's FlymooFNInvalid in the language of msgs.
 func (msgs Messages) FlymooFNInvalid() string { return msgs.text(textFlymooFNInvalid) }
+
+// FlymooFNAccessCode says "Access code (optional)"
+// in the language the app shows under cx.
+func FlymooFNAccessCode(cx *core.Scope) string { return For(cx).FlymooFNAccessCode() }
+
+// FlymooFNAccessCode is the package's FlymooFNAccessCode in the language of msgs.
+func (msgs Messages) FlymooFNAccessCode() string { return msgs.text(textFlymooFNAccessCode) }
+
+// FlymooFNDefaultAddress says "Use default address"
+// in the language the app shows under cx.
+func FlymooFNDefaultAddress(cx *core.Scope) string { return For(cx).FlymooFNDefaultAddress() }
+
+// FlymooFNDefaultAddress is the package's FlymooFNDefaultAddress in the language of msgs.
+func (msgs Messages) FlymooFNDefaultAddress() string { return msgs.text(textFlymooFNDefaultAddress) }
+
+// FlymooFNResolving says "Finding server…"
+// in the language the app shows under cx.
+func FlymooFNResolving(cx *core.Scope) string { return For(cx).FlymooFNResolving() }
+
+// FlymooFNResolving is the package's FlymooFNResolving in the language of msgs.
+func (msgs Messages) FlymooFNResolving() string { return msgs.text(textFlymooFNResolving) }
+
+// FlymooFNNotFound says "FN Connect could not find this FN ID."
+// in the language the app shows under cx.
+func FlymooFNNotFound(cx *core.Scope) string { return For(cx).FlymooFNNotFound() }
+
+// FlymooFNNotFound is the package's FlymooFNNotFound in the language of msgs.
+func (msgs Messages) FlymooFNNotFound() string { return msgs.text(textFlymooFNNotFound) }
+
+// FlymooFNLookupFailed says "FN Connect is unavailable. Try again or use the default address."
+// in the language the app shows under cx.
+func FlymooFNLookupFailed(cx *core.Scope) string { return For(cx).FlymooFNLookupFailed() }
+
+// FlymooFNLookupFailed is the package's FlymooFNLookupFailed in the language of msgs.
+func (msgs Messages) FlymooFNLookupFailed() string { return msgs.text(textFlymooFNLookupFailed) }
+
+// FlymooFNNoRoute says "No reachable media route was found. Check the server and enter an access code if it requires one."
+// in the language the app shows under cx.
+func FlymooFNNoRoute(cx *core.Scope) string { return For(cx).FlymooFNNoRoute() }
+
+// FlymooFNNoRoute is the package's FlymooFNNoRoute in the language of msgs.
+func (msgs Messages) FlymooFNNoRoute() string { return msgs.text(textFlymooFNNoRoute) }
+
+// FlymooFNCodeRejected says "The gateway did not accept the access code. Check the code and try again."
+// in the language the app shows under cx.
+func FlymooFNCodeRejected(cx *core.Scope) string { return For(cx).FlymooFNCodeRejected() }
+
+// FlymooFNCodeRejected is the package's FlymooFNCodeRejected in the language of msgs.
+func (msgs Messages) FlymooFNCodeRejected() string { return msgs.text(textFlymooFNCodeRejected) }
 
 // FlymooGatewayRejected says "Could not verify the new Flymoo gateway. Check its address and test the connection again."
 // in the language the app shows under cx.

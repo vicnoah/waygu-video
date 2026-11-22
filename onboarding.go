@@ -167,7 +167,7 @@ func (a *application) connectServer(ctx context.Context, form source, input medi
 		return candidateSource{}, err
 	}
 	info := probed.info
-	if form.Provider == media.Flymoo && form.ServerID != "" && info.ID != "" && form.ServerID != info.ID {
+	if form.Provider == media.Flymoo && form.ServerID != "" && form.ServerID != info.ID {
 		return candidateSource{}, errDifferentServer
 	}
 	if !endpoint.remote {

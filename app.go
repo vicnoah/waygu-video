@@ -411,6 +411,16 @@ func errorText(cx *core.Scope, err error) string {
 		return locales.SourceProbeDenied(cx)
 	case errors.Is(err, errSourceHeadersUnavailable):
 		return locales.SourceHeadersUnavailable(cx)
+	case errors.Is(err, media.ErrFNConnectID):
+		return locales.FlymooFNInvalid(cx)
+	case errors.Is(err, media.ErrFNConnectAbsent):
+		return locales.FlymooFNNotFound(cx)
+	case errors.Is(err, media.ErrFNConnectLookup):
+		return locales.FlymooFNLookupFailed(cx)
+	case errors.Is(err, media.ErrFNConnectRoute):
+		return locales.FlymooFNNoRoute(cx)
+	case errors.Is(err, media.ErrFNConnectCode):
+		return locales.FlymooFNCodeRejected(cx)
 	case errors.Is(err, media.ErrFlymooGateway):
 		return locales.FlymooGatewayRejected(cx)
 	case errors.Is(err, errDifferentServer):

@@ -327,7 +327,7 @@ func TestFlymooGatewayConnectionReview(t *testing.T) {
 			if target == "linux" {
 				app.Screenshot("flymoo-fn-connect-" + variant.name)
 			}
-			app.Press("id:flymoo-fn-apply")
+			app.Press("id:flymoo-fn-default")
 			if address := app.Find("id:server-address").Text; address != "living-room7.fnos.net/v" || !app.Find("id:server-https").Props.Checked {
 				t.Fatalf("FN ID did not fill the HTTPS endpoint: %q", address)
 			}

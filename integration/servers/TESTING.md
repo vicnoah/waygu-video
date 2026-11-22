@@ -176,3 +176,16 @@ go tool nsgo test ./... -run '^(TestDiscoverFlymooDNS|TestFlymooDNSIPv6LinkLocal
 go tool nsgo test -target linux -env WAYGU_TEST_FLYMOO_LAN=1 -env WAYGU_TEST_SERVERS=1 \
   -run '^(TestFlymooLANSourceReview|TestDockerSourceReview)$' -screenshots .nsgo/ui-review/flymoo-lan
 ```
+
+
+## FN Connect route selection
+
+`TestFNConnectPortalSignatures` validates the signed FN ID lookup sent to the official portal. `TestFNConnectSelectsVerifiedRoute` supplies LAN, DDNS, public IPv4 and IPv6, and relay responses and verifies that the app chooses an endpoint that serves the Flymoo public media API. `TestFNConnectVerifiesRelayBackupIdentity` uses the portal’s verified relay when a reachable LAN address reports another NAS. An unverified relay identity leaves the backup field empty. `TestFNConnectAbsentAndLookupFailure` covers the portal’s missing-ID codes and malformed results. One synthetic lookup to the official endpoint returned HTTP 200 with code `3000037` and the missing-ID message. [FN Connect web portal](https://fnos.net/) · [Flymoo remote access](https://help.fnnas.com/articles/v1/access/how-access)
+
+`TestFNConnectAccessCodeIsScopedToTheSelectedGateway` verifies the documented access-code path using local responses. An accepted code leads to a same-origin redirect and a session cookie applicable to the media API. An incorrect code results in a single failed submit. A cross-origin redirect is rejected. `TestFlymooFNConnectAccessReview` substitutes the resolver result and opens a local TLS media gateway that requires the cookie for probes, login and catalog reads. The test signs in, imports and searches the library, and verifies that the saved source references the grant in secure storage. The GTK test captures these states in both appearances. [Flymoo access code settings](https://help.fnnas.com/articles/v1/safety/access-code) · [Native captures](../../docs/ui-review/source-login.md#fn-connect-route-and-access-code)
+
+```sh
+go tool nsgo test ./... -run '^(TestFNConnect|TestFlymooFNConnectAccessReview)' -count=1
+go tool nsgo test -target linux -run '^TestFlymooFNConnectAccessReview$' \
+  -screenshots .nsgo/ui-review/fn-connect
+```
