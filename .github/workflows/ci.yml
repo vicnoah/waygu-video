@@ -83,6 +83,14 @@ jobs:
           if-no-files-found: error
       - name: Build simulator apps
         run: go tool nsgo build -target ios_simulator,tvos_simulator -output dist/apple-simulators -jobs 2 -installers=false
+      - name: Archive simulator apps
+        run: tar -czf waygu-video-apple-simulators.tar.gz -C dist/apple-simulators .
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: waygu-video-apple-simulators
+          path: waygu-video-apple-simulators.tar.gz
+          retention-days: 7
+          if-no-files-found: error
       - name: Test on iPhone, iPad and Apple TV
         run: |
           set -euo pipefail
@@ -104,20 +112,25 @@ jobs:
             fi
             return 1
           }
-          for kind in iPhone iPad; do
-            simulator=$(device "$kind")
-            run_simulator -target ios_simulator -device "$simulator" -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes)$' -timeout 2m .
-            xcrun simctl shutdown "$simulator"
+          failed=0
+          for kind in iPhone iPad Apple-TV; do
+            if ! simulator=$(device "$kind"); then
+              echo "::error::No available $kind simulator"
+              failed=1
+              continue
+            fi
+            target=ios_simulator
+            navigation=TestSkipOnboarding
+            if [[ "$kind" == Apple-TV ]]; then
+              target=tvos_simulator
+              navigation=TestTVNavigation
+            fi
+            echo "::group::$kind simulator tests"
+            run_simulator -target "$target" -device "$simulator" -run "^(TestChineseAppName|$navigation|TestNativeVideoDecodes)$" -timeout 2m . || failed=1
+            xcrun simctl shutdown "$simulator" || failed=1
+            echo "::endgroup::"
           done
-          run_simulator -target tvos_simulator -device "$(device Apple-TV)" -run '^(TestChineseAppName|TestTVNavigation|TestNativeVideoDecodes)$' -timeout 2m .
-      - name: Archive simulator apps
-        run: tar -czf waygu-video-apple-simulators.tar.gz -C dist/apple-simulators .
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: waygu-video-apple-simulators
-          path: waygu-video-apple-simulators.tar.gz
-          retention-days: 7
-          if-no-files-found: error
+          exit "$failed"
 
   mobile-packages:
     name: Android, HarmonyOS and Web packages
