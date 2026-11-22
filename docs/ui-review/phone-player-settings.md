@@ -68,7 +68,7 @@ Chinese conversion uses the first Simplified or Traditional Chinese entry in the
 
 ![Two captions over the Emby clip playing in the GTK phone player](images/phone-player-bilingual-subtitles.png)
 
-The player chooses a second text track in a different language from the preferences and renders its active cues below the first. Separately authored lines in different scripts can also be stacked within a single subtitle file. Both lines follow the same playback position and subtitle delay. The Linux GTK player decoded the Docker fixture and displayed both lines with Emby, Jellyfin and Plex. The headless test verified independent cue end times, seeking backward, turning the second line off and on, and disabling all subtitles. Embedded ASS and image subtitle rendering still need their own integration. [Fixture and test commands](../../integration/servers/TESTING.md#bilingual-subtitles)
+The player chooses a second text track in a different language from the preferences and renders its active cues below the first. Separately authored lines in different scripts can also be stacked within a single subtitle file. Both lines follow the same playback position and subtitle delay. The Linux GTK player decoded the Docker fixture and displayed both lines with Emby, Jellyfin and Plex. The headless test verified independent cue end times, seeking backward, turning the second line off and on, and disabling all subtitles. The desktop libmpv player uses these settings for its embedded text tracks. Native phone rendering of embedded ASS and image subtitles remains pending. [Fixture and test commands](../../integration/servers/TESTING.md#bilingual-subtitles) · [Desktop embedded subtitle review](desktop-player.md#embedded-subtitles)
 
 ## Findings
 

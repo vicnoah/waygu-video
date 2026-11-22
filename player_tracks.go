@@ -42,7 +42,7 @@ type subtitleSelection struct {
 	cues     *playback.Captions
 }
 
-func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *desktopVideo, initialSubtitle string, prefs func() subtitlePreferences, position *core.Signal[time.Duration],
+func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *desktopVideo, waitingForDecoder func() bool, initialSubtitle string, prefs func() subtitlePreferences, position *core.Signal[time.Duration],
 	rate *core.Signal[float32], canChangeRate, switchingPlayback, audioError *core.Signal[bool],
 	chooseAudio func(media.Track), quality, styleSettings func(*core.Scope) core.Node) trackControls {
 	open := core.NewSignal(cx, false)
@@ -63,6 +63,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 	failed := core.NewSignal(cx, false)
 	trackSource := core.NewMemo(cx, func() string { return stream().SourceID })
 	viewContext := cx.Context()
+	started := false
 	finishSubtitles := func(selection subtitleSelection, err error) {
 		loading.Set(false)
 		failed.Set(err != nil)
@@ -71,6 +72,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		}
 	}
 	applySubtitles := func(selection subtitleSelection) {
+		started = true
 		d := core.Untracked(cx, decoder)
 		if d != nil && slices.ContainsFunc(d.tracks.GetUntracked(), selectedSubtitle) {
 			loading.Set(true)
@@ -83,6 +85,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		if loading.GetUntracked() {
 			return
 		}
+		started = true
 		loading.Set(true)
 		failed.Set(false)
 		source := trackSource.GetUntracked()
@@ -107,6 +110,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		})
 	}
 	selectDecoderSubtitle := func(d *desktopVideo, track mpv.Track) {
+		started = true
 		loading.Set(true)
 		failed.Set(false)
 		d.selectTrack(mpv.SubtitleTrack, track.ID, func(err error) {
@@ -169,29 +173,60 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		}
 		advance(choices)
 	}
-	firstStream := true
 	cx.Effect(func() {
 		trackSource.Get()
 		if choice := subtitles.GetUntracked(); choice.id != "local" {
 			subtitles.Set(subtitleSelection{})
 		}
-		if !firstStream {
+	})
+	cx.Effect(func() {
+		if started || (waitingForDecoder != nil && waitingForDecoder()) {
 			return
 		}
-		firstStream = false
+		started = true
+		if loading.GetUntracked() || subtitles.GetUntracked().id == "local" {
+			return
+		}
 		available := core.Untracked(cx, stream).Tracks
+		d := core.Untracked(cx, decoder)
+		var embedded []mpv.Track
+		if d != nil {
+			embedded = d.tracks.GetUntracked()
+		}
 		if initialSubtitle != "" {
-			id := initialSubtitle
-			initialSubtitle = ""
 			for _, track := range available {
-				if track.ID == id && track.Type == "subtitle" && track.URL != "" {
+				if track.ID == initialSubtitle && track.Type == "subtitle" && track.URL != "" {
 					selectServerSubtitle(track)
 					return
 				}
 			}
 		}
-		if track := automaticSubtitle(available, core.Untracked(cx, prefs)); track.ID != "" {
-			selectServerSubtitle(track)
+		preferences := core.Untracked(cx, prefs)
+		if len(embedded) == 0 {
+			if track := automaticSubtitle(available, preferences); track.ID != "" {
+				selectServerSubtitle(track)
+			}
+			return
+		}
+		audio := available
+		if local := decoderAudio(embedded); len(local) > 0 {
+			audio = local
+		}
+		if !automaticSubtitlesAllowed(audio, preferences) {
+			return
+		}
+		target := preferences.chineseCaptionScript()
+		for _, code := range preferences.Languages {
+			for _, language := range subtitleLanguageFallback(code, target) {
+				if track := embeddedSubtitleInLanguage(embedded, language, nil); track.ID != 0 {
+					selectDecoderSubtitle(d, track)
+					return
+				}
+				if track := textSubtitleInLanguage(available, language); track.ID != "" {
+					selectServerSubtitle(track)
+					return
+				}
+			}
 		}
 	})
 	pick := func() {
@@ -217,7 +252,12 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			})
 		})
 	}
-	text := playerCaptionText(cx, subtitles, stream, prefs, position, delay)
+	text := playerCaptionText(cx, subtitles, stream, prefs, position, delay, func() activeCaptionLines {
+		if d := decoder(); d != nil && d.captions != nil {
+			return d.captions.Get()
+		}
+		return activeCaptionLines{}
+	})
 	cx.Effect(func() {
 		if d := decoder(); d != nil {
 			d.subtitleDelay(delay.Get())
@@ -342,24 +382,44 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 				}})
 			}
 		}
-		if landscape && styleSettings != nil {
-			rows = append(rows, playerPanelAction(cx, "player-subtitle-style", locales.SettingsSubtitleStyle(cx),
-				lucide.Paintbrush, false, nil, func() { showingStyle.Set(true) }))
+		if styleSettings != nil {
+			if landscape {
+				rows = append(rows, playerPanelAction(cx, "player-subtitle-style", locales.SettingsSubtitleStyle(cx),
+					lucide.Paintbrush, false, nil, func() { showingStyle.Set(true) }))
+			} else if d != nil && d.captions != nil {
+				rows = append(rows, ui.Button{Text: locales.SettingsSubtitleStyle(cx), Icon: lucide.Paintbrush,
+					Variant: ui.ButtonOutline, TestID: "player-subtitle-style", OnPress: func() { showingStyle.Set(true) }})
+			}
 		}
 		if failed.Get() {
 			rows = append(rows, notice(locales.SubtitleLoadError(cx)))
 		}
 		return core.View{Class: "gap-3", Children: rows}
 	})
-	sheet := ui.Dialog{Open: open.Get, OnOpenChange: func(show bool, _ base.Reason) { open.Set(show) },
+	sheet := ui.Dialog{Open: open.Get, OnOpenChange: func(show bool, _ base.Reason) {
+		if !show {
+			close()
+		}
+	},
 		Title: locales.PlayerTracks(cx), TestID: "player-tracks-dialog",
 		Children: []core.Node{
-			ui.Tabs[int]{Options: tabs, Value: tab.Get, OnChange: tab.Set, Equal: true, TestID: "player-track-tabs"},
+			core.Dynamic(func(cx *core.Scope) core.Node {
+				if showingStyle.Get() {
+					return ui.Button{Text: locales.Subtitles(cx), Icon: lucide.ChevronLeft, Variant: ui.ButtonGhost,
+						TestID: "player-subtitle-style-back", OnPress: func() { showingStyle.Set(false) }}
+				}
+				return ui.Tabs[int]{Options: tabs, Value: tab.Get, OnChange: tab.Set, Equal: true, TestID: "player-track-tabs"}
+			}),
 			core.Scroll{StyleFunc: func() core.Style {
 				return core.Style{MaxHeight: core.Pt(min(340, max(105, cx.Env().Window().Height*0.44))), FlexShrink: 1}
-			}, Children: []core.Node{rows}},
+			}, TestID: "player-tracks-dialog-scroll", Children: []core.Node{core.Dynamic(func(cx *core.Scope) core.Node {
+				if showingStyle.Get() && styleSettings != nil {
+					return styleSettings(cx)
+				}
+				return rows
+			})}},
 		},
-		Footer: []core.Node{ui.Button{Text: locales.TracksDone(cx), TestID: "close-player-tracks", OnPress: func() { open.Set(false) }}},
+		Footer: []core.Node{ui.Button{Text: locales.TracksDone(cx), TestID: "close-player-tracks", OnPress: close}},
 	}
 	dialog := core.Dynamic(func(cx *core.Scope) core.Node {
 		if phoneLandscape(cx) {
@@ -466,7 +526,7 @@ func trackFromDecoder(track mpv.Track) media.Track {
 		kind = "audio"
 	}
 	return media.Track{ID: strconv.FormatInt(track.ID, 10), Type: kind, Title: track.Title, Language: track.Language,
-		Codec: track.Codec, Forced: track.Forced, External: track.External, Selected: track.Selected}
+		Codec: track.Codec, Forced: track.Forced, Default: track.Default, External: track.External, Selected: track.Selected}
 }
 
 func audioChoices(cx *core.Scope, tracks []media.Track, defaultToFirst bool, busy, failed func() bool, choose func(media.Track)) core.Node {

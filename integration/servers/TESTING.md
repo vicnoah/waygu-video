@@ -78,6 +78,18 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
 
 The GTK test needs GStreamer with a working H.264/AAC decoder. [Screenshots and comparison](../../docs/ui-review/phone-player-settings.md#chinese-conversion-and-bilingual-captions)
 
+## Embedded subtitle tracks
+
+`fixtures.sh` creates `Waygu Embedded Subtitle Test`, an 18-second H.264/AAC Matroska file with Simplified Chinese, English and positioned ASS dialogue. Refresh the media servers with `bootstrap.py` to index it. The desktop GTK test uses libmpv to open each server's original file, shows Chinese converted to Traditional and English below it, promotes the second track, and toggles the ASS rendering preferences while paused. The libmpv test also applies a shared delay and compares frames after toggling a locally attached font.
+
+```sh
+WAYGU_TEST_MPV=1 go tool nsgo test ./internal/playback/mpv -run '^TestTwoEmbeddedCaptionsAndAttachedFonts$'
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 -env WAYGU_TEST_DESKTOP_MPV=1 \
+  -run '^TestDockerDesktopEmbeddedSubtitles$' -screenshots .nsgo/ui-review/embedded-subtitles
+```
+
+[Desktop captures](../../docs/ui-review/desktop-player.md#embedded-subtitles)
+
 ## ASS danmaku import
 
 `TestReadASSAndSchedule` imports UTF‑8 and UTF‑16 files and checks time, ASS primary colors, direction, sender filters and offsets. Fixed comments use their ASS alignment, and horizontal movement selects the corresponding scrolling direction. The shared scheduler supplies duration, placement and styling from the user's playback settings. The importer uses dialogue text and omits ASS drawing commands. `TestRenderWithASS` schedules imported dialogue and checks the resulting libmpv pixels before and after changing the display settings. [ASS format guide](https://github.com/libass/libass/wiki/ASS-File-Format-Guide)

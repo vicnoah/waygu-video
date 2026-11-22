@@ -24,16 +24,6 @@ func (a *application) phoneSubtitleSettings(cx *core.Scope) core.Node {
 		change(&value)
 		failure.Set(storeSettings(a.storage, subtitlePreferencesKey, a.subtitlePrefs, value))
 	}
-	audio := []ui.Option[string]{{Label: locales.SettingsOriginalLanguage(cx)}}
-	for _, code := range subtitleLanguages {
-		audio = append(audio, ui.Option[string]{Value: code, Label: settingsLanguageName(cx, code)})
-	}
-	auto := []ui.Option[string]{
-		{Value: "always", Label: locales.SettingsAlwaysOn(cx)},
-		{Value: "foreign", Label: locales.SettingsSubtitleForeign(cx)},
-		{Value: "off", Label: locales.SubtitlesOff(cx)},
-	}
-	languages := phoneSetting{locales.SettingsPreferredSubtitles(cx), "", "bg-sky-500", lucide.Languages}
 	unavailable := func(label, tint string, icon func() *core.SVG) core.Node {
 		return (phoneSetting{label, "", tint, icon}).unavailable(cx)
 	}
@@ -41,27 +31,7 @@ func (a *application) phoneSubtitleSettings(cx *core.Scope) core.Node {
 		return (phoneSetting{label, "", tint, icon}).toggle(cx, "", func() bool { return false }, nil)
 	}
 	return phoneSettingsPage(cx, locales.Subtitles(cx), a.back, "phone-subtitle-settings",
-		setupGroup(locales.SettingsLanguages(cx), "",
-			core.Dynamic(func(cx *core.Scope) core.Node {
-				order := prefs().Languages
-				names := make([]string, 0, len(order))
-				for _, code := range order {
-					names = append(names, settingsLanguageName(cx, code))
-				}
-				return languages.link(cx, "subtitle-language-order", strings.Join(names, " › "),
-					func() { a.push(route{screen: screenSubtitleLanguages}) })
-			}),
-			phoneSettingChoice(cx, phoneSetting{locales.SettingsPreferredAudio(cx), "", "bg-pink-500", lucide.AudioLines},
-				"subtitle-audio-language", audio, func() string { return prefs().Audio },
-				func(value string) { save(func(p *subtitlePreferences) { p.Audio = value }) }),
-			phoneSettingChoice(cx, phoneSetting{locales.SettingsAutoSubtitle(cx), "", "bg-violet-500", lucide.WandSparkles},
-				"subtitle-auto-mode", auto, func() string { return prefs().Mode },
-				func(value string) { save(func(p *subtitlePreferences) { p.Mode = value }) }),
-			(phoneSetting{locales.SettingsSubtitleConvert(cx), "", "bg-teal-500", lucide.Repeat}).toggle(cx, "subtitle-convert-chinese",
-				func() bool { return !prefs().KeepOriginalChinese }, func(enabled bool) {
-					save(func(p *subtitlePreferences) { p.KeepOriginalChinese = !enabled })
-				}),
-		),
+		subtitleLanguageSettings(cx, prefs, save, func() { a.push(route{screen: screenSubtitleLanguages}) }),
 		setupGroup(locales.SettingsSubtitleStyle(cx), "", subtitleStyleRows(cx, prefs, save)...),
 		setupGroup("ASS / SSA", locales.SettingsSubtitleASSDescription(cx),
 			unavailableSwitch(locales.SettingsSubtitleASS(cx), "bg-fuchsia-500", lucide.Sparkles),
@@ -78,17 +48,70 @@ func (a *application) phoneSubtitleSettings(cx *core.Scope) core.Node {
 	)
 }
 
-func (a *application) playerSubtitleStyle(cx *core.Scope) core.Node {
+func subtitleLanguageSettings(cx *core.Scope, prefs func() subtitlePreferences, save func(func(*subtitlePreferences)), edit func()) core.Node {
+	audio := []ui.Option[string]{{Label: locales.SettingsOriginalLanguage(cx)}}
+	for _, code := range subtitleLanguages {
+		audio = append(audio, ui.Option[string]{Value: code, Label: settingsLanguageName(cx, code)})
+	}
+	auto := []ui.Option[string]{
+		{Value: "always", Label: locales.SettingsAlwaysOn(cx)},
+		{Value: "foreign", Label: locales.SettingsSubtitleForeign(cx)},
+		{Value: "off", Label: locales.SubtitlesOff(cx)},
+	}
+	languages := phoneSetting{locales.SettingsPreferredSubtitles(cx), "", "bg-sky-500", lucide.Languages}
+	return setupGroup(locales.SettingsLanguages(cx), "",
+		core.Dynamic(func(cx *core.Scope) core.Node {
+			order := prefs().Languages
+			names := make([]string, 0, len(order))
+			for _, code := range order {
+				names = append(names, settingsLanguageName(cx, code))
+			}
+			return languages.link(cx, "subtitle-language-order", strings.Join(names, " › "), edit)
+		}),
+		phoneSettingChoice(cx, phoneSetting{locales.SettingsPreferredAudio(cx), "", "bg-pink-500", lucide.AudioLines},
+			"subtitle-audio-language", audio, func() string { return prefs().Audio },
+			func(value string) { save(func(p *subtitlePreferences) { p.Audio = value }) }),
+		phoneSettingChoice(cx, phoneSetting{locales.SettingsAutoSubtitle(cx), "", "bg-violet-500", lucide.WandSparkles},
+			"subtitle-auto-mode", auto, func() string { return prefs().Mode },
+			func(value string) { save(func(p *subtitlePreferences) { p.Mode = value }) }),
+		(phoneSetting{locales.SettingsSubtitleConvert(cx), "", "bg-teal-500", lucide.Repeat}).toggle(cx, "subtitle-convert-chinese",
+			func() bool { return !prefs().KeepOriginalChinese }, func(enabled bool) {
+				save(func(p *subtitlePreferences) { p.KeepOriginalChinese = !enabled })
+			}),
+	)
+}
+
+func (a *application) playerSubtitleStyle(cx *core.Scope, hasEmbeddedSubtitles bool) core.Node {
 	failure := core.NewSignal[error](cx, nil)
 	save := func(change func(*subtitlePreferences)) {
 		value := a.subtitlePrefs.GetUntracked()
 		change(&value)
 		failure.Set(storeSettings(a.storage, subtitlePreferencesKey, a.subtitlePrefs, value))
 	}
-	return core.View{Class: "gap-2", Children: []core.Node{
-		core.View{Class: "gap-px overflow-hidden rounded-xl bg-white/10", Children: subtitleStyleRows(cx, a.subtitlePrefs.Get, save)},
-		settingsFailure(cx, failure),
-	}}
+	prefs := a.subtitlePrefs.Get
+	style := core.View{Class: "gap-px overflow-hidden rounded-xl bg-white/10", Children: subtitleStyleRows(cx, prefs, save)}
+	if !hasEmbeddedSubtitles {
+		return core.View{Class: "gap-2", Children: []core.Node{style, settingsFailure(cx, failure)}}
+	}
+	edit := core.NewSignal(cx, false)
+	return core.View{Class: "gap-2", Children: []core.Node{core.Dynamic(func(cx *core.Scope) core.Node {
+		if edit.Get() {
+			return core.View{Class: "gap-2", Children: []core.Node{
+				ui.Button{Text: locales.SettingsLanguages(cx), Icon: lucide.ChevronLeft, Variant: ui.ButtonGhost,
+					TestID: "player-subtitle-language-back", OnPress: func() { edit.Set(false) }},
+				subtitleLanguageOrder(cx, prefs, func(order []string) { save(func(p *subtitlePreferences) { p.Languages = order }) }),
+			}}
+		}
+		ass := setupGroup("ASS / SSA", "",
+			(phoneSetting{locales.SettingsSubtitleASS(cx), "", "bg-fuchsia-500", lucide.Sparkles}).toggle(cx, "subtitle-keep-ass",
+				func() bool { return !prefs().FlattenASS }, func(enabled bool) { save(func(p *subtitlePreferences) { p.FlattenASS = !enabled }) }),
+			(phoneSetting{locales.SettingsSubtitleEmbeddedFonts(cx), "", "bg-fuchsia-500", lucide.Type}).toggle(cx, "subtitle-embedded-fonts",
+				func() bool { return !prefs().DisableEmbeddedFonts }, func(enabled bool) { save(func(p *subtitlePreferences) { p.DisableEmbeddedFonts = !enabled }) }),
+		)
+		return core.View{Class: "gap-2", Children: []core.Node{
+			subtitleLanguageSettings(cx, prefs, save, func() { edit.Set(true) }), style, ass,
+		}}
+	}), settingsFailure(cx, failure)}}
 }
 
 func subtitleStyleRows(cx *core.Scope, prefs func() subtitlePreferences, save func(func(*subtitlePreferences))) []core.Node {
@@ -126,8 +149,13 @@ func (a *application) phoneSubtitleLanguages(cx *core.Scope) core.Node {
 		failure.Set(storeSettings(a.storage, subtitlePreferencesKey, a.subtitlePrefs, value))
 	}
 	return phoneSettingsPage(cx, locales.SettingsPreferredSubtitles(cx), a.back, "phone-subtitle-languages",
+		subtitleLanguageOrder(cx, a.subtitlePrefs.Get, save), settingsFailure(cx, failure))
+}
+
+func subtitleLanguageOrder(cx *core.Scope, prefs func() subtitlePreferences, save func([]string)) core.Node {
+	return core.Group([]core.Node{
 		core.Dynamic(func(cx *core.Scope) core.Node {
-			order := a.subtitlePrefs.Get().Languages
+			order := prefs().Languages
 			rows := make([]core.Node, 0, len(order))
 			for index, code := range order {
 				name := settingsLanguageName(cx, code)
@@ -163,7 +191,7 @@ func (a *application) phoneSubtitleLanguages(cx *core.Scope) core.Node {
 			return setupGroup(locales.SettingsPreferredSubtitles(cx), "", rows...)
 		}),
 		core.Dynamic(func(cx *core.Scope) core.Node {
-			order := a.subtitlePrefs.Get().Languages
+			order := prefs().Languages
 			var rows []core.Node
 			for _, code := range subtitleLanguages {
 				if !slices.Contains(order, code) {
@@ -176,8 +204,7 @@ func (a *application) phoneSubtitleLanguages(cx *core.Scope) core.Node {
 			}
 			return setupGroup(locales.SettingsAddSubtitleLanguage(cx), "", rows...)
 		}),
-		settingsFailure(cx, failure),
-	)
+	})
 }
 
 func settingsLanguageName(cx *core.Scope, code string) string {

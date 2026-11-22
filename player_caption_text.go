@@ -19,8 +19,13 @@ type captionLines struct {
 	primary, secondary string
 }
 
+type activeCaptionLines struct {
+	captionLines
+	primaryLanguage, secondaryLanguage string
+}
+
 func playerCaptionText(cx *core.Scope, subtitles *core.Signal[subtitleSelection], stream func() media.Stream, prefs func() subtitlePreferences,
-	position, delay *core.Signal[time.Duration]) *core.Memo[captionLines] {
+	position, delay *core.Signal[time.Duration], embedded func() activeCaptionLines) *core.Memo[captionLines] {
 	bilingual := core.NewMemo(cx, func() bool { return !prefs().DisableBilingual })
 	chinese := core.NewMemo(cx, func() string { return prefs().chineseCaptionScript() })
 	order := core.NewMemoFunc(cx, func() []string { return prefs().Languages }, slices.Equal[[]string])
@@ -51,17 +56,13 @@ func playerCaptionText(cx *core.Scope, subtitles *core.Signal[subtitleSelection]
 		cues, err := playback.FetchCaptions(ctx, req.track.URL, req.headers, req.trust)
 		return downloadedTrack{req.track, cues}, err
 	})
-	type activeCues struct {
-		captionLines
-		primaryLanguage, secondaryLanguage string
-	}
-	active := core.NewMemo(cx, func() activeCues {
+	active := core.NewMemo(cx, func() activeCaptionLines {
 		selection := subtitles.Get()
 		if selection.cues == nil {
-			return activeCues{}
+			return embedded()
 		}
 		at := position.Get() - delay.Get()
-		cues := activeCues{primaryLanguage: selection.language}
+		cues := activeCaptionLines{primaryLanguage: selection.language}
 		cues.primary = selection.cues.At(at)
 		if track := choice.Get(); track.ID != "" && companion.State() == core.ResourceReady {
 			if second, ok := companion.Get(); ok && second.track == track {
@@ -90,9 +91,8 @@ func secondarySubtitleTrack(tracks []media.Track, primaryLanguage string, order 
 	if primary == "" {
 		return media.Track{}
 	}
-	primaryChinese := strings.HasPrefix(primary, "zh-")
 	for _, code := range order {
-		if code == primary || primaryChinese && strings.HasPrefix(code, "zh-") {
+		if sameSubtitleLanguage(code, primary) {
 			continue
 		}
 		if track := textSubtitleForPreference(tracks, code, target); track.ID != "" {
@@ -100,6 +100,10 @@ func secondarySubtitleTrack(tracks []media.Track, primaryLanguage string, order 
 		}
 	}
 	return media.Track{}
+}
+
+func sameSubtitleLanguage(a, b string) bool {
+	return a == b || strings.HasPrefix(a, "zh-") && strings.HasPrefix(b, "zh-")
 }
 
 func convertSubtitleText(text, sourceLanguage, target string) string {

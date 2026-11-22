@@ -60,6 +60,7 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	options.ForceTranscode = prefs.DisableDirectPlay
 	options.SubtitleIndex = &noServerSubtitles
 	subtitlePrefs := a.subtitlePrefs.GetUntracked()
+	preferMPV := cx.Env().Desktop() && a.mpvPreferred.GetUntracked()
 	restrictions := core.Untracked(cx, a.parentalRules)
 	approved := a.parentalApprovals.GetUntracked()[copyKey{current.source.ID, current.item.ID}]
 	load := func(ctx context.Context, skip string, cellular bool) (playerMedia, error) {
@@ -85,6 +86,9 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 			}
 		}
 		options := options
+		if preferMPV {
+			options.Direct = mpvDirectProfiles()
+		}
 		if cellular {
 			options.MaxBitrate = prefs.CellularBitrate
 		}
@@ -393,6 +397,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		go func() {
 			ctx, cancel := context.WithTimeout(playerContext, 35*time.Second)
 			defer cancel()
+			if preferMPV {
+				options.Direct = mpvDirectProfiles()
+			}
 			stream, err := previous.client.Playback(ctx, current.item, options)
 			var next playerMedia
 			if err == nil {
@@ -559,7 +566,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			video.MutedFunc = func() bool { return phoneVolume.Get() == 0 }
 		}
 		if preferMPV {
-			decoder := mpvVideo(cx, video)
+			decoder := mpvVideo(cx, video, a.subtitlePrefs.Get)
 			decoder.comments(danmakuTrack)
 			desktop.Set(&decoder)
 			seekVideo = func(at time.Duration) {
@@ -592,12 +599,22 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		return decoder
 	}
 	activeStream := func() media.Stream { return medium.Get().stream }
+	waitingForDecoder := func() bool {
+		if !preferMPV || activeStream().Method != media.DirectPlay {
+			return false
+		}
+		decoder := desktop.Get()
+		return decoder == nil || !decoder.resolved()
+	}
 	var quality func(*core.Scope) core.Node
 	if !offline {
 		quality = playerQuality(current, initial.client, activeStream, bitrate, switchingPlayback.Get, qualityError.Get,
 			func(options media.PlaybackOptions) { switchStream(options, qualityError) })
 	}
-	tracks := playerTracks(cx, activeStream, directDecoder, current.subtitleTrack, a.subtitlePrefs.Get, position, rate, canChangeRate, switchingPlayback, audioError, chooseAudio, quality, a.playerSubtitleStyle)
+	tracks := playerTracks(cx, activeStream, directDecoder, waitingForDecoder, current.subtitleTrack, a.subtitlePrefs.Get, position,
+		rate, canChangeRate, switchingPlayback, audioError, chooseAudio, quality, func(cx *core.Scope) core.Node {
+			return a.playerSubtitleStyle(cx, directDecoder() != nil)
+		})
 	toggle := func() {
 		if core.Untracked(cx, blocked) {
 			return

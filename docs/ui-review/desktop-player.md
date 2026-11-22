@@ -22,6 +22,22 @@ The four crops show the 320 pt sidebar at 1× scale. The watched titles use the 
 
 ![Desktop player danmaku sidebar, Scenra and the GTK app](images/desktop-player-danmaku.png)
 
+## Embedded subtitles
+
+With the libmpv engine selected, the subtitle button opens the track picker and the Subtitle Style action. The dialog reuses the Scenra style page's language controls, preview, bilingual switch and magenta ASS rows. The desktop dialog adds scrolling and a return action for the language order editor. [Scenra subtitle settings](../../design/settings-subtitles.scenra#L9)
+
+![Scenra ASS rows, the GTK dialog with both switches on, and the dialog after turning them off](images/desktop-embedded-ass-controls.png)
+
+The crops compare the headings, 28 pt badges and 51 × 31 pt switches at 1× scale. The desktop dialog has a slightly wider card than the phone reference. The test reorders and restores the preferred languages, then confirms both ASS switches persist the off state.
+
+The player requests the original H.264/AAC Matroska stream. It chooses the primary subtitle from the saved language order when automatic subtitles are enabled. With bilingual display on, libmpv supplies the active text for both selected tracks and the app draws the second line smaller and amber below the first. Changing the offset moves both tracks. The subtitle picker marks the primary track only. [libmpv subtitle properties](https://mpv.io/manual/stable/#command-interface-sub-text)
+
+![Embedded Traditional Chinese and English cues over the paused Emby clip](images/desktop-embedded-bilingual.png)
+
+Keep original ASS styling shows the script's positioning, color and animations. Turning it off displays the dialogue in the app's text style. The embedded-font switch controls libass attachment use. Bitmap subtitle tracks continue to use libmpv's renderer. Linux GTK played the same two text tracks and the ASS track from Emby, Jellyfin and Plex. The lower-level test attaches a font and compares painted frames with and without it. [Fixture and commands](../../integration/servers/TESTING.md#embedded-subtitle-tracks)
+
+![Original yellow ASS positioning on the left and the app's bilingual text style on the right](images/desktop-embedded-ass-modes.png)
+
 ## Playback information
 
 The application capture uses libmpv. Its decoder and network rows reflect the values available during the test.

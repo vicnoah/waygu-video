@@ -55,12 +55,16 @@ type Track struct {
 	Kind                   TrackKind
 	Title, Language, Codec string
 	Selected, Forced       bool
+	Default                bool
 	External               bool
 }
 
 // Open creates a player and its software renderer. A caller must serialize all
 // its methods, including Close, on one goroutine.
 func Open() (*Player, error) { return open() }
+
+// Available reports whether the desktop client API can be loaded.
+func Available() bool { return available() }
 
 func (p *Player) Close() { p.close() }
 
@@ -95,6 +99,11 @@ func (p *Player) SelectTrack(kind TrackKind, id int64) error {
 	case kind == AudioTrack && id > 0:
 		return p.property("aid", strconv.FormatInt(id, 10))
 	case kind == SubtitleTrack && id > 0:
+		if p.intProperty("secondary-sid") == id {
+			if err := p.SecondarySubtitle(0); err != nil {
+				return err
+			}
+		}
 		return p.property("sid", strconv.FormatInt(id, 10))
 	case kind == SubtitleTrack && id == 0:
 		return p.property("sid", "no")
@@ -104,7 +113,43 @@ func (p *Player) SelectTrack(kind TrackKind, id int64) error {
 }
 
 func (p *Player) SubtitleDelay(delay time.Duration) error {
-	return p.property("sub-delay", strconv.FormatFloat(delay.Seconds(), 'f', 3, 64))
+	value := strconv.FormatFloat(delay.Seconds(), 'f', 3, 64)
+	// Older libmpv versions use sub-delay for both decoders.
+	_ = p.property("secondary-sub-delay", value)
+	return p.property("sub-delay", value)
+}
+
+func (p *Player) ShowNativeSubtitle(visible bool) error {
+	return p.property("sub-visibility", optionFlag(visible))
+}
+
+func (p *Player) SecondarySubtitle(id int64) error {
+	if id <= 0 {
+		return p.property("secondary-sid", "no")
+	}
+	if err := p.property("secondary-sub-visibility", "no"); err != nil {
+		return err
+	}
+	return p.property("secondary-sid", strconv.FormatInt(id, 10))
+}
+
+// SubtitleText returns the current cue with formatting stripped, including when hidden.
+func (p *Player) SubtitleText(secondary bool) string {
+	if secondary {
+		return p.stringProperty("secondary-sub-text")
+	}
+	return p.stringProperty("sub-text")
+}
+
+func (p *Player) EmbeddedSubtitleFonts(enabled bool) error {
+	return p.property("embeddedfonts", optionFlag(enabled))
+}
+
+func optionFlag(value bool) string {
+	if value {
+		return "yes"
+	}
+	return "no"
 }
 
 func (p *Player) Poll() Event { return p.poll() }

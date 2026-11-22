@@ -9,11 +9,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
 	"time"
+
+	"golang.org/x/image/font/gofont/gomono"
 
 	"waygu-video/internal/danmaku"
 	"waygu-video/internal/mediahttp"
@@ -253,6 +256,74 @@ func TestSwitchEmbeddedTracksDuringAuthenticatedPlayback(t *testing.T) {
 		}
 		split := 80 * frame.Stride
 		return bytes.Equal(withCaption[:split], frame.Pix[:split]) && !bytes.Equal(withCaption[split:], frame.Pix[split:])
+	})
+}
+
+func TestTwoEmbeddedCaptionsAndAttachedFonts(t *testing.T) {
+	if os.Getenv("WAYGU_TEST_MPV") != "1" {
+		t.Skip("generate the Docker video fixtures and set WAYGU_TEST_MPV=1")
+	}
+	const fixture = "../../../integration/servers/media/Movies/Waygu Embedded Subtitle Test (2025)/Waygu Embedded Subtitle Test (2025).mkv"
+	output := t.TempDir()
+	font := filepath.Join(output, "Go-Mono.ttf")
+	if err := os.WriteFile(font, gomono.TTF, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	movie := filepath.Join(output, "attached-font.mkv")
+	if log, err := exec.CommandContext(t.Context(), "ffmpeg", "-nostdin", "-loglevel", "error", "-i", fixture, "-map", "0",
+		"-c", "copy", "-attach", font, "-metadata:s:t:0", "mimetype=application/x-truetype-font", movie).CombinedOutput(); err != nil {
+		t.Fatalf("attach the fixture font: %v\n%s", err, log)
+	}
+	p, err := Open()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer p.Close()
+	must := func(err error) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	must(p.property("ao", "null"))
+	must(p.Load(movie))
+	until(t, func() bool { return p.Poll().Loaded })
+	must(p.SelectTrack(SubtitleTrack, 1))
+	must(p.ShowNativeSubtitle(false))
+	must(p.SecondarySubtitle(2))
+	frame := image.NewRGBA(image.Rect(0, 0, 640, 360))
+	until(t, func() bool {
+		_, err := p.Frame(frame, false)
+		must(err)
+		return p.SubtitleText(false) == "理发以后再出发。" && p.SubtitleText(true) == "The train leaves at dawn."
+	})
+	for _, track := range p.Tracks() {
+		if track.Kind == SubtitleTrack && track.Selected != (track.ID == 1) {
+			t.Fatalf("the companion track was exposed as the primary selection: %+v", track)
+		}
+	}
+	baseline := bytes.Clone(frame.Pix)
+	must(p.SubtitleDelay(8 * time.Second))
+	until(t, func() bool { return p.SubtitleText(false) == "" && p.SubtitleText(true) == "" })
+	must(p.SubtitleDelay(0))
+	must(p.SelectTrack(SubtitleTrack, 2))
+	until(t, func() bool { return p.SubtitleText(false) == "The train leaves at dawn." })
+	if p.intProperty("secondary-sid") == 2 {
+		t.Fatal("promoting the companion left it selected twice")
+	}
+	must(p.SelectTrack(SubtitleTrack, 3))
+	must(p.ShowNativeSubtitle(true))
+	until(t, func() bool {
+		_, err := p.Frame(frame, true)
+		must(err)
+		return p.SubtitleText(false) == "Rótulo ASS de prueba" && !bytes.Equal(baseline, frame.Pix)
+	})
+	attached := bytes.Clone(frame.Pix)
+	must(p.EmbeddedSubtitleFonts(false))
+	until(t, func() bool {
+		_, err := p.Frame(frame, true)
+		must(err)
+		return !bytes.Equal(baseline, frame.Pix) && !bytes.Equal(attached, frame.Pix)
 	})
 }
 

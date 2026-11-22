@@ -9,15 +9,18 @@ import (
 
 	"github.com/nsgo-dev/nsgo/core"
 	"waygu-video/internal/danmaku"
+	"waygu-video/internal/media"
 	"waygu-video/internal/playback/mpv"
 )
 
 type desktopVideo struct {
 	node          core.Node
 	active        func() bool
+	resolved      func() bool
 	seek          func(time.Duration)
 	comments      func(*danmaku.Track)
 	tracks        *core.Signal[[]mpv.Track]
+	captions      *core.Signal[activeCaptionLines]
 	stats         *core.Signal[mpv.Stats]
 	selectTrack   func(mpv.TrackKind, int64, func(error))
 	subtitleDelay func(time.Duration)
@@ -30,6 +33,7 @@ type mpvCommand struct {
 	track         *danmaku.Track
 	rate, volume  float32
 	subtitleDelay time.Duration
+	captionPrefs  *subtitlePreferences
 }
 
 type mpvTrackChange struct {
@@ -44,15 +48,25 @@ const (
 	mpvFallback
 )
 
-func mpvVideo(cx *core.Scope, native core.Video) desktopVideo {
+func mpvDirectProfiles() []media.DirectProfile {
+	if !mpv.Available() {
+		return nil
+	}
+	return []media.DirectProfile{{Container: "mp4,mov,m4v,mkv,matroska", VideoCodec: "h264", AudioCodec: "aac"}}
+}
+
+func mpvVideo(cx *core.Scope, native core.Video, prefs func() subtitlePreferences) desktopVideo {
 	mode := core.NewSignal(cx, mpvOpening)
+	resolved := core.NewSignal(cx, false)
 	pixels := core.NewSignal[*image.RGBA](cx, nil)
 	tracks := core.NewSignalFunc[[]mpv.Track](cx, nil, slices.Equal)
+	captions := core.NewSignal(cx, activeCaptionLines{})
 	stats := core.NewSignalFunc(cx, mpv.Stats{}, nil)
 	requests := make(chan mpvTrackChange, 2)
 	stopped := make(chan struct{})
 	var desired atomic.Pointer[mpvCommand]
-	cmd := mpvCommand{volume: 1}
+	initial := core.Untracked(cx, prefs)
+	cmd := mpvCommand{volume: 1, captionPrefs: &initial}
 	desired.Store(&cmd)
 	update := func(change func(*mpvCommand)) {
 		copy := *desired.Load()
@@ -68,12 +82,18 @@ func mpvVideo(cx *core.Scope, native core.Video) desktopVideo {
 		}
 		update(func(c *mpvCommand) { c.paused, c.rate, c.volume = paused, speed, volume })
 	})
+	cx.Effect(func() {
+		p := prefs()
+		update(func(c *mpvCommand) { c.captionPrefs = &p })
+	})
 	viewContext := cx.Context()
 	go func() {
-		playMPV(viewContext, cx, native, &desired, mode, pixels, tracks, stats, requests)
+		playMPV(viewContext, cx, native, &desired, mode, resolved, pixels, tracks, captions, stats, requests)
 		close(stopped)
 		cx.Post(func() {
 			tracks.Set(nil)
+			captions.Set(activeCaptionLines{})
+			resolved.Set(true)
 			for len(requests) > 0 {
 				(<-requests).done(mpv.ErrUnavailable)
 			}
@@ -95,10 +115,10 @@ func mpvVideo(cx *core.Scope, native core.Video) desktopVideo {
 			return nil
 		}
 	})
-	return desktopVideo{node: node, active: func() bool { return mode.Get() == mpvActive },
+	return desktopVideo{node: node, active: func() bool { return mode.Get() == mpvActive }, resolved: resolved.Get,
 		seek:     func(at time.Duration) { update(func(c *mpvCommand) { c.seek, c.seekID = at, c.seekID+1 }) },
 		comments: func(track *danmaku.Track) { update(func(c *mpvCommand) { c.track = track }) },
-		tracks:   tracks, stats: stats, subtitleDelay: func(delay time.Duration) {
+		tracks:   tracks, captions: captions, stats: stats, subtitleDelay: func(delay time.Duration) {
 			update(func(c *mpvCommand) { c.subtitleDelay = delay })
 		},
 		selectTrack: func(kind mpv.TrackKind, id int64, done func(error)) {
@@ -118,7 +138,8 @@ func mpvVideo(cx *core.Scope, native core.Video) desktopVideo {
 }
 
 func playMPV(ctx context.Context, cx *core.Scope, events core.Video, desired *atomic.Pointer[mpvCommand],
-	mode *core.Signal[int], frames *core.Signal[*image.RGBA], tracks *core.Signal[[]mpv.Track], stats *core.Signal[mpv.Stats], requests <-chan mpvTrackChange) {
+	mode *core.Signal[int], resolved *core.Signal[bool], frames *core.Signal[*image.RGBA], tracks *core.Signal[[]mpv.Track],
+	captions *core.Signal[activeCaptionLines], stats *core.Signal[mpv.Stats], requests <-chan mpvTrackChange) {
 	post := func(fn func()) {
 		cx.Post(func() {
 			if ctx.Err() == nil {
@@ -135,6 +156,10 @@ func playMPV(ctx context.Context, cx *core.Scope, events core.Video, desired *at
 	if ctx.Err() != nil {
 		return
 	}
+	embeddedFonts := !desired.Load().captionPrefs.DisableEmbeddedFonts
+	if !embeddedFonts {
+		_ = player.EmbeddedSubtitleFonts(false)
+	}
 	if err := player.Load(events.Source); err != nil {
 		post(func() { mode.Set(mpvFallback) })
 		return
@@ -150,18 +175,50 @@ func playMPV(ctx context.Context, cx *core.Scope, events core.Video, desired *at
 	wasEnded, wasBuffering := false, false
 	ready := false
 	redraw := false
+	var currentTracks []mpv.Track
+	var layout mpvCaptionLayout
+	var lastCaption activeCaptionLines
+	applyCaptions := func(prefs *subtitlePreferences) {
+		fonts := !prefs.DisableEmbeddedFonts
+		if !prefs.FlattenASS && fonts != embeddedFonts && slices.ContainsFunc(currentTracks, func(track mpv.Track) bool {
+			return selectedSubtitle(track) && isASSSubtitle(track)
+		}) {
+			position := player.Status().Position
+			if player.EmbeddedSubtitleFonts(fonts) == nil {
+				embeddedFonts = fonts
+				// libass recreates the track on a font change. Refill its
+				// cues at the same position even when playback is paused.
+				_ = player.Seek(position)
+				redraw = true
+			}
+		}
+		next := embeddedCaptionLayout(currentTracks, prefs)
+		if visible := next.primary.ID == 0; visible != (layout.primary.ID == 0) {
+			if err := player.ShowNativeSubtitle(visible); err != nil {
+				return
+			}
+			redraw = true
+		}
+		if next.secondary.ID != layout.secondary.ID && player.SecondarySubtitle(next.secondary.ID) != nil {
+			next.secondary = mpv.Track{}
+		}
+		layout = next
+	}
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case change := <-requests:
 			err := mpv.ErrUnavailable
-			var current []mpv.Track
 			if ready {
 				err = player.SelectTrack(change.kind, change.id)
-				current = player.Tracks()
+				currentTracks = player.Tracks()
+				if change.kind == mpv.SubtitleTrack {
+					applyCaptions(desired.Load().captionPrefs)
+				}
 				redraw = redraw || (err == nil && change.kind == mpv.SubtitleTrack)
 			}
+			current := currentTracks
 			post(func() {
 				if err == nil {
 					tracks.Set(current)
@@ -172,9 +229,6 @@ func playMPV(ctx context.Context, cx *core.Scope, events core.Video, desired *at
 			command := desired.Load()
 			if command.paused != applied.paused {
 				_ = player.Pause(command.paused)
-			}
-			if command.seekID != applied.seekID {
-				_ = player.Seek(command.seek)
 			}
 			if command.rate > 0 && command.rate != applied.rate {
 				_ = player.Speed(command.rate)
@@ -188,6 +242,12 @@ func playMPV(ctx context.Context, cx *core.Scope, events core.Video, desired *at
 			if command.subtitleDelay != applied.subtitleDelay {
 				redraw = player.SubtitleDelay(command.subtitleDelay) == nil || redraw
 			}
+			if ready && command.captionPrefs != applied.captionPrefs {
+				applyCaptions(command.captionPrefs)
+			}
+			if command.seekID != applied.seekID {
+				_ = player.Seek(command.seek)
+			}
 			applied = *command
 			event, status := player.Poll(), player.Status()
 			if event.Failed {
@@ -200,15 +260,22 @@ func playMPV(ctx context.Context, cx *core.Scope, events core.Video, desired *at
 			}
 			if event.Loaded && !ready {
 				ready = true
-				current := player.Tracks()
+				currentTracks = player.Tracks()
+				applyCaptions(command.captionPrefs)
+				current := currentTracks
 				post(func() {
 					tracks.Set(current)
+					resolved.Set(true)
 					events.OnLoad(core.VideoInfo{Duration: status.Duration, RateChangeable: true,
 						Size: core.Size{Width: core.Points(status.Width), Height: core.Points(status.Height)}})
 				})
 			}
 			if !ready {
 				continue
+			}
+			if cue := layout.captions(player); cue != lastCaption {
+				lastCaption = cue
+				post(func() { captions.Set(cue) })
 			}
 			if status.Buffering != wasBuffering {
 				wasBuffering = status.Buffering

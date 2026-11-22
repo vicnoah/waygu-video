@@ -7,9 +7,10 @@ season='media/Shows/Waygu Test Series (2025)/Season 01'
 resume='media/Movies/Waygu Resume Test (2025)'
 resume_pair='media/Movies/Waygu Resume Across Sources (2025)'
 tracks='media/Movies/Waygu Track Test (2025)'
+embedded='media/Movies/Waygu Embedded Subtitle Test (2025)'
 versions='media/Movies/Waygu Version Test (2025)'
 series='media/Shows/Waygu Review Series (2025)'
-mkdir -p "$movie" "$season" "$resume" "$resume_pair" "$tracks" "$versions" "$tracks/trailers" "$tracks/featurettes"
+mkdir -p "$movie" "$season" "$resume" "$resume_pair" "$tracks" "$versions" "$embedded" "$tracks/trailers" "$tracks/featurettes"
 
 make_clip() {
     picture=$1
@@ -40,6 +41,50 @@ make_clip testsrc2 440 "$movie/Waygu Test Movie (2025).mp4"
 make_clip smptebars 520 "$season/Waygu Test Series - S01E01.mp4"
 make_clip testsrc 660 "$tracks/trailers/Waygu Teaser.mp4"
 make_clip smptebars 720 "$tracks/featurettes/Waygu Behind the Scenes.mp4"
+
+make_embedded_subtitle_clip() (
+    output="$embedded/Waygu Embedded Subtitle Test (2025).mkv"
+    if [ -s "$output" ]; then
+        return
+    fi
+    cues=$(mktemp -d)
+    trap 'rm -rf -- "$cues"' EXIT
+    cat > "$cues/chinese.srt" <<'EOF'
+1
+00:00:01,000 --> 00:00:14,000
+理发以后再出发。
+EOF
+    cat > "$cues/english.srt" <<'EOF'
+1
+00:00:01,250 --> 00:00:13,000
+The train leaves at dawn.
+EOF
+    cat > "$cues/styled.ass" <<'EOF'
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 640
+PlayResY: 360
+
+[V4+ Styles]
+Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
+Style: Default,Go Mono,30,&H0000FFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,8,20,20,45,1
+
+[Events]
+Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
+Dialogue: 0,0:00:00.50,0:00:16.00,Default,,0,0,0,,{\an8\pos(320,70)}Rótulo ASS de prueba
+EOF
+    ffmpeg -nostdin -hide_banner -loglevel error -y \
+        -f lavfi -i 'color=c=0x202738:size=640x360:rate=24' \
+        -f lavfi -i 'sine=frequency=330:sample_rate=48000' \
+        -i "$cues/chinese.srt" -i "$cues/english.srt" -i "$cues/styled.ass" \
+        -map 0:v -map 1:a -map 2:s -map 3:s -map 4:s \
+        -metadata:s:a:0 language=eng -metadata:s:s:0 language=zho -metadata:s:s:1 language=eng \
+        -metadata:s:s:2 language=spa -metadata:s:s:2 title='ASS fixture' \
+        -t 18 -c:v libx264 -pix_fmt yuv420p -c:a aac -c:s:0 srt -c:s:1 srt -c:s:2 ass "$cues/fixture.mkv"
+    mv "$cues/fixture.mkv" "$output"
+)
+
+make_embedded_subtitle_clip
 
 mkdir -p "$series/Season 00" "$series/Season 01" "$series/Season 02"
 cat > "$series/tvshow.nfo" <<'EOF'

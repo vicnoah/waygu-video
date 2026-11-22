@@ -64,6 +64,11 @@ const (
 
 var loadAPI = sync.OnceValues(bind)
 
+func available() bool {
+	_, err := loadAPI()
+	return err == nil
+}
+
 func bind() (*api, error) {
 	handle, err := openLibrary()
 	if err != nil {
@@ -225,6 +230,7 @@ func readCString(first *byte) string {
 
 func (p *backend) tracks() []Track {
 	var tracks []Track
+	primarySubtitle := p.intProperty("sid")
 	for i := range p.intProperty("track-list/count") {
 		base := "track-list/" + strconv.FormatInt(i, 10) + "/"
 		kind := TrackKind(p.stringProperty(base + "type"))
@@ -235,10 +241,14 @@ func (p *backend) tracks() []Track {
 		if id <= 0 {
 			continue
 		}
+		selected := p.flagProperty(base + "selected")
+		if kind == SubtitleTrack {
+			selected = id == primarySubtitle
+		}
 		tracks = append(tracks, Track{
 			ID: id, Kind: kind, Codec: p.stringProperty(base + "codec"),
 			Title: p.stringProperty(base + "title"), Language: p.stringProperty(base + "lang"),
-			Selected: p.flagProperty(base + "selected"), Forced: p.flagProperty(base + "forced"),
+			Selected: selected, Forced: p.flagProperty(base + "forced"), Default: p.flagProperty(base + "default"),
 			External: p.flagProperty(base + "external"),
 		})
 	}

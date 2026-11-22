@@ -22,15 +22,17 @@ var subtitleScales = []int{50, 75, 100, 125, 150}
 var subtitleModes = []string{"always", "foreign", "off"}
 
 type subtitlePreferences struct {
-	Languages           []string
-	Audio               string
-	Mode                string
-	Color               uint32
-	Scale               int
-	Position            int
-	Background          string
-	KeepOriginalChinese bool
-	DisableBilingual    bool
+	Languages            []string
+	Audio                string
+	Mode                 string
+	Color                uint32
+	Scale                int
+	Position             int
+	Background           string
+	KeepOriginalChinese  bool
+	DisableBilingual     bool
+	FlattenASS           bool
+	DisableEmbeddedFonts bool
 }
 
 func readSubtitlePreferences(storage core.Storage) subtitlePreferences {
@@ -75,6 +77,8 @@ func readSubtitlePreferences(storage core.Storage) subtitlePreferences {
 	}
 	p.KeepOriginalChinese = saved.KeepOriginalChinese
 	p.DisableBilingual = saved.DisableBilingual
+	p.FlattenASS = saved.FlattenASS
+	p.DisableEmbeddedFonts = saved.DisableEmbeddedFonts
 	return p
 }
 
@@ -155,17 +159,8 @@ func preferredAudio(tracks []media.Track, code string) *int {
 }
 
 func automaticSubtitle(tracks []media.Track, p subtitlePreferences) media.Track {
-	if p.Mode == "off" {
+	if !automaticSubtitlesAllowed(tracks, p) {
 		return media.Track{}
-	}
-	if p.Mode == "foreign" {
-		if p.Audio == "" {
-			return media.Track{}
-		}
-		audio := activeAudio(tracks)
-		if lang := subtitleLanguage(audio.Language); lang == "" || lang == p.Audio {
-			return media.Track{}
-		}
 	}
 	target := p.chineseCaptionScript()
 	for _, code := range p.Languages {
@@ -176,18 +171,36 @@ func automaticSubtitle(tracks []media.Track, p subtitlePreferences) media.Track 
 	return media.Track{}
 }
 
+func automaticSubtitlesAllowed(tracks []media.Track, p subtitlePreferences) bool {
+	switch p.Mode {
+	case "off":
+		return false
+	case "foreign":
+		lang := subtitleLanguage(activeAudio(tracks).Language)
+		return p.Audio != "" && lang != "" && lang != p.Audio
+	}
+	return true
+}
+
+func subtitleLanguageFallback(code, target string) []string {
+	if code == target {
+		switch code {
+		case "zh-Hant":
+			return []string{code, "zh-Hans"}
+		case "zh-Hans":
+			return []string{code, "zh-Hant"}
+		}
+	}
+	return []string{code}
+}
+
 func textSubtitleForPreference(tracks []media.Track, code, target string) media.Track {
-	if match := textSubtitleInLanguage(tracks, code); match.ID != "" || code != target {
-		return match
+	for _, language := range subtitleLanguageFallback(code, target) {
+		if match := textSubtitleInLanguage(tracks, language); match.ID != "" {
+			return match
+		}
 	}
-	switch code {
-	case "zh-Hant":
-		return textSubtitleInLanguage(tracks, "zh-Hans")
-	case "zh-Hans":
-		return textSubtitleInLanguage(tracks, "zh-Hant")
-	default:
-		return media.Track{}
-	}
+	return media.Track{}
 }
 
 func textSubtitleInLanguage(tracks []media.Track, code string) media.Track {
