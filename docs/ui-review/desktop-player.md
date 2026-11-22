@@ -10,6 +10,14 @@ Scenra is on the left and the Linux GTK app is on the right at 1440 × 810 pt. T
 
 The timeline strip shows the lower controls at the same scale. The GTK capture samples libmpv's seekable cache intervals on an authenticated Emby stream. The 6 pt rail uses Scenra's 45% white for the cached section and 20% for the rest. The purple played segment stays above both. The episode fixture fits in cache, so its pale section extends to the end of the rail. [libmpv cache properties](https://mpv.io/manual/stable/#command-interface-demuxer-cache-state)
 
+### Season selection
+
+![The Scenra episode sidebar, the GTK sidebar on season one, its open season menu, and the sidebar on season two](images/desktop-player-seasons.png)
+
+The four crops show the 320 pt sidebar at 1× scale. The watched titles use the reference's zinc-400 text and the inactive rows use its 2 pt metadata gap. The standalone Scenra frame draws a 1 pt outline and a rounded outer corner. The GTK screenshots use the Emby fixture with five episodes in season one and two in season two. Selecting season two updates the sidebar label, count, and rows during playback. The Scenra frame supplies the closed trigger and the sidebar layout. The open menu and selected second season record the app's interaction.
+
+`TestDesktopSeasonMenuSurvivesEpisodeLoad` holds the first season's episode response until the menu is open. It then checks that the episode rows and count update, the second season remains selectable, and the menu closes after selection. The test reproduced the disappearing menu before the fix and passes in the headless and GTK hosts. The trigger keeps its state while the episode list updates. [NSGo reactive bindings](https://nsgo.dev/docs/components/#signals)
+
 ## Danmaku
 
 ![Desktop player danmaku sidebar, Scenra and the GTK app](images/desktop-player-danmaku.png)

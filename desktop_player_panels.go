@@ -89,41 +89,56 @@ func (a *application) desktopPlayerEpisodePanel(cx *core.Scope, p desktopPlayerC
 			slices.SortStableFunc(items, func(left, right media.Item) int { return cmp.Compare(left.Episode, right.Episode) })
 			return items, err
 		})
-	body := core.Dynamic(func(cx *core.Scope) core.Node {
+	visibleEpisodes := core.NewMemoFunc(cx, func() []media.Item {
 		items, _ := episodes.Get()
 		if rules := a.parentalRules(); rules.Enabled {
 			items = slices.DeleteFunc(slices.Clone(items), func(item media.Item) bool {
 				return !rules.visible(p.current.source.ID, inheritSeriesEpisode(item, episode))
 			})
 		}
-		choose := func(next media.Item) { a.playEpisodeFrom(p.current, next) }
-		var children []core.Node
-		if itemsSeason, _ := seasons.Get(); len(itemsSeason) > 0 {
-			label := func(season media.Item) string {
-				if season.Season == 0 {
-					return locales.DesktopPlayerSpecials(cx)
-				}
-				return locales.SeasonLabel(cx, strconv.Itoa(season.Season))
-			}
-			var picks []core.Node
-			activeLabel := ""
-			for _, season := range itemsSeason {
-				name := label(season)
-				picks = append(picks, ui.MenuItem{Text: name, Checked: func() bool { return selected.Get() == season.ID },
-					OnSelect: func() { seasonID.Set(season.ID) }})
-				if season.ID == selected.Get() {
-					activeLabel = name
-				}
-			}
-			children = append(children, core.View{Class: "flex-row items-center justify-between px-1 pb-2", Children: []core.Node{
-				base.Menu{Label: activeLabel, TestID: "desktop-player-season", Class: "rounded", PopupClass: tabletDetailPopup,
-					Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, Children: picks, Trigger: core.View{Class: "flex-row items-center gap-1", Children: []core.Node{
-						core.Text{Content: activeLabel, Class: "text-sm font-semibold text-white"},
-						core.Icon{SVG: lucide.ChevronDown(), Class: "size-4 text-zinc-500"},
-					}}},
-				core.Text{Content: locales.DesktopPlayerEpisodeCount(cx, strconv.Itoa(len(items))), Class: "text-xs text-zinc-500"},
-			}})
+		return items
+	}, nil)
+	// Keep the open menu mounted while the episode list updates.
+	header := core.Dynamic(func(cx *core.Scope) core.Node {
+		choices, _ := seasons.Get()
+		if len(choices) == 0 {
+			return nil
 		}
+		label := func(season media.Item) string {
+			if season.Season == 0 {
+				return locales.DesktopPlayerSpecials(cx)
+			}
+			return locales.SeasonLabel(cx, strconv.Itoa(season.Season))
+		}
+		activeLabel := func() string {
+			id := selected.Get()
+			for _, season := range choices {
+				if season.ID == id {
+					return label(season)
+				}
+			}
+			return ""
+		}
+		picks := make([]core.Node, 0, len(choices))
+		for _, season := range choices {
+			picks = append(picks, ui.MenuItem{Text: label(season), Checked: func() bool { return selected.Get() == season.ID },
+				OnSelect: func() { seasonID.Set(season.ID) }})
+		}
+		return core.View{Class: "flex-row items-center justify-between px-1 pb-2", Children: []core.Node{
+			base.Menu{LabelFunc: activeLabel, TestID: "desktop-player-season", Class: "rounded", PopupClass: tabletDetailPopup,
+				Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, Children: picks, Trigger: core.View{Class: "flex-row items-center gap-1", Children: []core.Node{
+					core.Text{ContentFunc: activeLabel, Class: "text-sm font-semibold text-white"},
+					core.Icon{SVG: lucide.ChevronDown(), Class: "size-4 text-zinc-500"},
+				}}},
+			core.Text{ContentFunc: func() string {
+				return locales.DesktopPlayerEpisodeCount(cx, strconv.Itoa(len(visibleEpisodes.Get())))
+			}, Class: "text-xs text-zinc-500"},
+		}}
+	})
+	choose := func(next media.Item) { a.playEpisodeFrom(p.current, next) }
+	rows := core.Dynamic(func(cx *core.Scope) core.Node {
+		items := visibleEpisodes.Get()
+		var children []core.Node
 		if err := cmp.Or(seasons.Err(), episodes.Err()); err != nil {
 			children = append(children, notice(errorText(cx, err)), ui.Button{Text: locales.Retry(cx), OnPress: func() { seasons.Refetch(); episodes.Refetch() }})
 		} else if seasons.Loading() || episodes.Loading() {
@@ -134,9 +149,10 @@ func (a *application) desktopPlayerEpisodePanel(cx *core.Scope, p desktopPlayerC
 		for _, item := range items {
 			children = append(children, p.episodeRow(cx, item, choose))
 		}
-		return core.View{Class: "gap-1 p-3", Children: children}
+		return core.Group(children)
 	})
-	return core.Scroll{Class: "flex-1 min-h-0", TestID: "desktop-player-episodes", Children: []core.Node{body}}
+	content := core.View{Class: "gap-1 p-3", Children: []core.Node{header, rows}}
+	return core.Scroll{Class: "flex-1 min-h-0", TestID: "desktop-player-episodes", Children: []core.Node{content}}
 }
 
 func (p desktopPlayerControls) episodeRow(cx *core.Scope, item media.Item, choose func(media.Item)) core.Node {
@@ -163,8 +179,15 @@ func (p desktopPlayerControls) episodeRow(cx *core.Scope, item media.Item, choos
 			core.Icon{SVG: lucide.AudioLines(), Class: "size-5 text-violet-300"},
 		}})
 	}
+	titleClass := "text-sm text-white group-selected:font-semibold"
+	detailsClass := "min-w-0 flex-1 gap-0.5"
+	if active {
+		detailsClass = "min-w-0 flex-1 gap-1"
+	} else if item.Watched {
+		titleClass = "text-sm text-zinc-400"
+	}
 	text := []core.Node{
-		core.Text{Content: title, Class: "text-sm text-white group-selected:font-semibold", MaxLines: 1},
+		core.Text{Content: title, Class: titleClass, MaxLines: 1},
 		core.Text{Content: desktopMovieFacts(status, runtime), Class: "text-xs text-zinc-500 group-selected:text-violet-300", MaxLines: 1},
 	}
 	if active {
@@ -175,7 +198,7 @@ func (p desktopPlayerControls) episodeRow(cx *core.Scope, item media.Item, choos
 	}
 	children := []core.Node{
 		core.View{Class: "relative h-14 w-24 shrink-0 overflow-hidden rounded-lg", Children: art},
-		core.View{Class: "min-w-0 flex-1 gap-1", Children: text},
+		core.View{Class: detailsClass, Children: text},
 	}
 	if !active && item.Watched {
 		children = append(children, core.Icon{SVG: lucide.CircleCheck(), Class: "size-4 text-violet-400"})
