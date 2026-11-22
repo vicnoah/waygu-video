@@ -177,6 +177,8 @@ jobs:
           target: ${{ matrix.image }}
           profile: ${{ matrix.profile }}
           arch: x86_64
+          disk-size: 2G
+          emulator-boot-timeout: 240
           script: sh build/android/emulator-test.sh ${{ matrix.form }}
 
   integration:
