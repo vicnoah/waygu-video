@@ -34,6 +34,14 @@ useHTTPS: 使用 HTTPS
 scanServerAddress: 扫描服务器地址
 sourceName: 显示名称
 
+trustSourceCertificate: 信任服务器证书
+sourceCertificateRejected: 无法验证服务器证书。
+sourceCertificateDetails: |-
+  请先核对服务器上的 SHA-256 指纹。
+  {origin}
+  SHA-256 {fingerprint}
+approveSourceCertificate: 信任证书
+saveSourceCertificates: 保存证书设置
 sourceAdvanced: 高级
 backupServerAddress: 备用外网地址
 backupAddressUnset: 未设置

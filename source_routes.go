@@ -41,18 +41,19 @@ func backupAddress(raw, primary string) (string, error) {
 	return address.String(), nil
 }
 
-func (a *application) probeSourceAddress(ctx context.Context, kind media.Provider, address string, timeout time.Duration) (media.ServerInfo, error) {
+func (a *application) probeSourceAddress(ctx context.Context, entry source, address string, timeout time.Duration) (media.ServerInfo, error) {
 	probe, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
-	guest, err := a.newMedia(kind, address, a.device, media.Session{})
+	guest, err := a.sourceClient(entry, address, media.Session{}, false)
 	if err != nil {
 		return media.ServerInfo{}, err
 	}
-	return guest.Probe(probe)
+	info, err := guest.Probe(probe)
+	return info, sourceAddressError(address, err)
 }
 
-func (a *application) verifySourceAddress(ctx context.Context, kind media.Provider, address, expected string, timeout time.Duration) (media.ServerInfo, error) {
-	info, err := a.probeSourceAddress(ctx, kind, address, timeout)
+func (a *application) verifySourceAddress(ctx context.Context, entry source, address, expected string, timeout time.Duration) (media.ServerInfo, error) {
+	info, err := a.probeSourceAddress(ctx, entry, address, timeout)
 	if err == nil && (expected == "" || info.ID != expected) {
 		err = errDifferentServer
 	}
@@ -71,7 +72,7 @@ func (a *application) resolveSource(ctx context.Context, entry source, skip stri
 	}
 	var localError error
 	if skip != entry.Address {
-		if _, err := a.verifySourceAddress(ctx, entry.Provider, entry.Address, entry.ServerID, 1500*time.Millisecond); err == nil {
+		if _, err := a.verifySourceAddress(ctx, entry, entry.Address, entry.ServerID, 1500*time.Millisecond); err == nil {
 			return primary, nil
 		} else {
 			localError = err
@@ -81,7 +82,7 @@ func (a *application) resolveSource(ctx context.Context, entry source, skip stri
 		return sourceEndpoint{}, ctx.Err()
 	}
 	if skip != entry.RemoteAddress {
-		if _, err := a.verifySourceAddress(ctx, entry.Provider, entry.RemoteAddress, entry.ServerID, 3*time.Second); err == nil {
+		if _, err := a.verifySourceAddress(ctx, entry, entry.RemoteAddress, entry.ServerID, 3*time.Second); err == nil {
 			return sourceEndpoint{address: entry.RemoteAddress, remote: true}, nil
 		} else {
 			return sourceEndpoint{}, errors.Join(localError, err)

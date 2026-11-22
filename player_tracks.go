@@ -99,8 +99,9 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		}()
 	}
 	selectServerSubtitle := func(track media.Track) {
+		trust := core.Untracked(cx, stream).Trust
 		load(track.ID, trackLabel(cx, track), func(ctx context.Context) (*playback.Captions, error) {
-			return playback.FetchCaptions(ctx, track.URL)
+			return playback.FetchCaptions(ctx, track.URL, trust)
 		})
 	}
 	selectDecoderSubtitle := func(d *desktopVideo, track mpv.Track) {

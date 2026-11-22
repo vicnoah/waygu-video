@@ -199,7 +199,7 @@ func (f *flymooClient) artwork(row map[string]any, keys ...string) string {
 			parsed.Scheme = f.base.Scheme
 		}
 		if isHTTP(parsed) {
-			return parsed.String()
+			return f.artworkAddress(parsed.String())
 		}
 		cleaned := strings.TrimPrefix(path.Clean("/"+parsed.Path), "/")
 		switch {
@@ -210,7 +210,7 @@ func (f *flymooClient) artwork(row map[string]any, keys ...string) string {
 			cleaned = "api/v1/sys/img/" + cleaned
 		}
 		if resolved, err := f.streamURL("/"+cleaned, parsed.Query()); err == nil {
-			return resolved.String()
+			return f.artworkAddress(resolved.String())
 		}
 	}
 	return ""

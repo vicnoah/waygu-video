@@ -7,6 +7,8 @@ import (
 	"errors"
 	"net/http"
 	"time"
+
+	"waygu-video/internal/mediatls"
 )
 
 type Provider string
@@ -186,6 +188,7 @@ type Stream struct {
 	Tracks    []Track
 	Rendition Version
 	File      SourceFile
+	Trust     mediatls.Trust
 }
 
 // SourceFile is the original file of the selected version, even when the

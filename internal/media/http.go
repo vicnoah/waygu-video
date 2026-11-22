@@ -11,14 +11,18 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"waygu-video/internal/mediatls"
 )
 
 const responseLimit = 16 << 20
 
 type api struct {
-	base    *url.URL
-	client  *http.Client
-	observe func(RequestMetric)
+	base       *url.URL
+	client     *http.Client
+	observe    func(RequestMetric)
+	trust      mediatls.Trust
+	artworkURL func(string) string
 }
 
 func NormalizeAddress(raw string) (*url.URL, error) {
@@ -52,6 +56,42 @@ func newAPI(base *url.URL) api {
 			return nil
 		},
 	}}
+}
+
+// ConfigureTrust applies endpoint-local HTTPS trust to a newly constructed client.
+func ConfigureTrust(client Client, trust mediatls.Trust, artwork func(string) string) error {
+	if trust.Certificate == "" {
+		return nil
+	}
+	var inner *api
+	switch provider := client.(type) {
+	case *mediaBrowser:
+		inner = &provider.api
+	case *plexClient:
+		inner = &provider.api
+	case *flymooClient:
+		inner = &provider.api
+	default:
+		return mediatls.ErrCertificate
+	}
+	address := inner.base.String()
+	if !trust.Matches(address) {
+		return mediatls.ErrCertificate
+	}
+	transport, err := mediatls.Transport(address, trust)
+	if err != nil {
+		return err
+	}
+	inner.client.Transport = transport
+	inner.trust, inner.artworkURL = trust, artwork
+	return nil
+}
+
+func (a api) artworkAddress(address string) string {
+	if a.artworkURL != nil && a.trust.Matches(address) {
+		return a.artworkURL(address)
+	}
+	return address
 }
 
 func sameOrigin(a, b *url.URL) bool {

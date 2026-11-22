@@ -10,6 +10,7 @@ import (
 	"github.com/nsgo-dev/nsgo/core"
 
 	"waygu-video/internal/media"
+	"waygu-video/internal/mediatls"
 )
 
 const sourceTimeoutKey = "source-timeout-v1"
@@ -17,13 +18,14 @@ const sourceTimeoutKey = "source-timeout-v1"
 var sourceTimeouts = []int{5, 10, 20, 30, 60}
 
 type sourceConnection struct {
+	localTrust, remoteTrust                      mediatls.Trust
 	address, remote, server, account, credential string
 	remoteDisabled                               bool
 	provider                                     media.Provider
 }
 
 func (s source) connection() sourceConnection {
-	return sourceConnection{s.Address, s.RemoteAddress, s.ServerID, s.AccountID, s.credentialKey(), s.RemoteDisabled, s.Provider}
+	return sourceConnection{s.certificateFor(s.Address), s.certificateFor(s.RemoteAddress), s.Address, s.RemoteAddress, s.ServerID, s.AccountID, s.credentialKey(), s.RemoteDisabled, s.Provider}
 }
 
 type sourceCheck struct {

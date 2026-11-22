@@ -174,7 +174,7 @@ func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID 
 	params := url.Values{"Static": {"true"}, "MediaSourceId": {source.ID},
 		"DeviceId": {m.device.ID}, "PlaySessionId": {sessionID}}
 	original := m.mediaURL("Videos/"+url.PathEscape(item.ID)+"/stream", params)
-	stream := Stream{ItemID: item.ID, SourceID: source.ID, SessionID: sessionID,
+	stream := Stream{ItemID: item.ID, SourceID: source.ID, SessionID: sessionID, Trust: m.trust,
 		Position: item.Position, Duration: max(item.Duration, fromTicks(source.RunTimeTicks)),
 		Rendition: source.version(),
 		File:      SourceFile{Name: videoFileName(source.Path), Size: source.Size, URL: original}}

@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net"
 	"net/url"
+	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +17,7 @@ import (
 	"github.com/nsgo-dev/nsgo/ui"
 
 	"waygu-video/internal/media"
+	"waygu-video/internal/mediatls"
 	"waygu-video/internal/tvpair"
 	"waygu-video/locales"
 )
@@ -74,6 +78,22 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 	preview := core.NewSignal[*media.ServerInfo](cx, nil)
 	candidate := core.NewSignal[*candidateSource](cx, nil)
 	quickCode := core.NewSignal(cx, "")
+	approved := core.NewSignalFunc(cx, slices.Clone(current.Certificates), slices.Equal)
+	type certificateOffer struct {
+		pin   mediatls.Trust
+		retry func()
+	}
+	offer := core.NewSignal[*certificateOffer](cx, nil)
+	canTrust := runtime.GOOS != "js"
+	showError := func(err error, retry func()) {
+		failure.Set(err)
+		var verification *sourceCertificateError
+		if canTrust && errors.As(err, &verification) {
+			if pin, ok := mediatls.Candidate(verification.address, err); ok {
+				offer.Set(&certificateOffer{pin, retry})
+			}
+		}
+	}
 	viewContext := cx.Context()
 	plex := provider == media.Plex
 
@@ -81,7 +101,8 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 		failure.Set(nil)
 		preview.Set(nil)
 	}
-	submit := func(method connectionMethod) {
+	var submit func(connectionMethod)
+	submit = func(method connectionMethod) {
 		if busy.GetUntracked() || candidate.GetUntracked() != nil {
 			return
 		}
@@ -98,6 +119,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 		form := source{ID: current.ID, Address: base.String(), Provider: provider, RemoteAddress: alternate,
 			RemoteDisabled: current.RemoteDisabled, RemoteBitrate: current.RemoteBitrate,
 			Name: strings.TrimSpace(name.GetUntracked()), Username: strings.TrimSpace(user.GetUntracked())}
+		form.Certificates = routeCertificates(approved.GetUntracked(), form.Address, form.RemoteAddress)
 		if form.Address == current.Address {
 			form.ServerID = current.ServerID
 		}
@@ -128,7 +150,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 				cx.Batch(func() {
 					busy.Set(false)
 					quickCode.Set("")
-					failure.Set(err)
+					showError(err, func() { submit(probeConnection) })
 					if err == nil {
 						preview.Set(&result.info)
 						if method != probeConnection {
@@ -250,19 +272,56 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 		remote, core.KeyboardURL, 0)
 	remoteEntry.Class += " text-right"
 	remoteEntry.OnChange = func(value string) { remote.Set(value); clearResult() }
-	advancedRows := []core.Node{core.View{Class: setupRow, Children: []core.Node{
+	approvedOnForm := func() bool {
+		base, _ := serverAddress(address.Get(), port.Get(), https.Get())
+		local := ""
+		if base != nil {
+			local = base.String()
+		}
+		backup, _ := backupAddress(remote.Get(), local)
+		return len(routeCertificates(approved.Get(), local, backup)) != 0
+	}
+	var trustChange func(bool)
+	if canTrust {
+		trustChange = func(enabled bool) {
+			if enabled {
+				submit(probeConnection)
+			} else {
+				approved.Set(nil)
+				clearResult()
+			}
+		}
+	}
+	trustLabel := locales.TrustSourceCertificate(cx)
+	trustRow := base.Switch{Label: trustLabel, TestID: "source-trust-certificate", Checked: approvedOnForm, OnChange: trustChange,
+		Disabled: func() bool { return !canTrust || disabled() },
+		Class:    setupRow + " flex-row-reverse justify-between", Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)},
+		TrackClass: "h-[31px] w-[51px] flex-row items-center justify-start rounded-full bg-zinc-900/15 px-0.5 checked:justify-end checked:bg-violet-500 dark:bg-white/15 dark:checked:bg-violet-500",
+		ThumbClass: "size-[27px] rounded-full bg-white shadow-md", Children: []core.Node{core.Text{Content: trustLabel, Class: "text-[15px] " + setupTitle}},
+	}
+	advancedRows := []core.Node{trustRow, core.View{Class: setupRow, Children: []core.Node{
 		core.Text{Content: locales.BackupServerAddress(cx), Class: "w-32 shrink-0 text-[15px] " + setupTitle}, remoteEntry,
 	}}}
 	if current.ID != "" {
-		saveRemote := func() {
+		var saveRemote func()
+		saveRemote = func() {
 			alternate, err := backupAddress(remote.GetUntracked(), current.Address)
 			if err != nil {
 				failure.Set(err)
 				return
 			}
 			clearResult()
+			draft := current
+			draft.RemoteAddress = alternate
+			draft.Certificates = routeCertificates(approved.GetUntracked(), draft.Address, alternate)
+			save := func() error {
+				return a.updateSourceRouting(current, func(saved *source) {
+					saved.RemoteAddress = draft.RemoteAddress
+					saved.Certificates = draft.Certificates
+				})
+			}
 			if alternate == "" {
-				if err := a.updateSourceRouting(current, func(saved *source) { saved.RemoteAddress = "" }); err != nil {
+				if err := save(); err != nil {
 					failure.Set(err)
 				} else {
 					a.back()
@@ -271,14 +330,14 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			}
 			busy.Set(true)
 			go func() {
-				_, err := a.verifySourceAddress(viewContext, current.Provider, alternate, current.ServerID, 4*time.Second)
+				_, err := a.verifySourceAddress(viewContext, draft, alternate, current.ServerID, 4*time.Second)
 				cx.Post(func() {
 					busy.Set(false)
 					if err != nil {
-						failure.Set(err)
+						showError(err, saveRemote)
 						return
 					}
-					if err := a.updateSourceRouting(current, func(saved *source) { saved.RemoteAddress = alternate }); err != nil {
+					if err := save(); err != nil {
 						failure.Set(err)
 						return
 					}
@@ -290,9 +349,60 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			ui.Button{Text: locales.SaveBackupAddress(cx), Variant: ui.ButtonGhost, TestID: "save-backup-address",
 				Disabled: func() bool { return disabled() || strings.TrimSpace(remote.Get()) == current.RemoteAddress }, OnPress: saveRemote},
 		}})
+		savedPins := func() []mediatls.Trust {
+			return routeCertificates(approved.Get(), current.Address, current.RemoteAddress)
+		}
+		advancedRows = append(advancedRows, core.Show{When: func() bool { return !slices.Equal(savedPins(), current.Certificates) }, Then: func(cx *core.Scope) core.Node {
+			return core.View{Class: setupRow, Children: []core.Node{
+				ui.Button{Text: locales.SaveSourceCertificates(cx), Variant: ui.ButtonGhost, TestID: "save-source-certificates", Disabled: disabled,
+					OnPress: func() {
+						pins := core.Untracked(cx, savedPins)
+						if err := a.updateSourceRouting(current, func(saved *source) { saved.Certificates = pins }); err != nil {
+							failure.Set(err)
+							return
+						}
+						a.back()
+					}},
+			}}
+		}})
 	}
+	review := core.Dynamic(func(cx *core.Scope) core.Node {
+		current := offer.Get()
+		if current == nil {
+			return nil
+		}
+		fingerprint := current.pin.Fingerprint()
+		var fields []string
+		for offset := 0; offset < len(fingerprint); offset += 16 {
+			fields = append(fields, fingerprint[offset:min(len(fingerprint), offset+16)])
+		}
+		return ui.AlertDialog{Open: func() bool { return offer.Get() != nil }, Title: locales.TrustSourceCertificate(cx),
+			Description: locales.SourceCertificateDetails(cx, current.pin.Origin, strings.Join(fields, " ")),
+			OnOpenChange: func(open bool, _ base.Reason) {
+				if !open {
+					offer.Set(nil)
+				}
+			},
+			Actions: []ui.AlertAction{
+				{Text: locales.DesktopSettingsCancel(cx), Role: core.AlertCancel, TestID: "cancel-source-certificate"},
+				{Text: locales.ApproveSourceCertificate(cx), TestID: "approve-source-certificate", OnPress: func() {
+					approved.Update(func(pins []mediatls.Trust) []mediatls.Trust {
+						other := slices.DeleteFunc(slices.Clone(pins), func(pin mediatls.Trust) bool {
+							return strings.EqualFold(pin.Origin, current.pin.Origin)
+						})
+						return append(other, current.pin)
+					})
+					offer.Set(nil)
+					if current.retry != nil {
+						current.retry()
+					}
+				}},
+			},
+		}
+	})
 	return core.View{Class: "gap-6", Children: []core.Node{
 		server,
+		review,
 		setupGroup(locales.LoginGroup(cx), footer, loginRows...),
 		setupGroup(locales.SourceAdvanced(cx), "", advancedRows...),
 		core.Dynamic(func(cx *core.Scope) core.Node {

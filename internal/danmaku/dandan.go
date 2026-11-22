@@ -16,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"waygu-video/internal/mediatls"
 )
 
 const (
@@ -285,7 +287,7 @@ func decodeDanmakuJSON(reader io.Reader, response any) error {
 // Fingerprint reads only the initial range of an original video file. A
 // server ignoring Range is treated as unsupported so it cannot download a
 // whole movie in the background.
-func Fingerprint(ctx context.Context, address string, headers http.Header) (string, int64, error) {
+func Fingerprint(ctx context.Context, address string, headers http.Header, pins ...mediatls.Trust) (string, int64, error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, address, nil)
 	if err != nil {
 		return "", 0, err
@@ -304,6 +306,12 @@ func Fingerprint(ctx context.Context, address string, headers http.Header) (stri
 		}
 		return nil
 	}}
+	if transport, err := mediatls.Transport(address, pins...); err != nil {
+		return "", 0, err
+	} else if transport != nil {
+		defer transport.CloseIdleConnections()
+		client.Transport = transport
+	}
 	response, err := client.Do(request)
 	if err != nil {
 		return "", 0, err

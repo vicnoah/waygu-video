@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"waygu-video/internal/mediatls"
 )
 
 const captionLimit = 4 << 20
@@ -137,10 +139,14 @@ func (c *Captions) At(position time.Duration) string {
 	return text.String()
 }
 
-func FetchCaptions(ctx context.Context, address string) (*Captions, error) {
+func FetchCaptions(ctx context.Context, address string, pins ...mediatls.Trust) (*Captions, error) {
 	origin, err := url.Parse(address)
 	if err != nil || origin.User != nil || origin.Hostname() == "" || (origin.Scheme != "http" && origin.Scheme != "https") {
 		return nil, errCaptions
+	}
+	transport, err := mediatls.Transport(address, pins...)
+	if err != nil {
+		return nil, err
 	}
 	client := &http.Client{Timeout: 20 * time.Second, CheckRedirect: func(req *http.Request, via []*http.Request) error {
 		if len(via) >= 5 || req.URL.User != nil || req.URL.Scheme != origin.Scheme || !strings.EqualFold(req.URL.Host, origin.Host) {
@@ -148,6 +154,10 @@ func FetchCaptions(ctx context.Context, address string) (*Captions, error) {
 		}
 		return nil
 	}}
+	if transport != nil {
+		defer transport.CloseIdleConnections()
+		client.Transport = transport
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, address, nil)
 	if err != nil {
 		return nil, errCaptions

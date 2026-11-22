@@ -17,6 +17,7 @@ import (
 
 	"waygu-video/internal/danmaku"
 	"waygu-video/internal/media"
+	"waygu-video/internal/mediatls"
 	"waygu-video/internal/metadata"
 	"waygu-video/locales"
 )
@@ -80,6 +81,7 @@ type source struct {
 	RemoteDisabled    bool   `json:",omitempty"`
 	RemoteBitrate     int    `json:",omitempty"`
 	Name              string
+	Certificates      []mediatls.Trust `json:",omitempty"`
 	ServerID          string
 	AccountID         string
 	Username          string
@@ -137,6 +139,7 @@ type application struct {
 	sourceFailover      *core.Signal[bool]
 	routesEnabled       atomic.Bool
 	sourceCheckSerial   uint64
+	sourceArtwork       sourceArtwork
 	libraryPrefs        *core.Signal[libraryPreferences]
 	metadata            *metadata.Cache
 	pairedDevices       *core.Signal[[]pairedDevice]
@@ -237,6 +240,8 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 		diagnostics:   diagnostics, diagnosticPrefs: core.NewSignal(cx, prefs),
 		danmakuPrefs: core.NewSignal(cx, core.Untracked(cx, func() danmakuPreferences { return readDanmakuPreferences(storage) })),
 	}
+	a.artworkSources(sources)
+	cx.Cleanup(func() { a.artworkSources(nil) })
 	a.parental = core.NewSignalFunc(cx, core.Untracked(cx, func() parentalPolicy { return readParentalPolicy(storage) }), nil)
 	a.parentalUsage = core.NewSignal(cx, core.Untracked(cx, func() parentalUsage { return readParentalUsage(storage) }))
 	a.parentalApprovals = core.NewSignalFunc(cx, map[copyKey]bool{}, nil)
@@ -370,6 +375,7 @@ func (a *application) saveSources(sources []source) error {
 		return err
 	}
 	a.progress.setSources(sources)
+	a.artworkSources(sources)
 	a.sources.Set(sources)
 	a.scheduleProgressReplay(time.Second)
 	return nil
@@ -389,11 +395,14 @@ func (a *application) clientAt(s source, address string) (media.Client, error) {
 		value = token
 		a.tokens.Store(key, token)
 	}
-	return a.newMedia(s.Provider, address, a.device, media.Session{UserID: s.AccountID, Token: value.(string)})
+	return a.sourceClient(s, address, media.Session{UserID: s.AccountID, Token: value.(string)}, true)
 }
 
 func errorText(cx *core.Scope, err error) string {
+	var certificate *sourceCertificateError
 	switch {
+	case errors.As(err, &certificate):
+		return locales.SourceCertificateRejected(cx)
 	case errors.Is(err, errDifferentServer):
 		return locales.SourceDifferentServer(cx)
 	case errors.Is(err, media.ErrInvalidAddress):

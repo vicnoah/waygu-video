@@ -42,7 +42,7 @@ func rendererSource(stream media.Stream) casting.Stream {
 	if kind == "" && address != "" && stream.Method == media.DirectPlay && strings.Contains(strings.ToLower(address), ".mp4") {
 		kind = "video/mp4"
 	}
-	return casting.Stream{URL: address, Headers: headers, MIME: kind}
+	return casting.Stream{URL: address, Headers: headers, MIME: kind, Trust: stream.Trust}
 }
 
 func startRenderer(ctx context.Context, item media.Item, medium playerMedia, device casting.Renderer, at time.Duration, paused bool) (*casting.Session, media.Stream, error) {
@@ -77,6 +77,6 @@ func startRenderer(ctx context.Context, item media.Item, medium playerMedia, dev
 	if stream.Method != media.Transcode || stream.URL == "" {
 		return nil, media.Stream{}, casting.ErrFormat
 	}
-	session, err := casting.Start(ctx, device, casting.Stream{URL: stream.URL, Headers: stream.Headers, MIME: profile}, item.Title, at, paused)
+	session, err := casting.Start(ctx, device, casting.Stream{URL: stream.URL, Headers: stream.Headers, MIME: profile, Trust: stream.Trust}, item.Title, at, paused)
 	return session, stream, err
 }

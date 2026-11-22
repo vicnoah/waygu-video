@@ -207,7 +207,7 @@ func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, curre
 		if err == nil {
 			original := stream.File
 			input := downloads.Source{URL: original.URL, Name: original.Name, Size: original.Size,
-				Headers: original.Headers, MediaID: stream.SourceID}
+				Headers: original.Headers, Trust: stream.Trust, MediaID: stream.SourceID}
 			if input.URL == "" {
 				err = downloads.ErrInvalidFile
 			}

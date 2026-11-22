@@ -135,10 +135,10 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 
 func prepareVideo(lifetime context.Context, client media.Client, stream media.Stream, android bool) (playerMedia, error) {
 	medium := playerMedia{client: client, stream: stream, url: stream.URL, close: func() {}}
-	if len(stream.Headers) == 0 && !(android && strings.HasPrefix(stream.URL, "http://")) {
+	if len(stream.Headers) == 0 && !stream.Trust.Matches(stream.URL) && !(android && strings.HasPrefix(stream.URL, "http://")) {
 		return medium, nil
 	}
-	address, closeProxy, err := playback.Open(stream.URL, stream.Headers)
+	address, closeProxy, err := playback.Open(stream.URL, stream.Headers, stream.Trust)
 	if err != nil {
 		return playerMedia{}, err
 	}

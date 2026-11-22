@@ -272,7 +272,7 @@ func (p *plexClient) item(entry plexMetadata) Item {
 		Trailer:       strings.EqualFold(entry.Subtype, "trailer") || strings.EqualFold(entry.Type, "trailer"),
 		OriginalTitle: entry.OriginalTitle, ContentRating: entry.ContentRating,
 		Position: millis(entry.ViewOffset), Watched: entry.ViewCount > 0, SeriesTitle: entry.GrandparentTitle,
-		Poster: p.mediaURL(entry.Thumb, nil), Backdrop: p.mediaURL(entry.Art, nil),
+		Poster: p.artworkAddress(p.mediaURL(entry.Thumb, nil)), Backdrop: p.artworkAddress(p.mediaURL(entry.Art, nil)),
 		ExternalIDs: make(map[string]string, len(entry.Guid))}
 	item.ReleasedAt, _ = time.Parse("2006-01-02", entry.OriginallyAvailableAt)
 	if entry.LastViewedAt > 0 {
@@ -286,7 +286,7 @@ func (p *plexClient) item(entry plexMetadata) Item {
 	}
 	for _, director := range entry.Director {
 		if director.Tag != "" {
-			item.People = append(item.People, Person{Name: director.Tag, Director: true, Kind: "director", Portrait: p.mediaURL(director.Thumb, nil)})
+			item.People = append(item.People, Person{Name: director.Tag, Director: true, Kind: "director", Portrait: p.artworkAddress(p.mediaURL(director.Thumb, nil))})
 		}
 	}
 	for _, country := range entry.Country {
@@ -301,7 +301,7 @@ func (p *plexClient) item(entry plexMetadata) Item {
 	}
 	for _, actor := range entry.Role {
 		if actor.Tag != "" {
-			item.People = append(item.People, Person{Name: actor.Tag, Role: actor.Role, Kind: "actor", Portrait: p.mediaURL(actor.Thumb, nil)})
+			item.People = append(item.People, Person{Name: actor.Tag, Role: actor.Role, Kind: "actor", Portrait: p.artworkAddress(p.mediaURL(actor.Thumb, nil))})
 		}
 	}
 	if entry.LibrarySectionID > 0 {
@@ -451,7 +451,7 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			continue
 		}
 		original := p.mediaURL(part.Key, nil)
-		stream := Stream{ItemID: item.ID, SourceID: sourceID, SessionID: rand.Text(),
+		stream := Stream{ItemID: item.ID, SourceID: sourceID, SessionID: rand.Text(), Trust: p.trust,
 			Position: millis(entry.ViewOffset), Duration: millis(max(entry.Duration, part.Duration)),
 			URL: original, Method: DirectPlay,
 			File: SourceFile{Name: videoFileName(part.File), Size: part.Size, URL: original}}

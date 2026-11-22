@@ -45,6 +45,7 @@ func For(cx *core.Scope) Messages {
 var Parameters = map[string][]string{
 	"WelcomeMediaSourcesDetail":       {"flymoo"},
 	"AddDiscoveredSource":             {"name"},
+	"SourceCertificateDetails":        {"origin", "fingerprint"},
 	"SourceAddresses":                 {"local", "remote"},
 	"Connected":                       {"name"},
 	"SignedInAs":                      {"name"},
@@ -181,6 +182,7 @@ type Translation struct {
 	Texts                           map[string]string
 	WelcomeMediaSourcesDetail       func(flymoo string) string
 	AddDiscoveredSource             func(name string) string
+	SourceCertificateDetails        func(origin string, fingerprint string) string
 	SourceAddresses                 func(local string, remote string) string
 	Connected                       func(name string) string
 	SignedInAs                      func(name string) string
@@ -346,6 +348,10 @@ const (
 	textUseHTTPS
 	textScanServerAddress
 	textSourceName
+	textTrustSourceCertificate
+	textSourceCertificateRejected
+	textApproveSourceCertificate
+	textSaveSourceCertificates
 	textSourceAdvanced
 	textBackupServerAddress
 	textBackupAddressUnset
@@ -1190,6 +1196,10 @@ var keyOfText = [numTexts]string{
 	"useHTTPS",
 	"scanServerAddress",
 	"sourceName",
+	"trustSourceCertificate",
+	"sourceCertificateRejected",
+	"approveSourceCertificate",
+	"saveSourceCertificates",
 	"sourceAdvanced",
 	"backupServerAddress",
 	"backupAddressUnset",
@@ -2032,6 +2042,10 @@ var textsEn = i18n.NewTexts(""+
 	"Use HTTPS"+
 	"Scan server address"+
 	"Display name"+
+	"Trust server certificate"+
+	"The server certificate could not be verified."+
+	"Trust certificate"+
+	"Save certificate settings"+
 	"Advanced"+
 	"Backup address"+
 	"Not set"+
@@ -2871,6 +2885,10 @@ var textsEn = i18n.NewTexts(""+
 		9,
 		19,
 		12,
+		24,
+		45,
+		17,
+		25,
 		8,
 		14,
 		7,
@@ -3713,6 +3731,10 @@ var textsZhHans = i18n.NewTexts(""+
 	"使用 HTTPS"+
 	"扫描服务器地址"+
 	"显示名称"+
+	"信任服务器证书"+
+	"无法验证服务器证书。"+
+	"信任证书"+
+	"保存证书设置"+
 	"高级"+
 	"备用外网地址"+
 	"未设置"+
@@ -4552,6 +4574,10 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		21,
 		12,
+		21,
+		30,
+		12,
+		18,
 		6,
 		18,
 		9,
@@ -5419,6 +5445,9 @@ func Supply(lang string, t Translation) {
 	if t.AddDiscoveredSource != nil {
 		s.AddDiscoveredSource = t.AddDiscoveredSource
 	}
+	if t.SourceCertificateDetails != nil {
+		s.SourceCertificateDetails = t.SourceCertificateDetails
+	}
 	if t.SourceAddresses != nil {
 		s.SourceAddresses = t.SourceAddresses
 	}
@@ -6102,6 +6131,62 @@ func SourceName(cx *core.Scope) string { return For(cx).SourceName() }
 
 // SourceName is the package's SourceName in the language of msgs.
 func (msgs Messages) SourceName() string { return msgs.text(textSourceName) }
+
+// TrustSourceCertificate says "Trust server certificate"
+// in the language the app shows under cx.
+func TrustSourceCertificate(cx *core.Scope) string { return For(cx).TrustSourceCertificate() }
+
+// TrustSourceCertificate is the package's TrustSourceCertificate in the language of msgs.
+func (msgs Messages) TrustSourceCertificate() string { return msgs.text(textTrustSourceCertificate) }
+
+// SourceCertificateRejected says "The server certificate could not be verified."
+// in the language the app shows under cx.
+func SourceCertificateRejected(cx *core.Scope) string { return For(cx).SourceCertificateRejected() }
+
+// SourceCertificateRejected is the package's SourceCertificateRejected in the language of msgs.
+func (msgs Messages) SourceCertificateRejected() string {
+	return msgs.text(textSourceCertificateRejected)
+}
+
+// SourceCertificateDetails says "Compare the SHA-256 fingerprint with your server before trusting it.\n{origin}\nSHA-256 {fingerprint}"
+// in the language the app shows under cx.
+func SourceCertificateDetails(cx *core.Scope, origin string, fingerprint string) string {
+	return For(cx).SourceCertificateDetails(origin, fingerprint)
+}
+
+// SourceCertificateDetails is the package's SourceCertificateDetails in the language of msgs.
+func (msgs Messages) SourceCertificateDetails(origin string, fingerprint string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SourceCertificateDetails(origin, fingerprint))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SourceCertificateDetails; f != nil {
+			return f(origin, fingerprint)
+		}
+		switch lang {
+		case "", "en":
+			return "Compare the SHA-256 fingerprint with your server before trusting it.\n" + msgs.arg(origin) + "\nSHA-256 " + msgs.arg(fingerprint)
+		case "zh-Hans":
+			return "请先核对服务器上的 SHA-256 指纹。\n" + origin + "\nSHA-256 " + fingerprint
+		}
+	}
+}
+
+// ApproveSourceCertificate says "Trust certificate"
+// in the language the app shows under cx.
+func ApproveSourceCertificate(cx *core.Scope) string { return For(cx).ApproveSourceCertificate() }
+
+// ApproveSourceCertificate is the package's ApproveSourceCertificate in the language of msgs.
+func (msgs Messages) ApproveSourceCertificate() string {
+	return msgs.text(textApproveSourceCertificate)
+}
+
+// SaveSourceCertificates says "Save certificate settings"
+// in the language the app shows under cx.
+func SaveSourceCertificates(cx *core.Scope) string { return For(cx).SaveSourceCertificates() }
+
+// SaveSourceCertificates is the package's SaveSourceCertificates in the language of msgs.
+func (msgs Messages) SaveSourceCertificates() string { return msgs.text(textSaveSourceCertificates) }
 
 // SourceAdvanced says "Advanced"
 // in the language the app shows under cx.

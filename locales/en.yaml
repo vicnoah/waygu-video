@@ -34,6 +34,14 @@ useHTTPS: Use HTTPS
 scanServerAddress: Scan server address
 sourceName: Display name
 
+trustSourceCertificate: Trust server certificate
+sourceCertificateRejected: The server certificate could not be verified.
+sourceCertificateDetails: |-
+  Compare the SHA-256 fingerprint with your server before trusting it.
+  {origin}
+  SHA-256 {fingerprint}
+approveSourceCertificate: Trust certificate
+saveSourceCertificates: Save certificate settings
 sourceAdvanced: Advanced
 backupServerAddress: Backup address
 backupAddressUnset: Not set

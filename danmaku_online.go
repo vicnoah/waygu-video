@@ -293,7 +293,7 @@ func identifyDanmaku(ctx context.Context, client *danmaku.DandanClient, stream m
 	file := danmaku.FileMatch{Name: strings.TrimSuffix(stream.File.Name, path.Ext(stream.File.Name)),
 		Size: stream.File.Size, Duration: int64(stream.Duration / time.Second)}
 	if stream.File.URL != "" {
-		if hash, size, err := danmaku.Fingerprint(ctx, stream.File.URL, stream.File.Headers); err == nil {
+		if hash, size, err := danmaku.Fingerprint(ctx, stream.File.URL, stream.File.Headers, stream.Trust); err == nil {
 			file.Hash, file.Size = hash, size
 			if file.Name == "" {
 				file.Name = strings.TrimSpace(title + " " + episode)

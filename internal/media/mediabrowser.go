@@ -366,7 +366,7 @@ func (m *mediaBrowser) image(id, kind, tag string) string {
 	if err != nil {
 		return ""
 	}
-	return endpoint.String()
+	return m.artworkAddress(endpoint.String())
 }
 
 func (m *mediaBrowser) tokenKey() string {

@@ -108,3 +108,15 @@ GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 go tool nsgo test . -run 'SourceRoute|SourceFa
 go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^(TestDockerPhoneSourceFailover|TestDockerDesktopSourceRouteReview)$' -screenshots .nsgo/ui-review/source-routes
 ```
+
+
+## HTTPS server certificates
+
+`TestDockerApprovedServerCertificates` runs a self-signed HTTPS gateway in front of each of the Emby, Jellyfin, and Plex fixtures. It verifies that the gateway receives no HTTP requests before approval, then reads authenticated metadata and an MP4 byte range. Emby also exercises the original download and external subtitles. Each gateway replaces its certificate at the same address and closes its existing connections. The API and player gateway reject new connections before the server receives credentials. The unit fixture checks that an approval applies to its original HTTPS host and port and that hostname and expiration failures cannot be approved. [Go TLS peer verification](https://pkg.go.dev/crypto/tls)
+
+```sh
+GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 go tool nsgo test ./... \
+  -run "TestTrustRequiresTheOriginalHTTPSOriginAndHostname|TestDockerApprovedServerCertificates" -count=1
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run "^TestDockerPhoneTrustsCertificateForLoginAndPlayback$" -screenshots .nsgo/ui-review/source-certificates
+```

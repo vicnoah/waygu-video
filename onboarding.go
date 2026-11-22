@@ -139,7 +139,7 @@ func welcomeFeature(icon *core.SVG, padding, background, tint, title, detail str
 }
 
 func (a *application) connectServer(ctx context.Context, form source, input media.Credentials, method connectionMethod, showCode func(string)) (candidateSource, error) {
-	guest, err := a.newMedia(form.Provider, form.Address, a.device, media.Session{})
+	guest, err := a.sourceClient(form, form.Address, media.Session{}, false)
 	if err != nil {
 		return candidateSource{}, err
 	}
@@ -150,19 +150,24 @@ func (a *application) connectServer(ctx context.Context, form source, input medi
 		probe, stop = context.WithTimeout(ctx, 2*time.Second)
 	}
 	info, err := guest.Probe(probe)
+	err = sourceAddressError(address, err)
 	stop()
+	var verification *sourceCertificateError
+	if errors.As(err, &verification) {
+		return candidateSource{}, err
+	}
 	if form.RemoteAddress != "" {
 		if err != nil {
 			if form.ServerID == "" || form.RemoteDisabled || !a.routesEnabled.Load() || ctx.Err() != nil {
 				return candidateSource{}, err
 			}
 			address = form.RemoteAddress
-			info, err = a.verifySourceAddress(ctx, form.Provider, address, form.ServerID, 3*time.Second)
+			info, err = a.verifySourceAddress(ctx, form, address, form.ServerID, 3*time.Second)
 			if err == nil {
-				guest, err = a.newMedia(form.Provider, address, a.device, media.Session{})
+				guest, err = a.sourceClient(form, address, media.Session{}, false)
 			}
 		} else {
-			_, err = a.verifySourceAddress(ctx, form.Provider, form.RemoteAddress, info.ID, 3*time.Second)
+			_, err = a.verifySourceAddress(ctx, form, form.RemoteAddress, info.ID, 3*time.Second)
 		}
 		if err != nil {
 			return candidateSource{}, err
@@ -182,15 +187,15 @@ func (a *application) connectServer(ctx context.Context, form source, input medi
 		session, err = guest.SignIn(ctx, input)
 	}
 	if err != nil {
-		return candidateSource{}, err
+		return candidateSource{}, sourceAddressError(address, err)
 	}
-	client, err := a.newMedia(form.Provider, address, a.device, session)
+	client, err := a.sourceClient(form, address, session, false)
 	if err != nil {
 		return candidateSource{}, err
 	}
 	libraries, err := client.Libraries(ctx)
 	if err != nil {
-		return candidateSource{}, err
+		return candidateSource{}, sourceAddressError(address, err)
 	}
 	if form.Name == "" {
 		form.Name = info.Name
