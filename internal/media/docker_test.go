@@ -10,6 +10,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"waygu-video/internal/playback"
 )
 
 func TestDockerServers(t *testing.T) {
@@ -88,9 +90,61 @@ func TestDockerServers(t *testing.T) {
 				t.Fatalf("playback: method %s, %v", stream.Method, err)
 			}
 			verifyDockerMP4(t, ctx, stream)
+			verifyDockerHLS(t, ctx, client, movie)
 			verifyDockerResume(t, ctx, client, movieLibrary)
 		})
 	}
+}
+
+func verifyDockerHLS(t *testing.T, ctx context.Context, client Client, movie Item) {
+	t.Helper()
+	stream, err := client.Playback(ctx, movie, PlaybackOptions{MaxBitrate: 300_000})
+	if err != nil || stream.Method != Transcode {
+		t.Fatalf("300 kbps playback: method %s, %v", stream.Method, err)
+	}
+	address, stop, err := playback.Open(stream.URL, stream.Headers)
+	if err != nil {
+		t.Fatal("could not open the local playback proxy")
+	}
+	defer stop()
+	for depth := 0; depth < 4; depth++ {
+		request, err := http.NewRequestWithContext(ctx, http.MethodGet, address, nil)
+		if err != nil {
+			t.Fatal("invalid HLS resource address")
+		}
+		response, err := http.DefaultClient.Do(request)
+		if err != nil {
+			t.Fatal("failed to read the HLS resource")
+		}
+		data, err := io.ReadAll(io.LimitReader(response.Body, 64<<10))
+		response.Body.Close()
+		if err != nil || response.StatusCode != http.StatusOK {
+			t.Fatalf("HLS resource %d: status %d, %v", depth, response.StatusCode, err)
+		}
+		if depth > 0 && len(data) >= 376 && data[0] == 0x47 && data[188] == 0x47 {
+			return
+		}
+		if !bytes.HasPrefix(data, []byte("#EXTM3U")) {
+			t.Fatalf("resource %d is neither an HLS playlist nor an MPEG-TS segment (%q)", depth, response.Header.Get("Content-Type"))
+		}
+		var reference string
+		for line := range strings.SplitSeq(string(data), "\n") {
+			line = strings.TrimSpace(line)
+			if line != "" && !strings.HasPrefix(line, "#") {
+				reference = line
+				break
+			}
+		}
+		if reference == "" {
+			t.Fatal("playlist contains no media resources")
+		}
+		resolved, err := request.URL.Parse(reference)
+		if err != nil || !sameOrigin(request.URL, resolved) {
+			t.Fatal("playlist resource did not stay on the playback proxy")
+		}
+		address = resolved.String()
+	}
+	t.Fatal("no playable segment found in the HLS playlists")
 }
 
 func verifyDockerQuickConnect(t *testing.T, ctx context.Context, address string, authorized *mediaBrowser, userID string) {

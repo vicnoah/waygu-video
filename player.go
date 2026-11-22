@@ -27,12 +27,13 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	theme.Light = theme.Dark
 	cx.SetTheme(theme)
 	platform := cx.Env().OS()
+	bitrate := a.bitrateLimit.GetUntracked()
 	resource := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (playerMedia, error) {
 		client, err := a.client(current.source)
 		if err != nil {
 			return playerMedia{}, err
 		}
-		stream, err := client.Playback(ctx, current.item, media.PlaybackOptions{})
+		stream, err := client.Playback(ctx, current.item, media.PlaybackOptions{MaxBitrate: bitrate})
 		if err != nil {
 			return playerMedia{}, err
 		}

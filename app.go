@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"slices"
+	"strconv"
 	"sync"
 
 	"github.com/nsgo-dev/nsgo"
@@ -60,6 +61,7 @@ type application struct {
 	tab          *core.Signal[int]
 	sourceFilter *core.Signal[string]
 	mpvPreferred *core.Signal[bool]
+	bitrateLimit *core.Signal[int]
 	tokens       sync.Map
 }
 
@@ -68,7 +70,10 @@ const (
 	deviceKey  = "media-device-v1"
 	seenKey    = "onboarding-seen-v1"
 	mpvKey     = "playback-libmpv-v1"
+	bitrateKey = "playback-bitrate-v1"
 )
+
+var playbackBitrates = []int{0, 4_000_000, 8_000_000, 20_000_000}
 
 func Root(cx *core.Scope) core.Node {
 	return appRoot(cx, media.NewClient)
@@ -88,6 +93,11 @@ func appRoot(cx *core.Scope, factory mediaFactory) core.Node {
 	}
 	first := screenWelcome
 	mpvPreference, _ := storage.GetItem(mpvKey)
+	bitrateSetting, _ := storage.GetItem(bitrateKey)
+	bitrate, _ := strconv.Atoi(bitrateSetting)
+	if !slices.Contains(playbackBitrates, bitrate) {
+		bitrate = 0
+	}
 	if _, seen := storage.GetItem(seenKey); seen || len(sources) > 0 {
 		first = screenHome
 	}
@@ -96,6 +106,7 @@ func appRoot(cx *core.Scope, factory mediaFactory) core.Node {
 		sources: core.NewSignalFunc(cx, sources, nil), routes: core.NewSignalFunc(cx, []route{{screen: first}}, nil),
 		tab: core.NewSignal(cx, 0), sourceFilter: core.NewSignal(cx, ""),
 		mpvPreferred: core.NewSignal(cx, mpvPreference == "true"),
+		bitrateLimit: core.NewSignal(cx, bitrate),
 	}
 	cx.OnBackPress(func() bool {
 		if len(a.routes.GetUntracked()) <= 1 {

@@ -293,6 +293,7 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 				"X-Plex-Product": {"Waygu Video"}, "X-Plex-Platform": {"Chrome"}}
 			if options.MaxBitrate > 0 {
 				params.Set("maxVideoBitrate", strconv.Itoa(options.MaxBitrate/1000))
+				params.Set("directStream", "0")
 			}
 			stream.URL, stream.Method = p.mediaURL("/video/:/transcode/universal/start.m3u8", params), Transcode
 		}

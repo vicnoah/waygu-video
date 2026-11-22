@@ -81,7 +81,9 @@ func (p *streamProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid upstream request", http.StatusBadGateway)
 		return
 	}
-	request.Header = p.headers.Clone()
+	for name, values := range p.headers {
+		request.Header[name] = values
+	}
 	for _, name := range []string{"Range", "If-Range", "If-None-Match", "If-Modified-Since"} {
 		if value := r.Header.Get(name); value != "" {
 			request.Header.Set(name, value)

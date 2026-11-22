@@ -1,6 +1,6 @@
 # Delivery roadmap
 
-The Scenra files in `design/` define the product. The current app connects to Emby, Jellyfin, Plex and Flymoo, imports selected video libraries, lists and searches titles, shows movie and series details, and plays and reports progress. Jellyfin can also sign in with Quick Connect. It has a native video path, an optional desktop libmpv path, and synchronized local XML comments.
+The Scenra files in `design/` define the product. The current app connects to Emby, Jellyfin, Plex and Flymoo, imports selected video libraries, lists and searches titles, shows movie and series details, and plays and reports progress. Jellyfin can also sign in with Quick Connect. It has a native video path, an optional desktop libmpv path, and synchronized local XML comments. Emby, Jellyfin and Plex support a configurable streaming bitrate limit.
 
 ## Media sources
 
@@ -10,7 +10,7 @@ The Scenra files in `design/` define the product. The current app connects to Em
 
 ## Playback and library
 
-- Verify direct stream and transcode decisions with codec, bitrate and network fixtures. Validate track selection, external and online subtitles, audio controls, next-episode playback and offline progress replay.
+- Verify codec-driven direct stream and transcode decisions. Add network-specific bitrate preferences. Validate track selection, external and online subtitles, audio controls, next-episode playback and offline progress replay.
 - Add DandanPlay matching, comment binding and cache, additional comment import formats, and the player settings from `design/`.
 - Implement offline downloads, casting, settings, parental controls and iCloud sync. Complete the phone, tablet, desktop and TV views from `design/`.
 

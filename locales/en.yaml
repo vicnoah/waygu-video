@@ -63,6 +63,10 @@ hideDanmaku: Hide danmaku
 showDanmaku: Show danmaku
 danmakuFileError: The selected file does not contain readable danmaku comments.
 playbackSettings: Playback
+streamingQuality: Streaming quality
+originalQuality: Original quality
+bitrateMegabits: "{bitrate} Mbps"
+streamingQualityProviders: Applies to Emby, Jellyfin and Plex.
 preferMPV: Use libmpv when available
 directPlay: Direct play
 directStream: Direct stream

@@ -14,10 +14,27 @@ import (
 func (a *application) settings(cx *core.Scope) core.Node {
 	confirm := core.NewSignal(cx, "")
 	failure := core.NewSignal[error](cx, nil)
-	var playback core.Node
+	bitrateOptions := []ui.Option[int]{{Label: locales.OriginalQuality(cx)}}
+	for _, bitrate := range playbackBitrates[1:] {
+		bitrateOptions = append(bitrateOptions, ui.Option[int]{
+			Label: locales.BitrateMegabits(cx, strconv.Itoa(bitrate/1_000_000)), Value: bitrate,
+		})
+	}
+	playbackControls := []core.Node{
+		heading(locales.PlaybackSettings(cx)),
+		hint(locales.StreamingQuality(cx)),
+		ui.Select[int]{Label: locales.StreamingQuality(cx), Options: bitrateOptions,
+			TestID: "bitrate-limit", Value: a.bitrateLimit.Get, OnChange: func(bitrate int) {
+				if err := a.storage.SetItem(bitrateKey, strconv.Itoa(bitrate)); err != nil {
+					failure.Set(err)
+					return
+				}
+				a.bitrateLimit.Set(bitrate)
+			}},
+		hint(locales.StreamingQualityProviders(cx)),
+	}
 	if cx.Env().Desktop() {
-		playback = core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: []core.Node{
-			heading(locales.PlaybackSettings(cx)),
+		playbackControls = append(playbackControls,
 			ui.Checkbox{Text: locales.PreferMPV(cx), Checked: a.mpvPreferred.Get, OnChange: func(enabled bool) {
 				if err := a.storage.SetItem(mpvKey, strconv.FormatBool(enabled)); err != nil {
 					failure.Set(err)
@@ -25,7 +42,7 @@ func (a *application) settings(cx *core.Scope) core.Node {
 				}
 				a.mpvPreferred.Set(enabled)
 			}},
-		}}
+		)
 	}
 	return core.Scroll{Class: "flex-1", Children: []core.Node{core.View{
 		Class: "gap-5 p-5 md:p-8", StyleFunc: func() core.Style {
@@ -87,7 +104,7 @@ func (a *application) settings(cx *core.Scope) core.Node {
 				}
 				return core.View{Class: "gap-4", Children: cards}
 			}),
-			playback,
+			core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: playbackControls},
 		},
 	}}}
 }

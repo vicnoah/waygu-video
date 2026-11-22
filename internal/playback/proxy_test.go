@@ -8,7 +8,34 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 )
+
+func TestProxyPreservesRangeWithoutUpstreamHeaders(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeContent(w, r, "sample.mp4", time.Time{}, strings.NewReader("0123456789"))
+	}))
+	defer upstream.Close()
+	address, stop, err := Open(upstream.URL+"/sample.mp4", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer stop()
+	request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, address, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Header.Set("Range", "bytes=3-5")
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer response.Body.Close()
+	data, err := io.ReadAll(response.Body)
+	if err != nil || response.StatusCode != http.StatusPartialContent || string(data) != "345" {
+		t.Fatalf("stream: status %d, data %q, %v", response.StatusCode, data, err)
+	}
+}
 
 func TestProxyPreservesRangeAndAuthenticatesHLSResources(t *testing.T) {
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

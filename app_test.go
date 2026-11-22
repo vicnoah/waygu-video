@@ -57,6 +57,14 @@ func TestConnectLibraryAndOpenPlayer(t *testing.T) {
 	if config, _ := app.Storage().GetItem(sourcesKey); strings.Contains(config, "fixture-token") || strings.Contains(config, "fixture-password") {
 		t.Fatal("source configuration exposed credentials")
 	}
+	app.Press("role:tab Settings")
+	app.Press("id:bitrate-limit")
+	app.Press("id:bitrate-limit-1")
+	if bitrate, _ := app.Storage().GetItem(bitrateKey); bitrate != "4000000" {
+		t.Fatalf("streaming bitrate was not saved: %q", bitrate)
+	}
+	app.Press("role:tab Home")
+	app.WaitFor("id:title-test-film", time.Second)
 	app.Press("id:title-test-film")
 	app.WaitFor("text:Fixture synopsis", time.Second)
 	app.Press("id:detail-play")
@@ -112,7 +120,10 @@ func (f fixtureServer) Children(context.Context, media.Item) ([]media.Item, erro
 func (f fixtureServer) Resume(context.Context) ([]media.Item, error)               { return nil, nil }
 func (f fixtureServer) Report(context.Context, media.PlaybackState) error          { return nil }
 
-func (f fixtureServer) Playback(_ context.Context, item media.Item, _ media.PlaybackOptions) (media.Stream, error) {
+func (f fixtureServer) Playback(_ context.Context, item media.Item, options media.PlaybackOptions) (media.Stream, error) {
+	if options.MaxBitrate != 4_000_000 {
+		return media.Stream{}, media.ErrNoStream
+	}
 	return media.Stream{ItemID: item.ID, URL: "http://nas.example.test:8096/fixture.mp4", Method: media.DirectPlay,
 		Duration: 18 * time.Second}, nil
 }

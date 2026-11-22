@@ -44,6 +44,7 @@ func For(cx *core.Scope) Messages {
 // (tsx.RegisterMessages).
 var Parameters = map[string][]string{
 	"Connected":               {"name"},
+	"BitrateMegabits":         {"bitrate"},
 	"EpisodeLabel":            {"number"},
 	"SeasonLabel":             {"number"},
 	"QuickConnectInstruction": {"code"},
@@ -56,6 +57,7 @@ var Parameters = map[string][]string{
 type Translation struct {
 	Texts                   map[string]string
 	Connected               func(name string) string
+	BitrateMegabits         func(bitrate string) string
 	EpisodeLabel            func(number string) string
 	SeasonLabel             func(number string) string
 	QuickConnectInstruction func(code string) string
@@ -129,6 +131,9 @@ const (
 	textShowDanmaku
 	textDanmakuFileError
 	textPlaybackSettings
+	textStreamingQuality
+	textOriginalQuality
+	textStreamingQualityProviders
 	textPreferMPV
 	textDirectPlay
 	textDirectStream
@@ -208,6 +213,9 @@ var keyOfText = [numTexts]string{
 	"showDanmaku",
 	"danmakuFileError",
 	"playbackSettings",
+	"streamingQuality",
+	"originalQuality",
+	"streamingQualityProviders",
 	"preferMPV",
 	"directPlay",
 	"directStream",
@@ -285,6 +293,9 @@ var textsEn = i18n.NewTexts(""+
 	"Show danmaku"+
 	"The selected file does not contain readable danmaku comments."+
 	"Playback"+
+	"Streaming quality"+
+	"Original quality"+
+	"Applies to Emby, Jellyfin and Plex."+
 	"Use libmpv when available"+
 	"Direct play"+
 	"Direct stream"+
@@ -359,6 +370,9 @@ var textsEn = i18n.NewTexts(""+
 		12,
 		61,
 		8,
+		17,
+		16,
+		35,
 		25,
 		11,
 		13,
@@ -436,6 +450,9 @@ var textsZhHans = i18n.NewTexts(""+
 	"显示弹幕"+
 	"无法从所选文件读取弹幕。"+
 	"播放"+
+	"在线播放画质"+
+	"原画"+
+	"适用于 Emby、Jellyfin 和 Plex。"+
 	"优先使用 libmpv 播放器"+
 	"原画直连"+
 	"直接串流"+
@@ -510,6 +527,9 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		36,
 		6,
+		18,
+		6,
+		37,
 		29,
 		12,
 		12,
@@ -577,6 +597,9 @@ func Supply(lang string, t Translation) {
 	s := supplied[lang]
 	if t.Connected != nil {
 		s.Connected = t.Connected
+	}
+	if t.BitrateMegabits != nil {
+		s.BitrateMegabits = t.BitrateMegabits
 	}
 	if t.EpisodeLabel != nil {
 		s.EpisodeLabel = t.EpisodeLabel
@@ -1073,6 +1096,51 @@ func PlaybackSettings(cx *core.Scope) string { return For(cx).PlaybackSettings()
 
 // PlaybackSettings is the package's PlaybackSettings in the language of msgs.
 func (msgs Messages) PlaybackSettings() string { return msgs.text(textPlaybackSettings) }
+
+// StreamingQuality says "Streaming quality"
+// in the language the app shows under cx.
+func StreamingQuality(cx *core.Scope) string { return For(cx).StreamingQuality() }
+
+// StreamingQuality is the package's StreamingQuality in the language of msgs.
+func (msgs Messages) StreamingQuality() string { return msgs.text(textStreamingQuality) }
+
+// OriginalQuality says "Original quality"
+// in the language the app shows under cx.
+func OriginalQuality(cx *core.Scope) string { return For(cx).OriginalQuality() }
+
+// OriginalQuality is the package's OriginalQuality in the language of msgs.
+func (msgs Messages) OriginalQuality() string { return msgs.text(textOriginalQuality) }
+
+// BitrateMegabits says "{bitrate} Mbps"
+// in the language the app shows under cx.
+func BitrateMegabits(cx *core.Scope, bitrate string) string { return For(cx).BitrateMegabits(bitrate) }
+
+// BitrateMegabits is the package's BitrateMegabits in the language of msgs.
+func (msgs Messages) BitrateMegabits(bitrate string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.BitrateMegabits(bitrate))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].BitrateMegabits; f != nil {
+			return f(bitrate)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(bitrate) + " Mbps"
+		case "zh-Hans":
+			return bitrate + " Mbps"
+		}
+	}
+}
+
+// StreamingQualityProviders says "Applies to Emby, Jellyfin and Plex."
+// in the language the app shows under cx.
+func StreamingQualityProviders(cx *core.Scope) string { return For(cx).StreamingQualityProviders() }
+
+// StreamingQualityProviders is the package's StreamingQualityProviders in the language of msgs.
+func (msgs Messages) StreamingQualityProviders() string {
+	return msgs.text(textStreamingQualityProviders)
+}
 
 // PreferMPV says "Use libmpv when available"
 // in the language the app shows under cx.
