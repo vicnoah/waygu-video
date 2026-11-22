@@ -159,11 +159,15 @@ func Listen(ctx context.Context, ip netip.Addr, apply func(context.Context, Setu
 			http.Error(w, "Invalid setup", http.StatusBadRequest)
 			return
 		}
-		if err := apply(req.Context(), setup); err != nil {
+		peer := parseDevice(req.Header.Get(peerHeader))
+		if err := apply(withPeer(req.Context(), peer), setup); err != nil {
 			http.Error(w, "Could not apply setup", http.StatusUnprocessableEntity)
 			return
 		}
 		used.Store(true)
+		if local := deviceOn(ctx); local.ID != "" {
+			w.Header().Set(peerHeader, encodeDevice(local))
+		}
 		w.WriteHeader(http.StatusNoContent)
 	})
 	server := &http.Server{
@@ -183,15 +187,25 @@ func Listen(ctx context.Context, ip netip.Addr, apply func(context.Context, Setu
 // Send pins the connection to the exact certificate scanned on the TV.
 // A local network intermediary cannot read the setup or impersonate the TV.
 func (t Target) Send(ctx context.Context, setup Setup) error {
+	_, err := t.SendSetup(ctx, setup, Device{})
+	return err
+}
+
+// SendSetup optionally identifies the sending device and returns the receiver's
+// identity from the same certificate-pinned connection.
+func (t Target) SendSetup(ctx context.Context, setup Setup, device Device) (Device, error) {
 	body, err := json.Marshal(setup)
 	if err != nil {
-		return err
+		return Device{}, err
 	}
 	request, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://"+t.host+"/setup", bytes.NewReader(body))
 	if err != nil {
-		return err
+		return Device{}, err
 	}
 	request.Header.Set("Content-Type", "application/json")
+	if identity := encodeDevice(device); identity != "" {
+		request.Header.Set(peerHeader, identity)
+	}
 	request.Header.Set("Authorization", "Bearer "+base64.RawURLEncoding.EncodeToString(t.token[:]))
 	transport := &http.Transport{TLSClientConfig: &tls.Config{
 		MinVersion:         tls.VersionTLS13,
@@ -209,14 +223,14 @@ func (t Target) Send(ctx context.Context, setup Setup) error {
 	}}
 	response, err := client.Do(request)
 	if err != nil {
-		return err
+		return Device{}, err
 	}
 	response.Body.Close()
 	if response.StatusCode == http.StatusUnprocessableEntity {
-		return ErrRejected
+		return Device{}, ErrRejected
 	}
 	if response.StatusCode != http.StatusNoContent {
-		return ErrAddress
+		return Device{}, ErrAddress
 	}
-	return nil
+	return parseDevice(response.Header.Get(peerHeader)), nil
 }

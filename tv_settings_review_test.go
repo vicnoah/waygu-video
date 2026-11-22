@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/netip"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -145,16 +146,21 @@ func TestPhoneSendsTVSetup(t *testing.T) {
 		t.Skip("the phone-to-TV transport test uses the local test host")
 	}
 	got := make(chan tvpair.Setup, 1)
-	target, err := tvpair.Listen(t.Context(), netip.MustParseAddr("127.0.0.1"), func(_ context.Context, data tvpair.Setup) error {
+	peer := make(chan tvpair.Device, 1)
+	tv := tvpair.Device{ID: "living-room-tv", Name: "Living Room TV", Kind: "tv"}
+	target, err := tvpair.Listen(tvpair.WithDevice(t.Context(), tv), netip.MustParseAddr("127.0.0.1"), func(ctx context.Context, data tvpair.Setup) error {
+		peer <- tvpair.Peer(ctx)
 		got <- data
 		return nil
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	app := nsgotest.Start(t, Root, nsgotest.Idiom(core.IdiomPhone))
+	app := nsgotest.Start(t, Root, nsgotest.Idiom(core.IdiomPhone),
+		nsgotest.Environment(core.Environment{Locale: "en", DeviceName: "Test Phone"}))
 	app.Press("id:onboarding-later")
 	pressLibraryTestTab(app, screenSettings, "Settings")
+	app.Press("id:open-sync-accounts")
 	app.Press("id:open-phone-tv-pair")
 	app.Type("id:phone-tv-pair-address", target.Link())
 	app.Type("id:phone-tv-pair-server", "http://nas.example.test:8096")
@@ -166,5 +172,20 @@ func TestPhoneSendsTVSetup(t *testing.T) {
 	if data.Provider != "emby" || data.Address != "http://nas.example.test:8096" ||
 		data.Username != "viewer" || data.Password != "fixture-password" {
 		t.Fatal("the phone sent different setup details")
+	}
+	if sender := <-peer; sender.ID == "" || sender.Name != "Test Phone" || sender.Kind != "phone" {
+		t.Fatalf("TV received peer %+v", sender)
+	}
+	app.Press("id:back")
+	app.WaitFor("id:sync-device-living-room-tv", time.Second)
+	devices := readPairedDevices(app.Storage())
+	if len(devices) != 1 || devices[0].Device != tv {
+		t.Fatalf("device history = %+v", devices)
+	}
+	history, _ := app.Storage().GetItem(pairedDevicesKey)
+	for _, protected := range []string{"nas.example.test", "viewer", "fixture-password", target.Link()} {
+		if strings.Contains(history, protected) {
+			t.Fatal("device history contained setup details")
+		}
 	}
 }

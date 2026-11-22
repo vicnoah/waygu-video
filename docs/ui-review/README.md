@@ -15,6 +15,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Phone danmaku settings · light and dark | [Preview, matching and filter comparisons](phone-danmaku-settings.md) | Compared on GTK. Tests exercise the preview, matching, playback and local cache. Separate providers, public posting and mobile captures remain pending. |
 | Phone About and help · light and dark | [Help, diagnostics and reset comparisons](phone-about.md) | Compared on GTK. Device save behavior and the App Store rating action remain pending. |
 | Phone library and metadata · light and dark | [Library controls and metadata comparison](phone-library-metadata.md) | Compared on GTK. Scans were accepted by Emby, Jellyfin and Plex. Additional metadata providers and target-device captures remain pending. |
+| Phone Sync and accounts · light and dark | [Account, device and progress comparison](phone-sync-accounts.md) | Compared on GTK. Docker verifies isolated updates for two real servers. iCloud, store products and remote account integrations remain pending. |
 | Phone appearance · light and dark | [Layout and saved preference checks](phone-appearance.md) | Compared on GTK at phone width. The local Docker fixtures verify home and library effects. Mobile device captures remain pending. |
 | Phone parental controls · light and dark | [PIN, rating and viewing-time comparisons](phone-parental.md) | Compared on GTK with Docker fixtures and verified with a simulated playback clock. Mobile and TV device checks remain pending. |
 | Tablet home · light and dark | [Screenshots and tablet interaction checks](tablet-home.md) | The tablet layout was compared on Linux GTK with three Docker media servers. Real-device captures remain pending. |
@@ -273,6 +274,15 @@ go tool nsgo test -target linux -run '^TestPhoneLibraryMetadataReview$' -screens
 ```
 
 Use `WAYGU_REVIEW_DESIGN=settings-library.scenra` with the reference exporter. For the scan endpoints, run `WAYGU_TEST_SCAN=1 go tool nsgo test . -run '^TestDockerLibraryMetadataScans$'` against the dedicated Docker fixtures.
+
+Capture the phone Sync and accounts page with two appearances. Use the dedicated Docker fixtures to verify that the watched action follows each media source’s setting.
+
+```sh
+go tool nsgo test -target linux -run '^TestPhoneSyncAccountsReview$' -screenshots .nsgo/ui-review/sync
+WAYGU_TEST_SYNC=1 go tool nsgo test . -run '^TestDockerSyncSourceWatchedIsolation$'
+```
+
+Use `WAYGU_REVIEW_DESIGN=settings-sync.scenra` with the reference exporter.
 
 The reference uses the Scenra version pinned in this project and renders the original design files and components. Run it in its own module.
 

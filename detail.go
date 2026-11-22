@@ -157,12 +157,14 @@ func (a *application) detailLayout(cx *core.Scope, current route, idiom core.Idi
 func (a *application) detailResource(cx *core.Scope, current route) *core.Resource[detailResult] {
 	type detailQuery struct {
 		local                      pendingProgress
+		localOnly                  bool
 		rules                      parentalPolicy
 		supplement, preferExternal bool
 		language                   string
 	}
 	return core.NewResource(cx, func() (detailQuery, bool) {
 		prefs := a.libraryPrefs.Get()
+		a.sources.Get()
 		language := prefs.Language
 		if language == "" {
 			language = "en-US"
@@ -170,11 +172,11 @@ func (a *application) detailResource(cx *core.Scope, current route) *core.Resour
 				language = "zh-CN"
 			}
 		}
-		return detailQuery{local: a.localCheckpoint(current.source, current.item), rules: a.parentalRules(),
+		return detailQuery{local: a.localCheckpoint(current.source, current.item), localOnly: !a.progress.sendsFor(current.source.ID, mediaAccountKey(current.source)), rules: a.parentalRules(),
 			supplement: prefs.TMDB, preferExternal: prefs.PreferExternal, language: language}, true
 	}, func(ctx context.Context, query detailQuery, _ core.ResourceInfo) (detailResult, error) {
 		rules := query.rules
-		result := detailResult{item: current.item}
+		result := detailResult{item: current.item, canWatch: query.localOnly}
 		client, err := a.client(current.source)
 		if err != nil {
 			result.failure = err
@@ -183,6 +185,7 @@ func (a *application) detailResource(cx *core.Scope, current route) *core.Resour
 		_, result.hasVersions = client.(media.VersionClient)
 		_, result.canFavorite = client.(media.FavoriteClient)
 		_, result.canWatch = client.(media.WatchedClient)
+		result.canWatch = result.canWatch || query.localOnly
 		item, err := client.Detail(ctx, current.item)
 		if err == nil {
 			if item.LibraryID == "" {

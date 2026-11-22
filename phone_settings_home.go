@@ -79,8 +79,8 @@ func (a *application) phoneSettingsHome(cx *core.Scope) core.Node {
 			(phoneSetting{locales.SettingsLibraryMetadata(cx), "", "bg-indigo-500", lucide.Database}).link(cx, "open-library-settings", "", routeTo(screenLibrarySettings)),
 		),
 		setupGroup(locales.SettingsAccountsData(cx), "",
-			(phoneSetting{locales.SettingsSyncAccounts(cx), "", "bg-blue-500", lucide.RefreshCw}).linkValue(cx, "open-phone-tv-pair",
-				func() string { return locales.SettingsLocalOnly(cx) }, routeTo(screenTVPairPhone)),
+			(phoneSetting{locales.SettingsSyncAccounts(cx), "", "bg-blue-500", lucide.RefreshCw}).linkValue(cx, "open-sync-accounts",
+				func() string { return locales.SettingsLocalOnly(cx) }, routeTo(screenSyncAccounts)),
 			core.Dynamic(func(cx *core.Scope) core.Node {
 				if !a.downloads.available() {
 					return downloads.unavailable(cx)

@@ -77,7 +77,8 @@ func (a *application) tvSettingsOptions(cx *core.Scope, l tvLayout, section tvSe
 		return rows
 	case tvAccounts:
 		return []tvOption{{id: "tv-settings-profile", label: locales.SettingsLocalProfile(cx),
-			value: func() string { return locales.SettingsLocalOnly(cx) }}}
+			value: func() string { return locales.SettingsLocalOnly(cx) }},
+			link("open-sync-accounts", locales.SettingsSyncAccounts(cx), route{screen: screenSyncAccounts})}
 	case tvStorage:
 		if !a.downloads.available() {
 			return unavailable("tv-settings-storage-unavailable", locales.StorageDownloads(cx))

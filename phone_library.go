@@ -95,7 +95,7 @@ func (a *application) compactLibrary(cx *core.Scope) core.Node {
 		initial, ready := preview.Get()
 		loading := len(q.sources) > 0 && (!ready || initial.query != q || preview.Loading())
 		indexing := result.hasMore && full.Loading()
-		matches := filterPhoneLibrary(rows.Get(), settings)
+		matches := filterPhoneLibrary(a.localCatalogItems(rows.Get()), settings)
 		if prefs.HideFinished {
 			matches = slices.DeleteFunc(matches, func(entry catalogItem) bool {
 				return (entry.item.Kind == media.Series || entry.item.Kind == media.Episode) && catalogWatched(entry)

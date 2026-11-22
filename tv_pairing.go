@@ -35,12 +35,14 @@ func (a *application) tvPairCard(cx *core.Scope, l tvLayout) core.Node {
 	listen := tvPairListener.Use(cx)
 	cx.Effect(func() {
 		refresh.Get()
-		ctx, cancel := context.WithTimeout(cx.Context(), tvpair.Lifetime)
+		ctx, cancel := context.WithTimeout(tvpair.WithDevice(cx.Context(), a.pairingDevice(cx)), tvpair.Lifetime)
 		cx.Cleanup(cancel)
 		receive := func(call context.Context, setup tvpair.Setup) error {
 			if err := a.receiveTVSetup(call, setup); err != nil {
 				return err
 			}
+			peer := tvpair.Peer(call)
+			a.scope.Post(func() { a.rememberPairedDevice(peer) })
 			cx.Post(func() {
 				if ctx.Err() == nil {
 					state.Set(tvPairCardState{message: locales.TvPairSuccess(cx)})
@@ -184,8 +186,12 @@ func (a *application) phoneTVPair(cx *core.Scope, initial string) core.Node {
 		}
 		busy.Set(true)
 		message.Set("")
+		device := a.pairingDevice(cx)
 		go func() {
-			err := target.Send(view, setup)
+			peer, err := target.SendSetup(view, setup, device)
+			if err == nil {
+				a.scope.Post(func() { a.rememberPairedDevice(peer) })
+			}
 			cx.Post(func() {
 				busy.Set(false)
 				switch {

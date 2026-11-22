@@ -162,6 +162,7 @@ var Parameters = map[string][]string{
 	"AboutLinkFailed":                 {"address"},
 	"MetadataLibraryCount":            {"count"},
 	"MetadataRefreshEvery":            {"minutes"},
+	"SyncLastPaired":                  {"time_"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -289,6 +290,7 @@ type Translation struct {
 	AboutLinkFailed                 func(address string) string
 	MetadataLibraryCount            func(count string) string
 	MetadataRefreshEvery            func(minutes string) string
+	SyncLastPaired                  func(time_ string) string
 }
 
 var supplied = map[string]Translation{}
@@ -1082,6 +1084,23 @@ const (
 	textMetadataTMDBRemove
 	textAboutTMDBCredit
 	textAboutTMDBPrivacy
+	textSyncCloud
+	textSyncCloudHint
+	textSyncICloud
+	textSyncSettings
+	textSyncSources
+	textSyncLocalHistory
+	textSyncProgress
+	textSyncProgressHint
+	textSyncProgressPaused
+	textSyncAccountsSection
+	textSyncBangumi
+	textSyncDouban
+	textSyncRestorePurchases
+	textSyncDevices
+	textSyncThisDevice
+	textSyncCurrentDevice
+	textSyncPairedDevice
 	numTexts
 )
 
@@ -1875,6 +1894,23 @@ var keyOfText = [numTexts]string{
 	"metadataTMDBRemove",
 	"aboutTMDBCredit",
 	"aboutTMDBPrivacy",
+	"syncCloud",
+	"syncCloudHint",
+	"syncICloud",
+	"syncSettings",
+	"syncSources",
+	"syncLocalHistory",
+	"syncProgress",
+	"syncProgressHint",
+	"syncProgressPaused",
+	"syncAccountsSection",
+	"syncBangumi",
+	"syncDouban",
+	"syncRestorePurchases",
+	"syncDevices",
+	"syncThisDevice",
+	"syncCurrentDevice",
+	"syncPairedDevice",
 }
 
 // textsEn are the messages without arguments in en.
@@ -2665,7 +2701,24 @@ var textsEn = i18n.NewTexts(""+
 	"Save token"+
 	"Disconnect TMDB"+
 	"This product uses the TMDB API but is not endorsed or certified by TMDB."+
-	"If you configure TMDB, the app sends TMDB or IMDb title IDs and the selected metadata language to TMDB.",
+	"If you configure TMDB, the app sends TMDB or IMDb title IDs and the selected metadata language to TMDB."+
+	"Cloud sync"+
+	"iCloud sync is unavailable in this build. It requires Apple developer configuration, signing and a device signed in to iCloud."+
+	"iCloud sync"+
+	"Sync settings"+
+	"Sync media sources"+
+	"Sync local watch history"+
+	"Server progress updates"+
+	"Enabled sources receive viewing progress and watched marks. Turning a source off keeps new changes on this device."+
+	"Server progress updates are paused in Library and metadata settings."+
+	"Third-party accounts"+
+	"Bangumi"+
+	"Douban"+
+	"Restore purchases"+
+	"My devices"+
+	"This device"+
+	"Current device"+
+	"Paired device",
 	[]uint16{
 		11,
 		47,
@@ -3454,6 +3507,23 @@ var textsEn = i18n.NewTexts(""+
 		15,
 		72,
 		103,
+		10,
+		126,
+		11,
+		13,
+		18,
+		24,
+		23,
+		114,
+		68,
+		20,
+		7,
+		6,
+		17,
+		10,
+		11,
+		14,
+		13,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -4244,7 +4314,24 @@ var textsZhHans = i18n.NewTexts(""+
 	"保存令牌"+
 	"断开 TMDB"+
 	"本产品使用 TMDB API，未获 TMDB 背书或认证。"+
-	"配置 TMDB 后，应用会向 TMDB 发送作品的 TMDB 或 IMDb ID 和选定的元数据语言。",
+	"配置 TMDB 后，应用会向 TMDB 发送作品的 TMDB 或 IMDb ID 和选定的元数据语言。"+
+	"云同步"+
+	"此构建暂未提供 iCloud 同步。该功能需要 Apple 开发者配置、签名，以及已登录 iCloud 的设备。"+
+	"iCloud 同步"+
+	"同步设置"+
+	"同步媒体源"+
+	"同步本地播放记录"+
+	"观看进度回写"+
+	"播放进度和已观看标记会写回启用的服务器，关闭后新记录只保存在本机。"+
+	"「媒体库与元数据」中的服务器进度回写已关闭。"+
+	"第三方账号"+
+	"Bangumi 番组计划"+
+	"豆瓣"+
+	"恢复购买"+
+	"我的设备"+
+	"本机"+
+	"当前设备"+
+	"已配对设备",
 	[]uint16{
 		12,
 		45,
@@ -5033,6 +5120,23 @@ var textsZhHans = i18n.NewTexts(""+
 		11,
 		57,
 		99,
+		9,
+		122,
+		13,
+		12,
+		15,
+		24,
+		18,
+		99,
+		66,
+		15,
+		20,
+		6,
+		12,
+		12,
+		6,
+		12,
+		15,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -5445,6 +5549,9 @@ func Supply(lang string, t Translation) {
 	}
 	if t.MetadataRefreshEvery != nil {
 		s.MetadataRefreshEvery = t.MetadataRefreshEvery
+	}
+	if t.SyncLastPaired != nil {
+		s.SyncLastPaired = t.SyncLastPaired
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -13965,3 +14072,144 @@ func AboutTMDBPrivacy(cx *core.Scope) string { return For(cx).AboutTMDBPrivacy()
 
 // AboutTMDBPrivacy is the package's AboutTMDBPrivacy in the language of msgs.
 func (msgs Messages) AboutTMDBPrivacy() string { return msgs.text(textAboutTMDBPrivacy) }
+
+// SyncCloud says "Cloud sync"
+// in the language the app shows under cx.
+func SyncCloud(cx *core.Scope) string { return For(cx).SyncCloud() }
+
+// SyncCloud is the package's SyncCloud in the language of msgs.
+func (msgs Messages) SyncCloud() string { return msgs.text(textSyncCloud) }
+
+// SyncCloudHint says "iCloud sync is unavailable in this build. It requires Apple developer configuration, signing and a device signed in to iCloud."
+// in the language the app shows under cx.
+func SyncCloudHint(cx *core.Scope) string { return For(cx).SyncCloudHint() }
+
+// SyncCloudHint is the package's SyncCloudHint in the language of msgs.
+func (msgs Messages) SyncCloudHint() string { return msgs.text(textSyncCloudHint) }
+
+// SyncICloud says "iCloud sync"
+// in the language the app shows under cx.
+func SyncICloud(cx *core.Scope) string { return For(cx).SyncICloud() }
+
+// SyncICloud is the package's SyncICloud in the language of msgs.
+func (msgs Messages) SyncICloud() string { return msgs.text(textSyncICloud) }
+
+// SyncSettings says "Sync settings"
+// in the language the app shows under cx.
+func SyncSettings(cx *core.Scope) string { return For(cx).SyncSettings() }
+
+// SyncSettings is the package's SyncSettings in the language of msgs.
+func (msgs Messages) SyncSettings() string { return msgs.text(textSyncSettings) }
+
+// SyncSources says "Sync media sources"
+// in the language the app shows under cx.
+func SyncSources(cx *core.Scope) string { return For(cx).SyncSources() }
+
+// SyncSources is the package's SyncSources in the language of msgs.
+func (msgs Messages) SyncSources() string { return msgs.text(textSyncSources) }
+
+// SyncLocalHistory says "Sync local watch history"
+// in the language the app shows under cx.
+func SyncLocalHistory(cx *core.Scope) string { return For(cx).SyncLocalHistory() }
+
+// SyncLocalHistory is the package's SyncLocalHistory in the language of msgs.
+func (msgs Messages) SyncLocalHistory() string { return msgs.text(textSyncLocalHistory) }
+
+// SyncProgress says "Server progress updates"
+// in the language the app shows under cx.
+func SyncProgress(cx *core.Scope) string { return For(cx).SyncProgress() }
+
+// SyncProgress is the package's SyncProgress in the language of msgs.
+func (msgs Messages) SyncProgress() string { return msgs.text(textSyncProgress) }
+
+// SyncProgressHint says "Enabled sources receive viewing progress and watched marks. Turning a source off keeps new changes on this device."
+// in the language the app shows under cx.
+func SyncProgressHint(cx *core.Scope) string { return For(cx).SyncProgressHint() }
+
+// SyncProgressHint is the package's SyncProgressHint in the language of msgs.
+func (msgs Messages) SyncProgressHint() string { return msgs.text(textSyncProgressHint) }
+
+// SyncProgressPaused says "Server progress updates are paused in Library and metadata settings."
+// in the language the app shows under cx.
+func SyncProgressPaused(cx *core.Scope) string { return For(cx).SyncProgressPaused() }
+
+// SyncProgressPaused is the package's SyncProgressPaused in the language of msgs.
+func (msgs Messages) SyncProgressPaused() string { return msgs.text(textSyncProgressPaused) }
+
+// SyncAccountsSection says "Third-party accounts"
+// in the language the app shows under cx.
+func SyncAccountsSection(cx *core.Scope) string { return For(cx).SyncAccountsSection() }
+
+// SyncAccountsSection is the package's SyncAccountsSection in the language of msgs.
+func (msgs Messages) SyncAccountsSection() string { return msgs.text(textSyncAccountsSection) }
+
+// SyncBangumi says "Bangumi"
+// in the language the app shows under cx.
+func SyncBangumi(cx *core.Scope) string { return For(cx).SyncBangumi() }
+
+// SyncBangumi is the package's SyncBangumi in the language of msgs.
+func (msgs Messages) SyncBangumi() string { return msgs.text(textSyncBangumi) }
+
+// SyncDouban says "Douban"
+// in the language the app shows under cx.
+func SyncDouban(cx *core.Scope) string { return For(cx).SyncDouban() }
+
+// SyncDouban is the package's SyncDouban in the language of msgs.
+func (msgs Messages) SyncDouban() string { return msgs.text(textSyncDouban) }
+
+// SyncRestorePurchases says "Restore purchases"
+// in the language the app shows under cx.
+func SyncRestorePurchases(cx *core.Scope) string { return For(cx).SyncRestorePurchases() }
+
+// SyncRestorePurchases is the package's SyncRestorePurchases in the language of msgs.
+func (msgs Messages) SyncRestorePurchases() string { return msgs.text(textSyncRestorePurchases) }
+
+// SyncDevices says "My devices"
+// in the language the app shows under cx.
+func SyncDevices(cx *core.Scope) string { return For(cx).SyncDevices() }
+
+// SyncDevices is the package's SyncDevices in the language of msgs.
+func (msgs Messages) SyncDevices() string { return msgs.text(textSyncDevices) }
+
+// SyncThisDevice says "This device"
+// in the language the app shows under cx.
+func SyncThisDevice(cx *core.Scope) string { return For(cx).SyncThisDevice() }
+
+// SyncThisDevice is the package's SyncThisDevice in the language of msgs.
+func (msgs Messages) SyncThisDevice() string { return msgs.text(textSyncThisDevice) }
+
+// SyncCurrentDevice says "Current device"
+// in the language the app shows under cx.
+func SyncCurrentDevice(cx *core.Scope) string { return For(cx).SyncCurrentDevice() }
+
+// SyncCurrentDevice is the package's SyncCurrentDevice in the language of msgs.
+func (msgs Messages) SyncCurrentDevice() string { return msgs.text(textSyncCurrentDevice) }
+
+// SyncPairedDevice says "Paired device"
+// in the language the app shows under cx.
+func SyncPairedDevice(cx *core.Scope) string { return For(cx).SyncPairedDevice() }
+
+// SyncPairedDevice is the package's SyncPairedDevice in the language of msgs.
+func (msgs Messages) SyncPairedDevice() string { return msgs.text(textSyncPairedDevice) }
+
+// SyncLastPaired says "Last paired {time}"
+// in the language the app shows under cx.
+func SyncLastPaired(cx *core.Scope, time_ string) string { return For(cx).SyncLastPaired(time_) }
+
+// SyncLastPaired is the package's SyncLastPaired in the language of msgs.
+func (msgs Messages) SyncLastPaired(time_ string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SyncLastPaired(time_))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SyncLastPaired; f != nil {
+			return f(time_)
+		}
+		switch lang {
+		case "", "en":
+			return "Last paired " + msgs.arg(time_)
+		case "zh-Hans":
+			return "上次配对 " + time_
+		}
+	}
+}

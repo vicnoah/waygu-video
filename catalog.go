@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"maps"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -313,6 +314,16 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 			result = catalogResult{}
 		}
 		result.items = addLibraryDownloads(result.items, local)
+		if page == screenHistory {
+			sources := a.sources.Get()
+			request := catalogRequest{sources: sources, parental: a.parentalRules(), filter: a.sourceFilter.Get(), library: library.Get(), category: category.Get()}
+			result.items = slices.Clone(request.parental.catalog(a.progressResumeShelf(result.items, sources, request)))
+			result.items = slices.DeleteFunc(result.items, func(entry catalogItem) bool {
+				pending := a.localCheckpoint(entry.source, entry.item)
+				return pending.Watched != nil && !*pending.Watched && entry.item.Position == 0
+			})
+			sortRecent(result.items)
+		}
 		var children []core.Node
 		if result.failure != nil {
 			children = append(children, notice(errorText(cx, result.failure)), ui.Button{Text: locales.Retry(cx),

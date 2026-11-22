@@ -43,6 +43,7 @@ const (
 	screenPlayer             screen = "player"
 	screenTVSettings         screen = "tv-settings"
 	screenTVPairPhone        screen = "tv-pair-phone"
+	screenSyncAccounts       screen = "settings-sync"
 	screenDownloads          screen = "downloads"
 	screenParentalSettings   screen = "settings-parental"
 	screenAboutSettings      screen = "settings-about"
@@ -76,6 +77,7 @@ type source struct {
 	ServerID          string
 	AccountID         string
 	Username          string
+	ProgressDisabled  bool   `json:",omitempty"`
 	PlexLinked        bool   `json:",omitempty"`
 	CredentialKey     string `json:",omitempty"`
 	Libraries         []sourceLibrary
@@ -128,6 +130,7 @@ type application struct {
 	sourceTimeout       *core.Signal[int]
 	libraryPrefs        *core.Signal[libraryPreferences]
 	metadata            *metadata.Cache
+	pairedDevices       *core.Signal[[]pairedDevice]
 	mergeTitles         *core.Signal[bool]
 	mpvPreferred        *core.Signal[bool]
 	appearance          *core.Signal[string]
@@ -228,6 +231,8 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 	a.applyAppearance(cx)
 	a.progress = core.Untracked(cx, func() *progressOutbox { return newProgressOutbox(cx, storage) })
 	a.startLibraryPreferences(cx)
+	a.progress.setSources(sources)
+	a.pairedDevices = core.NewSignalFunc(cx, core.Untracked(cx, func() []pairedDevice { return readPairedDevices(storage) }), nil)
 	a.playbackPrefs = core.NewSignal(cx, core.Untracked(cx, func() playbackPreferences { return readPlaybackPreferences(storage) }))
 	a.subtitlePrefs = core.NewSignalFunc(cx, core.Untracked(cx, func() subtitlePreferences { return readSubtitlePreferences(storage) }), nil)
 	a.sourceChecks = core.NewSignalFunc(cx, map[string]sourceCheck{}, nil)
@@ -277,6 +282,8 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 				return a.parentalMediaRoute(screenScope, current, a.detail)
 			case screenPlayer:
 				return a.parentalMediaRoute(screenScope, current, a.player)
+			case screenSyncAccounts:
+				return a.parentalSourceRoute(screenScope, current, a.phoneSyncAccounts)
 			case screenTVPairPhone:
 				return a.parentalSourceRoute(screenScope, current, func(cx *core.Scope) core.Node { return a.phoneTVPair(cx, current.pairLink) })
 			case screenTVSettings:
@@ -311,7 +318,7 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 func (a *application) push(next route) {
 	stack := a.routes.GetUntracked()
 	switch next.screen {
-	case screenSources, screenConnect, screenPlexLink, screenSourceSettings, screenManageLibraries, screenTVPairPhone, screenLibrarySettings:
+	case screenSources, screenConnect, screenPlexLink, screenSourceSettings, screenManageLibraries, screenTVPairPhone, screenLibrarySettings, screenSyncAccounts:
 		next.sourceAdmin = stack[len(stack)-1].sourceAdmin
 	}
 	a.routes.Set(append(slices.Clone(stack), next))
@@ -341,6 +348,7 @@ func (a *application) saveSources(sources []source) error {
 	if err := a.storage.SetItem(sourcesKey, string(data)); err != nil {
 		return err
 	}
+	a.progress.setSources(sources)
 	a.sources.Set(sources)
 	a.scheduleProgressReplay(time.Second)
 	return nil

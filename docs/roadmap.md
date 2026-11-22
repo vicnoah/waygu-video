@@ -28,7 +28,8 @@ The Scenra files in `design/` define the product. The current app connects to Em
 - Appearance saves theme, accent, poster layout and home module visibility and order. The phone comparisons cover both themes and record pending launcher icons, third-party ratings and physical devices. [Phone comparison](ui-review/phone-appearance.md)
 - Parental controls save device-local rating, library, source and viewing-time rules. The PIN protects changes and time extensions. Capture the shared form on real mobile and TV devices and expand regional rating coverage. [Phone comparison](ui-review/phone-parental.md)
 - About and help includes release lookup, local license notices, bounded network diagnostics, and a player metrics overlay. It offers a confirmed preferences reset with media and protected controls retained. [Phone comparison](ui-review/phone-about.md)
-- Complete casting, the remaining settings and iCloud sync. Complete the phone, tablet, desktop and TV views from `design/`.
+- Sync and accounts keeps per-source progress settings, DandanPlay credentials and the list of successfully paired devices. New playback progress and watched changes remain local for sources whose writeback is off. [Phone comparison](ui-review/phone-sync-accounts.md)
+- Complete casting, iCloud and third-party account sync, and the remaining interactions and device checks for `design/`.
 
 ## Platform verification
 

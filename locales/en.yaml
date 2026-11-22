@@ -907,3 +907,21 @@ metadataTMDBSave: Save token
 metadataTMDBRemove: Disconnect TMDB
 aboutTMDBCredit: This product uses the TMDB API but is not endorsed or certified by TMDB.
 aboutTMDBPrivacy: If you configure TMDB, the app sends TMDB or IMDb title IDs and the selected metadata language to TMDB.
+syncCloud: Cloud sync
+syncCloudHint: iCloud sync is unavailable in this build. It requires Apple developer configuration, signing and a device signed in to iCloud.
+syncICloud: iCloud sync
+syncSettings: Sync settings
+syncSources: Sync media sources
+syncLocalHistory: Sync local watch history
+syncProgress: Server progress updates
+syncProgressHint: Enabled sources receive viewing progress and watched marks. Turning a source off keeps new changes on this device.
+syncProgressPaused: Server progress updates are paused in Library and metadata settings.
+syncAccountsSection: Third-party accounts
+syncBangumi: Bangumi
+syncDouban: Douban
+syncRestorePurchases: Restore purchases
+syncDevices: My devices
+syncThisDevice: This device
+syncCurrentDevice: Current device
+syncPairedDevice: Paired device
+syncLastPaired: "Last paired {time}"

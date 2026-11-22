@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"sync"
@@ -23,7 +24,9 @@ const progressKeyPrefix = "pending-playback-v1:"
 type pendingProgress struct {
 	Account   string
 	Revision  string
-	LocalOnly bool `json:",omitempty"`
+	SourceID  string `json:",omitempty"`
+	LocalOnly bool   `json:",omitempty"`
+	Watched   *bool  `json:",omitempty"`
 	Item      media.Item
 	Update    media.OfflineProgress
 }
@@ -43,6 +46,37 @@ type progressOutbox struct {
 	// Live reports and offline recovery never write to a server concurrently.
 	transport   sync.Mutex
 	allowServer atomic.Bool
+	sources     atomic.Pointer[map[string]progressDestination]
+}
+
+type progressDestination struct {
+	account  string
+	disabled bool
+}
+
+func (p *progressOutbox) setSources(available []source) {
+	destinations := make(map[string]progressDestination, len(available))
+	for _, entry := range available {
+		destinations[entry.ID] = progressDestination{mediaAccountKey(entry), entry.ProgressDisabled}
+	}
+	if previous := p.sources.Load(); previous != nil && maps.Equal(*previous, destinations) {
+		return
+	}
+	p.sources.Store(&destinations)
+	if p.replay != nil {
+		p.replay()
+	}
+}
+
+func (p *progressOutbox) sendsFor(sourceID, account string) bool {
+	if !p.allowServer.Load() {
+		return false
+	}
+	if destinations := p.sources.Load(); destinations != nil {
+		destination, present := (*destinations)[sourceID]
+		return present && !destination.disabled && destination.account == account
+	}
+	return true
 }
 
 func newProgressOutbox(cx *core.Scope, storage core.Storage) *progressOutbox {
@@ -95,10 +129,39 @@ func applyProgressCheckpoint(item media.Item, entry pendingProgress) media.Item 
 	if entry.Update.Duration > 0 {
 		item.Duration = entry.Update.Duration
 	}
+	if entry.Watched != nil {
+		item.Watched = *entry.Watched
+	}
 	if entry.Update.Completed {
 		item.Position, item.Watched = 0, true
 	}
 	return item
+}
+
+func (a *application) localCatalogItems(entries []catalogItem) []catalogItem {
+	a.progress.changed.Get()
+	if len(a.progress.entries) == 0 {
+		return entries
+	}
+	entries = slices.Clone(entries)
+	for i := range entries {
+		entry := &entries[i]
+		if local := a.localCheckpoint(entry.source, entry.item); local.Revision != "" {
+			entry.item = applyProgressCheckpoint(entry.item, local)
+		}
+		if entry.match != nil {
+			match := *entry.match
+			match.copies = slices.Clone(match.copies)
+			for j := range match.copies {
+				copy := &match.copies[j]
+				if local := a.localCheckpoint(copy.source, copy.item); local.Revision != "" {
+					copy.item = applyProgressCheckpoint(copy.item, local)
+				}
+			}
+			entry.match = &match
+		}
+	}
+	return entries
 }
 
 func (a *application) progressResumeShelf(remote []catalogItem, sources []source, q catalogRequest) []catalogItem {
@@ -195,53 +258,73 @@ func (a *application) replayProgress() {
 		return
 	}
 	sources := a.sources.GetUntracked()
-	var pending []pendingProgress
+	type replayRequest struct {
+		entry  pendingProgress
+		source source
+	}
+	var pending []replayRequest
+	instances := make(map[string]source, len(sources))
 	accounts := make(map[string]source, len(sources))
-	for _, source := range sources {
-		accounts[mediaAccountKey(source)] = source
+	restrictedAccounts := make(map[string]bool)
+	for _, entry := range sources {
+		instances[entry.ID] = entry
+		account := mediaAccountKey(entry)
+		if !p.sendsFor(entry.ID, account) {
+			restrictedAccounts[account] = true
+			continue
+		}
+		accounts[account] = entry
 	}
 	for _, entry := range p.entries {
-		if _, found := accounts[entry.Account]; found && !entry.LocalOnly {
-			pending = append(pending, entry)
+		if entry.LocalOnly {
+			continue
+		}
+		if entry.SourceID != "" {
+			if origin, found := instances[entry.SourceID]; found && p.sendsFor(origin.ID, entry.Account) {
+				pending = append(pending, replayRequest{entry, origin})
+			}
+		} else if origin, found := accounts[entry.Account]; found && !restrictedAccounts[entry.Account] {
+			pending = append(pending, replayRequest{entry, origin})
 		}
 	}
 	if len(pending) == 0 {
 		return
 	}
-	slices.SortStableFunc(pending, func(a, b pendingProgress) int { return a.Update.At.Compare(b.Update.At) })
+	slices.SortStableFunc(pending, func(a, b replayRequest) int { return a.entry.Update.At.Compare(b.entry.Update.At) })
 	ctx, cancel := context.WithCancel(a.scope.Context())
 	p.replay = cancel
 	go func() {
 		defer cancel()
 		var synced []pendingProgress
 		clients := make(map[string]media.OfflineProgressClient)
-		for _, entry := range pending {
+		for _, request := range pending {
+			entry, origin := request.entry, request.source
 			if ctx.Err() != nil {
 				break
 			}
-			client, known := clients[entry.Account]
+			client, known := clients[origin.ID]
 			if !known {
-				current, _ := a.client(accounts[entry.Account])
+				current, _ := a.client(origin)
 				client, _ = current.(media.OfflineProgressClient)
-				clients[entry.Account] = client
+				clients[origin.ID] = client
 			}
 			if client == nil {
 				continue
 			}
 			p.transport.Lock()
-			if ctx.Err() != nil || !p.allowServer.Load() {
+			if ctx.Err() != nil || !p.sendsFor(origin.ID, entry.Account) {
 				p.transport.Unlock()
-				break
+				continue
 			}
-			request, stop := context.WithTimeout(ctx, 10*time.Second)
-			err := client.SyncOfflineProgress(request, entry.Update)
+			deadline, stop := context.WithTimeout(ctx, 10*time.Second)
+			err := client.SyncOfflineProgress(deadline, entry.Update)
 			stop()
 			p.transport.Unlock()
 			if err == nil || errors.Is(err, media.ErrProgressTargetGone) {
 				synced = append(synced, entry)
 			} else if !errors.Is(err, context.Canceled) {
 				// Try the other accounts even when this server is unavailable.
-				clients[entry.Account] = nil
+				clients[origin.ID] = nil
 			}
 		}
 		a.scope.Post(func() {
@@ -261,6 +344,7 @@ func (a *application) replayProgress() {
 type progressWatch struct {
 	a            *application
 	account      string
+	sourceID     string
 	item         media.Item
 	position     time.Duration
 	watched      bool
@@ -289,24 +373,29 @@ func (a *application) pauseProgressReplay() (resume func()) {
 func (a *application) beginProgressWatch(current route, initial playerMedia) *progressWatch {
 	resume := a.pauseProgressReplay()
 	_, supported := initial.client.(media.OfflineProgressClient)
-	watch := &progressWatch{a: a, account: mediaAccountKey(current.source), item: current.item, position: initial.stream.Position,
+	watch := &progressWatch{a: a, account: mediaAccountKey(current.source), sourceID: current.source.ID, item: current.item, position: initial.stream.Position,
 		watched: current.item.Watched, enabled: supported, resumeReplay: resume}
 	a.progress.live[watch] = struct{}{}
 	return watch
 }
 
 func (watch *progressWatch) capture(state media.PlaybackState) pendingProgress {
-	local := !watch.a.progress.allowServer.Load()
+	local := !watch.a.progress.sendsFor(watch.sourceID, watch.account)
 	if (!watch.enabled && !local) || state.Event == media.Started || state.Stream.ItemID == "" {
 		return pendingProgress{}
 	}
 	item := offlineItem(watch.item)
 	item.ID = state.Stream.ItemID
-	entry := pendingProgress{Account: watch.account, Revision: rand.Text(), Item: item, LocalOnly: local, Update: media.OfflineProgress{
+	entry := pendingProgress{Account: watch.account, SourceID: watch.sourceID, Revision: rand.Text(), Item: item, LocalOnly: local, Update: media.OfflineProgress{
 		ItemID: state.Stream.ItemID, MediaID: state.Stream.SourceID, Position: state.Position,
 		Duration: state.Stream.Duration, At: time.Now().UTC(), Previous: watch.position, PreviousWatched: watch.watched,
 		Completed: state.Stream.Duration > 0 && state.Position >= state.Stream.Duration,
 	}}
+	if local && !entry.Update.Completed {
+		if previous := watch.a.progress.entries[entry.key()]; previous.LocalOnly && previous.Watched != nil {
+			entry.Watched = previous.Watched
+		}
+	}
 	watch.last = entry
 	watch.a.savePendingProgress(entry)
 	return entry

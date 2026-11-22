@@ -45,6 +45,7 @@ REVIEWS = {
     "settings-parental.scenra": "phone-parental.md",
     "settings-appearance.scenra": "phone-appearance.md",
     "settings-library.scenra": "phone-library-metadata.md",
+    "settings-sync.scenra": "phone-sync-accounts.md",
     "settings-about.scenra": "phone-about.md",
     "settings-danmaku.scenra": "phone-danmaku-settings.md",
     "settings-subtitles.scenra": "phone-player-settings.md",

@@ -97,7 +97,7 @@ func (a *application) desktopLibrary(cx *core.Scope, category func() libraryCate
 	preview, full := a.libraryPages(cx, request.Get)
 	page := currentLibraryPage(cx, request.Get, preview, full)
 	items := core.NewMemoFunc(cx, func() []catalogItem {
-		items := addLibraryDownloads(page.Get().items, a.libraryDownloads(*request.Get()))
+		items := a.localCatalogItems(addLibraryDownloads(page.Get().items, a.libraryDownloads(*request.Get())))
 		if a.appearancePrefs.Get().HideFinished {
 			items = slices.DeleteFunc(slices.Clone(items), func(entry catalogItem) bool {
 				return (entry.item.Kind == media.Series || entry.item.Kind == media.Episode) && catalogWatched(entry)

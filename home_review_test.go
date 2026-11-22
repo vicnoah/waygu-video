@@ -75,6 +75,14 @@ func TestDockerHomeReview(t *testing.T) {
 	}
 }
 
+func waitForHomeCatalogTitle(app *nsgotest.App, title string) {
+	app.WaitUntil(10*time.Second, func() bool { return app.Exists(title) || app.Exists("id:home-retry") })
+	if !app.Exists(title) {
+		app.Press("id:home-retry")
+		app.WaitFor(title, 10*time.Second)
+	}
+}
+
 func homeReviewSources(t *testing.T) (map[string]string, map[string]string) {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)

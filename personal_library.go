@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"time"
 
 	"github.com/nsgo-dev/nsgo/base"
@@ -77,18 +78,27 @@ func (a *application) detailPersonal(cx *core.Scope, current route, loaded *core
 				}
 			}
 		}
+		account := previous.Account
 		previous = p.entries[previous.key()]
 		go func() {
 			p.transport.Lock()
 			ctx, cancel := context.WithTimeout(a.lifetime, 15*time.Second)
-			client, err := a.client(current.source)
-			if err == nil && watch {
+			local := watch && !p.sendsFor(current.source.ID, account)
+			var client media.Client
+			var err error
+			if !local {
+				client, err = a.client(current.source)
+			}
+			if !local && watch && !p.sendsFor(current.source.ID, account) {
+				local, err = true, nil
+			}
+			if !local && err == nil && watch {
 				if watcher, ok := client.(media.WatchedClient); ok {
 					err = watcher.SetWatched(ctx, result.item, !result.item.Watched)
 				} else {
 					err = media.ErrProvider
 				}
-			} else if err == nil {
+			} else if !local && err == nil {
 				if favorites, ok := client.(media.FavoriteClient); ok {
 					err = favorites.SetFavorite(ctx, result.item, !result.item.Favorite)
 				} else {
@@ -107,7 +117,13 @@ func (a *application) detailPersonal(cx *core.Scope, current route, loaded *core
 			a.scope.Post(func() {
 				defer pause()
 				if err == nil {
-					if watch {
+					if local {
+						watched := !result.item.Watched
+						item := offlineItem(result.item)
+						a.savePendingProgress(pendingProgress{Account: account, SourceID: current.source.ID,
+							Revision: rand.Text(), Item: item, LocalOnly: true, Watched: &watched,
+							Update: media.OfflineProgress{ItemID: item.ID, Duration: item.Duration, At: time.Now().UTC(), Completed: watched}})
+					} else if watch {
 						a.dropPendingProgress(previous)
 					}
 					a.libraryChanges.Update(func(count uint64) uint64 { return count + 1 })

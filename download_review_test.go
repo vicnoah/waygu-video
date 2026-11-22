@@ -90,7 +90,7 @@ func TestDockerOfflineDownloadReview(t *testing.T) {
 			}
 
 			app := start(t, state, "")
-			app.WaitFor("id:title-"+movie.ID, 10*time.Second)
+			waitForHomeCatalogTitle(app, "id:title-"+movie.ID)
 			app.Press("id:title-" + movie.ID)
 			app.WaitFor("id:detail-download", 5*time.Second)
 			app.Press("id:detail-download")

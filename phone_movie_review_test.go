@@ -74,11 +74,7 @@ func TestDockerPhoneMovieReview(t *testing.T) {
 			app.Press("id:home-source-filter")
 			app.Press("role:option Emby 影视库")
 			card := "id:title-emby-" + movie.ID
-			app.WaitUntil(10*time.Second, func() bool { return app.Exists(card) || app.Exists("id:home-retry") })
-			if !app.Exists(card) {
-				app.Press("id:home-retry")
-				app.WaitFor(card, 10*time.Second)
-			}
+			waitForHomeCatalogTitle(app, card)
 			app.Press(card)
 			app.WaitFor("id:phone-movie-hero", 5*time.Second)
 			app.WaitFor("id:detail-download", 5*time.Second)

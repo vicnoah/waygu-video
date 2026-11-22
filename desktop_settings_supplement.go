@@ -29,8 +29,9 @@ func (a *application) desktopSettingsSupplement(cx *core.Scope, link desktopSett
 				func() { a.openDesktopSettingsFlow(route{screen: screenLibrarySettings}) })),
 		)
 	case "sync":
-		content = desktopFormGroup(locales.MediaSources(cx), desktopFormRow(locales.DesktopSourceSyncProgress(cx), desktopSettingsAction(cx,
-			"desktop-sync-sources", locales.MediaSources(cx), setupAccent, func() { a.desktopSettingsTab.Set(desktopSettingsSources) })))
+		content = desktopFormGroup(locales.SettingsSyncAccounts(cx), desktopFormRow(locales.SettingsSyncAccounts(cx),
+			desktopSettingsAction(cx, "open-sync-accounts", locales.SettingsEdit(cx), setupAccent,
+				func() { a.openDesktopSettingsFlow(route{screen: screenSyncAccounts}) })))
 	case "storage":
 		content = desktopFormGroup(locales.StorageDownloads(cx), desktopFormRow(locales.StorageDownloads(cx), desktopSettingsAction(cx,
 			"desktop-settings-downloads", locales.SettingsEdit(cx), setupAccent, func() { a.openDesktopSettingsFlow(route{screen: screenDownloads}) })))

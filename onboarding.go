@@ -299,6 +299,7 @@ func (a *application) saveCandidateSource(lifetime context.Context, candidate ca
 			form.LibrariesSyncedAt = time.Now().Unix()
 			sources := slices.Clone(a.sources.GetUntracked())
 			if index := slices.IndexFunc(sources, func(entry source) bool { return entry.ID == form.ID }); index >= 0 {
+				form.ProgressDisabled = sources[index].ProgressDisabled
 				sources[index] = form
 			} else {
 				sources = append(sources, form)

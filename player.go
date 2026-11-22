@@ -533,7 +533,7 @@ func playbackReports(client media.Client, watch *progressWatch) (func(media.Play
 				continue
 			}
 			watch.a.progress.transport.Lock()
-			if watch.superseded || update.entry.LocalOnly || !watch.a.progress.allowServer.Load() {
+			if watch.superseded || update.entry.LocalOnly || !watch.a.progress.sendsFor(watch.sourceID, watch.account) {
 				watch.a.progress.transport.Unlock()
 				continue
 			}
@@ -552,7 +552,7 @@ func playbackReports(client media.Client, watch *progressWatch) (func(media.Play
 	}()
 	return func(value media.PlaybackState) {
 			update := reportUpdate{state: value, entry: watch.capture(value)}
-			if !watch.a.progress.allowServer.Load() {
+			if !watch.a.progress.sendsFor(watch.sourceID, watch.account) {
 				return
 			}
 			mu.Lock()
@@ -568,7 +568,7 @@ func playbackReports(client media.Client, watch *progressWatch) (func(media.Play
 			mu.Lock()
 			if final != nil {
 				entry := watch.capture(*final)
-				if watch.a.progress.allowServer.Load() {
+				if watch.a.progress.sendsFor(watch.sourceID, watch.account) {
 					updates = append(updates, reportUpdate{state: *final, entry: entry})
 				}
 			}

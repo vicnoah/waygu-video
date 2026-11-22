@@ -44,8 +44,8 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [存储与下载 · 深色](../../design/settings-storage.scenra#L87) | dark | `phone · auto × 1380` | — | [Compared](storage-downloads.md) |
 | [设置/字幕](../../design/settings-subtitles.scenra#L1) | light | `phone · auto × 1780` | — | [Compared](phone-player-settings.md) |
 | [字幕 · 深色](../../design/settings-subtitles.scenra#L77) | dark | `phone · auto × 1780` | — | [Compared](phone-player-settings.md) |
-| [设置/同步与账户](../../design/settings-sync.scenra#L1) | light | `phone · auto × 1560` | — | Pending |
-| [同步与账户 · 深色](../../design/settings-sync.scenra#L101) | dark | `phone · auto × 1560` | — | Pending |
+| [设置/同步与账户](../../design/settings-sync.scenra#L1) | light | `phone · auto × 1560` | — | [Compared](phone-sync-accounts.md) |
+| [同步与账户 · 深色](../../design/settings-sync.scenra#L101) | dark | `phone · auto × 1560` | — | [Compared](phone-sync-accounts.md) |
 | [设置/设置](../../design/settings.scenra#L1) | light | `phone · auto × 1160` | — | [Compared](phone-source-settings.md) |
 | [设置 · 深色](../../design/settings.scenra#L57) | dark | `phone · auto × 1160` | — | [Compared](phone-source-settings.md) |
 | [引导/连接服务器](../../design/source-login.scenra#L1) | light | `phone · auto × 1240` | emby, fnos, jellyfin | [Compared](source-login.md) |
