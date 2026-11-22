@@ -71,12 +71,13 @@ playerTracks: 字幕与音轨
 subtitles: 字幕
 subtitlesOff: 关闭字幕
 openSubtitleFile: 打开字幕文件
-subtitleLoadError: 无法加载字幕文件。
+subtitleLoadError: 无法切换字幕。
 subtitleDelay: "字幕延迟 {seconds} 秒"
 subtitleEarlier: 提前显示字幕
 subtitleLater: 延后显示字幕
 forcedSubtitle: 强制字幕
 externalSubtitle: 外挂
+embeddedSubtitle: 内嵌
 audioTracks: 音轨
 noAudioTracks: 此媒体源未提供可切换的音轨。
 audioSwitchError: 无法切换音轨。

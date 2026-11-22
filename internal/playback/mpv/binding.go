@@ -23,6 +23,8 @@ type api struct {
 	setOptionString   func(uintptr, string, string) int32
 	setPropertyString func(uintptr, string, string) int32
 	getProperty       func(uintptr, string, int32, unsafe.Pointer) int32
+	getPropertyString func(uintptr, string) *byte
+	free              func(unsafe.Pointer)
 	command           func(uintptr, **byte) int32
 	waitEvent         func(uintptr, float64) *event
 	createRender      func(*uintptr, uintptr, *renderParam) int32
@@ -74,6 +76,7 @@ func bind() (*api, error) {
 		{"mpv_create", &a.create}, {"mpv_initialize", &a.initialize}, {"mpv_terminate_destroy", &a.destroy},
 		{"mpv_set_option_string", &a.setOptionString}, {"mpv_set_property_string", &a.setPropertyString},
 		{"mpv_get_property", &a.getProperty}, {"mpv_command", &a.command}, {"mpv_wait_event", &a.waitEvent},
+		{"mpv_get_property_string", &a.getPropertyString}, {"mpv_free", &a.free},
 		{"mpv_render_context_create", &a.createRender}, {"mpv_render_context_free", &a.freeRender},
 		{"mpv_render_context_update", &a.updateRender}, {"mpv_render_context_render", &a.render},
 	} {
@@ -107,7 +110,8 @@ func open() (*Player, error) {
 	}
 	p := &Player{backend: backend{api: a, movie: ctx}}
 	for _, option := range [][2]string{{"config", "no"}, {"load-scripts", "no"}, {"terminal", "no"},
-		{"vo", "libmpv"}, {"hwdec", "no"}, {"idle", "yes"}, {"keep-open", "yes"}} {
+		{"vo", "libmpv"}, {"hwdec", "no"}, {"idle", "yes"}, {"keep-open", "yes"},
+		{"sid", "no"}, {"sub-auto", "no"}} {
 		if err := check(a.setOptionString(ctx, option[0], option[1]), option[0]); err != nil {
 			p.Close()
 			return nil, err
@@ -195,6 +199,41 @@ func (p *backend) flagProperty(name string) bool {
 	var value int32
 	_ = p.api.getProperty(p.movie, name, formatFlag, unsafe.Pointer(&value))
 	return value != 0
+}
+
+func (p *backend) stringProperty(name string) string {
+	first := p.api.getPropertyString(p.movie, name)
+	if first == nil {
+		return ""
+	}
+	defer p.api.free(unsafe.Pointer(first))
+	n := 0
+	for *(*byte)(unsafe.Add(unsafe.Pointer(first), n)) != 0 {
+		n++
+	}
+	return string(unsafe.Slice(first, n))
+}
+
+func (p *backend) tracks() []Track {
+	var tracks []Track
+	for i := range p.intProperty("track-list/count") {
+		base := "track-list/" + strconv.FormatInt(i, 10) + "/"
+		kind := TrackKind(p.stringProperty(base + "type"))
+		if kind != AudioTrack && kind != SubtitleTrack {
+			continue
+		}
+		id := p.intProperty(base + "id")
+		if id <= 0 {
+			continue
+		}
+		tracks = append(tracks, Track{
+			ID: id, Kind: kind, Codec: p.stringProperty(base + "codec"),
+			Title: p.stringProperty(base + "title"), Language: p.stringProperty(base + "lang"),
+			Selected: p.flagProperty(base + "selected"), Forced: p.flagProperty(base + "forced"),
+			External: p.flagProperty(base + "external"),
+		})
+	}
+	return tracks
 }
 
 func (p *backend) timeProperty(name string) time.Duration {

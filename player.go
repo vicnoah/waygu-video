@@ -100,9 +100,8 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	buffering := core.NewSignal(cx, false)
 	switchingAudio := core.NewSignal(cx, false)
 	audioError := core.NewSignal(cx, false)
-	usingMPV := core.NewSignal(cx, false)
+	desktop := core.NewSignal[*desktopVideo](cx, nil)
 	var danmakuTrack *danmaku.Track
-	var setMPVDanmaku func(*danmaku.Track)
 	loaded := false
 	var lastReport time.Time
 	enqueue, finish := playbackReports(initial.client)
@@ -177,7 +176,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				failure.Set(false)
 				buffering.Set(true)
 				canChangeRate.Set(false)
-				usingMPV.Set(false)
+				desktop.Set(nil)
 				previous.close()
 				medium.Set(next)
 			})
@@ -243,28 +242,38 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			},
 		}
 		if preferMPV {
-			desktop := mpvVideo(cx, video)
-			setMPVDanmaku = desktop.comments
-			setMPVDanmaku(danmakuTrack)
-			cx.Effect(func() { usingMPV.Set(desktop.active()) })
+			decoder := mpvVideo(cx, video)
+			decoder.comments(danmakuTrack)
+			desktop.Set(&decoder)
 			seekVideo = func(at time.Duration) {
-				if desktop.active() {
-					desktop.seek(at)
+				if decoder.active() {
+					decoder.seek(at)
 				} else {
 					ref.Seek(at)
 				}
 			}
-			return desktop.node
+			return decoder.node
 		}
 		return video
 	})
-	comments := playerDanmaku(cx, sample, picture, paused, buffering, rate.Get, func() bool { return !usingMPV.Get() }, func(track *danmaku.Track) {
+	comments := playerDanmaku(cx, sample, picture, paused, buffering, rate.Get, func() bool {
+		decoder := desktop.Get()
+		return decoder == nil || !decoder.active()
+	}, func(track *danmaku.Track) {
 		danmakuTrack = track
-		if setMPVDanmaku != nil {
-			setMPVDanmaku(track)
+		if decoder := desktop.GetUntracked(); decoder != nil {
+			decoder.comments(track)
 		}
 	})
-	tracks := playerTracks(cx, func() []media.Track { return medium.Get().stream.Tracks }, position, rate, canChangeRate, switchingAudio, audioError, chooseAudio)
+	directDecoder := func() *desktopVideo {
+		decoder := desktop.Get()
+		if decoder == nil || !decoder.active() || medium.Get().stream.Method != media.DirectPlay {
+			return nil
+		}
+		return decoder
+	}
+	tracks := playerTracks(cx, func() []media.Track { return medium.Get().stream.Tracks }, directDecoder,
+		position, rate, canChangeRate, switchingAudio, audioError, chooseAudio)
 	toggle := func() {
 		if ended.GetUntracked() {
 			seek(0)

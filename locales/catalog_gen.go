@@ -154,6 +154,7 @@ const (
 	textSubtitleLater
 	textForcedSubtitle
 	textExternalSubtitle
+	textEmbeddedSubtitle
 	textAudioTracks
 	textNoAudioTracks
 	textAudioSwitchError
@@ -278,6 +279,7 @@ var keyOfText = [numTexts]string{
 	"subtitleLater",
 	"forcedSubtitle",
 	"externalSubtitle",
+	"embeddedSubtitle",
 	"audioTracks",
 	"noAudioTracks",
 	"audioSwitchError",
@@ -395,11 +397,12 @@ var textsEn = i18n.NewTexts(""+
 	"Subtitles"+
 	"Turn subtitles off"+
 	"Open subtitle file"+
-	"Could not load the subtitle file."+
+	"Could not change subtitles."+
 	"Show subtitles earlier"+
 	"Show subtitles later"+
 	"Forced"+
 	"External"+
+	"Embedded"+
 	"Audio tracks"+
 	"No selectable audio tracks for this source."+
 	"Could not switch audio tracks."+
@@ -514,10 +517,11 @@ var textsEn = i18n.NewTexts(""+
 		9,
 		18,
 		18,
-		33,
+		27,
 		22,
 		20,
 		6,
+		8,
 		8,
 		12,
 		43,
@@ -636,11 +640,12 @@ var textsZhHans = i18n.NewTexts(""+
 	"字幕"+
 	"关闭字幕"+
 	"打开字幕文件"+
-	"无法加载字幕文件。"+
+	"无法切换字幕。"+
 	"提前显示字幕"+
 	"延后显示字幕"+
 	"强制字幕"+
 	"外挂"+
+	"内嵌"+
 	"音轨"+
 	"此媒体源未提供可切换的音轨。"+
 	"无法切换音轨。"+
@@ -755,10 +760,11 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		12,
 		18,
-		27,
+		21,
 		18,
 		18,
 		12,
+		6,
 		6,
 		6,
 		42,
@@ -1510,7 +1516,7 @@ func OpenSubtitleFile(cx *core.Scope) string { return For(cx).OpenSubtitleFile()
 // OpenSubtitleFile is the package's OpenSubtitleFile in the language of msgs.
 func (msgs Messages) OpenSubtitleFile() string { return msgs.text(textOpenSubtitleFile) }
 
-// SubtitleLoadError says "Could not load the subtitle file."
+// SubtitleLoadError says "Could not change subtitles."
 // in the language the app shows under cx.
 func SubtitleLoadError(cx *core.Scope) string { return For(cx).SubtitleLoadError() }
 
@@ -1566,6 +1572,13 @@ func ExternalSubtitle(cx *core.Scope) string { return For(cx).ExternalSubtitle()
 
 // ExternalSubtitle is the package's ExternalSubtitle in the language of msgs.
 func (msgs Messages) ExternalSubtitle() string { return msgs.text(textExternalSubtitle) }
+
+// EmbeddedSubtitle says "Embedded"
+// in the language the app shows under cx.
+func EmbeddedSubtitle(cx *core.Scope) string { return For(cx).EmbeddedSubtitle() }
+
+// EmbeddedSubtitle is the package's EmbeddedSubtitle in the language of msgs.
+func (msgs Messages) EmbeddedSubtitle() string { return msgs.text(textEmbeddedSubtitle) }
 
 // AudioTracks says "Audio tracks"
 // in the language the app shows under cx.
