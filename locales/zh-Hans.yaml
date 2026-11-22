@@ -484,6 +484,19 @@ phonePlayerControls: 显示或隐藏播放控件
 phonePlayerSource: "来自 {name}"
 phonePlayerCast: 投屏
 phonePlayerInfo: 播放信息
+phonePlayerMore: 更多
+phonePlayerPictureRatio: 画面比例
+phonePlayerScreenshot: 截图
+phonePlayerAVSync: 音视频同步
+phonePlayerLoop: 片段循环
+phonePlayerLoopStart: 标记 A 点
+phonePlayerLoopEnd: 标记 B 点
+phonePlayerLoopClear: 清除循环
+phonePlayerLoopStartAt: "A 点 {start}"
+phonePlayerLoopRange: "A 点 {start} – B 点 {end}"
+phonePlayerSleep: 睡眠定时
+phonePlayerSleepOff: 关闭
+phonePlayerSleepMinutes: "{minutes} 分钟"
 phonePlayerChapters: 跳转章节
 phonePlayerChapterNumber: "第 {number} 章"
 phonePlayerBrightness: "画面亮度 {level}%"

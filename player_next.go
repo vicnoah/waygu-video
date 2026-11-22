@@ -22,7 +22,7 @@ type nextEpisodeControls struct {
 }
 
 func (a *application) nextEpisodeCard(cx *core.Scope, current route, client media.Client,
-	position, duration *core.Signal[time.Duration], finished *core.Signal[bool]) nextEpisodeControls {
+	position, duration *core.Signal[time.Duration], finished *core.Signal[bool], timerExpired func() bool) nextEpisodeControls {
 	episode := current.item
 	if episode.Kind != media.Episode || episode.SeriesID == "" || episode.Episode <= 0 {
 		return nextEpisodeControls{unavailable: func() bool { return true }}
@@ -47,7 +47,7 @@ func (a *application) nextEpisodeCard(cx *core.Scope, current route, client medi
 	play := func(next media.Item) { a.playEpisodeFrom(current, next) }
 	cx.Effect(func() {
 		next, ready := eligibleNext()
-		if !ready || !finished.Get() || dismissed.Get() || !a.autoNext.Get() {
+		if !ready || !finished.Get() || dismissed.Get() || !a.autoNext.Get() || timerExpired() {
 			countdown.Set(0)
 			return
 		}
@@ -61,7 +61,9 @@ func (a *application) nextEpisodeCard(cx *core.Scope, current route, client medi
 		tick = func() {
 			remaining := deadline.Sub(cx.Now())
 			if remaining <= 0 {
-				play(next)
+				if !timerExpired() {
+					play(next)
+				}
 				return
 			}
 			countdown.Set(int((remaining + time.Second - 1) / time.Second))

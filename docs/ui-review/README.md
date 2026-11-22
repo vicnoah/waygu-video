@@ -214,7 +214,7 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerPhonePlayer(DesignReview|GesturesAndPreview)$' -screenshots .nsgo/ui-review/phone-player
 ```
 
-The held-gesture captures use `xdotool` in an X11 display. The native test also runs without that capture setting. Jellyfin serves a real seek thumbnail while the pointer holds the slider, and the Emby and Jellyfin fixtures supply chapters.
+The held-gesture captures use `xdotool` in an X11 display. The native test also runs without that capture setting. Jellyfin serves the seek thumbnail while the pointer holds the slider. The Emby review records the ratio chooser, actual 4:3 video, playback menu, A/B marks, and sleep timer.
 
 Export `player.scenra`, the four `player-tracks.scenra` panels and the three `player-danmaku.scenra` panels with the reference exporter below.
 

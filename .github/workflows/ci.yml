@@ -238,9 +238,10 @@ jobs:
           python3 integration/servers/bootstrap.py
       - name: Test playback and server compatibility
         env:
+          GOFLAGS: "-p=1"
           WAYGU_TEST_SERVERS: "1"
           WAYGU_TEST_MPV: "1"
-        run: go tool nsgo test . -count=1 -v
+        run: go tool nsgo test ./... -count=1 -v
       - name: Collect logs for a failed test
         if: failure()
         run: docker compose -f integration/servers/compose.yaml logs --tail=80

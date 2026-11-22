@@ -140,6 +140,7 @@ type application struct {
 	versionPolicy       *core.Signal[media.VersionPolicy]
 	autoNext            *core.Signal[bool]
 	playbackPrefs       *core.Signal[playbackPreferences]
+	sleepTimer          *core.Signal[playerSleepTimer]
 	subtitlePrefs       *core.Signal[subtitlePreferences]
 	danmakuPrefs        *core.Signal[danmakuPreferences]
 	progress            *progressOutbox
@@ -234,6 +235,13 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 	a.progress.setSources(sources)
 	a.pairedDevices = core.NewSignalFunc(cx, core.Untracked(cx, func() []pairedDevice { return readPairedDevices(storage) }), nil)
 	a.playbackPrefs = core.NewSignal(cx, core.Untracked(cx, func() playbackPreferences { return readPlaybackPreferences(storage) }))
+	a.sleepTimer = core.NewSignal(cx, playerSleepTimer{})
+	cx.Effect(func() {
+		stack := a.routes.Get()
+		if stack[len(stack)-1].screen != screenPlayer {
+			a.sleepTimer.Set(playerSleepTimer{})
+		}
+	})
 	a.subtitlePrefs = core.NewSignalFunc(cx, core.Untracked(cx, func() subtitlePreferences { return readSubtitlePreferences(storage) }), nil)
 	a.sourceChecks = core.NewSignalFunc(cx, map[string]sourceCheck{}, nil)
 	a.sourceTimeout = core.NewSignal(cx, readSourceTimeout(sourceTimeout))

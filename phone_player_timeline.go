@@ -50,6 +50,15 @@ func (p phonePlayerControls) timeline(cx *core.Scope, slider base.Slider, chapte
 	}
 	slider.Class = "h-4 w-full"
 	slider.Children = []core.Node{
+		core.Show{When: func() bool { return p.loop.segment.Get().active }, Then: func(*core.Scope) core.Node {
+			return core.View{Class: "absolute top-1 h-2 rounded border border-violet-200/70 bg-violet-300/20",
+				TestID: "phone-player-loop-ticks", PointerEvents: core.PointerEventsNone, StyleFunc: func() core.Style {
+					segment := p.loop.segment.Get()
+					length := p.duration.Get()
+					left, right := tvPlaybackFraction(segment.start, length), tvPlaybackFraction(segment.end, length)
+					return core.Style{Left: core.Pct(float32(left * 100)), Right: core.Pct(float32((1 - right) * 100))}
+				}}
+		}},
 		core.Show{When: func() bool { return len(chapters()) > 0 }, Then: func(*core.Scope) core.Node {
 			ticks := core.Canvas{Class: "absolute inset-0", TestID: "phone-player-chapter-ticks",
 				Draw: func(d *core.Drawing, size core.Size) {
@@ -121,7 +130,7 @@ func (p phonePlayerControls) chapterActions(cx *core.Scope, chapters func() []me
 		if len(available) == 0 || length <= 0 {
 			return nil
 		}
-		rows := []core.Node{core.Text{Content: locales.PhonePlayerChapters(cx), Class: "pb-1 pt-3 text-sm font-semibold text-white"}}
+		var rows []core.Node
 		for index, chapter := range available {
 			if chapter.Start >= length {
 				break
@@ -142,7 +151,7 @@ func (p phonePlayerControls) chapterActions(cx *core.Scope, chapters func() []me
 				},
 			})
 		}
-		if len(rows) == 1 {
+		if len(rows) == 0 {
 			return nil
 		}
 		return core.View{Class: "gap-1.5", Children: rows}

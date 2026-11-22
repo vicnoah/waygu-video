@@ -114,6 +114,9 @@ var Parameters = map[string][]string{
 	"SettingsSourceRemoveConfirm":     {"name"},
 	"SettingsSourceUser":              {"name"},
 	"PhonePlayerSource":               {"name"},
+	"PhonePlayerLoopStartAt":          {"start"},
+	"PhonePlayerLoopRange":            {"start", "end"},
+	"PhonePlayerSleepMinutes":         {"minutes"},
 	"PhonePlayerChapterNumber":        {"number"},
 	"PhonePlayerBrightness":           {"level"},
 	"PhonePlayerVolume":               {"level"},
@@ -245,6 +248,9 @@ type Translation struct {
 	SettingsSourceRemoveConfirm     func(name string) string
 	SettingsSourceUser              func(name string) string
 	PhonePlayerSource               func(name string) string
+	PhonePlayerLoopStartAt          func(start string) string
+	PhonePlayerLoopRange            func(start string, end string) string
+	PhonePlayerSleepMinutes         func(minutes string) string
 	PhonePlayerChapterNumber        func(number string) string
 	PhonePlayerBrightness           func(level string) string
 	PhonePlayerVolume               func(level string) string
@@ -718,6 +724,16 @@ const (
 	textPhonePlayerControls
 	textPhonePlayerCast
 	textPhonePlayerInfo
+	textPhonePlayerMore
+	textPhonePlayerPictureRatio
+	textPhonePlayerScreenshot
+	textPhonePlayerAVSync
+	textPhonePlayerLoop
+	textPhonePlayerLoopStart
+	textPhonePlayerLoopEnd
+	textPhonePlayerLoopClear
+	textPhonePlayerSleep
+	textPhonePlayerSleepOff
 	textPhonePlayerChapters
 	textPhonePlayerLock
 	textPhonePlayerUnlock
@@ -1529,6 +1545,16 @@ var keyOfText = [numTexts]string{
 	"phonePlayerControls",
 	"phonePlayerCast",
 	"phonePlayerInfo",
+	"phonePlayerMore",
+	"phonePlayerPictureRatio",
+	"phonePlayerScreenshot",
+	"phonePlayerAVSync",
+	"phonePlayerLoop",
+	"phonePlayerLoopStart",
+	"phonePlayerLoopEnd",
+	"phonePlayerLoopClear",
+	"phonePlayerSleep",
+	"phonePlayerSleepOff",
 	"phonePlayerChapters",
 	"phonePlayerLock",
 	"phonePlayerUnlock",
@@ -2338,6 +2364,16 @@ var textsEn = i18n.NewTexts(""+
 	"Show or hide player controls"+
 	"Cast"+
 	"Playback information"+
+	"Playback actions"+
+	"Picture ratio"+
+	"Screenshot"+
+	"Audio and video sync"+
+	"Loop segment"+
+	"Mark A"+
+	"Mark B"+
+	"Clear loop"+
+	"Sleep timer"+
+	"Off"+
 	"Chapters"+
 	"Lock controls"+
 	"Unlock controls"+
@@ -3144,6 +3180,16 @@ var textsEn = i18n.NewTexts(""+
 		28,
 		4,
 		20,
+		16,
+		13,
+		10,
+		20,
+		12,
+		6,
+		6,
+		10,
+		11,
+		3,
 		8,
 		13,
 		15,
@@ -3953,6 +3999,16 @@ var textsZhHans = i18n.NewTexts(""+
 	"显示或隐藏播放控件"+
 	"投屏"+
 	"播放信息"+
+	"更多"+
+	"画面比例"+
+	"截图"+
+	"音视频同步"+
+	"片段循环"+
+	"标记 A 点"+
+	"标记 B 点"+
+	"清除循环"+
+	"睡眠定时"+
+	"关闭"+
 	"跳转章节"+
 	"锁定控件"+
 	"解锁控件"+
@@ -4759,6 +4815,16 @@ var textsZhHans = i18n.NewTexts(""+
 		27,
 		6,
 		12,
+		6,
+		12,
+		6,
+		15,
+		12,
+		12,
+		12,
+		12,
+		12,
+		6,
 		12,
 		12,
 		12,
@@ -5417,6 +5483,15 @@ func Supply(lang string, t Translation) {
 	}
 	if t.PhonePlayerSource != nil {
 		s.PhonePlayerSource = t.PhonePlayerSource
+	}
+	if t.PhonePlayerLoopStartAt != nil {
+		s.PhonePlayerLoopStartAt = t.PhonePlayerLoopStartAt
+	}
+	if t.PhonePlayerLoopRange != nil {
+		s.PhonePlayerLoopRange = t.PhonePlayerLoopRange
+	}
+	if t.PhonePlayerSleepMinutes != nil {
+		s.PhonePlayerSleepMinutes = t.PhonePlayerSleepMinutes
 	}
 	if t.PhonePlayerChapterNumber != nil {
 		s.PhonePlayerChapterNumber = t.PhonePlayerChapterNumber
@@ -10235,6 +10310,148 @@ func PhonePlayerInfo(cx *core.Scope) string { return For(cx).PhonePlayerInfo() }
 
 // PhonePlayerInfo is the package's PhonePlayerInfo in the language of msgs.
 func (msgs Messages) PhonePlayerInfo() string { return msgs.text(textPhonePlayerInfo) }
+
+// PhonePlayerMore says "Playback actions"
+// in the language the app shows under cx.
+func PhonePlayerMore(cx *core.Scope) string { return For(cx).PhonePlayerMore() }
+
+// PhonePlayerMore is the package's PhonePlayerMore in the language of msgs.
+func (msgs Messages) PhonePlayerMore() string { return msgs.text(textPhonePlayerMore) }
+
+// PhonePlayerPictureRatio says "Picture ratio"
+// in the language the app shows under cx.
+func PhonePlayerPictureRatio(cx *core.Scope) string { return For(cx).PhonePlayerPictureRatio() }
+
+// PhonePlayerPictureRatio is the package's PhonePlayerPictureRatio in the language of msgs.
+func (msgs Messages) PhonePlayerPictureRatio() string { return msgs.text(textPhonePlayerPictureRatio) }
+
+// PhonePlayerScreenshot says "Screenshot"
+// in the language the app shows under cx.
+func PhonePlayerScreenshot(cx *core.Scope) string { return For(cx).PhonePlayerScreenshot() }
+
+// PhonePlayerScreenshot is the package's PhonePlayerScreenshot in the language of msgs.
+func (msgs Messages) PhonePlayerScreenshot() string { return msgs.text(textPhonePlayerScreenshot) }
+
+// PhonePlayerAVSync says "Audio and video sync"
+// in the language the app shows under cx.
+func PhonePlayerAVSync(cx *core.Scope) string { return For(cx).PhonePlayerAVSync() }
+
+// PhonePlayerAVSync is the package's PhonePlayerAVSync in the language of msgs.
+func (msgs Messages) PhonePlayerAVSync() string { return msgs.text(textPhonePlayerAVSync) }
+
+// PhonePlayerLoop says "Loop segment"
+// in the language the app shows under cx.
+func PhonePlayerLoop(cx *core.Scope) string { return For(cx).PhonePlayerLoop() }
+
+// PhonePlayerLoop is the package's PhonePlayerLoop in the language of msgs.
+func (msgs Messages) PhonePlayerLoop() string { return msgs.text(textPhonePlayerLoop) }
+
+// PhonePlayerLoopStart says "Mark A"
+// in the language the app shows under cx.
+func PhonePlayerLoopStart(cx *core.Scope) string { return For(cx).PhonePlayerLoopStart() }
+
+// PhonePlayerLoopStart is the package's PhonePlayerLoopStart in the language of msgs.
+func (msgs Messages) PhonePlayerLoopStart() string { return msgs.text(textPhonePlayerLoopStart) }
+
+// PhonePlayerLoopEnd says "Mark B"
+// in the language the app shows under cx.
+func PhonePlayerLoopEnd(cx *core.Scope) string { return For(cx).PhonePlayerLoopEnd() }
+
+// PhonePlayerLoopEnd is the package's PhonePlayerLoopEnd in the language of msgs.
+func (msgs Messages) PhonePlayerLoopEnd() string { return msgs.text(textPhonePlayerLoopEnd) }
+
+// PhonePlayerLoopClear says "Clear loop"
+// in the language the app shows under cx.
+func PhonePlayerLoopClear(cx *core.Scope) string { return For(cx).PhonePlayerLoopClear() }
+
+// PhonePlayerLoopClear is the package's PhonePlayerLoopClear in the language of msgs.
+func (msgs Messages) PhonePlayerLoopClear() string { return msgs.text(textPhonePlayerLoopClear) }
+
+// PhonePlayerLoopStartAt says "A {start}"
+// in the language the app shows under cx.
+func PhonePlayerLoopStartAt(cx *core.Scope, start string) string {
+	return For(cx).PhonePlayerLoopStartAt(start)
+}
+
+// PhonePlayerLoopStartAt is the package's PhonePlayerLoopStartAt in the language of msgs.
+func (msgs Messages) PhonePlayerLoopStartAt(start string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhonePlayerLoopStartAt(start))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhonePlayerLoopStartAt; f != nil {
+			return f(start)
+		}
+		switch lang {
+		case "", "en":
+			return "A " + msgs.arg(start)
+		case "zh-Hans":
+			return "A 点 " + start
+		}
+	}
+}
+
+// PhonePlayerLoopRange says "A {start} – B {end}"
+// in the language the app shows under cx.
+func PhonePlayerLoopRange(cx *core.Scope, start string, end string) string {
+	return For(cx).PhonePlayerLoopRange(start, end)
+}
+
+// PhonePlayerLoopRange is the package's PhonePlayerLoopRange in the language of msgs.
+func (msgs Messages) PhonePlayerLoopRange(start string, end string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhonePlayerLoopRange(start, end))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhonePlayerLoopRange; f != nil {
+			return f(start, end)
+		}
+		switch lang {
+		case "", "en":
+			return "A " + msgs.arg(start) + " – B " + msgs.arg(end)
+		case "zh-Hans":
+			return "A 点 " + start + " – B 点 " + end
+		}
+	}
+}
+
+// PhonePlayerSleep says "Sleep timer"
+// in the language the app shows under cx.
+func PhonePlayerSleep(cx *core.Scope) string { return For(cx).PhonePlayerSleep() }
+
+// PhonePlayerSleep is the package's PhonePlayerSleep in the language of msgs.
+func (msgs Messages) PhonePlayerSleep() string { return msgs.text(textPhonePlayerSleep) }
+
+// PhonePlayerSleepOff says "Off"
+// in the language the app shows under cx.
+func PhonePlayerSleepOff(cx *core.Scope) string { return For(cx).PhonePlayerSleepOff() }
+
+// PhonePlayerSleepOff is the package's PhonePlayerSleepOff in the language of msgs.
+func (msgs Messages) PhonePlayerSleepOff() string { return msgs.text(textPhonePlayerSleepOff) }
+
+// PhonePlayerSleepMinutes says "{minutes} minutes"
+// in the language the app shows under cx.
+func PhonePlayerSleepMinutes(cx *core.Scope, minutes string) string {
+	return For(cx).PhonePlayerSleepMinutes(minutes)
+}
+
+// PhonePlayerSleepMinutes is the package's PhonePlayerSleepMinutes in the language of msgs.
+func (msgs Messages) PhonePlayerSleepMinutes(minutes string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhonePlayerSleepMinutes(minutes))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhonePlayerSleepMinutes; f != nil {
+			return f(minutes)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(minutes) + " minutes"
+		case "zh-Hans":
+			return minutes + " 分钟"
+		}
+	}
+}
 
 // PhonePlayerChapters says "Chapters"
 // in the language the app shows under cx.

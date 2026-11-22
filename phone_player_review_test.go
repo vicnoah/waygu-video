@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"os/exec"
@@ -135,12 +136,40 @@ func TestDockerPhonePlayerDesignReview(t *testing.T) {
 	capture("player-locked")
 	app.Press("id:phone-player-unlock")
 	app.WaitFor("id:player-tracks", time.Second)
-	app.Press("id:phone-player-fit")
-	if nsgotest.Target() == "" && app.FindMounted("id:video-player").Video.ResizeMode != core.Cover {
-		t.Fatal("the aspect button did not update the native playback view")
+	video := app.Find("id:video-player").ID
+	for _, choice := range []struct {
+		id    string
+		mode  core.ResizeMode
+		ratio float64
+	}{
+		{"crop", core.Cover, 0}, {"stretch", core.Stretch, 0}, {"16-9", core.Stretch, 16.0 / 9},
+		{"4-3", core.Stretch, 4.0 / 3}, {"2-35-1", core.Stretch, 2.35}, {"original", core.Contain, 0},
+	} {
+		app.Press("id:phone-player-fit")
+		app.WaitFor("id:phone-player-ratio-panel", time.Second)
+		if choice.id == "4-3" {
+			capture("player-ratios")
+		}
+		app.Press("id:phone-player-ratio-" + choice.id)
+		app.WaitForGone("id:phone-player-ratio-panel", time.Second)
+		picture := app.Find("id:phone-player-picture").Frame.Size
+		want := choice.ratio
+		if want == 0 {
+			want = 844.0 / 390
+		}
+		if got := float64(picture.Width / picture.Height); math.Abs(got-want) > .01 {
+			t.Fatalf("frame for %s: %vx%v, want ratio %v", choice.id, picture.Width, picture.Height, want)
+		}
+		if nsgotest.Target() == "" && app.FindMounted("id:video-player").Video.ResizeMode != choice.mode {
+			t.Fatalf("video did not receive the %s fit", choice.id)
+		}
+		if app.Find("id:video-player").ID != video {
+			t.Fatal("choosing a picture ratio remounted the video")
+		}
+		if choice.id == "4-3" {
+			capture("player-picture-4-3")
+		}
 	}
-	app.Press("id:phone-player-fit")
-	app.Press("id:phone-player-fit")
 	rateAvailable := app.Enabled("id:phone-player-rate")
 	if rateAvailable {
 		app.Press("id:phone-player-rate")
@@ -197,14 +226,84 @@ func TestDockerPhonePlayerDesignReview(t *testing.T) {
 	app.WaitForGone("id:danmaku-sources-dialog", time.Second)
 	app.Press("id:phone-player-info")
 	app.WaitFor("id:phone-player-info-panel", time.Second)
+	capture("player-more")
+	app.Press("id:phone-player-action-info")
+	app.WaitFor("text:播放信息", time.Second)
+	app.Press("id:phone-player-more-back")
+	app.Press("id:phone-player-action-chapters")
 	app.WaitFor("id:phone-player-chapter-2", time.Second)
 	capture("player-chapters")
 	app.Press("id:phone-player-chapter-2")
 	app.WaitUntil(time.Second, func() bool { return app.Find("id:player-position").Text == "00:00:13" })
+	choosePhonePlayerAction(app, "chapters")
+	app.Press("id:phone-player-chapter-1")
+	choosePhonePlayerAction(app, "loop")
+	app.Press("id:phone-player-loop-start")
+	if app.Enabled("id:phone-player-loop-end") {
+		t.Fatal("a segment can end at its own start")
+	}
+	app.Press("id:phone-player-more-back")
+	app.Press("id:phone-player-action-chapters")
+	app.Press("id:phone-player-chapter-2")
+	choosePhonePlayerAction(app, "loop")
+	app.Press("id:phone-player-loop-end")
+	app.WaitFor("id:phone-player-loop-range", time.Second)
+	capture("player-loop")
+	app.Press("id:phone-player-info-close")
+	app.WaitFor("id:phone-player-loop-ticks", time.Second)
+	app.Press("id:toggle-play")
+	if localFixture {
+		app.Progress("id:video-player", 14*time.Second, 24*time.Second)
+		seeks := app.FindMounted("id:video-player").Seeks
+		if seeks[len(seeks)-1] != 4320*time.Millisecond {
+			t.Fatalf("A–B boundary did not seek to A: %v", seeks)
+		}
+		app.Progress("id:video-player", 14*time.Second, 24*time.Second)
+		if len(app.FindMounted("id:video-player").Seeks) != len(seeks) {
+			t.Fatal("stale progress started a duplicate loop seek")
+		}
+		app.Progress("id:video-player", 24*time.Second, 24*time.Second)
+		if app.FindMounted("id:video-player").Video.Paused {
+			t.Fatal("the decoder's end event stopped an active segment")
+		}
+	}
+	app.WaitUntil(2*time.Second, func() bool { return app.Find("id:player-position").Text == "00:00:04" })
+	if !localFixture {
+		app.WaitUntil(3*time.Second, func() bool { return app.Find("id:player-position").Text == "00:00:05" })
+	}
+	app.Press("id:toggle-play")
+	choosePhonePlayerAction(app, "sleep")
+	app.Press("id:phone-player-sleep-30")
+	choosePhonePlayerAction(app, "sleep")
+	app.WaitUntil(time.Second, func() bool { return app.Find("id:phone-player-sleep-30").Props.Checked })
+	capture("player-sleep")
+	if localFixture {
+		app.Press("id:phone-player-sleep-0")
+	} else {
+		app.Press("id:phone-player-info-close")
+		app.Press("id:toggle-play")
+		app.WaitUntil(time.Second, func() bool { return app.Find("id:toggle-play").Props.Label == "暂停" })
+		app.FastForward(30 * time.Minute)
+		app.WaitUntil(time.Second, func() bool { return app.Find("id:toggle-play").Props.Label == "播放" })
+		choosePhonePlayerAction(app, "sleep")
+		if !app.Find("id:phone-player-sleep-0").Props.Checked {
+			t.Fatal("the expired timer was still selected")
+		}
+		app.Press("id:phone-player-info-close")
+	}
+	choosePhonePlayerAction(app, "chapters")
+	app.Press("id:phone-player-chapter-3")
+	app.WaitForGone("id:phone-player-loop-ticks", time.Second)
 	app.Press("id:player-seek-forward")
 	app.WaitUntil(time.Second, func() bool { return app.Find("id:player-position").Text == "00:00:24" })
 	app.Press("id:close-player")
 	app.WaitFor("id:detail-play", time.Second)
+}
+
+func choosePhonePlayerAction(app *nsgotest.App, action string) {
+	app.Press("id:phone-player-info")
+	app.WaitFor("id:phone-player-info-panel", time.Second)
+	app.Press("id:phone-player-action-" + action)
 }
 
 func TestDockerPhonePlayerGesturesAndPreview(t *testing.T) {
@@ -262,7 +361,7 @@ func TestDockerPhonePlayerGesturesAndPreview(t *testing.T) {
 		}
 	}
 
-	app.Press("id:phone-player-info")
+	choosePhonePlayerAction(app, "chapters")
 	app.Press("id:phone-player-chapter-1")
 	app.WaitUntil(time.Second, func() bool { return app.Find("id:player-position").Text == "00:00:04" })
 	app.DragAt(surface, left, core.Point{X: 24})

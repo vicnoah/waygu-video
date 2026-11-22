@@ -151,10 +151,15 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	}
 	duration := core.NewSignal(cx, initial.stream.Duration)
 	ended := core.NewSignal(cx, false)
+	sleepExpired := core.NewSignal(cx, false)
+	timerPreventsAutoNext := func() bool {
+		deadline := a.sleepTimer.Get().deadline
+		return sleepExpired.Get() || (!deadline.IsZero() && !cx.Now().Before(deadline))
+	}
 	offline := current.downloadID != ""
 	nextEpisode := nextEpisodeControls{unavailable: func() bool { return true }}
 	if !offline {
-		nextEpisode = a.nextEpisodeCard(cx, current, initial.client, position, duration, ended)
+		nextEpisode = a.nextEpisodeCard(cx, current, initial.client, position, duration, ended, timerPreventsAutoNext)
 	}
 	sample := core.NewSignal(cx, videoSample{})
 	picture := core.NewSignal(cx, core.Size{})
@@ -163,7 +168,10 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	phoneVolume := core.NewSignal(cx, float32(1))
 	phoneBrightness := core.NewSignal(cx, float32(1))
 	prefs := a.playbackPrefs.GetUntracked()
-	fit := core.NewSignal(cx, prefs.resizeMode())
+	pictureMode := core.NewSignal(cx, playerPictureMode(prefs.Picture))
+	fit := func() core.ResizeMode { return pictureMode.Get().fit() }
+	viewport := core.NewSignal(cx, core.Size{})
+	loop := segmentLoop{segment: core.NewSignal(cx, playbackSegment{})}
 	pip := core.NewSignal(cx, core.PictureInPictureState{})
 	rate := core.NewSignal(cx, prefs.Rate)
 	canChangeRate := core.NewSignal(cx, false)
@@ -209,7 +217,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			finish(nil)
 		}
 	})
-	seek := func(at time.Duration) {
+	seekPosition := func(at time.Duration) {
 		if !loaded {
 			return
 		}
@@ -220,6 +228,17 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		seekVideo(at)
 		report(media.Progress)
 	}
+	seek := func(at time.Duration) {
+		loop.manualSeek(max(0, min(at, duration.GetUntracked())))
+		seekPosition(at)
+	}
+	a.playerSleep(cx, func() {
+		sleepExpired.Set(true)
+		if !paused.GetUntracked() {
+			paused.Set(true)
+			report(media.Progress)
+		}
+	})
 	playerContext := cx.Context()
 	preferMPV := cx.Env().Desktop() && a.mpvPreferred.GetUntracked()
 	android := cx.Env().OS() == core.OSAndroid
@@ -261,6 +280,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				canChangeRate.Set(false)
 				desktop.Set(nil)
 				bitrate.Set(options.MaxBitrate)
+				if next.stream.VersionID() != previous.stream.VersionID() {
+					loop.clear()
+				}
 				previous.close()
 				medium.Set(next)
 			})
@@ -279,7 +301,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		restrictions := a.parentalRules()
 		pipAllowed := cx.Env().OS() == core.OSIOS && !(restrictions.Enabled && restrictions.TimeLimit)
 		video := core.Video{Source: active.url, PausedFunc: paused.Get, RateFunc: rate.Get, Ref: ref,
-			TestID: "video-player", Class: "absolute inset-0", ResizeModeFunc: fit.Get, ProgressInterval: 150 * time.Millisecond,
+			TestID: "video-player", Class: "absolute inset-0", ResizeModeFunc: fit, ProgressInterval: 150 * time.Millisecond,
 			AudioSession:         core.AudioSessionPlayback,
 			PictureInPicture:     pipAllowed,
 			AutoPictureInPicture: pipAllowed && !prefs.DisableAutoPiP,
@@ -314,11 +336,14 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				if !loaded {
 					return
 				}
-				position.Set(at)
-				sample.Set(videoSample{at, cx.Now()})
 				if length > 0 {
 					duration.Set(length)
 				}
+				if loop.boundary(at, duration.GetUntracked(), cx.Now(), seekPosition) {
+					return
+				}
+				position.Set(at)
+				sample.Set(videoSample{at, cx.Now()})
 				if !ended.GetUntracked() && cx.Now().Sub(lastReport) >= 10*time.Second {
 					report(media.Progress)
 				}
@@ -337,12 +362,16 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 					return
 				}
 				if paused.GetUntracked() {
+					sleepExpired.Set(false)
 					paused.Set(false)
 					report(media.Progress)
 				}
 			},
 			OnBuffer: buffering.Set, OnError: func(error) { failure.Set(true) },
 			OnEnd: func() {
+				if loop.boundary(duration.GetUntracked(), duration.GetUntracked(), cx.Now(), seekPosition) {
+					return
+				}
 				position.Set(duration.GetUntracked())
 				paused.Set(true)
 				ended.Set(true)
@@ -372,7 +401,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		return video
 	})
 	tvSettings := core.NewSignal(cx, false)
-	comments := a.playerDanmaku(cx, current, initial.stream, sample, picture, paused, buffering, fit.Get, rate.Get, tvSettings.Get, func() bool {
+	comments := a.playerDanmaku(cx, current, initial.stream, sample, picture, paused, buffering, fit, rate.Get, tvSettings.Get, func() bool {
 		decoder := desktop.Get()
 		return decoder == nil || !decoder.active()
 	}, func(track *danmaku.Track) {
@@ -403,6 +432,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			seek(0)
 			report(media.Started)
 		}
+		sleepExpired.Set(false)
 		paused.Update(func(value bool) bool { return !value })
 		report(media.Progress)
 	}
@@ -464,10 +494,11 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		}
 		return (phonePlayerControls{
 			current: current, position: position, duration: duration, paused: paused,
-			canRate: canChangeRate, rate: rate, fit: fit, picture: picture, pip: pip,
+			canRate: canChangeRate, rate: rate, pictureMode: pictureMode, picture: picture, pip: pip,
 			seek: seek, toggle: toggle, back: a.back, startPiP: ref.StartPictureInPicture,
 			prefs: prefs, stream: activeStream, client: initial.client, next: nextEpisode, comments: comments, tracks: tracks,
 			volume: phoneVolume, brightness: phoneBrightness, playbackBlocked: blocked,
+			loop: &loop, sleepTimer: a.sleepTimer, ready: budgetReady.Get,
 		}).render(cx)
 	})
 	transportNotice := core.Show{When: func() bool { return buffering.Get() || failure.Get() }, Then: func(cx *core.Scope) core.Node {
@@ -505,8 +536,16 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				return core.Style{Background: core.RGBA(0, 1-phoneBrightness.Get())}
 			}}
 	}}
+	pictureLayers := []core.Node{image, dimming, comments.overlay, tracks.captions}
+	if phoneLayout {
+		pictureLayers = []core.Node{core.View{Class: "absolute inset-0 overflow-hidden", TestID: "phone-player-picture",
+			PointerEvents: core.PointerEventsBoxNone,
+			StyleFunc:     func() core.Style { return pictureMode.Get().viewport(viewport.Get()) },
+			Children:      pictureLayers}}
+	}
 	return core.View{Class: "relative flex-1 overflow-hidden bg-black", Style: core.Style{FlexShrink: 1},
-		Children: []core.Node{image, dimming, comments.overlay, tracks.captions, chrome, transportNotice, diagnostics, tracks.dialog, comments.dialog, parentalOverlay}}
+		OnLayout: func(bounds core.Bounds) { viewport.Set(bounds.Size) },
+		Children: append(pictureLayers, chrome, transportNotice, diagnostics, tracks.dialog, comments.dialog, parentalOverlay)}
 }
 
 func playbackReports(client media.Client, watch *progressWatch) (func(media.PlaybackState), func(*media.PlaybackState)) {

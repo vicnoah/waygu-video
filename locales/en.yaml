@@ -484,6 +484,19 @@ phonePlayerControls: Show or hide player controls
 phonePlayerSource: "From {name}"
 phonePlayerCast: Cast
 phonePlayerInfo: Playback information
+phonePlayerMore: Playback actions
+phonePlayerPictureRatio: Picture ratio
+phonePlayerScreenshot: Screenshot
+phonePlayerAVSync: Audio and video sync
+phonePlayerLoop: Loop segment
+phonePlayerLoopStart: Mark A
+phonePlayerLoopEnd: Mark B
+phonePlayerLoopClear: Clear loop
+phonePlayerLoopStartAt: "A {start}"
+phonePlayerLoopRange: "A {start} – B {end}"
+phonePlayerSleep: Sleep timer
+phonePlayerSleepOff: Off
+phonePlayerSleepMinutes: "{minutes} minutes"
 phonePlayerChapters: Chapters
 phonePlayerChapterNumber: "Chapter {number}"
 phonePlayerBrightness: "Player brightness {level}%"

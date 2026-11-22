@@ -20,7 +20,7 @@ type phonePlayerControls struct {
 	position, duration     *core.Signal[time.Duration]
 	paused, canRate        *core.Signal[bool]
 	rate                   *core.Signal[float32]
-	fit                    *core.Signal[core.ResizeMode]
+	pictureMode            *core.Signal[playerPictureMode]
 	picture                *core.Signal[core.Size]
 	pip                    *core.Signal[core.PictureInPictureState]
 	seek                   func(time.Duration)
@@ -30,6 +30,9 @@ type phonePlayerControls struct {
 	prefs                  playbackPreferences
 	stream                 func() media.Stream
 	client                 media.Client
+	loop                   *segmentLoop
+	sleepTimer             *core.Signal[playerSleepTimer]
+	ready                  func() bool
 	next                   nextEpisodeControls
 	comments               danmakuControls
 	tracks                 trackControls
@@ -39,10 +42,11 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 	show := core.NewSignal(cx, true)
 	locked := core.NewSignal(cx, false)
 	info := core.NewSignal(cx, false)
+	aspect := core.NewSignal(cx, false)
 	preview := core.NewSignal(cx, time.Duration(-1))
 	railDrag := core.NewSignal(cx, false)
 	gesturesDisabled := func() bool {
-		return locked.Get() || info.Get() || p.comments.panelOpen() || p.tracks.panelOpen() || p.playbackBlocked()
+		return locked.Get() || info.Get() || aspect.Get() || p.comments.panelOpen() || p.tracks.panelOpen() || p.playbackBlocked()
 	}
 	frames := playerPreviewFrames(cx, p.current, p.client, p.stream, func() time.Duration {
 		if at := preview.Get(); at >= 0 && !gesturesDisabled() {
@@ -100,7 +104,7 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 		playerIconButton(cx, "phone-player-cast", locales.PhonePlayerCast(cx), "size-8 rounded-full", "size-[18px] text-white", lucide.Cast, func() bool { return true }, nil),
 		playerIconButton(cx, "phone-player-pip", locales.SettingsAutoPiP(cx), "size-8 rounded-full", "size-[18px] text-white", lucide.PictureInPicture2,
 			func() bool { state := p.pip.Get(); return !state.Supported || !state.Possible || state.Active }, p.startPiP),
-		playerIconButton(cx, "phone-player-info", locales.PhonePlayerInfo(cx), "size-8 rounded-full", "size-[18px] text-white", lucide.Ellipsis, nil, func() { info.Set(true) }),
+		playerIconButton(cx, "phone-player-info", locales.PhonePlayerMore(cx), "size-8 rounded-full", "size-[18px] text-white", lucide.Ellipsis, nil, func() { info.Set(true) }),
 	}}
 	header := core.View{Class: "absolute inset-x-0 top-0 flex-row items-center gap-3 px-6 pt-4",
 		Style: core.Style{PaddingEnv: core.EnvEdges{Left: core.EnvSafeArea, Right: core.EnvSafeArea, Top: core.EnvSafeArea}},
@@ -146,16 +150,7 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 			Class: "h-7 items-center justify-center rounded-full px-2.5 disabled:opacity-45", Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)},
 			OnPress: func(core.PressEvent) { rateTap() }, OnLongPress: func(core.PressEvent) { p.tracks.show(trackSpeedTab) },
 			Children: []core.Node{core.Text{ContentFunc: func() string { return playbackRateLabel(p.rate.Get()) }, Class: "text-xs font-semibold text-white"}}},
-		playerIconButton(cx, "phone-player-fit", locales.SettingsPicture(cx), "h-7 w-9 rounded-full", "size-4 text-white", lucide.Scan, nil, func() {
-			switch p.fit.GetUntracked() {
-			case core.Contain:
-				p.fit.Set(core.Cover)
-			case core.Cover:
-				p.fit.Set(core.Stretch)
-			default:
-				p.fit.Set(core.Contain)
-			}
-		}),
+		playerIconButton(cx, "phone-player-fit", locales.PhonePlayerPictureRatio(cx), "h-7 w-9 rounded-full", "size-4 text-white", lucide.Scan, nil, func() { aspect.Set(true) }),
 	}}
 	footer := core.View{Class: "absolute inset-x-0 bottom-0 gap-2.5 px-6 pb-4",
 		Style: core.Style{PaddingEnv: core.EnvEdges{Left: core.EnvSafeArea, Right: core.EnvSafeArea, Bottom: core.EnvSafeArea}},
@@ -196,7 +191,7 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 	return core.View{Class: "absolute inset-0", TestID: "phone-player", PointerEvents: core.PointerEventsBoxNone, Children: []core.Node{
 		gesturePlane,
 		core.Show{When: func() bool {
-			return show.Get() && !locked.Get() && !p.comments.panelOpen() && !p.tracks.panelOpen() && !info.Get()
+			return show.Get() && !gesturesDisabled()
 		}, Then: func(*core.Scope) core.Node {
 			return core.Group([]core.Node{shades, header, center, lockButton(false), footer})
 		}},
@@ -207,8 +202,8 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 				phoneSeekPreview(preview.Get, frames),
 			}}
 		}},
-		playerSidePanel(cx, "phone-player-info-panel", "phone-player-info-close", locales.PhonePlayerInfo(cx), info.Get, func() { info.Set(false) },
-			panelHeading(locales.PhonePlayerInfo(cx)), nil, core.Group([]core.Node{playbackInfo, p.chapterActions(cx, chapters, info)})),
+		p.morePanel(cx, info, chapters, playbackInfo),
+		p.picturePanel(cx, aspect),
 	}}
 }
 

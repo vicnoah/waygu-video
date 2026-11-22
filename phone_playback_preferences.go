@@ -44,17 +44,6 @@ func readPlaybackPreferences(storage core.Storage) playbackPreferences {
 	return prefs
 }
 
-func (p playbackPreferences) resizeMode() core.ResizeMode {
-	switch p.Picture {
-	case "crop":
-		return core.Cover
-	case "stretch":
-		return core.Stretch
-	default:
-		return core.Contain
-	}
-}
-
 func (p playbackPreferences) backStep() time.Duration {
 	return time.Duration(p.BackSeconds) * time.Second
 }

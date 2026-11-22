@@ -6,8 +6,10 @@ The Compose project starts dedicated loopback-only Jellyfin, Emby and Plex serve
 sh integration/servers/fixtures.sh
 docker compose -f integration/servers/compose.yaml up -d --wait --wait-timeout 150
 python3 integration/servers/bootstrap.py
-WAYGU_TEST_SERVERS=1 go tool nsgo test . -count=1 -v
+GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 go tool nsgo test ./... -count=1 -v
 ```
+
+The app and media adapter tests share the fixture accounts. Run the packages serially so one package can check a bookmark or favorite before another changes it.
 
 The tests log in, read movie and television libraries, search, load details and episodes, resolve a playable MP4, and verify two HTTP byte ranges. With a 300 kbps limit, they follow the HLS playlist through the playback proxy and verify the first MPEG-TS segment served by each transcoder. Jellyfin also verifies Quick Connect before and after another signed-in client approves the code. A six-minute clip verifies start, pause/progress and stop events and the resume position returned by each server. Set the same `WAYGU_TEST_PASSWORD` for the bootstrap and the tests to change the local fixture account password before the initial setup.
 
@@ -45,6 +47,6 @@ With the same three fixtures, `TestDockerOfflineDownloadReview` saves an origina
 
 `TestDockerPhoneSourceSettingsReview` checks authenticated library reads and refreshes on Emby, Jellyfin and Plex. It also checks the saved source order after button and drag reordering, matching preferences, and local removal after a swipe. `TestPhoneSourceSettingsOfflineAndEmpty` uses a loopback HTTP 503 response for the offline card and verifies that adding a source is available after the last source is removed.
 
-`TestDockerPhonePlayerDesignReview` starts the generated track test movie through its Emby detail page. The native run decodes actual video and selects an external subtitle delivered by Emby. Its DandanPlay transport supplies generated comments locally. The headless run imports the corresponding XML fixture and verifies the same controls without a system file picker.
+`TestDockerPhonePlayerDesignReview` starts the generated track test movie through its Emby detail page. The native run decodes the video, selects an external Emby subtitle, checks all six aspect choices, and uses chapter times to verify an A/B repeat. It advances the test clock to exercise the sleep timer while the video plays. Its DandanPlay transport supplies generated comments locally. The headless run imports the corresponding XML fixture and checks that stale decoder notifications during a loop do not end playback.
 
 `TestDockerServers` compares the four chapter names and times reported by each service to the embedded chapter metadata. `TestDockerPhonePlayerGesturesAndPreview` plays the Jellyfin copy, jumps to a chapter, and checks slider commits, lock behavior and the thumbnail returned by Jellyfin while the slider is held. The headless case also verifies the temporary speed command and its restoration after cancellation. On an existing Docker setup, run `fixtures.sh` and `bootstrap.py` again to import the chaptered fixture.
