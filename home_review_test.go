@@ -124,5 +124,5 @@ func homeReviewSources(t *testing.T) (map[string]string, map[string]string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return map[string]string{sourcesKey: string(data)}, secrets
+	return map[string]string{sourcesKey: string(data), deviceKey: device.ID}, secrets
 }

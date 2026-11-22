@@ -112,10 +112,23 @@ func (a *application) desktopLibraryResults(cx *core.Scope, rows *core.Memo[[]de
 		}
 		return core.View{Class: "gap-1 items-center", Children: entries}
 	})
-	return core.View{Class: "min-h-0 flex-1 flex-row gap-3", Children: []core.Node{
-		results,
-		core.Scroll{Class: "w-5 shrink-0", HideIndicator: true, TestID: "desktop-library-index", Children: []core.Node{
-			core.View{Class: "pt-2", Children: []core.Node{index}},
+	partialFailure := core.Dynamic(func(cx *core.Scope) core.Node {
+		err := failure()
+		if err == nil || waiting() || len(rows.Get()) == 0 {
+			return nil
+		}
+		return core.View{Class: "flex-row items-center justify-between gap-3 p-3 rounded-xl " + desktopLibrarySurface, Children: []core.Node{
+			core.Text{Content: errorText(cx, err), Class: "min-w-0 flex-1 text-sm " + setupMuted},
+			ui.Button{Text: locales.Retry(cx), TestID: "desktop-library-retry", Variant: ui.ButtonOutline, OnPress: retry},
+		}}
+	})
+	return core.View{Class: "min-h-0 flex-1 gap-3", Children: []core.Node{
+		partialFailure,
+		core.View{Class: "min-h-0 flex-1 flex-row gap-3", Children: []core.Node{
+			results,
+			core.Scroll{Class: "w-5 shrink-0", HideIndicator: true, TestID: "desktop-library-index", Children: []core.Node{
+				core.View{Class: "pt-2", Children: []core.Node{index}},
+			}},
 		}},
 	}}
 }

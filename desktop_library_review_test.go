@@ -58,7 +58,12 @@ func TestDockerDesktopLibraryReview(t *testing.T) {
 				nsgotest.Storage(config), nsgotest.Secrets(secrets))
 			app.Press("id:tab-library")
 			summary := func() string { return app.Find("id:desktop-library-summary").Text }
-			app.WaitUntil(10*time.Second, func() bool { return strings.Contains(summary(), "来自 3 个媒体源") })
+			allSources := func() bool { return strings.Contains(summary(), "来自 3 个媒体源") }
+			app.WaitUntil(10*time.Second, func() bool { return allSources() || app.Exists("id:desktop-library-retry") })
+			if !allSources() {
+				app.Press("id:desktop-library-retry")
+				app.WaitUntil(10*time.Second, allSources)
+			}
 			if !strings.Contains(summary(), "共") && !strings.Contains(summary(), "已知") {
 				t.Fatalf("missing file sizes from catalog: %s", summary())
 			}

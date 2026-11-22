@@ -19,7 +19,7 @@ Scenra specifies both modes through the toolbar. These app captures use an Emby 
 | Area | Comparison |
 | --- | --- |
 | Grid | The viewport shows seven 144 × 208 pt covers with 16 pt horizontal gaps at the reference width. The card exposes the format badge, watched state, progress, title and first genre. The bottom inset scrolls out of view when more rows follow. |
-| Header and filters | The header shows the filtered count and reports known file sizes. The seven sort options, three view modes and shuffle are available. Genre, year, resolution, video range, source, unwatched and favorite filters can be combined. |
+| Header and filters | The header shows the filtered count and reports known file sizes. The seven sort options, three view modes and shuffle are available. Genre, year, resolution, video range, source, unwatched and favorite filters can be combined. If a source fails, the library keeps the available titles and offers a retry. |
 | Index | The right-hand rail shows initials present in the current results. Titles use Mandarin pinyin or a Latin initial where available. The GTK test clicks Z and verifies the grid scrolls to the corresponding titles at 1440 × 900 pt. |
 | Sidebar | The application highlights the active destination and shows the current server names and status. Category totals and the native macOS window controls shown in Scenra remain pending. |
 | Smart collections | The filter dialog saves the current filters and sort order to a named sidebar entry. The interaction checks cover saving, reopening, deleting and restoring an entry from storage. Scenra describes this interaction without supplying a dialog frame. |
