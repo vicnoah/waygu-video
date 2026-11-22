@@ -108,6 +108,32 @@ def onboarding_smoke():
     print("Android TV onboarding, server setup and settings passed using only the remote.")
 
 
+def flymoo_connect_smoke():
+    select_with_remote("add-source")
+    select_with_remote("choose-flymoo")
+    select_with_remote("flymoo-fn-connect")
+    expect_focus("flymoo-fn-id")
+    key("BACK")
+    time.sleep(0.6)
+    key("BACK")
+    expect_focus("flymoo-fn-connect")
+
+    key("DPAD_CENTER")
+    expect_focus("flymoo-fn-id")
+    adb("shell", "input", "text", "living-room7")
+    key("BACK")
+    time.sleep(0.6)
+    key("DPAD_DOWN")
+    expect_focus("flymoo-fn-cancel")
+    key("DPAD_RIGHT")
+    expect_focus("flymoo-fn-apply")
+    key("DPAD_CENTER")
+    expect_focus("flymoo-fn-connect")
+    if visible_label("server-address") != "living-room7.fnos.net/v":
+        raise RuntimeError("The Flymoo FN ID did not fill the gateway address.")
+    print("Android TV Flymoo FN Connect passed focus restoration and Apply.")
+
+
 def open_featured_details():
     visible("home-hero-play")
     expect_focus("home-hero-play")
@@ -225,8 +251,12 @@ if __name__ == "__main__":
                       help="test remote playback against a featured movie")
     mode.add_argument("--with-settings", action="store_true",
                       help="test the TV settings categories and controls against a connected library")
+    mode.add_argument("--with-flymoo-connect", action="store_true",
+                      help="test the Flymoo FN ID dialog and remote focus from welcome")
     args = parser.parse_args()
-    if args.with_player:
+    if args.with_flymoo_connect:
+        flymoo_connect_smoke()
+    elif args.with_player:
         player_smoke()
     elif args.with_settings:
         settings_smoke()

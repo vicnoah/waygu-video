@@ -146,3 +146,18 @@ GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 go tool nsgo test ./... \
 go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerSourceAdvancedConnection$' -screenshots .nsgo/ui-review/source-import
 ```
+
+
+## Flymoo media gateway
+
+`TestFlymooGatewayCompatibilityAndScope` exercises a local `/v` path, a port and prefix change on the original hostname, the HTTPS certificate approval at the destination, and the request-header scope. Its fixtures reject a hostname change, HTTPS downgrade, redirect loop, target without a public Flymoo response, and a different saved server ID before login. `TestFlymooDefaultPortsAndFNID` covers fnOS port defaults, explicit addresses, IPv6 and FN ID validation. [fnOS port configuration](https://help.fnnas.com/articles/v1/settings/port-customization) · [fnOS remote access](https://help.fnnas.com/articles/v1/access/how-access) · [Flymoo reference redirect tests](https://github.com/vicnoah/fnmovie/blob/de2b3dd817011de1e5f54b65b5bcb8310431b306/internal/app/server_test.go#L704)
+
+`TestFlymooGatewayConnectionReview` runs the connection UI in both appearances. It checks the HTTPS address generated from an FN ID, then connects to a local gateway at a different port and records the resolved URL, library and title count. It searches for the fixture and opens the player. With the generated clip present, GTK reads the MP4 from the gateway with the session token and advances the native player clock. The fixture supplies Flymoo API responses and uses no FN Connect account or remote server.
+
+```sh
+sh integration/servers/fixtures.sh
+go tool nsgo test . -run '^TestFlymoo(Gateway|DefaultPortsAndFNID)' -count=1
+go tool nsgo test -target linux -run '^TestFlymooGatewayConnectionReview$' \
+  -env "WAYGU_TEST_FLYMOO_CLIP=$PWD/integration/servers/media/Movies/Waygu Track Test (2025)/Waygu Track Test (2025).mp4" \
+  -screenshots .nsgo/ui-review/flymoo-gateway
+```

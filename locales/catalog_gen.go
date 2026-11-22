@@ -370,6 +370,12 @@ const (
 	textConnectionTesting
 	textConnectionLAN
 	textConnectionRemote
+	textFlymooLoginIntro
+	textFlymooFNConnect
+	textFlymooFNTitle
+	textFlymooFNID
+	textFlymooFNInvalid
+	textFlymooGatewayRejected
 	textTrustSourceCertificate
 	textSourceCertificateRejected
 	textApproveSourceCertificate
@@ -1231,6 +1237,12 @@ var keyOfText = [numTexts]string{
 	"connectionTesting",
 	"connectionLAN",
 	"connectionRemote",
+	"flymooLoginIntro",
+	"flymooFNConnect",
+	"flymooFNTitle",
+	"flymooFNID",
+	"flymooFNInvalid",
+	"flymooGatewayRejected",
 	"trustSourceCertificate",
 	"sourceCertificateRejected",
 	"approveSourceCertificate",
@@ -2090,6 +2102,12 @@ var textsEn = i18n.NewTexts(""+
 	"Testing…"+
 	"Local network"+
 	"Remote"+
+	"Sign in with your fnOS account"+
+	"Use an FN Connect ID"+
+	"FN Connect"+
+	"FN ID"+
+	"Enter an FN ID using letters, numbers, or hyphens."+
+	"Could not verify the new Flymoo gateway. Check its address and test the connection again."+
 	"Trust server certificate"+
 	"The server certificate could not be verified."+
 	"Trust certificate"+
@@ -2946,6 +2964,12 @@ var textsEn = i18n.NewTexts(""+
 		10,
 		13,
 		6,
+		30,
+		20,
+		10,
+		5,
+		50,
+		89,
 		24,
 		45,
 		17,
@@ -3805,6 +3829,12 @@ var textsZhHans = i18n.NewTexts(""+
 	"测试中…"+
 	"局域网"+
 	"外网"+
+	"使用飞牛 fnOS 账号登录"+
+	"支持 FN Connect 远程访问 ID"+
+	"FN Connect"+
+	"FN ID"+
+	"请输入由字母、数字或连字符组成的 FN ID。"+
+	"无法验证新的飞牛影视网关。请检查地址后重新测试。"+
 	"信任服务器证书"+
 	"无法验证服务器证书。"+
 	"信任证书"+
@@ -4661,6 +4691,12 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		9,
 		6,
+		30,
+		33,
+		10,
+		5,
+		57,
+		72,
 		21,
 		30,
 		12,
@@ -6375,6 +6411,48 @@ func ConnectionRemote(cx *core.Scope) string { return For(cx).ConnectionRemote()
 
 // ConnectionRemote is the package's ConnectionRemote in the language of msgs.
 func (msgs Messages) ConnectionRemote() string { return msgs.text(textConnectionRemote) }
+
+// FlymooLoginIntro says "Sign in with your fnOS account"
+// in the language the app shows under cx.
+func FlymooLoginIntro(cx *core.Scope) string { return For(cx).FlymooLoginIntro() }
+
+// FlymooLoginIntro is the package's FlymooLoginIntro in the language of msgs.
+func (msgs Messages) FlymooLoginIntro() string { return msgs.text(textFlymooLoginIntro) }
+
+// FlymooFNConnect says "Use an FN Connect ID"
+// in the language the app shows under cx.
+func FlymooFNConnect(cx *core.Scope) string { return For(cx).FlymooFNConnect() }
+
+// FlymooFNConnect is the package's FlymooFNConnect in the language of msgs.
+func (msgs Messages) FlymooFNConnect() string { return msgs.text(textFlymooFNConnect) }
+
+// FlymooFNTitle says "FN Connect"
+// in the language the app shows under cx.
+func FlymooFNTitle(cx *core.Scope) string { return For(cx).FlymooFNTitle() }
+
+// FlymooFNTitle is the package's FlymooFNTitle in the language of msgs.
+func (msgs Messages) FlymooFNTitle() string { return msgs.text(textFlymooFNTitle) }
+
+// FlymooFNID says "FN ID"
+// in the language the app shows under cx.
+func FlymooFNID(cx *core.Scope) string { return For(cx).FlymooFNID() }
+
+// FlymooFNID is the package's FlymooFNID in the language of msgs.
+func (msgs Messages) FlymooFNID() string { return msgs.text(textFlymooFNID) }
+
+// FlymooFNInvalid says "Enter an FN ID using letters, numbers, or hyphens."
+// in the language the app shows under cx.
+func FlymooFNInvalid(cx *core.Scope) string { return For(cx).FlymooFNInvalid() }
+
+// FlymooFNInvalid is the package's FlymooFNInvalid in the language of msgs.
+func (msgs Messages) FlymooFNInvalid() string { return msgs.text(textFlymooFNInvalid) }
+
+// FlymooGatewayRejected says "Could not verify the new Flymoo gateway. Check its address and test the connection again."
+// in the language the app shows under cx.
+func FlymooGatewayRejected(cx *core.Scope) string { return For(cx).FlymooGatewayRejected() }
+
+// FlymooGatewayRejected is the package's FlymooGatewayRejected in the language of msgs.
+func (msgs Messages) FlymooGatewayRejected() string { return msgs.text(textFlymooGatewayRejected) }
 
 // TrustSourceCertificate says "Trust server certificate"
 // in the language the app shows under cx.

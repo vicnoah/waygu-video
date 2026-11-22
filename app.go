@@ -411,6 +411,8 @@ func errorText(cx *core.Scope, err error) string {
 		return locales.SourceProbeDenied(cx)
 	case errors.Is(err, errSourceHeadersUnavailable):
 		return locales.SourceHeadersUnavailable(cx)
+	case errors.Is(err, media.ErrFlymooGateway):
+		return locales.FlymooGatewayRejected(cx)
 	case errors.Is(err, errDifferentServer):
 		return locales.SourceDifferentServer(cx)
 	case errors.Is(err, media.ErrInvalidAddress):

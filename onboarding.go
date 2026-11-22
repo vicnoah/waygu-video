@@ -139,51 +139,61 @@ func welcomeFeature(icon *core.SVG, padding, background, tint, title, detail str
 }
 
 func (a *application) connectServer(ctx context.Context, form source, input media.Credentials, method connectionMethod, showCode func(string)) (candidateSource, error) {
-	guest, err := a.sourceClient(form, form.Address, media.Session{}, false)
-	if err != nil {
-		return candidateSource{}, err
-	}
-	endpoint := sourceEndpoint{address: form.Address}
-	probe := ctx
-	stop := func() {}
+	timeout := 8 * time.Second
 	if form.RemoteAddress != "" {
-		probe, stop = context.WithTimeout(ctx, 2*time.Second)
+		timeout = 2 * time.Second
 	}
 	started := time.Now()
-	info, err := guest.Probe(probe)
+	probed, err := a.probeConnectionAddress(ctx, form, form.Address, timeout)
 	latency := time.Since(started)
-	err = sourceAddressError(endpoint.address, err)
-	stop()
 	var verification *sourceCertificateError
-	if errors.As(err, &verification) {
+	if errors.As(err, &verification) || errors.Is(err, media.ErrFlymooGateway) {
 		return candidateSource{}, err
 	}
-	if form.RemoteAddress != "" {
-		if err != nil {
-			if form.ServerID == "" || form.RemoteDisabled || !a.routesEnabled.Load() || ctx.Err() != nil {
-				return candidateSource{}, err
-			}
-			endpoint = sourceEndpoint{address: form.RemoteAddress, remote: true}
-			started = time.Now()
-			info, err = a.verifySourceAddress(ctx, form, endpoint.address, form.ServerID, 3*time.Second)
-			latency = time.Since(started)
-			if err == nil {
-				guest, err = a.sourceClient(form, endpoint.address, media.Session{}, false)
-			}
-		} else {
-			_, err = a.verifySourceAddress(ctx, form, form.RemoteAddress, info.ID, 3*time.Second)
+	endpoint := sourceEndpoint{address: probed.address}
+	if form.RemoteAddress != "" && err != nil {
+		if form.ServerID == "" || form.RemoteDisabled || !a.routesEnabled.Load() || ctx.Err() != nil {
+			return candidateSource{}, err
 		}
+		started = time.Now()
+		probed, err = a.verifyConnectionAddress(ctx, form, form.RemoteAddress, form.ServerID, 3*time.Second)
+		latency = time.Since(started)
 		if err != nil {
 			return candidateSource{}, err
 		}
+		endpoint = sourceEndpoint{address: probed.address, remote: true}
 	}
-	if err != nil && (method == probeConnection || form.Provider != media.Flymoo) {
+	if err != nil && (method == probeConnection || form.Provider != media.Flymoo || probed.client == nil || ctx.Err() != nil) {
 		return candidateSource{}, err
 	}
+	info := probed.info
+	if form.Provider == media.Flymoo && form.ServerID != "" && info.ID != "" && form.ServerID != info.ID {
+		return candidateSource{}, errDifferentServer
+	}
+	if !endpoint.remote {
+		if sourceOrigin(form.Address) != sourceOrigin(endpoint.address) {
+			form.HeaderSecret, form.headerDraft = "", nil
+		}
+		form.Address = endpoint.address
+		if form.RemoteAddress != "" {
+			backup, err := a.verifyConnectionAddress(ctx, form, form.RemoteAddress, info.ID, 3*time.Second)
+			if err != nil {
+				return candidateSource{}, err
+			}
+			form.RemoteAddress = backup.address
+		}
+	} else {
+		form.RemoteAddress = endpoint.address
+	}
+	if form.Address == form.RemoteAddress {
+		return candidateSource{}, media.ErrInvalidAddress
+	}
+	form.Certificates = routeCertificates(form.Certificates, form.Address, form.RemoteAddress)
 	result := candidateSource{source: form, info: info, endpoint: endpoint, latency: latency}
 	if method == probeConnection {
 		return result, nil
 	}
+	guest := probed.client
 	var session media.Session
 	if method == quickConnection {
 		session, err = awaitQuickConnect(ctx, guest, showCode)

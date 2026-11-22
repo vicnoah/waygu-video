@@ -50,6 +50,12 @@ connectionTesting: Testing…
 connectionLatency: "Latency {milliseconds} ms"
 connectionLAN: Local network
 connectionRemote: Remote
+flymooLoginIntro: Sign in with your fnOS account
+flymooFNConnect: Use an FN Connect ID
+flymooFNTitle: FN Connect
+flymooFNID: FN ID
+flymooFNInvalid: Enter an FN ID using letters, numbers, or hyphens.
+flymooGatewayRejected: Could not verify the new Flymoo gateway. Check its address and test the connection again.
 trustSourceCertificate: Trust server certificate
 sourceCertificateRejected: The server certificate could not be verified.
 sourceCertificateDetails: |-

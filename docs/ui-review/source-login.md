@@ -19,7 +19,7 @@ Each strip shows the original empty form on the left, the design's authenticated
 
 ## Jellyfin and Flymoo
 
-Each pair shows the Scenra tab on the left and the native app on the right. The design draws a short introduction for each tab. The app provides a working form in the same grouped style. These panels retain a layout difference under the reference as written. Flymoo FN Connect remote access remains pending.
+Each pair shows the Scenra tab on the left and the native app on the right. Jellyfin shows a working sign-in form below the provider tabs, where Scenra shows an introduction. The Flymoo introduction uses Scenra’s icon, text, card spacing and colors. The GTK form continues below that card with sign-in fields. The capture has four provider tabs and omits the phone’s bezel and status bar. Those layout differences are visible in the comparison. The introduction opens an FN ID dialog. Applying the ID fills the HTTPS media gateway address, and the user can test it and sign in with their fnOS account.
 
 ![Jellyfin design and app in light appearance](images/source-login-jellyfin-light.png)
 
@@ -28,6 +28,14 @@ Each pair shows the Scenra tab on the left and the native app on the right. The 
 ![Flymoo design and app in light appearance](images/source-login-flymoo-light.png)
 
 ![Flymoo design and app in dark appearance](images/source-login-flymoo-dark.png)
+
+Each row below shows the FN ID dialog and the authenticated connection result with a local protocol fixture. Scenra specifies the FN Connect entry and the library import flow. The ID dialog uses the app's existing dialog styling. The test verifies the generated HTTPS address locally and sends the credentials to the synthetic gateway only after its public configuration responds. The connection result uses the actual gateway path and shows one available title. Physical NAS verification, FN Connect portal route selection and access codes remain pending. [Source connection flow](../../design/flows/source-connect.scenra) · [Connection fixture](../../integration/servers/TESTING.md#flymoo-media-gateway)
+
+![Flymoo FN ID dialog and successful gateway sign-in in light and dark appearances](images/source-flymoo-gateway.png)
+
+On the Android TV x86-64 emulator, Select opens the dialog and focuses the FN ID field. Back first dismisses the system keyboard, then closes the dialog and restores focus to the introduction card. After entering an ID, the D-pad moves to Cancel and then Apply. The left capture shows restored focus after Back. The right capture shows Apply focused before the app fills the gateway address. Run the installed-APK check from the welcome screen with `python3 build/android/tv-smoke.py --with-flymoo-connect`.
+
+![Android TV Flymoo introduction and FN ID dialog showing remote focus](images/android-tv-flymoo-connect.png)
 
 ## Plex
 

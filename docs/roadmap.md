@@ -4,10 +4,10 @@ The Scenra files in `design/` define the product. The current app connects to Em
 
 ## Media sources
 
-- Emby and Jellyfin support LAN discovery by UDP. Add Flymoo LAN discovery and FN Connect.
+- Emby and Jellyfin support LAN discovery by UDP. Flymoo supports standard fnOS LAN ports, the media gateway path, same-host gateway redirects, and filling the HTTPS gateway address from an FN ID. Add Flymoo LAN discovery and FN Connect portal route selection and access-code support.
 - The import form shows each authenticated library’s title count. Its library badges open category and home visibility options. Saved libraries support visibility and per-source ordering. The phone source settings refresh the server’s library list. Refreshes keep visibility, categories and ordering for known libraries and hide new libraries until they are enabled.
 - All Sources combines movies and series with matching IMDb or TMDB IDs. Source order supplies the default copy. The media source settings let users reorder sources and turn matching off. A configured backup address must report the saved server ID before the app uses the account. New requests prefer the local address and can fall back to the verified backup. A failed player can reopen the selected version on the other address at its last position. The desktop settings expose a separate remote bitrate limit. Native clients can approve an HTTPS certificate fingerprint and store custom request headers for a specific server origin. The connection form reports measured latency and can retest without discarding import selections. Verify network changes on devices and account recovery. [Connection review](ui-review/source-login.md)
-- Verify Plex account authorization with a real account and a claimed server, including remote and relay connections. Extend Flymoo fixture coverage for artwork, authentication redirects and version-specific payloads.
+- Verify Plex account authorization with a real account and a claimed server, including remote and relay connections. Verify Flymoo against a physical NAS and extend fixture coverage for artwork, signed media reads and version-specific payloads.
 
 ## Playback and library
 

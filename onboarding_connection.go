@@ -44,6 +44,7 @@ func (a *application) connect(cx *core.Scope, current route) core.Node {
 	provider := core.NewSignal(cx, current.provider)
 	candidate := core.NewSignal[*candidateSource](cx, nil)
 	saving := core.NewSignal(cx, false)
+	fnConnect := core.NewSignal(cx, false)
 	back := func() {
 		if saving.GetUntracked() {
 			return
@@ -66,9 +67,11 @@ func (a *application) connect(cx *core.Scope, current route) core.Node {
 		name := providerName(cx, option.provider)
 		selected := func() bool { return provider.Get() == option.provider }
 		tabs = append(tabs, base.Button{Label: name, Role: core.RoleTab, Selected: selected, TestID: "connect-" + string(option.provider),
-			Class:    "group flex-1 items-center justify-center rounded-lg py-2 selected:bg-white selected:shadow-sm dark:selected:bg-[#1a1b25]",
-			Style:    core.Style{FocusVisible: ui.FocusRing(cx, -2)},
-			Disabled: func() bool { return saving.Get() || (current.source.ID != "" && option.provider != current.provider) },
+			Class: "group flex-1 items-center justify-center rounded-lg py-2 selected:bg-white selected:shadow-sm dark:selected:bg-[#1a1b25]",
+			Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)},
+			Disabled: func() bool {
+				return saving.Get() || fnConnect.Get() || (current.source.ID != "" && option.provider != current.provider)
+			},
 			OnPress: func(core.PressEvent) {
 				if provider.GetUntracked() != option.provider {
 					cx.Batch(func() {
@@ -85,15 +88,15 @@ func (a *application) connect(cx *core.Scope, current route) core.Node {
 		core.Dynamic(func(cx *core.Scope) core.Node {
 			kind := provider.Get()
 			if kind == current.provider {
-				return a.connectionForm(cx, kind, current.source, candidate, saving)
+				return a.connectionForm(cx, kind, current.source, candidate, saving, fnConnect)
 			}
-			return a.connectionForm(cx, kind, source{}, candidate, saving)
+			return a.connectionForm(cx, kind, source{}, candidate, saving, fnConnect)
 		}),
 	}})
 }
 
-func (a *application) connectionForm(cx *core.Scope, provider media.Provider, current source, candidate *core.Signal[*candidateSource], saving *core.Signal[bool]) core.Node {
-	host, servicePort, useHTTPS := splitServerAddress(current.Address)
+func (a *application) connectionForm(cx *core.Scope, provider media.Provider, current source, candidate *core.Signal[*candidateSource], saving, fnConnect *core.Signal[bool]) core.Node {
+	host, servicePort, useHTTPS := sourceAddressFields(provider, current.Address)
 	address := core.NewSignal(cx, host)
 	remote := core.NewSignal(cx, current.RemoteAddress)
 	port := core.NewSignal(cx, servicePort)
@@ -147,13 +150,34 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 		failure.Set(nil)
 		preview.Set(nil)
 	}
+	updateAddress := func(value string) {
+		address.Set(value)
+		clearResult()
+	}
+	setEndpoint := func(raw string) {
+		host, servicePort, useHTTPS := sourceAddressFields(provider, raw)
+		cx.Batch(func() {
+			updateAddress(host)
+			port.Set(servicePort)
+			https.Set(useHTTPS)
+		})
+	}
+	approvedForForm := func(primary, backup string) []mediatls.Trust {
+		pins := approved.GetUntracked()
+		if provider == media.Flymoo {
+			// A public probe may need a certificate approved at the redirected
+			// port. The saved source retains only its final origin and backup.
+			return pins
+		}
+		return routeCertificates(pins, primary, backup)
+	}
 	var submit func(connectionMethod)
 	submit = func(method connectionMethod) {
 		pending := candidate.GetUntracked()
-		if busy.GetUntracked() || saving.GetUntracked() || (pending != nil && method != probeConnection) {
+		if busy.GetUntracked() || saving.GetUntracked() || fnConnect.GetUntracked() || (pending != nil && method != probeConnection) {
 			return
 		}
-		base, err := serverAddress(address.GetUntracked(), port.GetUntracked(), https.GetUntracked())
+		base, err := sourceAddress(provider, address.GetUntracked(), port.GetUntracked(), https.GetUntracked())
 		if err != nil {
 			failure.Set(err)
 			return
@@ -166,7 +190,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 		form := source{ID: current.ID, Address: base.String(), Provider: provider, RemoteAddress: alternate,
 			RemoteDisabled: current.RemoteDisabled, RemoteBitrate: current.RemoteBitrate,
 			Name: strings.TrimSpace(name.GetUntracked()), Username: strings.TrimSpace(user.GetUntracked())}
-		form.Certificates = routeCertificates(approved.GetUntracked(), form.Address, form.RemoteAddress)
+		form.Certificates = approvedForForm(form.Address, form.RemoteAddress)
 		if origin := sourceOrigin(form.Address); origin == savedOrigin {
 			form.HeaderSecret = current.HeaderSecret
 		}
@@ -175,7 +199,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 		}
 		if pending != nil {
 			form = pending.source
-			form.Certificates = routeCertificates(approved.GetUntracked(), form.Address, form.RemoteAddress)
+			form.Certificates = approvedForForm(form.Address, form.RemoteAddress)
 		}
 		if form.Address == current.Address {
 			form.ServerID = current.ServerID
@@ -200,8 +224,12 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 					}
 				})
 			})
-			if err == nil && pending != nil && pending.info.ID != "" && result.info.ID != pending.info.ID {
-				err = errDifferentServer
+			if err == nil && pending != nil {
+				if pending.info.ID != "" && result.info.ID != pending.info.ID {
+					err = errDifferentServer
+				} else if provider == media.Flymoo && pending.endpoint != result.endpoint {
+					err = media.ErrFlymooGateway
+				}
 			}
 			if method == probeConnection && errors.Is(err, media.ErrAuthentication) {
 				err = errSourceProbeDenied
@@ -215,9 +243,15 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 					quickCode.Set("")
 					showError(err, func() { submit(probeConnection) })
 					if err == nil {
+						if provider == media.Flymoo && pending == nil && form.Address != result.source.Address {
+							setEndpoint(result.source.Address)
+						}
+						if provider == media.Flymoo && pending == nil && form.RemoteAddress != result.source.RemoteAddress {
+							remote.Set(result.source.RemoteAddress)
+						}
 						preview.Set(&candidateSource{info: result.info, endpoint: result.endpoint, latency: result.latency})
 						if pending != nil {
-							pending.source.Certificates = form.Certificates
+							pending.source.Certificates = result.source.Certificates
 						}
 						if method != probeConnection {
 							password.Set("")
@@ -229,20 +263,10 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			})
 		}()
 	}
-	disabled := func() bool { return busy.Get() || candidate.Get() != nil || editHeaders.Get() != nil }
+	disabled := func() bool {
+		return busy.Get() || candidate.Get() != nil || editHeaders.Get() != nil || fnConnect.Get()
+	}
 	httpsLabel := locales.UseHTTPS(cx)
-	updateAddress := func(value string) {
-		address.Set(value)
-		clearResult()
-	}
-	setEndpoint := func(raw string) {
-		host, servicePort, useHTTPS := splitServerAddress(raw)
-		cx.Batch(func() {
-			updateAddress(host)
-			port.Set(servicePort)
-			https.Set(useHTTPS)
-		})
-	}
 	var scan core.Node
 	if cx.Env().CanScanCode() {
 		label := locales.ScanServerAddress(cx)
@@ -278,6 +302,20 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 	portEntry := entry("server-port", locales.ServerPort(cx), "", port, core.KeyboardNumber, 0)
 	portEntry.OnChange = func(value string) { port.Set(value); clearResult() }
 	portEntry.PlaceholderFunc = func() string {
+		if provider == media.Flymoo {
+			if strings.TrimSpace(address.Get()) == "" {
+				return flymooPort(https.Get())
+			}
+			if endpoint, err := sourceAddress(provider, address.Get(), "", https.Get()); err == nil {
+				if explicit := endpoint.Port(); explicit != "" {
+					return explicit
+				}
+				if endpoint.Scheme == "https" {
+					return "443"
+				}
+				return "80"
+			}
+		}
 		if https.Get() {
 			return "443"
 		}
@@ -339,7 +377,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 	remoteEntry.Class += " text-right"
 	remoteEntry.OnChange = func(value string) { remote.Set(value); clearResult() }
 	approvedOnForm := func() bool {
-		base, _ := serverAddress(address.Get(), port.Get(), https.Get())
+		base, _ := sourceAddress(provider, address.Get(), port.Get(), https.Get())
 		local := ""
 		if base != nil {
 			local = base.String()
@@ -366,7 +404,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 		ThumbClass: "size-[27px] rounded-full bg-white shadow-md", Children: []core.Node{core.Text{Content: trustLabel, Class: "text-[15px] " + setupTitle}},
 	}
 	formOrigin := func() string {
-		base, err := serverAddress(address.Get(), port.Get(), https.Get())
+		base, err := sourceAddress(provider, address.Get(), port.Get(), https.Get())
 		if err != nil {
 			return ""
 		}
@@ -457,7 +495,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			clearResult()
 			draft := current
 			draft.RemoteAddress = alternate
-			draft.Certificates = routeCertificates(approved.GetUntracked(), draft.Address, alternate)
+			draft.Certificates = approvedForForm(draft.Address, alternate)
 			save := func() error {
 				return a.updateSourceRouting(current, func(saved *source) {
 					saved.RemoteAddress = draft.RemoteAddress
@@ -465,6 +503,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 				})
 			}
 			if alternate == "" {
+				draft.Certificates = routeCertificates(draft.Certificates, draft.Address)
 				if err := save(); err != nil {
 					failure.Set(err)
 				} else {
@@ -474,7 +513,14 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			}
 			busy.Set(true)
 			go func() {
-				_, err := a.verifySourceAddress(viewContext, draft, alternate, current.ServerID, 4*time.Second)
+				verified, err := a.verifyConnectionAddress(viewContext, draft, alternate, current.ServerID, 4*time.Second)
+				if err == nil {
+					draft.RemoteAddress = verified.address
+					if draft.RemoteAddress == draft.Address {
+						err = media.ErrInvalidAddress
+					}
+					draft.Certificates = routeCertificates(draft.Certificates, draft.Address, draft.RemoteAddress)
+				}
 				cx.Post(func() {
 					busy.Set(false)
 					if err != nil {
@@ -544,7 +590,24 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			},
 		}
 	})
+	var intro core.Node
+	if provider == media.Flymoo {
+		trigger := &core.Ref{}
+		closeFNConnect := func() {
+			fnConnect.Set(false)
+			if appLayoutIdiom(cx) == core.IdiomTV {
+				cx.Post(trigger.Focus)
+			}
+		}
+		intro = core.Group{
+			flymooConnectionIntro(cx, trigger, disabled, func() { fnConnect.Set(true) }),
+			core.Show{When: fnConnect.Get, Then: func(cx *core.Scope) core.Node {
+				return flymooFNConnectDialog(cx, closeFNConnect, setEndpoint)
+			}},
+		}
+	}
 	return core.View{Class: "gap-6", Children: []core.Node{
+		intro,
 		server,
 		review,
 		requestHeadersEditor,
@@ -555,7 +618,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			if err := failure.Get(); err != nil {
 				nodes := []core.Node{notice(errorText(cx, err))}
 				if receipt != nil {
-					nodes = append(nodes, sourceRetest(cx, busy.Get, saving.Get, func() { submit(probeConnection) }))
+					nodes = append(nodes, sourceRetest(cx, busy.Get, func() bool { return saving.Get() || fnConnect.Get() }, func() { submit(probeConnection) }))
 				}
 				return core.View{Class: "mx-4 gap-2", Children: nodes}
 			}
@@ -567,7 +630,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 				if result := candidate.Get(); result != nil {
 					user = result.source.Username
 				}
-				return sourceConnectionReceipt(cx, provider, *receipt, user, busy.Get, saving.Get, func() { submit(probeConnection) })
+				return sourceConnectionReceipt(cx, provider, *receipt, user, busy.Get, func() bool { return saving.Get() || fnConnect.Get() }, func() { submit(probeConnection) })
 			}
 			return nil
 		}),
@@ -577,10 +640,10 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			}
 			return core.View{Class: "mx-4 gap-2", Children: []core.Node{
 				core.Show{When: func() bool { return preview.Get() == nil }, Then: func(cx *core.Scope) core.Node {
-					return ui.Button{Text: locales.TestConnection(cx), Variant: ui.ButtonGhost, Disabled: busy.Get,
+					return ui.Button{Text: locales.TestConnection(cx), Variant: ui.ButtonGhost, Disabled: disabled,
 						TestID: "test-connection", OnPress: func() { submit(probeConnection) }}
 				}},
-				setupPrimary(cx, "sign-in", locales.SignIn(cx), busy.Get, nil, func() { submit(passwordConnection) }),
+				setupPrimary(cx, "sign-in", locales.SignIn(cx), busy.Get, disabled, func() { submit(passwordConnection) }),
 			}}
 		}),
 	}}

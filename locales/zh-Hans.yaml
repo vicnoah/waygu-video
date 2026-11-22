@@ -50,6 +50,12 @@ connectionTesting: 测试中…
 connectionLatency: "延迟 {milliseconds}ms"
 connectionLAN: 局域网
 connectionRemote: 外网
+flymooLoginIntro: 使用飞牛 fnOS 账号登录
+flymooFNConnect: 支持 FN Connect 远程访问 ID
+flymooFNTitle: FN Connect
+flymooFNID: FN ID
+flymooFNInvalid: 请输入由字母、数字或连字符组成的 FN ID。
+flymooGatewayRejected: 无法验证新的飞牛影视网关。请检查地址后重新测试。
 trustSourceCertificate: 信任服务器证书
 sourceCertificateRejected: 无法验证服务器证书。
 sourceCertificateDetails: |-
