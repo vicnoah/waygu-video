@@ -89,6 +89,8 @@ testConnection: 测试连接
 signIn: 登录
 connected: "已连接 {name}"
 signedInAs: "已登录为 {name}"
+importLibraryCount: "{count} 部"
+editImportLibrary: "设置{name}"
 importLibraries: 选择要导入的媒体库
 completeSource: 完成
 noLibraries: 此账号没有可导入的影视库。

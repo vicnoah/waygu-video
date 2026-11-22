@@ -1,12 +1,12 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"slices"
 	"strings"
 	"time"
 
-	"github.com/nsgo-dev/nsgo/base"
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/icons/lucide"
 	"github.com/nsgo-dev/nsgo/ui"
@@ -103,102 +103,63 @@ func libraryCategories(cx *core.Scope, defaultLabel string) []ui.Option[libraryC
 	}
 }
 
-func libraryEditor(cx *core.Scope, draft *core.Signal[[]sourceLibrary], importing bool, busy func() bool) core.Node {
-	options := libraryCategories(cx, locales.LibraryAutomaticCategory(cx))
+func editSourceLibrary(draft *core.Signal[[]sourceLibrary], id string, change func(*sourceLibrary)) {
+	libraries := draft.GetUntracked()
+	if index := slices.IndexFunc(libraries, func(library sourceLibrary) bool { return library.ID == id }); index >= 0 {
+		libraries = slices.Clone(libraries)
+		change(&libraries[index])
+		draft.Set(libraries)
+	}
+}
+
+func sourceLibraryPreferenceControls(cx *core.Scope, id string, item func() sourceLibrary, edit func(func(*sourceLibrary)), busy func() bool) core.Node {
+	return core.View{Class: "flex-row flex-wrap items-center gap-3", Children: []core.Node{
+		ui.Select[libraryCategory]{Options: libraryCategories(cx, locales.LibraryAutomaticCategory(cx)), Label: locales.LibraryCategory(cx),
+			TestID: "library-category-" + id, Disabled: busy, Value: func() libraryCategory { return item().Category },
+			OnChange: func(value libraryCategory) { edit(func(library *sourceLibrary) { library.Category = value }) }},
+		ui.Checkbox{Text: locales.ShowLibraryOnHome(cx), TestID: "library-home-" + id, Disabled: busy,
+			LabelFunc: func() string { return locales.ShowNamedLibraryOnHome(cx, cmp.Or(item().Name, id)) },
+			Checked:   func() bool { return !item().HideFromHome },
+			OnChange:  func(show bool) { edit(func(library *sourceLibrary) { library.HideFromHome = !show }) }},
+	}}
+}
+
+func libraryEditor(cx *core.Scope, draft *core.Signal[[]sourceLibrary], busy func() bool) core.Node {
 	return core.Each(draft.Get, func(library sourceLibrary) string { return library.ID },
 		func(cx *core.Scope, item func() sourceLibrary, index func() int) core.Node {
 			id := core.Untracked(cx, item).ID
 			name := func() string {
-				library := item()
-				if library.Name != "" {
+				if library := item(); library.Name != "" {
 					return library.Name
 				}
-				return library.ID
+				return id
 			}
-			edit := func(change func(*sourceLibrary)) {
+			edit := func(change func(*sourceLibrary)) { editSourceLibrary(draft, id, change) }
+			move := func(offset int) {
 				libraries := slices.Clone(draft.GetUntracked())
-				if at := slices.IndexFunc(libraries, func(library sourceLibrary) bool { return library.ID == id }); at >= 0 {
-					change(&libraries[at])
+				at := slices.IndexFunc(libraries, func(library sourceLibrary) bool { return library.ID == id })
+				to := at + offset
+				if at >= 0 && to >= 0 && to < len(libraries) {
+					libraries[at], libraries[to] = libraries[to], libraries[at]
 					draft.Set(libraries)
 				}
 			}
-			visible := ui.Checkbox{
-				TextFunc: name, TestID: "import-library-" + id, Disabled: busy,
-				Checked:  func() bool { return !item().Hidden },
-				OnChange: func(show bool) { edit(func(library *sourceLibrary) { library.Hidden = !show }) },
-			}
-			title := []core.Node{visible}
-			if importing {
-				title = []core.Node{base.Checkbox{
-					LabelFunc: name, TestID: visible.TestID, Disabled: busy, Checked: visible.Checked, OnChange: visible.OnChange,
-					Class: "min-h-12 flex-row-reverse items-center gap-3 px-4", Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)},
-					Indicator: core.Dynamic(func(*core.Scope) core.Node {
-						if visible.Checked() {
-							return core.Icon{SVG: lucide.CircleCheck(), Class: "size-5 " + setupAccent}
-						}
-						return core.Icon{SVG: lucide.Circle(), Class: "size-5 text-zinc-500/60 dark:text-zinc-400/60"}
-					}),
-					Children: []core.Node{core.View{Class: "flex-1 flex-row items-center gap-3", Children: []core.Node{
-						core.Dynamic(func(*core.Scope) core.Node {
-							icon, fill := lucide.Film(), "bg-violet-500"
-							switch item().category() {
-							case librarySeries:
-								icon = lucide.Tv()
-							case libraryAnime:
-								icon = lucide.Sparkles()
-							case libraryDocumentaries:
-								icon, fill = lucide.Globe(), "bg-slate-500"
-							}
-							return setupBadge(icon, fill)
-						}),
-						core.Text{ContentFunc: name, Class: "flex-1 text-[15px] " + setupTitle},
-					}}},
-				}}
-			} else {
-				visible.TextFunc = nil
-				visible.Text = locales.ShowLibrary(cx)
-				visible.LabelFunc = func() string { return locales.ShowNamedLibrary(cx, name()) }
-				visible.TestID = "library-visible-" + id
-				move := func(offset int) {
-					libraries := slices.Clone(draft.GetUntracked())
-					at := slices.IndexFunc(libraries, func(library sourceLibrary) bool { return library.ID == id })
-					to := at + offset
-					if at >= 0 && to >= 0 && to < len(libraries) {
-						libraries[at], libraries[to] = libraries[to], libraries[at]
-						draft.Set(libraries)
-					}
-				}
-				title = []core.Node{
-					core.View{Class: "flex-row flex-wrap items-center justify-between gap-2", Children: []core.Node{
-						core.Text{ContentFunc: name, Class: "text-base font-semibold flex-1"},
-						ui.IconButton{LabelFunc: func() string { return locales.MoveLibraryUp(cx, name()) }, Icon: lucide.ArrowUp, Size: 44,
-							TestID: "library-up-" + id, Disabled: func() bool { return busy() || index() == 0 }, OnPress: func() { move(-1) }},
-						ui.IconButton{LabelFunc: func() string { return locales.MoveLibraryDown(cx, name()) }, Icon: lucide.ArrowDown, Size: 44,
-							TestID: "library-down-" + id, Disabled: func() bool { return busy() || index() == len(draft.Get())-1 }, OnPress: func() { move(1) }},
-					}},
-					visible,
-				}
-			}
-			title = append(title, core.Show{When: func() bool { return !item().Hidden }, Then: func(cx *core.Scope) core.Node {
-				class := "flex-row flex-wrap items-center gap-3"
-				if importing {
-					class += " px-4 pb-2.5"
-				}
-				return core.View{Class: class, Children: []core.Node{
-					ui.Select[libraryCategory]{Options: options, Label: locales.LibraryCategory(cx), TestID: "library-category-" + id,
-						Disabled: busy, Value: func() libraryCategory { return item().Category }, OnChange: func(value libraryCategory) {
-							edit(func(library *sourceLibrary) { library.Category = value })
-						}},
-					ui.Checkbox{Text: locales.ShowLibraryOnHome(cx), TestID: "library-home-" + id, Disabled: busy,
-						LabelFunc: func() string { return locales.ShowNamedLibraryOnHome(cx, name()) },
-						Checked:   func() bool { return !item().HideFromHome },
-						OnChange:  func(show bool) { edit(func(library *sourceLibrary) { library.HideFromHome = !show }) }},
-				}}
-			}})
-			if importing {
-				return core.View{Class: "bg-white dark:bg-[#1a1b25]", Children: title}
-			}
-			return core.View{Class: "gap-2 rounded-xl border border-border p-3", Children: title}
+			return core.View{Class: "gap-2 rounded-xl border border-border p-3", Children: []core.Node{
+				core.View{Class: "flex-row flex-wrap items-center justify-between gap-2", Children: []core.Node{
+					core.Text{ContentFunc: name, Class: "text-base font-semibold flex-1"},
+					ui.IconButton{LabelFunc: func() string { return locales.MoveLibraryUp(cx, name()) }, Icon: lucide.ArrowUp, Size: 44,
+						TestID: "library-up-" + id, Disabled: func() bool { return busy() || index() == 0 }, OnPress: func() { move(-1) }},
+					ui.IconButton{LabelFunc: func() string { return locales.MoveLibraryDown(cx, name()) }, Icon: lucide.ArrowDown, Size: 44,
+						TestID: "library-down-" + id, Disabled: func() bool { return busy() || index() == len(draft.Get())-1 }, OnPress: func() { move(1) }},
+				}},
+				ui.Checkbox{Text: locales.ShowLibrary(cx), TestID: "library-visible-" + id, Disabled: busy,
+					LabelFunc: func() string { return locales.ShowNamedLibrary(cx, name()) },
+					Checked:   func() bool { return !item().Hidden },
+					OnChange:  func(show bool) { edit(func(library *sourceLibrary) { library.Hidden = !show }) }},
+				core.Show{When: func() bool { return !item().Hidden }, Then: func(cx *core.Scope) core.Node {
+					return sourceLibraryPreferenceControls(cx, id, item, edit, busy)
+				}},
+			}}
 		})
 }
 
@@ -260,7 +221,7 @@ func (a *application) manageLibraries(cx *core.Scope, current source) core.Node 
 			core.Show{When: func() bool { return len(draft.Get()) == 0 }, Then: func(cx *core.Scope) core.Node {
 				return hint(locales.NoLibraries(cx))
 			}},
-			libraryEditor(cx, draft, false, busy.Get),
+			libraryEditor(cx, draft, busy.Get),
 			core.Dynamic(func(cx *core.Scope) core.Node {
 				if message := failure.Get(); message != "" {
 					return notice(message)

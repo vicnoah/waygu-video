@@ -51,6 +51,8 @@ var Parameters = map[string][]string{
 	"SourceAddresses":                 {"local", "remote"},
 	"Connected":                       {"name"},
 	"SignedInAs":                      {"name"},
+	"ImportLibraryCount":              {"count"},
+	"EditImportLibrary":               {"name"},
 	"SourcesOnline":                   {"count"},
 	"HomeSummary":                     {"sources", "count"},
 	"HomeItemCount":                   {"count"},
@@ -190,6 +192,8 @@ type Translation struct {
 	SourceAddresses                 func(local string, remote string) string
 	Connected                       func(name string) string
 	SignedInAs                      func(name string) string
+	ImportLibraryCount              func(count string) string
+	EditImportLibrary               func(name string) string
 	SourcesOnline                   func(count string) string
 	HomeSummary                     func(sources string, count string) string
 	HomeItemCount                   func(count string) string
@@ -5545,6 +5549,12 @@ func Supply(lang string, t Translation) {
 	if t.SignedInAs != nil {
 		s.SignedInAs = t.SignedInAs
 	}
+	if t.ImportLibraryCount != nil {
+		s.ImportLibraryCount = t.ImportLibraryCount
+	}
+	if t.EditImportLibrary != nil {
+		s.EditImportLibrary = t.EditImportLibrary
+	}
 	if t.SourcesOnline != nil {
 		s.SourcesOnline = t.SourcesOnline
 	}
@@ -6688,6 +6698,52 @@ func (msgs Messages) SignedInAs(name string) string {
 			return "Signed in as " + msgs.arg(name)
 		case "zh-Hans":
 			return "已登录为 " + name
+		}
+	}
+}
+
+// ImportLibraryCount says "{count} titles"
+// in the language the app shows under cx.
+func ImportLibraryCount(cx *core.Scope, count string) string {
+	return For(cx).ImportLibraryCount(count)
+}
+
+// ImportLibraryCount is the package's ImportLibraryCount in the language of msgs.
+func (msgs Messages) ImportLibraryCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.ImportLibraryCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].ImportLibraryCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " titles"
+		case "zh-Hans":
+			return count + " 部"
+		}
+	}
+}
+
+// EditImportLibrary says "Options for {name}"
+// in the language the app shows under cx.
+func EditImportLibrary(cx *core.Scope, name string) string { return For(cx).EditImportLibrary(name) }
+
+// EditImportLibrary is the package's EditImportLibrary in the language of msgs.
+func (msgs Messages) EditImportLibrary(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.EditImportLibrary(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].EditImportLibrary; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Options for " + msgs.arg(name)
+		case "zh-Hans":
+			return "设置" + name
 		}
 	}
 }

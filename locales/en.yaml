@@ -89,6 +89,8 @@ testConnection: Test connection
 signIn: Sign in
 connected: "Connected to {name}"
 signedInAs: "Signed in as {name}"
+importLibraryCount: "{count} titles"
+editImportLibrary: "Options for {name}"
 importLibraries: Choose libraries to import
 completeSource: Done
 noLibraries: This account has no video libraries.

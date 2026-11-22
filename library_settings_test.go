@@ -102,11 +102,31 @@ func TestImportLibraryVisibilityAndCategory(t *testing.T) {
 	app.Type("id:server-password", "fixture-password")
 	app.Press("id:sign-in")
 	app.WaitFor("id:import-library-private", time.Second)
+	app.Press("id:back")
+	app.WaitFor("id:sign-in", time.Second)
+	app.Type("id:server-password", "fixture-password")
+	app.Press("id:sign-in")
+	app.WaitFor("id:import-library-private", time.Second)
+	movies := app.WaitFor("id:import-library-count-movies", time.Second)
+	empty := app.WaitFor("id:import-library-count-private", time.Second)
+	if movies.Text != "1,248 titles" || empty.Text != "0 titles" || app.Exists("id:import-library-count-new") {
+		t.Fatalf("unexpected import counts for the populated, empty, and unavailable libraries")
+	}
 	app.Press("id:import-library-private")
 	app.Press("id:import-library-new")
+	app.Press("id:import-library-options-movies")
 	app.Press("id:library-home-movies")
+	app.Press("id:import-library-options-cancel")
+	app.Press("id:import-library-options-movies")
+	if !app.Find("id:library-home-movies").Props.Checked {
+		t.Fatal("canceling options changed the import draft")
+	}
+	app.Press("id:library-home-movies")
+	app.Press("id:import-library-options-apply")
+	app.Press("id:import-library-options-shows")
 	app.Press("id:library-category-shows")
 	app.Press("id:library-category-shows-3")
+	app.Press("id:import-library-options-apply")
 	app.Press("id:import-libraries")
 	app.WaitFor("id:title-shows-title", time.Second)
 	app.WaitForGone("id:title-movies-title", time.Second)
@@ -147,6 +167,22 @@ func (f libraryFixtureServer) Libraries(context.Context) ([]media.Library, error
 		{ID: "movies", Name: "Movies", Kind: "movies"}, {ID: "shows", Name: "Shows", Kind: "tvshows"},
 		{ID: "private", Name: "Private library", Kind: "movies"}, {ID: "new", Name: "New library", Kind: "movies"},
 	}, nil
+}
+
+func (f libraryFixtureServer) LibraryItemCount(_ context.Context, id string) (int, error) {
+	if f.session.Token != "fixture-token" {
+		return 0, media.ErrAuthentication
+	}
+	switch id {
+	case "movies":
+		return 1248, nil
+	case "shows":
+		return 326, nil
+	case "private":
+		return 0, nil
+	default:
+		return 0, media.ErrResponse
+	}
 }
 
 func (f libraryFixtureServer) Catalog(ctx context.Context, q media.Query) (media.Page, error) {

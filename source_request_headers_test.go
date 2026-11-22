@@ -8,6 +8,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -80,10 +81,16 @@ func TestDockerSourceAdvancedConnection(t *testing.T) {
 		t.Fatal(err)
 	}
 	var nonMovieLibrary string
+	expectedCounts := make(map[string]string, len(libraries))
 	for _, library := range libraries {
 		if library.Kind == "tvshows" {
 			nonMovieLibrary = library.ID
 		}
+		page, err := client.Catalog(t.Context(), media.Query{LibraryID: library.ID, Limit: 100})
+		if err != nil || len(page.Items) != page.Total {
+			t.Fatalf("read complete test library: %v", err)
+		}
+		expectedCounts[library.ID] = strconv.Itoa(len(page.Items)) + " 部"
 	}
 	if nonMovieLibrary == "" {
 		t.Fatal("fixture needs a TV library to test preservation of selections")
@@ -186,12 +193,25 @@ func TestDockerSourceAdvancedConnection(t *testing.T) {
 			app.Type("id:server-password", password)
 			app.Press("id:sign-in")
 			app.WaitFor("id:import-libraries", 6*time.Second)
+			for id, want := range expectedCounts {
+				count := app.WaitFor("id:import-library-count-"+id, 6*time.Second)
+				if count.Text != want {
+					t.Fatalf("library count on the connection form = %q, want %q", count.Text, want)
+				}
+			}
 			if target == "linux" {
 				app.Screenshot("source-advanced-" + variant.name)
 			}
 			optional := "id:import-library-" + nonMovieLibrary
 			app.Press(optional)
 			checked := app.Find(optional).Props.Checked
+			if target == "linux" {
+				app.Screenshot("source-import-" + variant.name)
+				app.Press("id:import-library-options-" + nonMovieLibrary)
+				app.WaitFor("id:library-category-"+nonMovieLibrary, 3*time.Second)
+				app.Screenshot("source-import-options-" + variant.name)
+				app.Press("id:import-library-options-cancel")
+			}
 			auth = logins.Load()
 			blocked.Store(true)
 			app.Press("id:retest-connection")

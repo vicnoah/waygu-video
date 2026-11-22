@@ -258,7 +258,7 @@ func (a *application) importSource(cx *core.Scope, readCandidate func() candidat
 		list = append(list, core.View{Class: setupRow, Children: []core.Node{hint(locales.NoLibraries(cx))}})
 	}
 	disabled := func() bool { return busy.Get() || (blocked != nil && blocked()) }
-	list = append(list, libraryEditor(cx, draft, true, disabled))
+	list = append(list, importLibraryRows(cx, draft, a.importLibraryCounts(cx, candidate), disabled))
 	store := func() {
 		if core.Untracked(cx, disabled) {
 			return
@@ -278,6 +278,14 @@ func (a *application) importSource(cx *core.Scope, readCandidate func() candidat
 		})
 	}
 
+	actions := make([]core.Node, 0, 2)
+	if back != nil {
+		actions = append(actions, ui.Button{Text: locales.Back(cx), Variant: ui.ButtonGhost, Disabled: busy.Get, TestID: "import-back", OnPress: back})
+	}
+	actions = append(actions, setupPrimary(cx, "import-libraries", locales.CompleteSource(cx), disabled, func() bool {
+		return !slices.ContainsFunc(draft.Get(), func(library sourceLibrary) bool { return !library.Hidden })
+	}, store))
+
 	return core.View{Class: "gap-6", Children: []core.Node{
 		setupGroup(locales.ImportLibraries(cx), "", list...),
 		core.Dynamic(func(cx *core.Scope) core.Node {
@@ -286,12 +294,7 @@ func (a *application) importSource(cx *core.Scope, readCandidate func() candidat
 			}
 			return nil
 		}),
-		core.View{Class: "mx-4 gap-2", Children: []core.Node{
-			ui.Button{Text: locales.Back(cx), Variant: ui.ButtonGhost, Disabled: busy.Get, TestID: "import-back", OnPress: back},
-			setupPrimary(cx, "import-libraries", locales.CompleteSource(cx), disabled, func() bool {
-				return !slices.ContainsFunc(draft.Get(), func(library sourceLibrary) bool { return !library.Hidden })
-			}, store),
-		}},
+		core.View{Class: "mx-4 gap-2", Children: actions},
 	}}
 }
 

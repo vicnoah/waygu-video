@@ -14,7 +14,7 @@ Each strip shows the original empty form on the left, the design's authenticated
 | --- | --- | --- |
 | Header and provider tabs | Generic header with a form for a provider selected on the prior screen. | The header is centered and the tabs use the reference's rounded selection. Plex adds a fourth segment. The reference includes a phone bezel and system bar. Verify safe-area placement and camera presentation on phones. |
 | Server and login | Labels above boxed fields. | Address, port, HTTPS, name, and login use the reference's grouped 48 pt rows. The app clears the password after successful authentication. The QR control appears when the target reports scanner support. |
-| Connection result and import | Testing and login were compact buttons. Successful login replaced the form with an import card. | The emerald status panel shows measured latency and the inline retest. Library rows use badges and visible selection circles. The fixture has two libraries. Each selected library keeps its category and home visibility controls. Per-library counts remain pending. |
+| Connection result and import | Testing and login were compact buttons. Successful login replaced the form with an import card. | The emerald status panel shows measured latency and the inline retest. Each import row uses the reference’s badge, title, right-aligned count and selection circle. The fixture has two libraries. The leading badge opens category and home visibility options. |
 | Advanced and alternate sign-in | Only local password login for Emby. | The Advanced group has a header count, certificate switch, and editable backup address. Emby Connect PIN remains pending. Jellyfin Quick Connect and Plex authorization are reachable from their corresponding tabs. |
 
 ## Jellyfin and Flymoo
@@ -43,6 +43,18 @@ Light and dark native captures of the token form and the account linkage action.
 
 The installed Android TV x86-64 APK opened the Emby form from Settings, showed the port and HTTPS controls, switched to Jellyfin, and returned to the chooser. A separate remote-only run opened the Emby form directly from welcome and returned using Back. See the [Android TV focus comparison](welcome.md#android-tv-remote-focus).
 
+
+### Choose libraries
+
+Each row below shows the Scenra library group, the GTK app with one library deselected, and the category and home visibility dialog. The selected and unselected circles share the reference’s 48 pt row and grouped dividers. The fixture has five movies and three series. Counts use the authenticated server’s library total and arrive after sign-in. An empty library shows zero and a library whose count is unavailable remains selectable.
+
+![Scenra import rows, GTK import selection and options in light and dark appearances](images/source-import-library-counts.png)
+
+Select a library with its title or trailing circle. Open its options with the leading badge. Applying changes keeps them in the import draft until completion. Cancel discards the dialog edits. The header’s Back action returns to sign-in and the footer contains the completion button. The options dialog provides the connection flow’s category and home visibility settings. [Source connection flow](../../design/flows/source-connect.scenra) · [Count verification](../../integration/servers/TESTING.md#library-import-counts)
+
+An Android TV x86-64 emulator signed in to the same Docker fixture using an independently installed review APK. It displayed both counts. D-pad Left moved from the Shows selection to its options badge. Select opened the dialog, Back restored the badge focus, and a second Back returned to the sign-in form.
+
+![Android TV library counts and the focused options dialog](images/android-tv-import-counts.png)
 
 ### Backup address
 

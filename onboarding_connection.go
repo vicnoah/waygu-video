@@ -42,6 +42,25 @@ type candidateSource struct {
 
 func (a *application) connect(cx *core.Scope, current route) core.Node {
 	provider := core.NewSignal(cx, current.provider)
+	candidate := core.NewSignal[*candidateSource](cx, nil)
+	saving := core.NewSignal(cx, false)
+	back := func() {
+		if saving.GetUntracked() {
+			return
+		}
+		if candidate.GetUntracked() != nil {
+			candidate.Set(nil)
+			return
+		}
+		a.back()
+	}
+	cx.OnBackPress(func() bool {
+		if candidate.GetUntracked() == nil && !saving.GetUntracked() {
+			return false
+		}
+		back()
+		return true
+	})
 	tabs := make([]core.Node, 0, len(sourceProviders))
 	for _, option := range sourceProviders {
 		name := providerName(cx, option.provider)
@@ -49,24 +68,31 @@ func (a *application) connect(cx *core.Scope, current route) core.Node {
 		tabs = append(tabs, base.Button{Label: name, Role: core.RoleTab, Selected: selected, TestID: "connect-" + string(option.provider),
 			Class:    "group flex-1 items-center justify-center rounded-lg py-2 selected:bg-white selected:shadow-sm dark:selected:bg-[#1a1b25]",
 			Style:    core.Style{FocusVisible: ui.FocusRing(cx, -2)},
-			Disabled: func() bool { return current.source.ID != "" && option.provider != current.provider },
-			OnPress:  func(core.PressEvent) { provider.Set(option.provider) },
+			Disabled: func() bool { return saving.Get() || (current.source.ID != "" && option.provider != current.provider) },
+			OnPress: func(core.PressEvent) {
+				if provider.GetUntracked() != option.provider {
+					cx.Batch(func() {
+						candidate.Set(nil)
+						provider.Set(option.provider)
+					})
+				}
+			},
 			Children: []core.Node{core.Text{Content: name, Class: "text-sm group-selected:font-semibold group-selected:text-zinc-900 dark:group-selected:text-zinc-50 " + setupMuted}},
 		})
 	}
-	return setupPage(cx, locales.ConnectServer(cx), a.back, core.View{Class: "w-full max-w-[640px] self-center gap-6 pt-3 pb-10", Children: []core.Node{
+	return setupPage(cx, locales.ConnectServer(cx), back, core.View{Class: "w-full max-w-[640px] self-center gap-6 pt-3 pb-10", Children: []core.Node{
 		core.View{Role: core.RoleTabList, TestID: "connection-providers", Class: "mx-4 flex-row rounded-xl bg-zinc-900/5 p-1 dark:bg-zinc-50/5", Children: tabs},
 		core.Dynamic(func(cx *core.Scope) core.Node {
 			kind := provider.Get()
 			if kind == current.provider {
-				return a.connectionForm(cx, kind, current.source)
+				return a.connectionForm(cx, kind, current.source, candidate, saving)
 			}
-			return a.connectionForm(cx, kind, source{})
+			return a.connectionForm(cx, kind, source{}, candidate, saving)
 		}),
 	}})
 }
 
-func (a *application) connectionForm(cx *core.Scope, provider media.Provider, current source) core.Node {
+func (a *application) connectionForm(cx *core.Scope, provider media.Provider, current source, candidate *core.Signal[*candidateSource], saving *core.Signal[bool]) core.Node {
 	host, servicePort, useHTTPS := splitServerAddress(current.Address)
 	address := core.NewSignal(cx, host)
 	remote := core.NewSignal(cx, current.RemoteAddress)
@@ -77,10 +103,8 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 	password := core.NewSignal(cx, "")
 	showPassword := core.NewSignal(cx, false)
 	busy := core.NewSignal(cx, false)
-	saving := core.NewSignal(cx, false)
 	failure := core.NewSignal[error](cx, nil)
 	preview := core.NewSignal[*candidateSource](cx, nil)
-	candidate := core.NewSignal[*candidateSource](cx, nil)
 	quickCode := core.NewSignal(cx, "")
 	approved := core.NewSignalFunc(cx, slices.Clone(current.Certificates), slices.Equal)
 	type certificateOffer struct {
@@ -549,7 +573,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 		}),
 		core.Dynamic(func(cx *core.Scope) core.Node {
 			if result := candidate.Get(); result != nil {
-				return a.importSource(cx, func() candidateSource { return *result }, func() { candidate.Set(nil) }, func() bool { return busy.Get() || failure.Get() != nil }, saving)
+				return a.importSource(cx, func() candidateSource { return *result }, nil, func() bool { return busy.Get() || failure.Get() != nil }, saving)
 			}
 			return core.View{Class: "mx-4 gap-2", Children: []core.Node{
 				core.Show{When: func() bool { return preview.Get() == nil }, Then: func(cx *core.Scope) core.Node {

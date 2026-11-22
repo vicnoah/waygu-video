@@ -132,3 +132,17 @@ GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 go tool nsgo test . \
 go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerSourceAdvancedConnection$' -screenshots .nsgo/ui-review/source-advanced
 ```
+
+
+## Library import counts
+
+`TestDockerLibraryCounts` compares the totals from lightweight authenticated requests against the complete Movies and Shows catalogs in Emby, Jellyfin, and Plex. The MediaBrowser adapters request one title without artwork or user data. Plex requests a zero-size page. The Flymoo fixture verifies the signed, library-scoped request with the Movie, TV, and Video tags used in the reference client. The wire tests also distinguish an explicit zero from a missing total. [Emby Items API](https://dev.emby.media/reference/RestAPI/ItemsService/getItems.html) · [Jellyfin Items controller](https://github.com/jellyfin/jellyfin/blob/master/Jellyfin.Api/Controllers/ItemsController.cs) · [Plex pagination](https://developer.plex.tv/pms/#section/API-Info/Pagination) · [Flymoo reference](https://github.com/vicnoah/fnmovie/blob/de2b3dd817011de1e5f54b65b5bcb8310431b306/internal/app/server.go#L742-L794)
+
+`TestDockerSourceAdvancedConnection` checks the displayed totals through the same Emby proxy that requires two custom headers. The GTK run captures the selected and unselected rows and the options dialog. `TestImportLibraryVisibilityAndCategory` verifies the formatted counts, dialog cancellation, visibility, and saved category.
+
+```sh
+GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 go tool nsgo test ./... \
+  -run '^Test(DockerLibraryCounts|LibraryCountWireContracts|ImportLibraryVisibilityAndCategory)$' -count=1
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerSourceAdvancedConnection$' -screenshots .nsgo/ui-review/source-import
+```
