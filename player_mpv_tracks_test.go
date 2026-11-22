@@ -43,6 +43,8 @@ func TestDecoderTracksAndLocalCaptionsAreExclusive(t *testing.T) {
 		}, func() *desktopVideo { return decoder }, "", func() subtitlePreferences { return readSubtitlePreferences(cx.Storage()) }, core.NewSignal(cx, 2*time.Second),
 			core.NewSignal(cx, float32(1)), core.NewSignal(cx, true), core.NewSignal(cx, false), core.NewSignal(cx, false),
 			func(media.Track) { t.Error("decoder audio selection went to the server") }, nil, nil)
+		cx.OnKey("a", ui.cycleAudio)
+		cx.OnKey("s", ui.cycleSubtitle)
 		return core.View{Class: "flex-1", Children: []core.Node{ui.button, ui.dialog, ui.captions}}
 	}, nsgotest.Size(1000, 680))
 	app.PickFiles = func(nsgotest.FilePick) []core.File {
@@ -62,9 +64,12 @@ func TestDecoderTracksAndLocalCaptionsAreExclusive(t *testing.T) {
 	app.Press("id:track-tab-audio")
 	app.WaitForGone("id:audio-track-99", time.Second)
 	app.Press("id:audio-track-2")
+	app.Press("id:close-player-tracks")
+	app.Key("a")
+	app.Key("s")
 
 	want := []selection{{mpv.SubtitleTrack, 1}, {mpv.SubtitleTrack, 0}, {mpv.SubtitleTrack, 1},
-		{mpv.SubtitleTrack, 0}, {mpv.AudioTrack, 2}}
+		{mpv.SubtitleTrack, 0}, {mpv.AudioTrack, 2}, {mpv.AudioTrack, 1}, {mpv.SubtitleTrack, 1}}
 	if !slices.Equal(changes, want) {
 		t.Fatalf("decoder requests = %v, want %v", changes, want)
 	}

@@ -57,6 +57,15 @@ func TestRenderWithASS(t *testing.T) {
 		}
 		return loaded && drawn && p.Status().Width == 160 && frame.RGBAAt(20, 20).R > 0
 	})
+	if err := p.Volume(.35); err != nil {
+		t.Fatal(err)
+	}
+	if got := p.doubleProperty("volume"); got < 34.9 || got > 35.1 {
+		t.Fatalf("libmpv volume = %v, want 35", got)
+	}
+	if stats := p.Stats(); stats.VideoCodec == "" || stats.FPS <= 0 {
+		t.Fatalf("libmpv did not report the fixture's codec and frame rate: %+v", stats)
+	}
 	if err := p.Seek(2 * time.Second); err != nil {
 		t.Fatal(err)
 	}

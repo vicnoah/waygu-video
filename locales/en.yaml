@@ -603,3 +603,40 @@ desktopMovieExternalSubtitles: "{count} external"
 desktopDanmakuMatch: Match
 desktopDanmakuMatched: Matched · DandanPlay
 desktopDanmakuChange: Change
+desktopPlayerPanel: Toggle sidebar
+desktopPlayerEpisode: "Season {season} · Episode {episode}"
+desktopPlayerEpisodes: Episodes
+desktopPlayerNoEpisodes: There are no episodes for this title.
+desktopPlayerSpecials: Specials
+desktopPlayerPlaying: Now playing
+desktopPlayerWatched: Watched
+desktopPlayerMute: Mute
+desktopPlayerUnmute: Unmute
+desktopPlayerVolume: Volume
+desktopPlayerFullscreen: Full screen
+desktopPlayerExitFullscreen: Exit full screen
+desktopPlayerNativeEngine: System player
+desktopPlayerEngine: "Player engine · {name}"
+desktopPlayerMethod: Playback mode
+desktopPlayerCodec: Codec
+desktopPlayerDropped: Dropped frames
+desktopPlayerOutput: Output
+desktopPlayerNetwork: Network
+desktopPlayerBuffer: Buffer
+desktopPlayerBufferReady: Ready
+desktopPlayerDownloadRate: Download speed
+desktopDanmakuWhite: White
+desktopDanmakuAmber: Amber
+desktopDanmakuBlue: Blue
+desktopDanmakuLocal: Comment saved on this device
+desktopDanmakuPlaceholder: Leave a friendly comment
+desktopDanmakuPalette: Comment color and position
+desktopDanmakuSend: Send
+desktopDanmakuLoaded: "{count} comments loaded"
+desktopDanmakuLocalCount: "{count} local"
+desktopDanmakuRemoteCount: "{count} from DandanPlay"
+desktopDanmakuRematch: Match again
+desktopDanmakuMore: More danmaku settings
+desktopDanmakuList: Comment list
+desktopPlayerInfo: Info
+desktopPlayerEpisodeCount: "{count} episodes"

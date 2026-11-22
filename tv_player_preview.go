@@ -11,37 +11,7 @@ import (
 )
 
 func tvPlayerPreview(cx *core.Scope, l tvLayout, p tvPlayerControls, scrub *core.Signal[time.Duration], settings func() bool) core.Node {
-	requested := core.NewSignal(cx, false)
-	cx.Effect(func() {
-		if scrub.Get() >= 0 {
-			requested.Set(true)
-		}
-	})
-	provider, supported := p.client.(media.SeekPreviewClient)
-	sourceID := core.NewMemo(cx, func() string { return p.stream().SourceID })
-	source := core.NewResource(cx, func() (string, bool) {
-		return sourceID.Get(), supported && p.current.downloadID == "" && requested.Get()
-	}, func(ctx context.Context, sourceID string, _ core.ResourceInfo) (media.SeekPreview, error) {
-		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-		return provider.SeekPreviews(ctx, p.current.item, sourceID)
-	})
-	type frameRequest struct {
-		load media.SeekPreview
-		at   time.Duration
-	}
-	frame := core.NewResource(cx, func() (frameRequest, bool) {
-		at := scrub.Get()
-		load, ready := source.Get()
-		if !ready || source.Loading() || load == nil || at < 0 {
-			return frameRequest{}, false
-		}
-		return frameRequest{load, at}, true
-	}, func(ctx context.Context, request frameRequest, _ core.ResourceInfo) ([]byte, error) {
-		ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
-		defer cancel()
-		return request.load(ctx, request.at)
-	})
+	frame := playerPreviewFrames(cx, p.current, p.client, p.stream, scrub.Get)
 	return core.Show{When: func() bool { return scrub.Get() >= 0 }, Then: func(cx *core.Scope) core.Node {
 		timer := l.text("", 24, "font-semibold text-white")
 		timer.ContentFunc, timer.TestID = func() string { return playbackClock(scrub.Get()) }, "tv-player-seek-time"
@@ -68,4 +38,38 @@ func tvPlayerPreview(cx *core.Scope, l tvLayout, p tvPlayerControls, scrub *core
 			}, Children: []core.Node{picture, timer}},
 		}}
 	}}
+}
+
+func playerPreviewFrames(cx *core.Scope, current route, client media.Client, stream func() media.Stream, at func() time.Duration) *core.Resource[[]byte] {
+	requested := core.NewSignal(cx, false)
+	cx.Effect(func() {
+		if at() >= 0 {
+			requested.Set(true)
+		}
+	})
+	provider, supported := client.(media.SeekPreviewClient)
+	sourceID := core.NewMemo(cx, func() string { return stream().SourceID })
+	source := core.NewResource(cx, func() (string, bool) {
+		return sourceID.Get(), supported && current.downloadID == "" && requested.Get()
+	}, func(ctx context.Context, sourceID string, _ core.ResourceInfo) (media.SeekPreview, error) {
+		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		return provider.SeekPreviews(ctx, current.item, sourceID)
+	})
+	type frameRequest struct {
+		load media.SeekPreview
+		at   time.Duration
+	}
+	return core.NewResource(cx, func() (frameRequest, bool) {
+		position := at()
+		load, ready := source.Get()
+		if !ready || source.Loading() || load == nil || position < 0 {
+			return frameRequest{}, false
+		}
+		return frameRequest{load, position}, true
+	}, func(ctx context.Context, request frameRequest, _ core.ResourceInfo) ([]byte, error) {
+		ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+		defer cancel()
+		return request.load(ctx, request.at)
+	})
 }

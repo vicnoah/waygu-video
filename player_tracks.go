@@ -28,10 +28,11 @@ const (
 )
 
 type trackControls struct {
-	button, dialog, captions core.Node
-	show                     func(int)
-	panelOpen                func() bool
-	subtitle, audio          func() string
+	button, dialog, captions  core.Node
+	show                      func(int)
+	panelOpen                 func() bool
+	subtitle, audio           func() string
+	cycleSubtitle, cycleAudio func()
 }
 
 type subtitleSelection struct {
@@ -101,6 +102,69 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		load(track.ID, trackLabel(cx, track), func(ctx context.Context) (*playback.Captions, error) {
 			return playback.FetchCaptions(ctx, track.URL)
 		})
+	}
+	selectDecoderSubtitle := func(d *desktopVideo, track mpv.Track) {
+		loading.Set(true)
+		failed.Set(false)
+		d.selectTrack(mpv.SubtitleTrack, track.ID, func(err error) {
+			finishSubtitles(subtitleSelection{}, err)
+		})
+	}
+	type trackOption struct {
+		selected bool
+		pick     func()
+	}
+	advance := func(choices []trackOption) {
+		if len(choices) == 0 {
+			return
+		}
+		index := slices.IndexFunc(choices, func(choice trackOption) bool { return choice.selected })
+		choices[(index+1)%len(choices)].pick()
+	}
+	cycleSubtitle := func() {
+		if loading.GetUntracked() {
+			return
+		}
+		choices := []trackOption{{subtitles.GetUntracked().id == "", func() { applySubtitles(subtitleSelection{}) }}}
+		native := false
+		if d := core.Untracked(cx, decoder); d != nil {
+			for _, track := range d.tracks.GetUntracked() {
+				if track.Kind == mpv.SubtitleTrack {
+					native = true
+					choices[0].selected = choices[0].selected && !track.Selected
+					choices = append(choices, trackOption{track.Selected, func() { selectDecoderSubtitle(d, track) }})
+				}
+			}
+		}
+		for _, track := range core.Untracked(cx, stream).Tracks {
+			if track.Type == "subtitle" && track.URL != "" && (!native || track.External) {
+				choices = append(choices, trackOption{track.ID == subtitles.GetUntracked().id, func() { selectServerSubtitle(track) }})
+			}
+		}
+		advance(choices)
+	}
+	cycleAudio := func() {
+		if switchingPlayback.GetUntracked() {
+			return
+		}
+		var choices []trackOption
+		if d := core.Untracked(cx, decoder); d != nil {
+			for _, track := range d.tracks.GetUntracked() {
+				if track.Kind == mpv.AudioTrack {
+					choices = append(choices, trackOption{track.Selected, func() {
+						d.selectTrack(mpv.AudioTrack, track.ID, func(err error) { audioError.Set(err != nil) })
+					}})
+				}
+			}
+		}
+		if len(choices) == 0 {
+			for _, track := range core.Untracked(cx, stream).Tracks {
+				if track.Type == "audio" {
+					choices = append(choices, trackOption{track.Selected, func() { chooseAudio(track) }})
+				}
+			}
+		}
+		advance(choices)
 	}
 	firstStream := true
 	cx.Effect(func() {
@@ -223,13 +287,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			}
 			choices = append(choices, playerRadio(cx, ui.Radio{Text: label, TestID: "decoder-subtitle-" + descriptor.ID,
 				Checked: func() bool { return track.Selected }, Disabled: loading.Get,
-				OnChange: func(bool) {
-					loading.Set(true)
-					failed.Set(false)
-					d.selectTrack(mpv.SubtitleTrack, track.ID, func(err error) {
-						finishSubtitles(subtitleSelection{}, err)
-					})
-				}}, playerSubtitleDetails(cx, descriptor), false))
+				OnChange: func(bool) { selectDecoderSubtitle(d, track) }}, playerSubtitleDetails(cx, descriptor), false))
 		}
 		for _, track := range stream().Tracks {
 			if track.Type != "subtitle" || track.URL == "" || (nativeSubtitles && !track.External) {
@@ -336,7 +394,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 	return trackControls{
 		button: ui.Button{Label: locales.PlayerTracks(cx), Icon: lucide.Captions, Variant: ui.ButtonSecondary,
 			TestID: "player-tracks", OnPress: func() { show(trackSubtitleTab) }},
-		dialog: dialog, show: show, panelOpen: open.Get,
+		dialog: dialog, show: show, panelOpen: open.Get, cycleSubtitle: cycleSubtitle, cycleAudio: cycleAudio,
 		subtitle: func() string {
 			if active := subtitles.Get(); active.name != "" {
 				return active.name

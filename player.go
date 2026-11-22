@@ -15,6 +15,7 @@ import (
 
 	"waygu-video/internal/media"
 	"waygu-video/internal/playback"
+	"waygu-video/internal/playback/mpv"
 	"waygu-video/locales"
 )
 
@@ -109,6 +110,7 @@ func prepareVideo(lifetime context.Context, client media.Client, stream media.St
 
 func (a *application) playerView(cx *core.Scope, current route, initial playerMedia, showTVHints func() bool) core.Node {
 	medium := core.NewSignalFunc(cx, initial, nil)
+	desktopLayout := core.Untracked(cx, func() bool { return appLayoutIdiom(cx) == core.IdiomDesktop })
 	ref := &core.Ref{}
 	seekVideo := ref.Seek
 	position := core.NewSignal(cx, time.Duration(0))
@@ -299,6 +301,10 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				report(media.Stopped)
 			},
 		}
+		if desktopLayout {
+			video.VolumeFunc = a.desktopPlayerVolume.Get
+			video.MutedFunc = func() bool { return a.desktopPlayerVolume.Get() == 0 }
+		}
 		if preferMPV {
 			decoder := mpvVideo(cx, video)
 			decoder.comments(danmakuTrack)
@@ -409,21 +415,34 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			prefs: prefs, stream: activeStream, next: nextEpisode, comments: comments, tracks: tracks,
 		}).render(cx)
 	})
-	return core.View{Class: "relative flex-1 overflow-hidden bg-black", Style: core.Style{FlexShrink: 1},
-		Children: []core.Node{
-			image, comments.overlay, tracks.captions, chrome,
-			core.Show{When: func() bool { return buffering.Get() || failure.Get() }, Then: func(cx *core.Scope) core.Node {
-				return core.View{Class: "absolute inset-0 items-center justify-center", Children: []core.Node{
-					core.Text{Class: "rounded-xl bg-black/75 p-4 text-white", ContentFunc: func() string {
-						if failure.Get() {
-							return locales.VideoError(cx)
-						}
-						return locales.Loading(cx)
-					}},
-				}}
+	transportNotice := core.Show{When: func() bool { return buffering.Get() || failure.Get() }, Then: func(cx *core.Scope) core.Node {
+		return core.View{Class: "absolute inset-0 items-center justify-center", PointerEvents: core.PointerEventsNone, Children: []core.Node{
+			core.Text{Class: "rounded-xl bg-black/75 p-4 text-white", ContentFunc: func() string {
+				if failure.Get() {
+					return locales.VideoError(cx)
+				}
+				return locales.Loading(cx)
 			}},
-			tracks.dialog, comments.dialog,
 		}}
+	}}
+	if desktopLayout {
+		return a.desktopPlayer(cx, desktopPlayerControls{
+			current: current, client: initial.client, stream: activeStream,
+			position: position, duration: duration, paused: paused, picture: picture,
+			rate: rate, volume: a.desktopPlayerVolume, canRate: canChangeRate.Get, seek: seek, toggle: toggle,
+			comments: comments, tracks: tracks, next: nextEpisode, qualityAvailable: quality != nil,
+			stats: func() (mpv.Stats, bool) {
+				decoder := desktop.Get()
+				if decoder != nil && decoder.active() {
+					return decoder.stats.Get(), true
+				}
+				return mpv.Stats{}, false
+			},
+			buffering: buffering.Get,
+		}, []core.Node{image, comments.overlay, tracks.captions, transportNotice})
+	}
+	return core.View{Class: "relative flex-1 overflow-hidden bg-black", Style: core.Style{FlexShrink: 1},
+		Children: []core.Node{image, comments.overlay, tracks.captions, chrome, transportNotice, tracks.dialog, comments.dialog}}
 }
 
 func playbackReports(client media.Client, watch *progressWatch) (func(media.PlaybackState), func(*media.PlaybackState)) {

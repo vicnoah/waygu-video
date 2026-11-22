@@ -18,6 +18,7 @@ type desktopVideo struct {
 	seek          func(time.Duration)
 	comments      func(*danmaku.Track)
 	tracks        *core.Signal[[]mpv.Track]
+	stats         *core.Signal[mpv.Stats]
 	selectTrack   func(mpv.TrackKind, int64, func(error))
 	subtitleDelay func(time.Duration)
 }
@@ -27,7 +28,7 @@ type mpvCommand struct {
 	seek          time.Duration
 	seekID        uint64
 	track         *danmaku.Track
-	rate          float32
+	rate, volume  float32
 	subtitleDelay time.Duration
 }
 
@@ -47,10 +48,11 @@ func mpvVideo(cx *core.Scope, native core.Video) desktopVideo {
 	mode := core.NewSignal(cx, mpvOpening)
 	pixels := core.NewSignal[*image.RGBA](cx, nil)
 	tracks := core.NewSignalFunc[[]mpv.Track](cx, nil, slices.Equal)
+	stats := core.NewSignal(cx, mpv.Stats{})
 	requests := make(chan mpvTrackChange, 2)
 	stopped := make(chan struct{})
 	var desired atomic.Pointer[mpvCommand]
-	cmd := mpvCommand{}
+	cmd := mpvCommand{volume: 1}
 	desired.Store(&cmd)
 	update := func(change func(*mpvCommand)) {
 		copy := *desired.Load()
@@ -60,11 +62,15 @@ func mpvVideo(cx *core.Scope, native core.Video) desktopVideo {
 	cx.Effect(func() {
 		paused := native.PausedFunc()
 		speed := native.RateFunc()
-		update(func(c *mpvCommand) { c.paused, c.rate = paused, speed })
+		volume := float32(1)
+		if native.VolumeFunc != nil {
+			volume = native.VolumeFunc()
+		}
+		update(func(c *mpvCommand) { c.paused, c.rate, c.volume = paused, speed, volume })
 	})
 	viewContext := cx.Context()
 	go func() {
-		playMPV(viewContext, cx, native, &desired, mode, pixels, tracks, requests)
+		playMPV(viewContext, cx, native, &desired, mode, pixels, tracks, stats, requests)
 		close(stopped)
 		cx.Post(func() {
 			tracks.Set(nil)
@@ -92,7 +98,7 @@ func mpvVideo(cx *core.Scope, native core.Video) desktopVideo {
 	return desktopVideo{node: node, active: func() bool { return mode.Get() == mpvActive },
 		seek:     func(at time.Duration) { update(func(c *mpvCommand) { c.seek, c.seekID = at, c.seekID+1 }) },
 		comments: func(track *danmaku.Track) { update(func(c *mpvCommand) { c.track = track }) },
-		tracks:   tracks, subtitleDelay: func(delay time.Duration) {
+		tracks:   tracks, stats: stats, subtitleDelay: func(delay time.Duration) {
 			update(func(c *mpvCommand) { c.subtitleDelay = delay })
 		},
 		selectTrack: func(kind mpv.TrackKind, id int64, done func(error)) {
@@ -112,7 +118,7 @@ func mpvVideo(cx *core.Scope, native core.Video) desktopVideo {
 }
 
 func playMPV(ctx context.Context, cx *core.Scope, events core.Video, desired *atomic.Pointer[mpvCommand],
-	mode *core.Signal[int], frames *core.Signal[*image.RGBA], tracks *core.Signal[[]mpv.Track], requests <-chan mpvTrackChange) {
+	mode *core.Signal[int], frames *core.Signal[*image.RGBA], tracks *core.Signal[[]mpv.Track], stats *core.Signal[mpv.Stats], requests <-chan mpvTrackChange) {
 	post := func(fn func()) {
 		cx.Post(func() {
 			if ctx.Err() == nil {
@@ -137,10 +143,10 @@ func playMPV(ctx context.Context, cx *core.Scope, events core.Video, desired *at
 
 	ticker := time.NewTicker(time.Second / 30)
 	defer ticker.Stop()
-	var applied mpvCommand
+	applied := mpvCommand{volume: -1}
 	var scratch *image.RGBA
 	var pendingFrame atomic.Bool
-	var lastUpdate time.Time
+	var lastUpdate, lastStats time.Time
 	wasEnded, wasBuffering := false, false
 	ready := false
 	redraw := false
@@ -172,6 +178,9 @@ func playMPV(ctx context.Context, cx *core.Scope, events core.Video, desired *at
 			}
 			if command.rate > 0 && command.rate != applied.rate {
 				_ = player.Speed(command.rate)
+			}
+			if command.volume != applied.volume {
+				_ = player.Volume(command.volume)
 			}
 			if command.track != applied.track {
 				player.Danmaku(command.track)
@@ -214,6 +223,11 @@ func playMPV(ctx context.Context, cx *core.Scope, events core.Video, desired *at
 				lastUpdate = now
 				post(func() { events.OnProgress(status.Position, status.Duration) })
 			}
+			if now.Sub(lastStats) >= time.Second {
+				lastStats = now
+				value := player.Stats()
+				post(func() { stats.Set(value) })
+			}
 			if status.Width <= 0 || status.Height <= 0 || pendingFrame.Load() {
 				continue
 			}
@@ -244,6 +258,12 @@ func (mediaDecodeError) Error() string { return "libmpv could not open the video
 
 func fittedFrame(width, height int) image.Rectangle {
 	const limitWidth, limitHeight = 960, 540
+	const overlayWidth, overlayHeight = 640, 360
+	if width < overlayWidth && height < overlayHeight {
+		// Keep ASS lettering legible even when the source is a very small clip.
+		scale := min(float64(overlayWidth)/float64(width), float64(overlayHeight)/float64(height))
+		width, height = int(float64(width)*scale), int(float64(height)*scale)
+	}
 	if width > limitWidth {
 		height, width = max(1, height*limitWidth/width), limitWidth
 	}

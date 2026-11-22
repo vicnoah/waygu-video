@@ -236,10 +236,21 @@ func (p *backend) tracks() []Track {
 	return tracks
 }
 
-func (p *backend) timeProperty(name string) time.Duration {
+func (p *backend) doubleProperty(name string) float64 {
 	var value float64
 	_ = p.api.getProperty(p.movie, name, formatDouble, unsafe.Pointer(&value))
-	return time.Duration(value * float64(time.Second))
+	return value
+}
+
+func (p *backend) timeProperty(name string) time.Duration {
+	return time.Duration(p.doubleProperty(name) * float64(time.Second))
+}
+
+func (p *backend) stats() Stats {
+	return Stats{Buffered: p.timeProperty("demuxer-cache-duration"), FPS: p.doubleProperty("container-fps"),
+		Bitrate: int64(p.doubleProperty("video-bitrate")), DownloadRate: p.intProperty("cache-speed"),
+		DroppedFrames: p.intProperty("frame-drop-count"), VideoCodec: p.stringProperty("video-codec"),
+		Hardware: p.stringProperty("hwdec-current"), AudioOutput: p.stringProperty("current-ao")}
 }
 
 func (p *backend) status() Status {

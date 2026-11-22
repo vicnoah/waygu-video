@@ -603,3 +603,40 @@ desktopMovieExternalSubtitles: "外挂 {count} 条"
 desktopDanmakuMatch: 匹配
 desktopDanmakuMatched: 已匹配 · 弹弹play
 desktopDanmakuChange: 更换
+desktopPlayerPanel: 展开或收起侧栏
+desktopPlayerEpisode: "第 {season} 季 · 第 {episode} 集"
+desktopPlayerEpisodes: 选集
+desktopPlayerNoEpisodes: 此影片无可选剧集。
+desktopPlayerSpecials: 特别篇
+desktopPlayerPlaying: 正在播放
+desktopPlayerWatched: 已看完
+desktopPlayerMute: 静音
+desktopPlayerUnmute: 取消静音
+desktopPlayerVolume: 音量
+desktopPlayerFullscreen: 全屏
+desktopPlayerExitFullscreen: 退出全屏
+desktopPlayerNativeEngine: 系统播放器
+desktopPlayerEngine: "播放器内核 · {name}"
+desktopPlayerMethod: 播放方式
+desktopPlayerCodec: 编码
+desktopPlayerDropped: 丢帧
+desktopPlayerOutput: 输出
+desktopPlayerNetwork: 网络
+desktopPlayerBuffer: 缓冲
+desktopPlayerBufferReady: 就绪
+desktopPlayerDownloadRate: 下载速度
+desktopDanmakuWhite: 白色
+desktopDanmakuAmber: 琥珀色
+desktopDanmakuBlue: 天蓝色
+desktopDanmakuLocal: 保存在本机的弹幕
+desktopDanmakuPlaceholder: 发个友善的弹幕见证当下
+desktopDanmakuPalette: 弹幕颜色与位置
+desktopDanmakuSend: 发送
+desktopDanmakuLoaded: "已加载 {count} 条"
+desktopDanmakuLocalCount: "本地 {count} 条"
+desktopDanmakuRemoteCount: "弹弹play {count} 条"
+desktopDanmakuRematch: 重新匹配
+desktopDanmakuMore: 更多弹幕设置
+desktopDanmakuList: 弹幕列表
+desktopPlayerInfo: 信息
+desktopPlayerEpisodeCount: "共 {count} 集"

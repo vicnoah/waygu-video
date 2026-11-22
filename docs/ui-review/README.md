@@ -21,6 +21,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Desktop home · light and dark | [Sidebar, carousel and shelf comparisons](desktop-home.md) | Compared on GTK at the design size and checked at the normal desktop window size. Native macOS and Windows captures remain pending. |
 | Desktop movie library · light and dark | [Grid, filter and view comparisons](desktop-library.md) | Compared on GTK using an HDR fixture. Validated source filtering and playback with three Docker media servers. |
 | Desktop movie detail · light and dark | [Hero, metadata and playback comparisons](desktop-movie.md) | Compared on GTK. Trailer playback, watch state and selecting a different server copy were checked against Docker media servers. |
+| Desktop player · all three sidebar tabs | [Playback and sidebar comparisons](desktop-player.md) | Compared at 1440 × 810 pt on GTK with Emby using the system player and libmpv. |
 | Phone settings and source management · light and dark | [Comparison and server checks](phone-source-settings.md) | Compared on GTK with three Docker media servers. Source reordering, sync and removal are tested. Phone device captures remain pending. |
 | Phone landscape player · all seven panel tabs | [Playback and panel comparisons](phone-player.md) | Compared at 844 × 390 pt on GTK with an Emby video and subtitle fixture. Phone rotation and system gestures remain pending. |
 | Phone playback and subtitle settings · light and dark | [Settings comparison and playback checks](phone-player-settings.md) | Compared on GTK. Audio and caption preferences were verified against Emby and Jellyfin. Device captures and several controls remain pending. |
@@ -165,6 +166,15 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
 ```
 
 Use `WAYGU_REVIEW_DESIGN=views/desktop-movie.scenra` to export the two Scenra references.
+
+Capture the desktop player with the Docker Emby episode. The native test captures Episodes, Danmaku and Info at 1440 × 810 pt.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerDesktopPlayerReview$' -screenshots .nsgo/ui-review/desktop-player
+```
+
+Repeat with `-env WAYGU_TEST_DESKTOP_MPV=1` and libmpv installed to capture decoder information. Export `desktop-player.scenra` with `WAYGU_REVIEW_PANEL=episodes`, `danmaku` and `info` to generate the three references.
 
 Capture the personal state transitions with the same servers.
 

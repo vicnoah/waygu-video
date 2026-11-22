@@ -32,15 +32,7 @@ func (a *application) nextEpisodeCard(cx *core.Scope, current route, client medi
 	})
 	dismissed := core.NewSignal(cx, false)
 	countdown := core.NewSignal(cx, 0)
-	play := func(next media.Item) {
-		stack := a.routes.GetUntracked()
-		last := stack[len(stack)-1]
-		if last.screen == screenPlayer && last.source.ID == current.source.ID && last.item.ID == episode.ID {
-			stack = slices.Clone(stack)
-			stack[len(stack)-1] = route{screen: screenPlayer, source: current.source, item: next, resume: true}
-			a.routes.Set(stack)
-		}
-	}
+	play := func(next media.Item) { a.playEpisodeFrom(current, next) }
 	cx.Effect(func() {
 		next, ready := upcoming.Get()
 		if !ready || next.ID == "" || !finished.Get() || dismissed.Get() || !a.autoNext.Get() {
@@ -74,7 +66,7 @@ func (a *application) nextEpisodeCard(cx *core.Scope, current route, client medi
 			return true
 		}
 		length, at := duration.Get(), position.Get()
-		return length > 0 && at > 0 && length-at <= 30*time.Second
+		return length > 0 && at > 0 && length-at <= min(30*time.Second, length/3)
 	})
 	card := core.Dynamic(func(cx *core.Scope) core.Node {
 		next, ready := upcoming.Get()
@@ -108,6 +100,19 @@ func (a *application) nextEpisodeCard(cx *core.Scope, current route, client medi
 			next, ready := upcoming.Get()
 			return !ready || next.ID == ""
 		},
+	}
+}
+
+func (a *application) playEpisodeFrom(current route, next media.Item) {
+	stack := a.routes.GetUntracked()
+	last := stack[len(stack)-1]
+	if last.screen == screenPlayer && last.source.ID == current.source.ID && last.item.ID == current.item.ID && next.ID != current.item.ID {
+		if next.LibraryID == "" {
+			next.LibraryID = current.item.LibraryID
+		}
+		stack = slices.Clone(stack)
+		stack[len(stack)-1] = route{screen: screenPlayer, source: current.source, item: next, resume: true}
+		a.routes.Set(stack)
 	}
 }
 

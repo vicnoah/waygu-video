@@ -101,6 +101,7 @@ type application struct {
 	phoneLibrary        *core.Signal[phoneLibraryState]
 	desktopCategory     *core.Signal[libraryCategory]
 	desktopCollapsed    *core.Signal[bool]
+	desktopPlayerVolume *core.Signal[float32]
 	desktopLibraryState *core.Signal[desktopLibraryState]
 	desktopCollections  *core.Signal[[]desktopCollection]
 	phoneSearch         phoneSearchState
@@ -193,6 +194,7 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 	a.phoneLibrary = core.NewSignal(cx, phoneLibraryState{})
 	a.desktopCategory = core.NewSignal(cx, libraryCategory(""))
 	a.desktopCollapsed = core.NewSignal(cx, false)
+	a.desktopPlayerVolume = core.NewSignal(cx, float32(0.75))
 	a.desktopLibraryState = core.NewSignal(cx, desktopLibraryState{mode: desktopGrid})
 	a.desktopCollections = core.NewSignalFunc(cx, readDesktopCollections(storage), nil)
 	a.phoneSearch = newPhoneSearchState(cx)

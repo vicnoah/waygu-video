@@ -137,6 +137,12 @@ var Parameters = map[string][]string{
 	"DesktopMovieMoreTracks":         {"count"},
 	"DesktopMovieEmbeddedSubtitles":  {"count"},
 	"DesktopMovieExternalSubtitles":  {"count"},
+	"DesktopPlayerEpisode":           {"season", "episode"},
+	"DesktopPlayerEngine":            {"name"},
+	"DesktopDanmakuLoaded":           {"count"},
+	"DesktopDanmakuLocalCount":       {"count"},
+	"DesktopDanmakuRemoteCount":      {"count"},
+	"DesktopPlayerEpisodeCount":      {"count"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -239,6 +245,12 @@ type Translation struct {
 	DesktopMovieMoreTracks         func(count string) string
 	DesktopMovieEmbeddedSubtitles  func(count string) string
 	DesktopMovieExternalSubtitles  func(count string) string
+	DesktopPlayerEpisode           func(season string, episode string) string
+	DesktopPlayerEngine            func(name string) string
+	DesktopDanmakuLoaded           func(count string) string
+	DesktopDanmakuLocalCount       func(count string) string
+	DesktopDanmakuRemoteCount      func(count string) string
+	DesktopPlayerEpisodeCount      func(count string) string
 }
 
 var supplied = map[string]Translation{}
@@ -756,6 +768,37 @@ const (
 	textDesktopDanmakuMatch
 	textDesktopDanmakuMatched
 	textDesktopDanmakuChange
+	textDesktopPlayerPanel
+	textDesktopPlayerEpisodes
+	textDesktopPlayerNoEpisodes
+	textDesktopPlayerSpecials
+	textDesktopPlayerPlaying
+	textDesktopPlayerWatched
+	textDesktopPlayerMute
+	textDesktopPlayerUnmute
+	textDesktopPlayerVolume
+	textDesktopPlayerFullscreen
+	textDesktopPlayerExitFullscreen
+	textDesktopPlayerNativeEngine
+	textDesktopPlayerMethod
+	textDesktopPlayerCodec
+	textDesktopPlayerDropped
+	textDesktopPlayerOutput
+	textDesktopPlayerNetwork
+	textDesktopPlayerBuffer
+	textDesktopPlayerBufferReady
+	textDesktopPlayerDownloadRate
+	textDesktopDanmakuWhite
+	textDesktopDanmakuAmber
+	textDesktopDanmakuBlue
+	textDesktopDanmakuLocal
+	textDesktopDanmakuPlaceholder
+	textDesktopDanmakuPalette
+	textDesktopDanmakuSend
+	textDesktopDanmakuRematch
+	textDesktopDanmakuMore
+	textDesktopDanmakuList
+	textDesktopPlayerInfo
 	numTexts
 )
 
@@ -1273,6 +1316,37 @@ var keyOfText = [numTexts]string{
 	"desktopDanmakuMatch",
 	"desktopDanmakuMatched",
 	"desktopDanmakuChange",
+	"desktopPlayerPanel",
+	"desktopPlayerEpisodes",
+	"desktopPlayerNoEpisodes",
+	"desktopPlayerSpecials",
+	"desktopPlayerPlaying",
+	"desktopPlayerWatched",
+	"desktopPlayerMute",
+	"desktopPlayerUnmute",
+	"desktopPlayerVolume",
+	"desktopPlayerFullscreen",
+	"desktopPlayerExitFullscreen",
+	"desktopPlayerNativeEngine",
+	"desktopPlayerMethod",
+	"desktopPlayerCodec",
+	"desktopPlayerDropped",
+	"desktopPlayerOutput",
+	"desktopPlayerNetwork",
+	"desktopPlayerBuffer",
+	"desktopPlayerBufferReady",
+	"desktopPlayerDownloadRate",
+	"desktopDanmakuWhite",
+	"desktopDanmakuAmber",
+	"desktopDanmakuBlue",
+	"desktopDanmakuLocal",
+	"desktopDanmakuPlaceholder",
+	"desktopDanmakuPalette",
+	"desktopDanmakuSend",
+	"desktopDanmakuRematch",
+	"desktopDanmakuMore",
+	"desktopDanmakuList",
+	"desktopPlayerInfo",
 }
 
 // textsEn are the messages without arguments in en.
@@ -1787,7 +1861,38 @@ var textsEn = i18n.NewTexts(""+
 	"Direct play"+
 	"Match"+
 	"Matched · DandanPlay"+
-	"Change",
+	"Change"+
+	"Toggle sidebar"+
+	"Episodes"+
+	"There are no episodes for this title."+
+	"Specials"+
+	"Now playing"+
+	"Watched"+
+	"Mute"+
+	"Unmute"+
+	"Volume"+
+	"Full screen"+
+	"Exit full screen"+
+	"System player"+
+	"Playback mode"+
+	"Codec"+
+	"Dropped frames"+
+	"Output"+
+	"Network"+
+	"Buffer"+
+	"Ready"+
+	"Download speed"+
+	"White"+
+	"Amber"+
+	"Blue"+
+	"Comment saved on this device"+
+	"Leave a friendly comment"+
+	"Comment color and position"+
+	"Send"+
+	"Match again"+
+	"More danmaku settings"+
+	"Comment list"+
+	"Info",
 	[]uint16{
 		11,
 		47,
@@ -2300,6 +2405,37 @@ var textsEn = i18n.NewTexts(""+
 		5,
 		21,
 		6,
+		14,
+		8,
+		37,
+		8,
+		11,
+		7,
+		4,
+		6,
+		6,
+		11,
+		16,
+		13,
+		13,
+		5,
+		14,
+		6,
+		7,
+		6,
+		5,
+		14,
+		5,
+		5,
+		4,
+		28,
+		24,
+		26,
+		4,
+		11,
+		21,
+		12,
+		4,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -2814,7 +2950,38 @@ var textsZhHans = i18n.NewTexts(""+
 	"直接播放"+
 	"匹配"+
 	"已匹配 · 弹弹play"+
-	"更换",
+	"更换"+
+	"展开或收起侧栏"+
+	"选集"+
+	"此影片无可选剧集。"+
+	"特别篇"+
+	"正在播放"+
+	"已看完"+
+	"静音"+
+	"取消静音"+
+	"音量"+
+	"全屏"+
+	"退出全屏"+
+	"系统播放器"+
+	"播放方式"+
+	"编码"+
+	"丢帧"+
+	"输出"+
+	"网络"+
+	"缓冲"+
+	"就绪"+
+	"下载速度"+
+	"白色"+
+	"琥珀色"+
+	"天蓝色"+
+	"保存在本机的弹幕"+
+	"发个友善的弹幕见证当下"+
+	"弹幕颜色与位置"+
+	"发送"+
+	"重新匹配"+
+	"更多弹幕设置"+
+	"弹幕列表"+
+	"信息",
 	[]uint16{
 		12,
 		45,
@@ -3327,6 +3494,37 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		23,
 		6,
+		21,
+		6,
+		27,
+		9,
+		12,
+		9,
+		6,
+		12,
+		6,
+		6,
+		12,
+		15,
+		12,
+		6,
+		6,
+		6,
+		6,
+		6,
+		6,
+		12,
+		6,
+		9,
+		9,
+		24,
+		33,
+		21,
+		6,
+		12,
+		18,
+		12,
+		6,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -3664,6 +3862,24 @@ func Supply(lang string, t Translation) {
 	}
 	if t.DesktopMovieExternalSubtitles != nil {
 		s.DesktopMovieExternalSubtitles = t.DesktopMovieExternalSubtitles
+	}
+	if t.DesktopPlayerEpisode != nil {
+		s.DesktopPlayerEpisode = t.DesktopPlayerEpisode
+	}
+	if t.DesktopPlayerEngine != nil {
+		s.DesktopPlayerEngine = t.DesktopPlayerEngine
+	}
+	if t.DesktopDanmakuLoaded != nil {
+		s.DesktopDanmakuLoaded = t.DesktopDanmakuLoaded
+	}
+	if t.DesktopDanmakuLocalCount != nil {
+		s.DesktopDanmakuLocalCount = t.DesktopDanmakuLocalCount
+	}
+	if t.DesktopDanmakuRemoteCount != nil {
+		s.DesktopDanmakuRemoteCount = t.DesktopDanmakuRemoteCount
+	}
+	if t.DesktopPlayerEpisodeCount != nil {
+		s.DesktopPlayerEpisodeCount = t.DesktopPlayerEpisodeCount
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -9560,3 +9776,374 @@ func DesktopDanmakuChange(cx *core.Scope) string { return For(cx).DesktopDanmaku
 
 // DesktopDanmakuChange is the package's DesktopDanmakuChange in the language of msgs.
 func (msgs Messages) DesktopDanmakuChange() string { return msgs.text(textDesktopDanmakuChange) }
+
+// DesktopPlayerPanel says "Toggle sidebar"
+// in the language the app shows under cx.
+func DesktopPlayerPanel(cx *core.Scope) string { return For(cx).DesktopPlayerPanel() }
+
+// DesktopPlayerPanel is the package's DesktopPlayerPanel in the language of msgs.
+func (msgs Messages) DesktopPlayerPanel() string { return msgs.text(textDesktopPlayerPanel) }
+
+// DesktopPlayerEpisode says "Season {season} · Episode {episode}"
+// in the language the app shows under cx.
+func DesktopPlayerEpisode(cx *core.Scope, season string, episode string) string {
+	return For(cx).DesktopPlayerEpisode(season, episode)
+}
+
+// DesktopPlayerEpisode is the package's DesktopPlayerEpisode in the language of msgs.
+func (msgs Messages) DesktopPlayerEpisode(season string, episode string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopPlayerEpisode(season, episode))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopPlayerEpisode; f != nil {
+			return f(season, episode)
+		}
+		switch lang {
+		case "", "en":
+			return "Season " + msgs.arg(season) + " · Episode " + msgs.arg(episode)
+		case "zh-Hans":
+			return "第 " + season + " 季 · 第 " + episode + " 集"
+		}
+	}
+}
+
+// DesktopPlayerEpisodes says "Episodes"
+// in the language the app shows under cx.
+func DesktopPlayerEpisodes(cx *core.Scope) string { return For(cx).DesktopPlayerEpisodes() }
+
+// DesktopPlayerEpisodes is the package's DesktopPlayerEpisodes in the language of msgs.
+func (msgs Messages) DesktopPlayerEpisodes() string { return msgs.text(textDesktopPlayerEpisodes) }
+
+// DesktopPlayerNoEpisodes says "There are no episodes for this title."
+// in the language the app shows under cx.
+func DesktopPlayerNoEpisodes(cx *core.Scope) string { return For(cx).DesktopPlayerNoEpisodes() }
+
+// DesktopPlayerNoEpisodes is the package's DesktopPlayerNoEpisodes in the language of msgs.
+func (msgs Messages) DesktopPlayerNoEpisodes() string { return msgs.text(textDesktopPlayerNoEpisodes) }
+
+// DesktopPlayerSpecials says "Specials"
+// in the language the app shows under cx.
+func DesktopPlayerSpecials(cx *core.Scope) string { return For(cx).DesktopPlayerSpecials() }
+
+// DesktopPlayerSpecials is the package's DesktopPlayerSpecials in the language of msgs.
+func (msgs Messages) DesktopPlayerSpecials() string { return msgs.text(textDesktopPlayerSpecials) }
+
+// DesktopPlayerPlaying says "Now playing"
+// in the language the app shows under cx.
+func DesktopPlayerPlaying(cx *core.Scope) string { return For(cx).DesktopPlayerPlaying() }
+
+// DesktopPlayerPlaying is the package's DesktopPlayerPlaying in the language of msgs.
+func (msgs Messages) DesktopPlayerPlaying() string { return msgs.text(textDesktopPlayerPlaying) }
+
+// DesktopPlayerWatched says "Watched"
+// in the language the app shows under cx.
+func DesktopPlayerWatched(cx *core.Scope) string { return For(cx).DesktopPlayerWatched() }
+
+// DesktopPlayerWatched is the package's DesktopPlayerWatched in the language of msgs.
+func (msgs Messages) DesktopPlayerWatched() string { return msgs.text(textDesktopPlayerWatched) }
+
+// DesktopPlayerMute says "Mute"
+// in the language the app shows under cx.
+func DesktopPlayerMute(cx *core.Scope) string { return For(cx).DesktopPlayerMute() }
+
+// DesktopPlayerMute is the package's DesktopPlayerMute in the language of msgs.
+func (msgs Messages) DesktopPlayerMute() string { return msgs.text(textDesktopPlayerMute) }
+
+// DesktopPlayerUnmute says "Unmute"
+// in the language the app shows under cx.
+func DesktopPlayerUnmute(cx *core.Scope) string { return For(cx).DesktopPlayerUnmute() }
+
+// DesktopPlayerUnmute is the package's DesktopPlayerUnmute in the language of msgs.
+func (msgs Messages) DesktopPlayerUnmute() string { return msgs.text(textDesktopPlayerUnmute) }
+
+// DesktopPlayerVolume says "Volume"
+// in the language the app shows under cx.
+func DesktopPlayerVolume(cx *core.Scope) string { return For(cx).DesktopPlayerVolume() }
+
+// DesktopPlayerVolume is the package's DesktopPlayerVolume in the language of msgs.
+func (msgs Messages) DesktopPlayerVolume() string { return msgs.text(textDesktopPlayerVolume) }
+
+// DesktopPlayerFullscreen says "Full screen"
+// in the language the app shows under cx.
+func DesktopPlayerFullscreen(cx *core.Scope) string { return For(cx).DesktopPlayerFullscreen() }
+
+// DesktopPlayerFullscreen is the package's DesktopPlayerFullscreen in the language of msgs.
+func (msgs Messages) DesktopPlayerFullscreen() string { return msgs.text(textDesktopPlayerFullscreen) }
+
+// DesktopPlayerExitFullscreen says "Exit full screen"
+// in the language the app shows under cx.
+func DesktopPlayerExitFullscreen(cx *core.Scope) string { return For(cx).DesktopPlayerExitFullscreen() }
+
+// DesktopPlayerExitFullscreen is the package's DesktopPlayerExitFullscreen in the language of msgs.
+func (msgs Messages) DesktopPlayerExitFullscreen() string {
+	return msgs.text(textDesktopPlayerExitFullscreen)
+}
+
+// DesktopPlayerNativeEngine says "System player"
+// in the language the app shows under cx.
+func DesktopPlayerNativeEngine(cx *core.Scope) string { return For(cx).DesktopPlayerNativeEngine() }
+
+// DesktopPlayerNativeEngine is the package's DesktopPlayerNativeEngine in the language of msgs.
+func (msgs Messages) DesktopPlayerNativeEngine() string {
+	return msgs.text(textDesktopPlayerNativeEngine)
+}
+
+// DesktopPlayerEngine says "Player engine · {name}"
+// in the language the app shows under cx.
+func DesktopPlayerEngine(cx *core.Scope, name string) string {
+	return For(cx).DesktopPlayerEngine(name)
+}
+
+// DesktopPlayerEngine is the package's DesktopPlayerEngine in the language of msgs.
+func (msgs Messages) DesktopPlayerEngine(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopPlayerEngine(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopPlayerEngine; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Player engine · " + msgs.arg(name)
+		case "zh-Hans":
+			return "播放器内核 · " + name
+		}
+	}
+}
+
+// DesktopPlayerMethod says "Playback mode"
+// in the language the app shows under cx.
+func DesktopPlayerMethod(cx *core.Scope) string { return For(cx).DesktopPlayerMethod() }
+
+// DesktopPlayerMethod is the package's DesktopPlayerMethod in the language of msgs.
+func (msgs Messages) DesktopPlayerMethod() string { return msgs.text(textDesktopPlayerMethod) }
+
+// DesktopPlayerCodec says "Codec"
+// in the language the app shows under cx.
+func DesktopPlayerCodec(cx *core.Scope) string { return For(cx).DesktopPlayerCodec() }
+
+// DesktopPlayerCodec is the package's DesktopPlayerCodec in the language of msgs.
+func (msgs Messages) DesktopPlayerCodec() string { return msgs.text(textDesktopPlayerCodec) }
+
+// DesktopPlayerDropped says "Dropped frames"
+// in the language the app shows under cx.
+func DesktopPlayerDropped(cx *core.Scope) string { return For(cx).DesktopPlayerDropped() }
+
+// DesktopPlayerDropped is the package's DesktopPlayerDropped in the language of msgs.
+func (msgs Messages) DesktopPlayerDropped() string { return msgs.text(textDesktopPlayerDropped) }
+
+// DesktopPlayerOutput says "Output"
+// in the language the app shows under cx.
+func DesktopPlayerOutput(cx *core.Scope) string { return For(cx).DesktopPlayerOutput() }
+
+// DesktopPlayerOutput is the package's DesktopPlayerOutput in the language of msgs.
+func (msgs Messages) DesktopPlayerOutput() string { return msgs.text(textDesktopPlayerOutput) }
+
+// DesktopPlayerNetwork says "Network"
+// in the language the app shows under cx.
+func DesktopPlayerNetwork(cx *core.Scope) string { return For(cx).DesktopPlayerNetwork() }
+
+// DesktopPlayerNetwork is the package's DesktopPlayerNetwork in the language of msgs.
+func (msgs Messages) DesktopPlayerNetwork() string { return msgs.text(textDesktopPlayerNetwork) }
+
+// DesktopPlayerBuffer says "Buffer"
+// in the language the app shows under cx.
+func DesktopPlayerBuffer(cx *core.Scope) string { return For(cx).DesktopPlayerBuffer() }
+
+// DesktopPlayerBuffer is the package's DesktopPlayerBuffer in the language of msgs.
+func (msgs Messages) DesktopPlayerBuffer() string { return msgs.text(textDesktopPlayerBuffer) }
+
+// DesktopPlayerBufferReady says "Ready"
+// in the language the app shows under cx.
+func DesktopPlayerBufferReady(cx *core.Scope) string { return For(cx).DesktopPlayerBufferReady() }
+
+// DesktopPlayerBufferReady is the package's DesktopPlayerBufferReady in the language of msgs.
+func (msgs Messages) DesktopPlayerBufferReady() string {
+	return msgs.text(textDesktopPlayerBufferReady)
+}
+
+// DesktopPlayerDownloadRate says "Download speed"
+// in the language the app shows under cx.
+func DesktopPlayerDownloadRate(cx *core.Scope) string { return For(cx).DesktopPlayerDownloadRate() }
+
+// DesktopPlayerDownloadRate is the package's DesktopPlayerDownloadRate in the language of msgs.
+func (msgs Messages) DesktopPlayerDownloadRate() string {
+	return msgs.text(textDesktopPlayerDownloadRate)
+}
+
+// DesktopDanmakuWhite says "White"
+// in the language the app shows under cx.
+func DesktopDanmakuWhite(cx *core.Scope) string { return For(cx).DesktopDanmakuWhite() }
+
+// DesktopDanmakuWhite is the package's DesktopDanmakuWhite in the language of msgs.
+func (msgs Messages) DesktopDanmakuWhite() string { return msgs.text(textDesktopDanmakuWhite) }
+
+// DesktopDanmakuAmber says "Amber"
+// in the language the app shows under cx.
+func DesktopDanmakuAmber(cx *core.Scope) string { return For(cx).DesktopDanmakuAmber() }
+
+// DesktopDanmakuAmber is the package's DesktopDanmakuAmber in the language of msgs.
+func (msgs Messages) DesktopDanmakuAmber() string { return msgs.text(textDesktopDanmakuAmber) }
+
+// DesktopDanmakuBlue says "Blue"
+// in the language the app shows under cx.
+func DesktopDanmakuBlue(cx *core.Scope) string { return For(cx).DesktopDanmakuBlue() }
+
+// DesktopDanmakuBlue is the package's DesktopDanmakuBlue in the language of msgs.
+func (msgs Messages) DesktopDanmakuBlue() string { return msgs.text(textDesktopDanmakuBlue) }
+
+// DesktopDanmakuLocal says "Comment saved on this device"
+// in the language the app shows under cx.
+func DesktopDanmakuLocal(cx *core.Scope) string { return For(cx).DesktopDanmakuLocal() }
+
+// DesktopDanmakuLocal is the package's DesktopDanmakuLocal in the language of msgs.
+func (msgs Messages) DesktopDanmakuLocal() string { return msgs.text(textDesktopDanmakuLocal) }
+
+// DesktopDanmakuPlaceholder says "Leave a friendly comment"
+// in the language the app shows under cx.
+func DesktopDanmakuPlaceholder(cx *core.Scope) string { return For(cx).DesktopDanmakuPlaceholder() }
+
+// DesktopDanmakuPlaceholder is the package's DesktopDanmakuPlaceholder in the language of msgs.
+func (msgs Messages) DesktopDanmakuPlaceholder() string {
+	return msgs.text(textDesktopDanmakuPlaceholder)
+}
+
+// DesktopDanmakuPalette says "Comment color and position"
+// in the language the app shows under cx.
+func DesktopDanmakuPalette(cx *core.Scope) string { return For(cx).DesktopDanmakuPalette() }
+
+// DesktopDanmakuPalette is the package's DesktopDanmakuPalette in the language of msgs.
+func (msgs Messages) DesktopDanmakuPalette() string { return msgs.text(textDesktopDanmakuPalette) }
+
+// DesktopDanmakuSend says "Send"
+// in the language the app shows under cx.
+func DesktopDanmakuSend(cx *core.Scope) string { return For(cx).DesktopDanmakuSend() }
+
+// DesktopDanmakuSend is the package's DesktopDanmakuSend in the language of msgs.
+func (msgs Messages) DesktopDanmakuSend() string { return msgs.text(textDesktopDanmakuSend) }
+
+// DesktopDanmakuLoaded says "{count} comments loaded"
+// in the language the app shows under cx.
+func DesktopDanmakuLoaded(cx *core.Scope, count string) string {
+	return For(cx).DesktopDanmakuLoaded(count)
+}
+
+// DesktopDanmakuLoaded is the package's DesktopDanmakuLoaded in the language of msgs.
+func (msgs Messages) DesktopDanmakuLoaded(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopDanmakuLoaded(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopDanmakuLoaded; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " comments loaded"
+		case "zh-Hans":
+			return "已加载 " + count + " 条"
+		}
+	}
+}
+
+// DesktopDanmakuLocalCount says "{count} local"
+// in the language the app shows under cx.
+func DesktopDanmakuLocalCount(cx *core.Scope, count string) string {
+	return For(cx).DesktopDanmakuLocalCount(count)
+}
+
+// DesktopDanmakuLocalCount is the package's DesktopDanmakuLocalCount in the language of msgs.
+func (msgs Messages) DesktopDanmakuLocalCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopDanmakuLocalCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopDanmakuLocalCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " local"
+		case "zh-Hans":
+			return "本地 " + count + " 条"
+		}
+	}
+}
+
+// DesktopDanmakuRemoteCount says "{count} from DandanPlay"
+// in the language the app shows under cx.
+func DesktopDanmakuRemoteCount(cx *core.Scope, count string) string {
+	return For(cx).DesktopDanmakuRemoteCount(count)
+}
+
+// DesktopDanmakuRemoteCount is the package's DesktopDanmakuRemoteCount in the language of msgs.
+func (msgs Messages) DesktopDanmakuRemoteCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopDanmakuRemoteCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopDanmakuRemoteCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " from DandanPlay"
+		case "zh-Hans":
+			return "弹弹play " + count + " 条"
+		}
+	}
+}
+
+// DesktopDanmakuRematch says "Match again"
+// in the language the app shows under cx.
+func DesktopDanmakuRematch(cx *core.Scope) string { return For(cx).DesktopDanmakuRematch() }
+
+// DesktopDanmakuRematch is the package's DesktopDanmakuRematch in the language of msgs.
+func (msgs Messages) DesktopDanmakuRematch() string { return msgs.text(textDesktopDanmakuRematch) }
+
+// DesktopDanmakuMore says "More danmaku settings"
+// in the language the app shows under cx.
+func DesktopDanmakuMore(cx *core.Scope) string { return For(cx).DesktopDanmakuMore() }
+
+// DesktopDanmakuMore is the package's DesktopDanmakuMore in the language of msgs.
+func (msgs Messages) DesktopDanmakuMore() string { return msgs.text(textDesktopDanmakuMore) }
+
+// DesktopDanmakuList says "Comment list"
+// in the language the app shows under cx.
+func DesktopDanmakuList(cx *core.Scope) string { return For(cx).DesktopDanmakuList() }
+
+// DesktopDanmakuList is the package's DesktopDanmakuList in the language of msgs.
+func (msgs Messages) DesktopDanmakuList() string { return msgs.text(textDesktopDanmakuList) }
+
+// DesktopPlayerInfo says "Info"
+// in the language the app shows under cx.
+func DesktopPlayerInfo(cx *core.Scope) string { return For(cx).DesktopPlayerInfo() }
+
+// DesktopPlayerInfo is the package's DesktopPlayerInfo in the language of msgs.
+func (msgs Messages) DesktopPlayerInfo() string { return msgs.text(textDesktopPlayerInfo) }
+
+// DesktopPlayerEpisodeCount says "{count} episodes"
+// in the language the app shows under cx.
+func DesktopPlayerEpisodeCount(cx *core.Scope, count string) string {
+	return For(cx).DesktopPlayerEpisodeCount(count)
+}
+
+// DesktopPlayerEpisodeCount is the package's DesktopPlayerEpisodeCount in the language of msgs.
+func (msgs Messages) DesktopPlayerEpisodeCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopPlayerEpisodeCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopPlayerEpisodeCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " episodes"
+		case "zh-Hans":
+			return "共 " + count + " 集"
+		}
+	}
+}

@@ -10,7 +10,7 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [添加媒体源 · 深色](../../design/add-source.scenra#L78) | dark | `phone · auto × 1180` | — | [Compared](add-source.md) |
 | [桌面/主窗口](../../design/desktop-main.scenra#L1) | light | `desktop · 1440 × 1500` | — | [Compared](desktop-home.md) |
 | [主窗口 · 深色](../../design/desktop-main.scenra#L134) | dark | `desktop · 1440 × 1500` | — | [Compared](desktop-home.md) |
-| [桌面/播放器](../../design/desktop-player.scenra#L1) | default | `desktop · 1440 × 810` | danmaku, episodes, info | Pending |
+| [桌面/播放器](../../design/desktop-player.scenra#L1) | default | `desktop · 1440 × 810` | danmaku, episodes, info | [Compared](desktop-player.md) |
 | [桌面/设置窗口](../../design/desktop-settings.scenra#L1) | light | `desktop · 1100 × 760` | — | Pending |
 | [设置窗口 · 深色](../../design/desktop-settings.scenra#L135) | dark | `desktop · 1100 × 760` | — | Pending |
 | [手机/首页](../../design/home.scenra#L1) | light | `phone · auto × 1480` | — | [Compared](home.md) |

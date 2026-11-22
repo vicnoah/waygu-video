@@ -28,6 +28,15 @@ type Status struct {
 	Paused, Buffering, Ended bool
 }
 
+type Stats struct {
+	Buffered              time.Duration
+	FPS                   float64
+	Bitrate, DownloadRate int64
+	DroppedFrames         int64
+	VideoCodec, Hardware  string
+	AudioOutput           string
+}
+
 type TrackKind string
 
 const (
@@ -60,6 +69,12 @@ func (p *Player) Pause(paused bool) error {
 }
 
 func (p *Player) Seek(position time.Duration) error { return p.seek(max(0, position)) }
+
+func (p *Player) Volume(volume float32) error {
+	return p.property("volume", strconv.FormatFloat(float64(100*max(0, min(1, volume))), 'f', 2, 32))
+}
+
+func (p *Player) Stats() Stats { return p.stats() }
 
 func (p *Player) Speed(rate float32) error {
 	return p.property("speed", strconv.FormatFloat(float64(rate), 'f', -1, 32))

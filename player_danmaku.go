@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -29,6 +31,12 @@ type danmakuControls struct {
 	enabled    func() bool
 	count      func() int
 	toggle     func()
+	openMatch  func()
+	addLocal   func(danmaku.Comment) bool
+	events     func() []danmaku.Event
+	rawCounts  func() (local, remote int)
+	offset     func() time.Duration
+	setOffset  func(time.Duration)
 }
 
 type videoSample struct {
@@ -44,21 +52,33 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 		shift    float64
 	}
 	type input struct {
-		local  []danmaku.Comment
-		remote remoteComments
-		prefs  danmakuPreferences
-		offset time.Duration
+		local, authored []danmaku.Comment
+		remote          remoteComments
+		prefs           danmakuPreferences
+		offset          time.Duration
 	}
-	tv := appLayoutIdiom(cx) == core.IdiomTV
+	idiom := core.Untracked(cx, func() core.Idiom { return appLayoutIdiom(cx) })
+	tv := idiom == core.IdiomTV
 	const tvTopInset = 150
 	editor := a.editDanmaku(cx)
-	offset, offsetControls := a.danmakuOffset(cx, current)
+	offset, setOffset, offsetControls := a.danmakuOffset(cx, current)
+	key := "danmaku-local-notes-v1:" + danmakuItemKey(current)
+	saved := core.Untracked(cx, func() []danmaku.Comment {
+		var comments []danmaku.Comment
+		if idiom == core.IdiomDesktop {
+			if raw, ok := a.storage.GetItem(key); ok {
+				_ = json.Unmarshal([]byte(raw), &comments)
+			}
+		}
+		return comments
+	})
+	authored := core.NewSignalFunc(cx, saved, nil)
 	local := core.NewSignalFunc(cx, []danmaku.Comment(nil), nil)
 	remote := core.NewSignalFunc(cx, remoteComments{}, nil)
 	enableLocal := core.NewSignal(cx, true)
 	enableRemote := core.NewSignal(cx, true)
 	track := core.NewResource(cx, func() (input, bool) {
-		sources := input{prefs: a.danmakuPrefs.Get(), offset: offset.Get()}
+		sources := input{prefs: a.danmakuPrefs.Get(), offset: offset.Get(), authored: authored.Get()}
 		if enableLocal.Get() {
 			sources.local = local.Get()
 		}
@@ -67,11 +87,12 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 		}
 		return sources, true
 	}, func(ctx context.Context, sources input, _ core.ResourceInfo) (*danmaku.Track, error) {
-		if len(sources.local)+len(sources.remote.comments) == 0 {
+		if len(sources.local)+len(sources.remote.comments)+len(sources.authored) == 0 {
 			return nil, nil
 		}
-		comments := make([]danmaku.Comment, 0, len(sources.local)+len(sources.remote.comments))
+		comments := make([]danmaku.Comment, 0, len(sources.local)+len(sources.remote.comments)+len(sources.authored))
 		comments = append(comments, sources.local...)
+		comments = append(comments, sources.authored...)
 		shift := time.Duration(0)
 		if !math.IsNaN(sources.remote.shift) {
 			shift = time.Duration(max(-86400, min(86400, sources.remote.shift)) * float64(time.Second))
@@ -250,6 +271,26 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 	})
 	return danmakuControls{
 		dialog: dialog, openPanel: func() { panel.Set(true) }, panelOpen: panel.Get, importFile: choose,
+		openMatch: func() { tab.Set(1); panel.Set(true) },
+		offset:    offset.Get, setOffset: setOffset,
+		events: func() []danmaku.Event {
+			if value, _ := track.Get(); value != nil {
+				return value.Events
+			}
+			return nil
+		},
+		rawCounts: func() (int, int) { return len(local.Get()) + len(authored.Get()), len(remote.Get().comments) },
+		addLocal: func(comment danmaku.Comment) bool {
+			before := authored.GetUntracked()
+			items := append(slices.Clone(before[max(0, len(before)-999):]), comment)
+			data, err := json.Marshal(items)
+			if err != nil || a.storage.SetItem(key, string(data)) != nil {
+				return false
+			}
+			authored.Set(items)
+			open.Set(true)
+			return true
+		},
 		count: func() int {
 			value, _ := track.Get()
 			if value == nil {
@@ -332,7 +373,7 @@ func (a *application) danmakuOffsetEditor(cx *core.Scope, current route) (*core.
 	return offset, set, failed
 }
 
-func (a *application) danmakuOffset(cx *core.Scope, current route) (*core.Signal[time.Duration], core.Node) {
+func (a *application) danmakuOffset(cx *core.Scope, current route) (*core.Signal[time.Duration], func(time.Duration), core.Node) {
 	offset, set, failed := a.danmakuOffsetEditor(cx, current)
 	regular := core.View{Class: "gap-1", Children: []core.Node{
 		core.View{Class: "flex-row flex-wrap items-center gap-2", Children: []core.Node{
@@ -350,7 +391,7 @@ func (a *application) danmakuOffset(cx *core.Scope, current route) (*core.Signal
 		}},
 		core.Show{When: failed.Get, Then: func(cx *core.Scope) core.Node { return notice(locales.DanmakuPreferencesError(cx)) }},
 	}}
-	return offset, core.Dynamic(func(cx *core.Scope) core.Node {
+	return offset, set, core.Dynamic(func(cx *core.Scope) core.Node {
 		if phoneLandscape(cx) {
 			return core.View{Class: "gap-1", Children: []core.Node{
 				playerStepRow(cx, locales.PhonePlayerDanmakuTiming(cx), func() string {
