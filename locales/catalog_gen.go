@@ -45,6 +45,7 @@ func For(cx *core.Scope) Messages {
 var Parameters = map[string][]string{
 	"Connected":               {"name"},
 	"BitrateMegabits":         {"bitrate"},
+	"NextEpisodeCountdown":    {"seconds"},
 	"EpisodeLabel":            {"number"},
 	"SeasonLabel":             {"number"},
 	"QuickConnectInstruction": {"code"},
@@ -58,6 +59,7 @@ type Translation struct {
 	Texts                   map[string]string
 	Connected               func(name string) string
 	BitrateMegabits         func(bitrate string) string
+	NextEpisodeCountdown    func(seconds string) string
 	EpisodeLabel            func(number string) string
 	SeasonLabel             func(number string) string
 	QuickConnectInstruction func(code string) string
@@ -134,6 +136,9 @@ const (
 	textStreamingQuality
 	textOriginalQuality
 	textStreamingQualityProviders
+	textAutoNextEpisode
+	textNextEpisode
+	textDismiss
 	textPreferMPV
 	textDirectPlay
 	textDirectStream
@@ -216,6 +221,9 @@ var keyOfText = [numTexts]string{
 	"streamingQuality",
 	"originalQuality",
 	"streamingQualityProviders",
+	"autoNextEpisode",
+	"nextEpisode",
+	"dismiss",
 	"preferMPV",
 	"directPlay",
 	"directStream",
@@ -296,6 +304,9 @@ var textsEn = i18n.NewTexts(""+
 	"Streaming quality"+
 	"Original quality"+
 	"Applies to Emby, Jellyfin and Plex."+
+	"Automatically play the next episode"+
+	"Next episode"+
+	"Dismiss"+
 	"Use libmpv when available"+
 	"Direct play"+
 	"Direct stream"+
@@ -373,6 +384,9 @@ var textsEn = i18n.NewTexts(""+
 		17,
 		16,
 		35,
+		35,
+		12,
+		7,
 		25,
 		11,
 		13,
@@ -453,6 +467,9 @@ var textsZhHans = i18n.NewTexts(""+
 	"在线播放画质"+
 	"原画"+
 	"适用于 Emby、Jellyfin 和 Plex。"+
+	"自动播放下一集"+
+	"下一集"+
+	"关闭提示"+
 	"优先使用 libmpv 播放器"+
 	"原画直连"+
 	"直接串流"+
@@ -530,6 +547,9 @@ var textsZhHans = i18n.NewTexts(""+
 		18,
 		6,
 		37,
+		21,
+		9,
+		12,
 		29,
 		12,
 		12,
@@ -600,6 +620,9 @@ func Supply(lang string, t Translation) {
 	}
 	if t.BitrateMegabits != nil {
 		s.BitrateMegabits = t.BitrateMegabits
+	}
+	if t.NextEpisodeCountdown != nil {
+		s.NextEpisodeCountdown = t.NextEpisodeCountdown
 	}
 	if t.EpisodeLabel != nil {
 		s.EpisodeLabel = t.EpisodeLabel
@@ -1141,6 +1164,51 @@ func StreamingQualityProviders(cx *core.Scope) string { return For(cx).Streaming
 func (msgs Messages) StreamingQualityProviders() string {
 	return msgs.text(textStreamingQualityProviders)
 }
+
+// AutoNextEpisode says "Automatically play the next episode"
+// in the language the app shows under cx.
+func AutoNextEpisode(cx *core.Scope) string { return For(cx).AutoNextEpisode() }
+
+// AutoNextEpisode is the package's AutoNextEpisode in the language of msgs.
+func (msgs Messages) AutoNextEpisode() string { return msgs.text(textAutoNextEpisode) }
+
+// NextEpisode says "Next episode"
+// in the language the app shows under cx.
+func NextEpisode(cx *core.Scope) string { return For(cx).NextEpisode() }
+
+// NextEpisode is the package's NextEpisode in the language of msgs.
+func (msgs Messages) NextEpisode() string { return msgs.text(textNextEpisode) }
+
+// NextEpisodeCountdown says "Next episode in {seconds} s"
+// in the language the app shows under cx.
+func NextEpisodeCountdown(cx *core.Scope, seconds string) string {
+	return For(cx).NextEpisodeCountdown(seconds)
+}
+
+// NextEpisodeCountdown is the package's NextEpisodeCountdown in the language of msgs.
+func (msgs Messages) NextEpisodeCountdown(seconds string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.NextEpisodeCountdown(seconds))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].NextEpisodeCountdown; f != nil {
+			return f(seconds)
+		}
+		switch lang {
+		case "", "en":
+			return "Next episode in " + msgs.arg(seconds) + " s"
+		case "zh-Hans":
+			return seconds + " 秒后播放下一集"
+		}
+	}
+}
+
+// Dismiss says "Dismiss"
+// in the language the app shows under cx.
+func Dismiss(cx *core.Scope) string { return For(cx).Dismiss() }
+
+// Dismiss is the package's Dismiss in the language of msgs.
+func (msgs Messages) Dismiss() string { return msgs.text(textDismiss) }
 
 // PreferMPV says "Use libmpv when available"
 // in the language the app shows under cx.

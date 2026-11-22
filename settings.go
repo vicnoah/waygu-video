@@ -32,6 +32,13 @@ func (a *application) settings(cx *core.Scope) core.Node {
 				a.bitrateLimit.Set(bitrate)
 			}},
 		hint(locales.StreamingQualityProviders(cx)),
+		ui.Checkbox{Text: locales.AutoNextEpisode(cx), Checked: a.autoNext.Get, OnChange: func(enabled bool) {
+			if err := a.storage.SetItem(autoNextKey, strconv.FormatBool(enabled)); err != nil {
+				failure.Set(err)
+				return
+			}
+			a.autoNext.Set(enabled)
+		}},
 	}
 	if cx.Env().Desktop() {
 		playbackControls = append(playbackControls,

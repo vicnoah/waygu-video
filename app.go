@@ -62,15 +62,17 @@ type application struct {
 	sourceFilter *core.Signal[string]
 	mpvPreferred *core.Signal[bool]
 	bitrateLimit *core.Signal[int]
+	autoNext     *core.Signal[bool]
 	tokens       sync.Map
 }
 
 const (
-	sourcesKey = "media-sources-v1"
-	deviceKey  = "media-device-v1"
-	seenKey    = "onboarding-seen-v1"
-	mpvKey     = "playback-libmpv-v1"
-	bitrateKey = "playback-bitrate-v1"
+	sourcesKey  = "media-sources-v1"
+	deviceKey   = "media-device-v1"
+	seenKey     = "onboarding-seen-v1"
+	mpvKey      = "playback-libmpv-v1"
+	bitrateKey  = "playback-bitrate-v1"
+	autoNextKey = "playback-auto-next-v1"
 )
 
 var playbackBitrates = []int{0, 4_000_000, 8_000_000, 20_000_000}
@@ -94,6 +96,7 @@ func appRoot(cx *core.Scope, factory mediaFactory) core.Node {
 	first := screenWelcome
 	mpvPreference, _ := storage.GetItem(mpvKey)
 	bitrateSetting, _ := storage.GetItem(bitrateKey)
+	autoNext, _ := storage.GetItem(autoNextKey)
 	bitrate, _ := strconv.Atoi(bitrateSetting)
 	if !slices.Contains(playbackBitrates, bitrate) {
 		bitrate = 0
@@ -107,6 +110,7 @@ func appRoot(cx *core.Scope, factory mediaFactory) core.Node {
 		tab: core.NewSignal(cx, 0), sourceFilter: core.NewSignal(cx, ""),
 		mpvPreferred: core.NewSignal(cx, mpvPreference == "true"),
 		bitrateLimit: core.NewSignal(cx, bitrate),
+		autoNext:     core.NewSignal(cx, autoNext != "false"),
 	}
 	cx.OnBackPress(func() bool {
 		if len(a.routes.GetUntracked()) <= 1 {

@@ -67,6 +67,10 @@ streamingQuality: Streaming quality
 originalQuality: Original quality
 bitrateMegabits: "{bitrate} Mbps"
 streamingQualityProviders: Applies to Emby, Jellyfin and Plex.
+autoNextEpisode: Automatically play the next episode
+nextEpisode: Next episode
+nextEpisodeCountdown: "Next episode in {seconds} s"
+dismiss: Dismiss
 preferMPV: Use libmpv when available
 directPlay: Direct play
 directStream: Direct stream

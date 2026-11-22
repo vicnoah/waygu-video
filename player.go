@@ -71,12 +71,14 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 	seekVideo := ref.Seek
 	position := core.NewSignal(cx, time.Duration(0))
 	duration := core.NewSignal(cx, medium.stream.Duration)
+	ended := core.NewSignal(cx, false)
+	nextEpisode := a.nextEpisodeCard(cx, current, medium.client, position, duration, ended)
 	sample := core.NewSignal(cx, videoSample{})
 	picture := core.NewSignal(cx, core.Size{})
 	paused := core.NewSignal(cx, false)
 	failure := core.NewSignal(cx, false)
 	buffering := core.NewSignal(cx, false)
-	loaded, ended := false, false
+	loaded := false
 	var lastReport time.Time
 	enqueue, finish := playbackReports(medium.client)
 	snapshot := func(event media.PlaybackEvent) media.PlaybackState {
@@ -91,7 +93,7 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 		}
 	}
 	cx.Cleanup(func() {
-		if loaded && !ended {
+		if loaded && !ended.GetUntracked() {
 			final := snapshot(media.Stopped)
 			finish(&final)
 		} else {
@@ -103,7 +105,7 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 			return
 		}
 		at = max(0, min(at, duration.GetUntracked()))
-		ended = false
+		ended.Set(false)
 		position.Set(at)
 		sample.Set(videoSample{at, cx.Now()})
 		seekVideo(at)
@@ -131,12 +133,12 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 			if length > 0 {
 				duration.Set(length)
 			}
-			if !ended && cx.Now().Sub(lastReport) >= 10*time.Second {
+			if !ended.GetUntracked() && cx.Now().Sub(lastReport) >= 10*time.Second {
 				report(media.Progress)
 			}
 		},
 		OnPause: func(core.VideoPauseReason) {
-			if !paused.GetUntracked() && !ended {
+			if !paused.GetUntracked() && !ended.GetUntracked() {
 				paused.Set(true)
 				report(media.Progress)
 			}
@@ -151,7 +153,7 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 		OnEnd: func() {
 			position.Set(duration.GetUntracked())
 			paused.Set(true)
-			ended = true
+			ended.Set(true)
 			report(media.Stopped)
 		},
 	}
@@ -172,7 +174,7 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 	}
 	comments := playerDanmaku(cx, sample, picture, paused, buffering, useCanvas, showOnMPV)
 	toggle := func() {
-		if ended {
+		if ended.GetUntracked() {
 			seek(0)
 			report(media.Started)
 		}
@@ -186,7 +188,7 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 			Style: core.Style{PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea}}, Children: []core.Node{
 				ui.Button{Label: locales.ClosePlayer(cx), Icon: lucide.ChevronLeft, Variant: ui.ButtonSecondary, OnPress: a.back, TestID: "close-player"},
 				core.View{Class: "flex-1 gap-1", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
-					core.Text{Content: current.item.Title, Class: "text-lg font-semibold text-white"},
+					core.Text{Content: current.item.Title, Class: "text-lg font-semibold text-white", TestID: "player-title"},
 					core.Text{Content: current.source.Name + " · " + playMethod(cx, medium.stream.Method), Class: "text-xs text-zinc-300"},
 				}},
 				comments.buttons,
@@ -203,6 +205,7 @@ func (a *application) playerView(cx *core.Scope, current route, medium playerMed
 		}},
 		core.View{Class: "absolute bottom-0 left-0 right-0 gap-3 bg-linear-to-t from-black to-transparent p-5",
 			Style: core.Style{PaddingEnv: core.EnvEdges{Bottom: core.EnvSafeArea}}, Children: []core.Node{
+				nextEpisode,
 				core.View{Class: "flex-row items-center gap-3", Children: []core.Node{
 					core.Text{ContentFunc: func() string { return playbackClock(position.Get()) }, Class: "text-xs text-white"},
 					ui.Slider{Label: locales.PlaybackPosition(cx), Value: func() float64 { return position.Get().Seconds() },

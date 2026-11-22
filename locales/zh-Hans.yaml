@@ -67,6 +67,10 @@ streamingQuality: 在线播放画质
 originalQuality: 原画
 bitrateMegabits: "{bitrate} Mbps"
 streamingQualityProviders: 适用于 Emby、Jellyfin 和 Plex。
+autoNextEpisode: 自动播放下一集
+nextEpisode: 下一集
+nextEpisodeCountdown: "{seconds} 秒后播放下一集"
+dismiss: 关闭提示
 preferMPV: 优先使用 libmpv 播放器
 directPlay: 原画直连
 directStream: 直接串流
