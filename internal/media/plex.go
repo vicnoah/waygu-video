@@ -455,6 +455,7 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			Position: millis(entry.ViewOffset), Duration: millis(max(entry.Duration, part.Duration)),
 			URL: original, Method: DirectPlay,
 			File: SourceFile{Name: videoFileName(part.File), Size: part.Size, URL: original, Headers: p.headers}}
+		var transcodeParams url.Values
 		switchAudio := audio != nil || plexAlternativeAudio(part.Stream)
 		transcode := options.ForceTranscode || options.MaxHeight > 0
 		if switchAudio || transcode || !plexDirect(version, options) {
@@ -477,6 +478,7 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			}
 			stream.URL, stream.Method = p.mediaURL("/video/:/transcode/universal/start.m3u8", params), Transcode
 			stream.Headers = p.auth()
+			transcodeParams = params
 		}
 		if stream.URL == "" {
 			continue
@@ -486,6 +488,14 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			// transcoder uses that selection for the next playback session.
 			params := url.Values{"audioStreamID": {strconv.Itoa(*audio)}}
 			if err := p.request(ctx, http.MethodPut, "/library/parts/"+strconv.Itoa(part.ID), params, p.auth(), nil, nil); err != nil {
+				return Stream{}, err
+			}
+		}
+		if transcodeParams != nil {
+			// Plex's transcoder can reject a playlist until this session has a
+			// decision. Request it after applying the selected audio stream.
+			err := p.request(ctx, http.MethodGet, "/video/:/transcode/universal/decision", transcodeParams, p.auth(), nil, nil)
+			if err != nil && !errors.Is(err, StatusError(http.StatusNotFound)) && !errors.Is(err, StatusError(http.StatusMethodNotAllowed)) {
 				return Stream{}, err
 			}
 		}
