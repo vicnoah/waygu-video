@@ -22,6 +22,7 @@ func TestPlayNextEpisodeAcrossSeasons(t *testing.T) {
 	}]`}), nsgotest.Secrets(map[string]string{"example": "fixture-token"}))
 	app.WaitFor("id:title-first", time.Second)
 	app.Press("id:title-first")
+	app.WaitFor("text:Fixture synopsis", time.Second)
 	app.Press("id:detail-play")
 	app.WaitFor("id:video-player", time.Second)
 	const length = time.Minute
