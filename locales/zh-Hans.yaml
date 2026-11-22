@@ -390,9 +390,10 @@ settingsPassthroughDescription: 将 AC3、DTS、TrueHD、Atmos 原样输出到�
 settingsPassthroughFormats: 直通格式
 settingsBoostVolume: 音量增强
 settingsNightAudio: 夜间模式（压缩动态范围）
+settingsEpisodes: 剧集
 settingsSkipIntro: 跳过片头片尾
 settingsIdentifyIntro: 片头片尾识别
-settingsIntroMarkers: 服务器标记与章节
+settingsIntroMarkers: 服务器标记 + 音频指纹
 settingsControls: 控制
 settingsRememberProgress: 记住播放进度
 settingsSeekBack: 快退步长

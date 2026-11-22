@@ -643,6 +643,7 @@ const (
 	textSettingsPassthroughFormats
 	textSettingsBoostVolume
 	textSettingsNightAudio
+	textSettingsEpisodes
 	textSettingsSkipIntro
 	textSettingsIdentifyIntro
 	textSettingsIntroMarkers
@@ -1478,6 +1479,7 @@ var keyOfText = [numTexts]string{
 	"settingsPassthroughFormats",
 	"settingsBoostVolume",
 	"settingsNightAudio",
+	"settingsEpisodes",
 	"settingsSkipIntro",
 	"settingsIdentifyIntro",
 	"settingsIntroMarkers",
@@ -2311,9 +2313,10 @@ var textsEn = i18n.NewTexts(""+
 	"Passthrough formats"+
 	"Volume boost"+
 	"Night mode"+
+	"Episodes"+
 	"Skip intros and credits"+
 	"Intro and credit detection"+
-	"Server markers and chapters"+
+	"Server markers + audio fingerprint"+
 	"Controls"+
 	"Remember playback position"+
 	"Rewind interval"+
@@ -3141,9 +3144,10 @@ var textsEn = i18n.NewTexts(""+
 		19,
 		12,
 		10,
+		8,
 		23,
 		26,
-		27,
+		34,
 		8,
 		26,
 		15,
@@ -3974,9 +3978,10 @@ var textsZhHans = i18n.NewTexts(""+
 	"直通格式"+
 	"音量增强"+
 	"夜间模式（压缩动态范围）"+
+	"剧集"+
 	"跳过片头片尾"+
 	"片头片尾识别"+
-	"服务器标记与章节"+
+	"服务器标记 + 音频指纹"+
 	"控制"+
 	"记住播放进度"+
 	"快退步长"+
@@ -4804,9 +4809,10 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		12,
 		36,
+		6,
 		18,
 		18,
-		24,
+		30,
 		6,
 		18,
 		12,
@@ -9495,6 +9501,13 @@ func SettingsNightAudio(cx *core.Scope) string { return For(cx).SettingsNightAud
 // SettingsNightAudio is the package's SettingsNightAudio in the language of msgs.
 func (msgs Messages) SettingsNightAudio() string { return msgs.text(textSettingsNightAudio) }
 
+// SettingsEpisodes says "Episodes"
+// in the language the app shows under cx.
+func SettingsEpisodes(cx *core.Scope) string { return For(cx).SettingsEpisodes() }
+
+// SettingsEpisodes is the package's SettingsEpisodes in the language of msgs.
+func (msgs Messages) SettingsEpisodes() string { return msgs.text(textSettingsEpisodes) }
+
 // SettingsSkipIntro says "Skip intros and credits"
 // in the language the app shows under cx.
 func SettingsSkipIntro(cx *core.Scope) string { return For(cx).SettingsSkipIntro() }
@@ -9509,7 +9522,7 @@ func SettingsIdentifyIntro(cx *core.Scope) string { return For(cx).SettingsIdent
 // SettingsIdentifyIntro is the package's SettingsIdentifyIntro in the language of msgs.
 func (msgs Messages) SettingsIdentifyIntro() string { return msgs.text(textSettingsIdentifyIntro) }
 
-// SettingsIntroMarkers says "Server markers and chapters"
+// SettingsIntroMarkers says "Server markers + audio fingerprint"
 // in the language the app shows under cx.
 func SettingsIntroMarkers(cx *core.Scope) string { return For(cx).SettingsIntroMarkers() }
 

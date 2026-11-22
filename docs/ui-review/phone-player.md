@@ -64,3 +64,10 @@ The native review exercises all six ratios, an A/B repeat on the decoded Emby fi
 The playback setting uses the shared player on phone, tablet, TV and desktop. The Emby fixture plays a cold open, skips 2–5 seconds, skips credits at 14–15.5 seconds and plays the intervening scene. Reaching the final credits at 16.5 seconds completes the 18-second clip and makes the next episode available. The capture uses GTK with autoplay switched off so the next-episode card stays visible. The headless case also verifies the watched report to Emby and the 10-second autoplay transition. [Scenra playback flow](../../design/flows/playback.scenra) · [Settings comparison](phone-player-settings.md) · [Fixture and capture commands](../../integration/servers/TESTING.md#intro-and-credit-markers)
 
 ![Phone player at the end of the marked episode with the next episode card](images/phone-player-final-credits.png)
+
+
+### Same-season audio
+
+The second fixture has three different cuts with no server markers. Their opening starts at 4, 6 and 2 seconds. The credits start at 39, 43 and 47 seconds. The playback test on GTK uses Jellyfin, checks that the first episode jumps from the opening to about 13 seconds, and verifies the final skip at 48 seconds. Emby and Jellyfin provide bounded PCM samples through their authenticated audio routes. The Plex fixture uses the original file through the desktop FFmpeg path. The opening scan is limited to the first third or three minutes. The credit scan is limited to the final quarter or 90 seconds. [Scenra playback settings](../../design/settings-playback.scenra) · [Fixture verification](../../integration/servers/TESTING.md#same-season-audio)
+
+![GTK playback after the final credits detected from neighboring episodes](images/phone-player-fingerprinted-credits.png)

@@ -165,3 +165,5 @@ for height in 180 360; do
             -c:a aac -movflags +faststart "$version"
     fi
 done
+
+sh audio-markers.sh

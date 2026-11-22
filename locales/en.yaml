@@ -390,9 +390,10 @@ settingsPassthroughDescription: Send AC3, DTS, TrueHD and Atmos to a receiver
 settingsPassthroughFormats: Passthrough formats
 settingsBoostVolume: Volume boost
 settingsNightAudio: Night mode
+settingsEpisodes: Episodes
 settingsSkipIntro: Skip intros and credits
 settingsIdentifyIntro: Intro and credit detection
-settingsIntroMarkers: Server markers and chapters
+settingsIntroMarkers: Server markers + audio fingerprint
 settingsControls: Controls
 settingsRememberProgress: Remember playback position
 settingsSeekBack: Rewind interval

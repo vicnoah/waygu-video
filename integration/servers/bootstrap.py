@@ -3,6 +3,7 @@
 import json
 from http.client import HTTPException
 import os
+from pathlib import Path
 import time
 from urllib.error import HTTPError
 from urllib.parse import urlencode
@@ -246,7 +247,31 @@ def setup_plex(base):
         if section["title"] == "Movies":
             group_plex_versions(base, section["key"])
             setup_plex_previews(base, section["key"])
+        if section["title"] == "Shows":
+            setup_plex_audio_series(base, section["key"])
     print(f"plex {info['version']}: configured fixture libraries")
+
+
+def setup_plex_audio_series(base, section_id):
+    title = "Waygu Audio Marker Series"
+    folder = title + " (2025)"
+    if not Path(__file__).with_name("media").joinpath("Shows", folder).is_dir():
+        return
+    path = f"/media/Shows/{folder}/"
+
+    def fixture_show():
+        catalog = request(base, f"/library/sections/{section_id}/all", params={"type": 4})
+        for episode in catalog["MediaContainer"].get("Metadata", []):
+            for media in episode.get("Media", []):
+                if any(part.get("file", "").startswith(path) for part in media.get("Part", [])):
+                    return episode["grandparentRatingKey"]
+        return None
+
+    key = wait_until_ready(fixture_show, timeout=90)
+    detail = request(base, f"/library/metadata/{key}")["MediaContainer"]["Metadata"][0]
+    if detail["title"] != title:
+        # The remote agent can match a fabricated title to a real show.
+        request(base, f"/library/metadata/{key}", method="PUT", params={"title": title})
 
 
 def setup_plex_previews(base, section_id):

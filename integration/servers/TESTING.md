@@ -80,3 +80,18 @@ GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 go tool nsgo test . -run '^TestDockerPhonePlay
 go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerPhonePlaybackMarkers$' -screenshots .nsgo/ui-review/playback-markers
 ```
+
+
+## Same-season audio
+
+`fixtures.sh` generates three unmarked episodes with different scene audio and offsets for their shared opening and credits. Run `bootstrap.py` to rescan the libraries. On Plex, bootstrap identifies the generated files by path before setting the fixture series title because the remote metadata agent may map a made-up title to a real show.
+
+`TestDockerInferredPlaybackMarkers` checks both boundaries independently against the generated timestamps on Emby, Jellyfin and Plex. The first two use 16 kHz mono PCM and separate transcode sessions for each sampling offset. Desktop Plex decodes the original file with an installed FFmpeg. The app samples the beginning and end of the selected cut, compares two separate episodes from the same season, and drops matches with insufficient duration or changes. Authoritative server ranges remain in use when present. [Emby audio streaming](https://dev.emby.media/doc/restapi/Audio-Streaming.html) · [Jellyfin audio controller](https://github.com/jellyfin/jellyfin/blob/master/Jellyfin.Api/Controllers/AudioController.cs)
+
+```sh
+GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 go tool nsgo test . \
+  -run '^(TestDockerInferredPlaybackMarkers|TestDockerPhoneUsesInferredPlaybackMarkers)$' -count=1
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^(TestPhonePlaybackAndSubtitleSettingsReview|TestDockerPhoneUsesInferredPlaybackMarkers)$' \
+  -screenshots .nsgo/ui-review/audio-markers
+```

@@ -95,7 +95,11 @@ func phoneSettingValue(value string) core.Node {
 }
 
 func phoneSettingValueFunc(value func() string) core.Node {
-	return core.View{Class: "max-w-[55%] shrink-0 flex-row items-center gap-3", Children: []core.Node{
+	return phoneSettingValueSized(value, "max-w-[55%]")
+}
+
+func phoneSettingValueSized(value func() string, width string) core.Node {
+	return core.View{Class: width + " shrink-0 flex-row items-center gap-3", Children: []core.Node{
 		core.Text{ContentFunc: value, MaxLines: 1, Class: "shrink text-right text-[15px] " + setupMuted},
 		core.Icon{SVG: lucide.ChevronRight(), Class: "size-4 opacity-60 " + setupMuted},
 	}}

@@ -174,7 +174,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	viewport := core.NewSignal(cx, core.Size{})
 	loop := segmentLoop{segment: core.NewSignal(cx, playbackSegment{})}
 	skip := markerSkip{manual: -1}
-	markers := playbackMarkers(cx, current.item, initial.client, func() media.Stream { return medium.Get().stream },
+	markers := a.playbackMarkers(cx, current, initial.client, func() media.Stream { return medium.Get().stream },
 		func() bool { return !offline && !a.playbackPrefs.Get().KeepIntroCredits })
 	pip := core.NewSignal(cx, core.PictureInPictureState{})
 	rate := core.NewSignal(cx, prefs.Rate)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"slices"
 	"time"
 
 	"github.com/nsgo-dev/nsgo/core"
@@ -14,33 +15,69 @@ type markerSource struct {
 	duration    time.Duration
 }
 
-func playbackMarkers(cx *core.Scope, item media.Item, client media.Client, stream func() media.Stream, enabled func() bool) func() []media.PlaybackMarker {
-	provider, supported := client.(media.MarkerClient)
-	if !supported {
+func (a *application) playbackMarkers(cx *core.Scope, current route, client media.Client, stream func() media.Stream, enabled func() bool) func() []media.PlaybackMarker {
+	provider, _ := client.(media.MarkerClient)
+	audioCapable := current.item.Kind == media.Episode && current.item.Episode > 0 && current.item.SeriesID != ""
+	if provider == nil && !audioCapable {
 		return func() []media.PlaybackMarker { return nil }
 	}
-	source := core.NewMemo(cx, func() markerSource {
-		active := stream()
-		return markerSource{active.VersionID(), active.SourceID, active.Duration}
-	})
+	source := core.NewMemo(cx, func() markerSource { return sourceForMarkers(stream()) })
 	type result struct {
 		source  markerSource
 		markers []media.PlaybackMarker
 	}
 	resource := core.NewResource(cx, func() (markerSource, bool) { return source.Get(), enabled() },
 		func(ctx context.Context, key markerSource, _ core.ResourceInfo) (result, error) {
-			ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
-			defer cancel()
-			markers, err := provider.PlaybackMarkers(ctx, item, media.Stream{SourceID: key.id, Duration: key.duration})
-			return result{key, markers}, err
+			var markers []media.PlaybackMarker
+			if provider != nil {
+				ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
+				defer cancel()
+				markers, _ = provider.PlaybackMarkers(ctx, current.item, media.Stream{SourceID: key.id, Duration: key.duration})
+			}
+			return result{key, markers}, nil
 		})
-	return func() []media.PlaybackMarker {
+	known := func() (result, bool) {
 		loaded, ready := resource.Get()
-		if ready && loaded.source == source.Get() && enabled() {
+		return loaded, ready && loaded.source == source.Get() && enabled()
+	}
+	detected := core.NewResource(cx, func() (audioMarkerRequest, bool) {
+		loaded, ready := known()
+		if !ready || !audioCapable {
+			return audioMarkerRequest{}, false
+		}
+		var missing []media.MarkerKind
+		for _, kind := range []media.MarkerKind{media.MarkerIntro, media.MarkerCredits} {
+			if !slices.ContainsFunc(loaded.markers, func(marker media.PlaybackMarker) bool { return marker.Kind == kind }) {
+				missing = append(missing, kind)
+			}
+		}
+		if len(missing) == 0 {
+			return audioMarkerRequest{}, false
+		}
+		return audioMarkerRequest{loaded.source, core.Untracked(cx, stream), missing, a.parentalRules()}, true
+	}, func(ctx context.Context, request audioMarkerRequest, _ core.ResourceInfo) (result, error) {
+		ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
+		return result{request.key, a.inferredMarkers(ctx, current, client, request)}, nil
+	})
+	combinedMarkers := core.NewMemoFunc(cx, func() []media.PlaybackMarker {
+		loaded, ready := known()
+		if !ready {
+			return nil
+		}
+		found, analyzed := detected.Get()
+		if !analyzed || found.source != loaded.source {
 			return loaded.markers
 		}
-		return nil
-	}
+		combined := slices.Clone(loaded.markers)
+		for _, marker := range found.markers {
+			if !slices.ContainsFunc(loaded.markers, func(known media.PlaybackMarker) bool { return known.Kind == marker.Kind }) {
+				combined = append(combined, marker)
+			}
+		}
+		return combined
+	}, slices.Equal)
+	return combinedMarkers.Get
 }
 
 type markerSkip struct {

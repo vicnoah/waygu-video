@@ -90,7 +90,7 @@ func (a *application) phonePlaybackSettings(cx *core.Scope) core.Node {
 			unavailableSwitch(locales.SettingsBoostVolume(cx), "", "bg-rose-500", lucide.Volume2),
 			unavailableSwitch(locales.SettingsNightAudio(cx), "", "bg-indigo-500", lucide.Moon),
 		),
-		setupGroup(locales.Episodes(cx), "",
+		setupGroup(locales.SettingsEpisodes(cx), "",
 			(phoneSetting{locales.AutoNextEpisode(cx), "", "bg-violet-500", lucide.SkipForward}).
 				toggle(cx, "phone-auto-next", a.autoNext.Get, func(enabled bool) {
 					failure.Set(storeSettingValue(a.storage, autoNextKey, a.autoNext, enabled, strconv.FormatBool(enabled)))
@@ -99,7 +99,7 @@ func (a *application) phonePlaybackSettings(cx *core.Scope) core.Node {
 				toggle(cx, "phone-skip-intro", func() bool { return !a.playbackPrefs.Get().KeepIntroCredits },
 					func(enabled bool) { save(func(p *playbackPreferences) { p.KeepIntroCredits = !enabled }) }),
 			(phoneSetting{locales.SettingsIdentifyIntro(cx), "", "bg-violet-500", lucide.ScanSearch}).
-				row(phoneSettingValue(locales.SettingsIntroMarkers(cx))),
+				row(phoneSettingValueSized(func() string { return locales.SettingsIntroMarkers(cx) }, "w-[196px] justify-end")),
 		),
 		setupGroup(locales.SettingsControls(cx), "",
 			(phoneSetting{locales.SettingsRememberProgress(cx), "", "bg-blue-500", lucide.Clock}).

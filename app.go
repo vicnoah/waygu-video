@@ -141,6 +141,7 @@ type application struct {
 	versionPolicy       *core.Signal[media.VersionPolicy]
 	autoNext            *core.Signal[bool]
 	playbackPrefs       *core.Signal[playbackPreferences]
+	audioSamples        audioMarkerCache
 	sleepTimer          *core.Signal[playerSleepTimer]
 	subtitlePrefs       *core.Signal[subtitlePreferences]
 	danmakuPrefs        *core.Signal[danmakuPreferences]

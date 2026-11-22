@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -23,7 +24,12 @@ const maxPlaylist = 4 << 20
 // Open starts a loopback proxy for a player that needs authenticated headers.
 // It forwards byte ranges and keeps the credentials out of the player's URL.
 func Open(address string, headers http.Header) (string, func(), error) {
-	return openProxy(address, headers, "127.0.0.1:0", netip.Addr{}, "")
+	return openProxy(address, headers, "127.0.0.1:0", netip.Addr{}, "", 0)
+}
+
+// OpenWithReadLimit stops a decoder from reading beyond one shared byte budget.
+func OpenWithReadLimit(address string, headers http.Header, limit int64) (string, func(), error) {
+	return openProxy(address, headers, "127.0.0.1:0", netip.Addr{}, "", limit)
 }
 
 // OpenForRenderer publishes a single authenticated stream on the interface
@@ -38,10 +44,10 @@ func OpenForRenderer(address string, headers http.Header, receiver netip.Addr, c
 	}
 	local := conn.LocalAddr().(*net.UDPAddr).AddrPort().Addr()
 	_ = conn.Close()
-	return openProxy(address, headers, netip.AddrPortFrom(local, 0).String(), receiver.Unmap(), contentType)
+	return openProxy(address, headers, netip.AddrPortFrom(local, 0).String(), receiver.Unmap(), contentType, 0)
 }
 
-func openProxy(address string, headers http.Header, bind string, receiver netip.Addr, contentType string) (string, func(), error) {
+func openProxy(address string, headers http.Header, bind string, receiver netip.Addr, contentType string, limit int64) (string, func(), error) {
 	origin, err := url.Parse(address)
 	if err != nil || origin.User != nil || origin.Hostname() == "" || (origin.Scheme != "http" && origin.Scheme != "https") {
 		return "", nil, errors.New("invalid playback URL")
@@ -53,6 +59,10 @@ func openProxy(address string, headers http.Header, bind string, receiver netip.
 	transport := &http.Transport{Proxy: http.ProxyFromEnvironment, ResponseHeaderTimeout: 20 * time.Second}
 	proxy := &streamProxy{origin: origin, headers: headers.Clone(), prefix: "/" + rand.Text() + "/",
 		receiver: receiver, mediaType: contentType}
+	if limit > 0 {
+		proxy.budget = new(atomic.Int64)
+		proxy.budget.Store(limit)
+	}
 	proxy.client = &http.Client{Transport: transport, CheckRedirect: func(req *http.Request, prior []*http.Request) error {
 		if len(prior) >= 5 || !proxy.sameServer(req.URL) {
 			return http.ErrUseLastResponse
@@ -76,6 +86,7 @@ type streamProxy struct {
 	receiver  netip.Addr
 	mediaType string
 	routes    sync.Map
+	budget    *atomic.Int64
 }
 
 func (p *streamProxy) sameServer(endpoint *url.URL) bool {
@@ -136,10 +147,14 @@ func (p *streamProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Stream redirect was rejected", http.StatusBadGateway)
 		return
 	}
+	var body io.Reader = response.Body
+	if p.budget != nil {
+		body = &budgetReader{body, p.budget}
+	}
 	contentType := response.Header.Get("Content-Type")
 	if r.Method == http.MethodGet && response.StatusCode == http.StatusOK &&
 		(playlistPath || strings.Contains(strings.ToLower(contentType), "mpegurl")) {
-		data, err := p.playlist(response.Request.URL, response.Body)
+		data, err := p.playlist(response.Request.URL, body)
 		if err != nil {
 			http.Error(w, "Invalid stream playlist", http.StatusBadGateway)
 			return
@@ -163,7 +178,27 @@ func (p *streamProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(response.StatusCode)
-	_, _ = io.Copy(w, response.Body)
+	_, _ = io.Copy(w, body)
+}
+
+type budgetReader struct {
+	source io.Reader
+	left   *atomic.Int64
+}
+
+func (reader *budgetReader) Read(buffer []byte) (int, error) {
+	for {
+		left := reader.left.Load()
+		if left <= 0 {
+			return 0, io.EOF
+		}
+		size := min(int64(len(buffer)), left)
+		if reader.left.CompareAndSwap(left, left-size) {
+			n, err := reader.source.Read(buffer[:size])
+			reader.left.Add(size - int64(n))
+			return n, err
+		}
+	}
 }
 
 func (p *streamProxy) playlist(base *url.URL, reader io.Reader) ([]byte, error) {

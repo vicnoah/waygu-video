@@ -19,6 +19,11 @@ import (
 
 func reviewSeriesFixture(t *testing.T, config, secrets map[string]string, sourceID string) (source, media.Client, media.Item, []media.Item) {
 	t.Helper()
+	return reviewNamedSeriesFixture(t, config, secrets, sourceID, "Waygu Review Series")
+}
+
+func reviewNamedSeriesFixture(t *testing.T, config, secrets map[string]string, sourceID, title string) (source, media.Client, media.Item, []media.Item) {
+	t.Helper()
 	var sources []source
 	if err := json.Unmarshal([]byte(config[sourcesKey]), &sources); err != nil {
 		t.Fatal(err)
@@ -38,12 +43,12 @@ func reviewSeriesFixture(t *testing.T, config, secrets map[string]string, source
 			if library.Name != "Shows" {
 				continue
 			}
-			page, err := client.Catalog(ctx, media.Query{LibraryID: library.ID, Search: "Waygu Review Series"})
+			page, err := client.Catalog(ctx, media.Query{LibraryID: library.ID, Search: title})
 			if err != nil {
 				t.Fatal(err)
 			}
 			for _, item := range page.Items {
-				if item.Kind != media.Series || !strings.HasPrefix(item.Title, "Waygu Review Series") {
+				if item.Kind != media.Series || !strings.HasPrefix(item.Title, title) {
 					continue
 				}
 				item.LibraryID = library.ID
@@ -55,7 +60,7 @@ func reviewSeriesFixture(t *testing.T, config, secrets map[string]string, source
 			}
 		}
 	}
-	t.Fatalf("fixture series is missing from %s", sourceID)
+	t.Fatalf("fixture series %q is missing from %s", title, sourceID)
 	return source{}, nil, media.Item{}, nil
 }
 

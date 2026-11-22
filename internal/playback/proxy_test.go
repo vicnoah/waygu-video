@@ -108,3 +108,26 @@ func TestProxyPreservesRangeAndAuthenticatesHLSResources(t *testing.T) {
 		t.Fatalf("segment: status %d, data %q, %v", segmentResponse.StatusCode, data, err)
 	}
 }
+
+func TestProxySharesReadLimitAcrossRequests(t *testing.T) {
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.WriteString(w, "0123456789")
+	}))
+	defer upstream.Close()
+	address, stop, err := OpenWithReadLimit(upstream.URL, nil, 13)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer stop()
+	for _, desired := range []string{"0123456789", "012", ""} {
+		response, err := http.Get(address)
+		if err != nil {
+			t.Fatal(err)
+		}
+		data, _ := io.ReadAll(response.Body)
+		_ = response.Body.Close()
+		if string(data) != desired {
+			t.Fatalf("read limit: received %q, want %q", data, desired)
+		}
+	}
+}
