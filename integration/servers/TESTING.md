@@ -69,3 +69,14 @@ In another shell, discover that receiver, start the Emby fixture, and verify pla
 GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 WAYGU_TEST_DLNA_RENDERER='Waygu DLNA Lab' \
   go tool nsgo test . -run '^TestDockerDLNAExternalRenderer$' -count=1
 ```
+
+
+## Intro and credit markers
+
+`fixtures.sh` embeds named chapters in episode 3 of season 1 of Waygu Review Series. Rescan using `bootstrap.py` on an existing Docker setup. The Docker adapter tests read the opening and both credit ranges from Emby, Jellyfin and Plex. Wire fixtures also verify Emby typed chapters, Jellyfin MediaSegments and Plex marker offsets. The alternate-version fixture checks that Plex uses that version's own chapters. [Emby ChapterInfo](https://dev.emby.media/reference/pluginapi/MediaBrowser.Model.Entities.ChapterInfo.html) · [Jellyfin MediaSegments controller](https://github.com/jellyfin/jellyfin/blob/master/Jellyfin.Api/Controllers/MediaSegmentsController.cs) · [Plex Media Server API](https://developer.plex.tv/pms/)
+
+```sh
+GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 go tool nsgo test . -run '^TestDockerPhonePlaybackMarkers$' -count=1
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerPhonePlaybackMarkers$' -screenshots .nsgo/ui-review/playback-markers
+```

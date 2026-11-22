@@ -645,6 +645,7 @@ const (
 	textSettingsNightAudio
 	textSettingsSkipIntro
 	textSettingsIdentifyIntro
+	textSettingsIntroMarkers
 	textSettingsControls
 	textSettingsRememberProgress
 	textSettingsSeekBack
@@ -1479,6 +1480,7 @@ var keyOfText = [numTexts]string{
 	"settingsNightAudio",
 	"settingsSkipIntro",
 	"settingsIdentifyIntro",
+	"settingsIntroMarkers",
 	"settingsControls",
 	"settingsRememberProgress",
 	"settingsSeekBack",
@@ -2311,6 +2313,7 @@ var textsEn = i18n.NewTexts(""+
 	"Night mode"+
 	"Skip intros and credits"+
 	"Intro and credit detection"+
+	"Server markers and chapters"+
 	"Controls"+
 	"Remember playback position"+
 	"Rewind interval"+
@@ -3140,6 +3143,7 @@ var textsEn = i18n.NewTexts(""+
 		10,
 		23,
 		26,
+		27,
 		8,
 		26,
 		15,
@@ -3972,6 +3976,7 @@ var textsZhHans = i18n.NewTexts(""+
 	"夜间模式（压缩动态范围）"+
 	"跳过片头片尾"+
 	"片头片尾识别"+
+	"服务器标记与章节"+
 	"控制"+
 	"记住播放进度"+
 	"快退步长"+
@@ -4801,6 +4806,7 @@ var textsZhHans = i18n.NewTexts(""+
 		36,
 		18,
 		18,
+		24,
 		6,
 		18,
 		12,
@@ -9502,6 +9508,13 @@ func SettingsIdentifyIntro(cx *core.Scope) string { return For(cx).SettingsIdent
 
 // SettingsIdentifyIntro is the package's SettingsIdentifyIntro in the language of msgs.
 func (msgs Messages) SettingsIdentifyIntro() string { return msgs.text(textSettingsIdentifyIntro) }
+
+// SettingsIntroMarkers says "Server markers and chapters"
+// in the language the app shows under cx.
+func SettingsIntroMarkers(cx *core.Scope) string { return For(cx).SettingsIntroMarkers() }
+
+// SettingsIntroMarkers is the package's SettingsIntroMarkers in the language of msgs.
+func (msgs Messages) SettingsIntroMarkers() string { return msgs.text(textSettingsIntroMarkers) }
 
 // SettingsControls says "Controls"
 // in the language the app shows under cx.

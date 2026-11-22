@@ -14,11 +14,12 @@ var playbackRates = []float32{0.5, 0.75, 1, 1.25, 1.5, 1.75, 2}
 var seekIntervals = []int{5, 10, 15, 30, 60}
 
 type playbackPreferences struct {
-	BackSeconds    int
-	NextSeconds    int
-	Rate           float32
-	Picture        string
-	DisableAutoPiP bool
+	BackSeconds      int
+	NextSeconds      int
+	Rate             float32
+	Picture          string
+	DisableAutoPiP   bool
+	KeepIntroCredits bool
 }
 
 func readPlaybackPreferences(storage core.Storage) playbackPreferences {
@@ -27,6 +28,7 @@ func readPlaybackPreferences(storage core.Storage) playbackPreferences {
 		var saved playbackPreferences
 		if json.Unmarshal([]byte(raw), &saved) == nil {
 			prefs.DisableAutoPiP = saved.DisableAutoPiP
+			prefs.KeepIntroCredits = saved.KeepIntroCredits
 			if slices.Contains(seekIntervals, saved.BackSeconds) {
 				prefs.BackSeconds = saved.BackSeconds
 			}

@@ -87,7 +87,12 @@ func (a *application) desktopSettingsPlayback(cx *core.Scope) core.Node {
 				}
 				failure.Set(storeSettingValue(a.storage, autoNextKey, a.autoNext, value != 0, strconv.FormatBool(value != 0)))
 			})),
-		unavailable(locales.SettingsSkipIntro(cx)),
+		desktopFormRow(locales.SettingsSkipIntro(cx), desktopFormToggle(cx, "desktop-skip-intro", locales.SettingsSkipIntro(cx),
+			func() bool { return !a.playbackPrefs.Get().KeepIntroCredits }, func(enabled bool) {
+				player := a.playbackPrefs.GetUntracked()
+				player.KeepIntroCredits = !enabled
+				failure.Set(storeSettings(a.storage, playbackPreferencesKey, a.playbackPrefs, player))
+			})),
 		desktopFormRow(seek, desktopFormSelect(cx, "desktop-seek-step", seek, seekOptions, currentStep,
 			func(value steps) {
 				failure.Set(a.saveDesktopPreferences(func(p *desktopPreferences) { p.Back, p.Forward = value.back, value.forward }))

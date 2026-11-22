@@ -25,6 +25,17 @@ make_clip() {
         -c:a aac -movflags +faststart "$output"
 }
 
+embed_chapters() (
+    clip=$1
+    metadata=$2
+    if [ -z "$(ffprobe -v error -show_entries chapter=id -of csv=p=0 "$clip")" ]; then
+        ffmpeg -nostdin -hide_banner -loglevel error -y -i "$clip" \
+            -f ffmetadata -i "$metadata" -map 0 -map_chapters 1 \
+            -c copy -movflags +faststart "$clip.chapters.mp4"
+        mv "$clip.chapters.mp4" "$clip"
+    fi
+)
+
 make_clip testsrc2 440 "$movie/Waygu Test Movie (2025).mp4"
 make_clip smptebars 520 "$season/Waygu Test Series - S01E01.mp4"
 make_clip testsrc 660 "$tracks/trailers/Waygu Teaser.mp4"
@@ -47,6 +58,7 @@ make_clip testsrc2 500 "$series/Season 01/Waygu Review Series - S01E01.mp4"
 for episode in 03 04 05; do
     make_clip testsrc 520 "$series/Season 01/Waygu Review Series - S01E$episode.mp4"
 done
+embed_chapters "$series/Season 01/Waygu Review Series - S01E03.mp4" episode-markers.ffmetadata
 make_clip smptebars 580 "$series/Season 02/Waygu Review Series - S02E01.mp4"
 make_clip testsrc2 590 "$series/Season 02/Waygu Review Series - S02E02.mp4"
 if [ ! -s "$series/fanart.jpg" ]; then
@@ -135,12 +147,7 @@ if [ ! -s "$track_base.mp4" ]; then
         -t 24 -c:v libx264 -preset veryfast -pix_fmt yuv420p \
         -c:a aac -c:s mov_text -movflags +faststart "$track_base.mp4"
 fi
-if [ -z "$(ffprobe -v error -show_entries chapter=id -of csv=p=0 "$track_base.mp4")" ]; then
-    ffmpeg -nostdin -hide_banner -loglevel error -y -i "$track_base.mp4" \
-        -f ffmetadata -i track-chapters.ffmetadata -map 0 -map_chapters 1 \
-        -c copy -movflags +faststart "$track_base.chapters.mp4"
-    mv "$track_base.chapters.mp4" "$track_base.mp4"
-fi
+embed_chapters "$track_base.mp4" track-chapters.ffmetadata
 
 if [ ! -s "$tracks/fanart.jpg" ]; then
     ffmpeg -nostdin -hide_banner -loglevel error -y -ss 3 -i "$track_base.mp4" \

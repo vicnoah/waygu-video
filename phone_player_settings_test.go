@@ -40,6 +40,13 @@ func TestPhonePlaybackAndSubtitleSettingsReview(t *testing.T) {
 			if stored, _ := app.Storage().GetItem(autoNextKey); stored != "false" {
 				t.Fatalf("auto-next preference = %q", stored)
 			}
+			if !app.Find("id:phone-skip-intro").Props.Checked {
+				t.Fatal("automatic marker skipping should start enabled")
+			}
+			app.Press("id:phone-skip-intro")
+			if !readPlaybackPreferences(app.Storage()).KeepIntroCredits {
+				t.Fatal("turning off marker skipping was not saved")
+			}
 			app.Press("id:phone-default-rate")
 			app.WaitFor("role:option 1.5x", time.Second)
 			app.Press("role:option 1.5x")
@@ -110,7 +117,7 @@ func verifyDockerPhonePlayerSettings(t *testing.T, provider string) {
 		t.Fatal("fixture is missing Japanese audio")
 	}
 	movie := item.ID
-	config[playbackPreferencesKey] = `{"BackSeconds":5,"NextSeconds":15,"Rate":1.5,"Picture":"crop"}`
+	config[playbackPreferencesKey] = `{"BackSeconds":5,"NextSeconds":15,"Rate":1.5,"Picture":"crop","KeepIntroCredits":true}`
 	config[subtitlePreferencesKey] = `{"Languages":["zh-Hant","en"],"Audio":"ja","Mode":"always","Color":16638023,"Scale":125,"Position":12,"Background":"solid"}`
 	app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
 		shellIdiom.Provide(cx, core.IdiomPhone)

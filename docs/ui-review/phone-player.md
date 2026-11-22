@@ -57,3 +57,10 @@ The scan and ellipsis icons retain their position in the main comparison. Their 
 | Platform | GTK verifies rendering and input at the landscape design size. iOS and Android receive a landscape request scoped to the player. Rotation, native Picture in Picture, safe areas and gesture input still need verification on phone hardware. |
 
 The native review exercises all six ratios, an A/B repeat on the decoded Emby file, expiry using the accelerated test clock, the unlock path, track selection and the seven tabs. The headless checks cover a stale decoder report after a loop seek, timer continuity across automatic episode changes, cancellation of a preview, and restoration of speed. [Capture commands](README.md) · [Docker media fixtures](../../integration/servers/TESTING.md)
+
+
+## Intro and credit skips
+
+The playback setting uses the shared player on phone, tablet, TV and desktop. The Emby fixture plays a cold open, skips 2–5 seconds, skips credits at 14–15.5 seconds and plays the intervening scene. Reaching the final credits at 16.5 seconds completes the 18-second clip and makes the next episode available. The capture uses GTK with autoplay switched off so the next-episode card stays visible. The headless case also verifies the watched report to Emby and the 10-second autoplay transition. [Scenra playback flow](../../design/flows/playback.scenra) · [Settings comparison](phone-player-settings.md) · [Fixture and capture commands](../../integration/servers/TESTING.md#intro-and-credit-markers)
+
+![Phone player at the end of the marked episode with the next episode card](images/phone-player-final-credits.png)

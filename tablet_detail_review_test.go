@@ -58,6 +58,7 @@ func TestDockerTabletDetailReview(t *testing.T) {
 		t.Skip("requires the Docker fixtures")
 	}
 	config, secrets := homeReviewSources(t)
+	config[playbackPreferencesKey] = `{"KeepIntroCredits":true}`
 	title := reviewFixtureTitle(t, config, secrets, "emby", "Waygu Track Test")
 	resumeFixture := reviewFixtureTitle(t, config, secrets, "emby", "Waygu Resume Test")
 	sharedFixture := reviewFixtureTitle(t, config, secrets, "emby", "Waygu Resume Across Sources")

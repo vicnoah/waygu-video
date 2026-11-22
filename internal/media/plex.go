@@ -58,6 +58,7 @@ type plexMetadata struct {
 	Guid                                        []struct{ ID string } `json:"Guid"`
 	Media                                       []plexMedia
 	Chapter                                     []plexChapter
+	Marker                                      []plexMarker
 }
 
 type plexMedia struct {

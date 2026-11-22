@@ -28,7 +28,7 @@ type browserChapter struct {
 	StartPositionTicks int64
 }
 
-func (m *mediaBrowser) Chapters(ctx context.Context, item Item, sourceID string) ([]Chapter, error) {
+func (m *mediaBrowser) browserChapters(ctx context.Context, item Item, sourceID string) ([]browserChapter, error) {
 	var chapters []browserChapter
 	if m.kind == Emby && sourceID != "" {
 		var info browserPlaybackInfo
@@ -69,6 +69,15 @@ func (m *mediaBrowser) Chapters(ctx context.Context, item Item, sourceID string)
 		}
 		chapters = response.Chapters
 	}
+	return chapters, nil
+}
+
+func (m *mediaBrowser) Chapters(ctx context.Context, item Item, sourceID string) ([]Chapter, error) {
+	chapters, err := m.browserChapters(ctx, item, sourceID)
+	return ordinaryBrowserChapters(chapters), err
+}
+
+func ordinaryBrowserChapters(chapters []browserChapter) []Chapter {
 	var result []Chapter
 	for _, chapter := range chapters {
 		if chapter.MarkerType != "" && !strings.EqualFold(chapter.MarkerType, "Chapter") {
@@ -78,7 +87,7 @@ func (m *mediaBrowser) Chapters(ctx context.Context, item Item, sourceID string)
 			result = append(result, Chapter{chapter.Name, fromTicks(ticks)})
 		}
 	}
-	return sortedChapters(result), nil
+	return sortedChapters(result)
 }
 
 type plexChapter struct {
@@ -94,18 +103,24 @@ func (p *plexClient) Chapters(ctx context.Context, item Item, sourceID string) (
 	if len(response.Metadata) == 0 {
 		return nil, nil
 	}
-	entry := response.Metadata[0]
+	chapters, _ := plexChapters(response.Metadata[0], sourceID)
+	return chapters, nil
+}
+
+func plexChapters(entry plexMetadata, sourceID string) ([]Chapter, bool) {
 	chapters := entry.Chapter
+	primary := true
 	if sourceID != "" {
 		index := slices.IndexFunc(entry.Media, func(source plexMedia) bool { return strconv.Itoa(source.ID) == sourceID })
 		if index < 0 || len(entry.Media[index].Part) == 0 {
-			return nil, nil
+			return nil, false
 		}
+		primary = index == 0
 		if part := entry.Media[index].Part[0]; len(part.Chapter) > 0 {
 			chapters = part.Chapter
-		} else if index > 0 {
+		} else if !primary {
 			// The response's item-level chapter list is for its primary copy.
-			return nil, nil
+			return nil, false
 		}
 	}
 	var result []Chapter
@@ -114,7 +129,7 @@ func (p *plexClient) Chapters(ctx context.Context, item Item, sourceID string) (
 			result = append(result, Chapter{chapter.Tag, millis(offset)})
 		}
 	}
-	return sortedChapters(result), nil
+	return sortedChapters(result), primary
 }
 
 func sortedChapters(chapters []Chapter) []Chapter {

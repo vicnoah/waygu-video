@@ -108,6 +108,37 @@ func TestDockerServers(t *testing.T) {
 			t.Run("seek-preview", func(t *testing.T) {
 				verifyDockerSeekPreview(t, ctx, client, movieLibrary, server.kind)
 			})
+			t.Run("markers", func(t *testing.T) {
+				series := findDockerItem(t, ctx, client, Query{LibraryID: showLibrary}, Series, "Waygu Review Series")
+				seasons, err := client.Children(ctx, series)
+				if err != nil {
+					t.Fatal(err)
+				}
+				season := slices.IndexFunc(seasons, func(item Item) bool { return item.Season == 1 })
+				if season < 0 {
+					t.Fatal("season one is missing")
+				}
+				episodes, err := client.Children(ctx, seasons[season])
+				if err != nil {
+					t.Fatal(err)
+				}
+				index := slices.IndexFunc(episodes, func(item Item) bool { return item.Episode == 3 })
+				if index < 0 {
+					t.Fatal("the marker episode is missing")
+				}
+				episode := episodes[index]
+				stream, err := client.Playback(ctx, episode, PlaybackOptions{})
+				if err != nil {
+					t.Fatal(err)
+				}
+				markers, err := client.(MarkerClient).PlaybackMarkers(ctx, episode, stream)
+				want := []PlaybackMarker{{MarkerIntro, 2 * time.Second, 5 * time.Second},
+					{MarkerCredits, 14 * time.Second, 15500 * time.Millisecond},
+					{MarkerCredits, 16500 * time.Millisecond, 18 * time.Second}}
+				if err != nil || !slices.Equal(markers, want) {
+					t.Fatalf("markers from %s: %v, %v, want %v", server.kind, markers, err, want)
+				}
+			})
 			t.Run("chapters", func(t *testing.T) {
 				movie := findDockerItem(t, ctx, client, Query{LibraryID: movieLibrary}, Movie, "Waygu Track Test")
 				stream, err := client.Playback(ctx, movie, PlaybackOptions{})

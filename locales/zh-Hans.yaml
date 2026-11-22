@@ -392,6 +392,7 @@ settingsBoostVolume: 音量增强
 settingsNightAudio: 夜间模式（压缩动态范围）
 settingsSkipIntro: 跳过片头片尾
 settingsIdentifyIntro: 片头片尾识别
+settingsIntroMarkers: 服务器标记与章节
 settingsControls: 控制
 settingsRememberProgress: 记住播放进度
 settingsSeekBack: 快退步长

@@ -16,7 +16,7 @@ The basic, startup and update groups match the order and spacing of the design. 
 
 ## Playback
 
-The page matches the video column and the stacked audio and behavior groups. Engine, default bitrate, picture scaling, seek steps and next-episode countdown are saved. Hardware decoding, refresh rate, HDR and tone mapping, image enhancement, audio output and processing, intro and credits handling, and per-title track memory still need their platform or player implementations. The picture scaling control currently occupies the image enhancement row. [Scenra Playback](../../design/views/desktop-settings-playback.scenra)
+The page matches the video column and the stacked audio and behavior groups. Engine, default bitrate, picture scaling, seek steps, the next-episode countdown and the skip intros and credits switch are saved. Hardware decoding, refresh rate, HDR and tone mapping, image enhancement, audio output and processing, and per-title track memory still need their platform or player implementations. The picture scaling control currently occupies the image enhancement row. [Scenra Playback](../../design/views/desktop-settings-playback.scenra) · [Marker playback evidence](phone-player.md#intro-and-credit-skips)
 
 ![Desktop Playback settings in light and dark, Scenra and the GTK app](images/desktop-settings-playback.png)
 

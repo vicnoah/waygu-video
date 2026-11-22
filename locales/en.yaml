@@ -392,6 +392,7 @@ settingsBoostVolume: Volume boost
 settingsNightAudio: Night mode
 settingsSkipIntro: Skip intros and credits
 settingsIdentifyIntro: Intro and credit detection
+settingsIntroMarkers: Server markers and chapters
 settingsControls: Controls
 settingsRememberProgress: Remember playback position
 settingsSeekBack: Rewind interval

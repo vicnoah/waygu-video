@@ -95,8 +95,11 @@ func (a *application) phonePlaybackSettings(cx *core.Scope) core.Node {
 				toggle(cx, "phone-auto-next", a.autoNext.Get, func(enabled bool) {
 					failure.Set(storeSettingValue(a.storage, autoNextKey, a.autoNext, enabled, strconv.FormatBool(enabled)))
 				}),
-			unavailableSwitch(locales.SettingsSkipIntro(cx), "", "bg-violet-500", lucide.FastForward),
-			unavailable(locales.SettingsIdentifyIntro(cx), "", "bg-violet-500", lucide.ScanSearch),
+			(phoneSetting{locales.SettingsSkipIntro(cx), "", "bg-violet-500", lucide.FastForward}).
+				toggle(cx, "phone-skip-intro", func() bool { return !a.playbackPrefs.Get().KeepIntroCredits },
+					func(enabled bool) { save(func(p *playbackPreferences) { p.KeepIntroCredits = !enabled }) }),
+			(phoneSetting{locales.SettingsIdentifyIntro(cx), "", "bg-violet-500", lucide.ScanSearch}).
+				row(phoneSettingValue(locales.SettingsIntroMarkers(cx))),
 		),
 		setupGroup(locales.SettingsControls(cx), "",
 			(phoneSetting{locales.SettingsRememberProgress(cx), "", "bg-blue-500", lucide.Clock}).

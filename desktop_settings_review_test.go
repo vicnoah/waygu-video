@@ -62,6 +62,13 @@ func TestDesktopSettingsWindow(t *testing.T) {
 	if value := readDesktopPreferences(app.Storage()); value.Back != 10 || value.Forward != 30 || value.Countdown != 5 {
 		t.Fatalf("saved transport preferences = %+v", value)
 	}
+	if !window.Find("id:desktop-skip-intro").Props.Checked {
+		t.Fatal("the desktop skip setting should initially be checked")
+	}
+	window.Press("id:desktop-skip-intro")
+	if !readPlaybackPreferences(app.Storage()).KeepIntroCredits {
+		t.Fatal("the desktop switch did not store the shared playback preference")
+	}
 	if value, _ := app.Storage().GetItem(mpvKey); value != "true" {
 		t.Fatalf("saved engine = %q", value)
 	}

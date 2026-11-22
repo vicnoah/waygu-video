@@ -173,6 +173,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	fit := func() core.ResizeMode { return pictureMode.Get().fit() }
 	viewport := core.NewSignal(cx, core.Size{})
 	loop := segmentLoop{segment: core.NewSignal(cx, playbackSegment{})}
+	skip := markerSkip{manual: -1}
+	markers := playbackMarkers(cx, current.item, initial.client, func() media.Stream { return medium.Get().stream },
+		func() bool { return !offline && !a.playbackPrefs.Get().KeepIntroCredits })
 	pip := core.NewSignal(cx, core.PictureInPictureState{})
 	rate := core.NewSignal(cx, prefs.Rate)
 	canChangeRate := core.NewSignal(cx, false)
@@ -239,8 +242,19 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			projection.command(castCommand{action: castSeek, at: max(0, min(at, duration.GetUntracked()))})
 			return
 		}
-		loop.manualSeek(max(0, min(at, duration.GetUntracked())))
+		at = max(0, min(at, duration.GetUntracked()))
+		loop.manualSeek(at)
+		skip.manualSeek(at)
 		seekPosition(at)
+	}
+	finishPlayback := func() {
+		if ended.GetUntracked() {
+			return
+		}
+		position.Set(duration.GetUntracked())
+		paused.Set(true)
+		ended.Set(true)
+		report(media.Stopped)
 	}
 	a.playerSleep(cx, func() {
 		sleepExpired.Set(true)
@@ -357,6 +371,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				bitrate.Set(options.MaxBitrate)
 				if next.stream.VersionID() != previous.stream.VersionID() {
 					loop.clear()
+					skip = markerSkip{manual: -1}
 				}
 				previous.close()
 				medium.Set(next)
@@ -411,18 +426,30 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				report(media.Started)
 			},
 			OnProgress: func(at, length time.Duration) {
-				if !loaded || projection.active() {
+				if !loaded || ended.GetUntracked() || projection.active() {
 					return
 				}
 				if length > 0 {
 					duration.Set(length)
 				}
-				if loop.boundary(at, duration.GetUntracked(), cx.Now(), seekPosition) {
+				length, now := duration.GetUntracked(), cx.Now()
+				if loop.boundary(at, length, now, seekPosition) || skip.pending(at, now) {
 					return
+				}
+				if length > 0 && !paused.GetUntracked() && !loop.segment.GetUntracked().active && !core.Untracked(cx, blocked) {
+					target, final := skip.next(core.Untracked(cx, markers), at, length, now)
+					if final {
+						finishPlayback()
+						return
+					}
+					if target > 0 {
+						seekPosition(target)
+						return
+					}
 				}
 				position.Set(at)
 				sample.Set(videoSample{at, cx.Now()})
-				if !ended.GetUntracked() && cx.Now().Sub(lastReport) >= 10*time.Second {
+				if now.Sub(lastReport) >= 10*time.Second {
 					report(media.Progress)
 				}
 			},
@@ -464,10 +491,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				if loop.boundary(duration.GetUntracked(), duration.GetUntracked(), cx.Now(), seekPosition) {
 					return
 				}
-				position.Set(duration.GetUntracked())
-				paused.Set(true)
-				ended.Set(true)
-				report(media.Stopped)
+				finishPlayback()
 			},
 		}
 		if desktopLayout {
@@ -529,6 +553,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			if segment := loop.segment.GetUntracked(); segment.active {
 				start = segment.start
 			}
+			skip = markerSkip{manual: -1}
 			seekPosition(start)
 			report(media.Started)
 		}
