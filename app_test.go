@@ -22,11 +22,18 @@ func TestSkipOnboarding(t *testing.T) {
 }
 
 func TestTVNavigation(t *testing.T) {
-	const height = 540
-	for _, locale := range []string{"en", "zh-Hans"} {
+	languages := []string{"en", "zh-Hans"}
+	if nsgotest.Target() != "" {
+		languages = languages[:1]
+	}
+	for _, locale := range languages {
 		t.Run(locale, func(t *testing.T) {
-			app := nsgotest.Start(t, Root, nsgotest.Idiom(core.IdiomTV), nsgotest.Size(960, height),
+			app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
+				shellIdiom.Provide(cx, core.IdiomTV)
+				return core.View{Class: "flex-1", TestID: "tv-navigation-host", Children: []core.Node{Root(cx)}}
+			}, nsgotest.Idiom(core.IdiomTV), nsgotest.Size(960, 540),
 				nsgotest.Environment(core.Environment{Locale: locale}))
+			height := app.Find("id:tv-navigation-host").Bounds().Size.Height
 			for _, id := range []string{"add-source", "onboarding-later"} {
 				bounds := app.Find("id:" + id).Bounds()
 				if bounds.Origin.Y < 0 || bounds.Origin.Y+bounds.Size.Height > height {

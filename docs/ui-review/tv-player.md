@@ -11,7 +11,7 @@ Scenra is on the left and the Linux GTK app is on the right at 1920 × 1080 pt i
 | Remote hints | The four hints show tracks, quick settings, ten-second seeking and pause. The app displays them during the first three playback opens. During playback the on-screen display closes after three seconds without input. |
 | Quick settings | The panel takes 560 pt. Rows are 80 pt tall with 12 pt gaps and 40 pt insets. The focused row turns white with a violet ring. Left and Right change opacity in 10% steps and save the setting. The remaining rows open the current track, quality and speed controls. The last row opens playback settings and Back returns to playback at the saved position. |
 | Danmaku | The TV overlay begins below the header and is clipped before the sidebar while quick settings are open. Comment positions reflect the test feed and playback time. |
-| Remaining review | The track picker uses the shared track dialog and the last settings row uses the existing settings screen. Those destinations need their own TV design review. Physical Android TV and the tvOS Siri Remote remain unverified. |
+| Remaining review | The track picker uses the shared track dialog. The last settings row opens the dedicated [TV settings screen](tv-settings.md). Physical Android TV and the tvOS Siri Remote remain unverified. |
 
 ![App playback controls, seek thumbnail and track picker](images/tv-player-states.png)
 

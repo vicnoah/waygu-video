@@ -47,7 +47,7 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 	actionsClass := "mt-auto gap-1 pb-6"
 	featurePadding := "py-2.5"
 	focusRing := ui.FocusRing(cx, 3)
-	if cx.Env().Idiom() == core.IdiomTV {
+	if appLayoutIdiom(cx) == core.IdiomTV {
 		layoutClass = "w-full max-w-[1120px] self-center flex-row items-center"
 		heroClass = "relative w-[36%] self-stretch overflow-hidden"
 		wallClass = "absolute top-12 left-0 flex-row gap-3"
