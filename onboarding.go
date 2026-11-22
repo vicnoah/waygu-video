@@ -76,6 +76,14 @@ func (a *application) chooseSource(cx *core.Scope) core.Node {
 	return pageFrame(pageHeader(cx, locales.AddSource(cx), a.back), pageBody(choices...))
 }
 
+type connectionMethod uint8
+
+const (
+	probeConnection connectionMethod = iota
+	passwordConnection
+	quickConnection
+)
+
 type candidateSource struct {
 	source  source
 	info    media.ServerInfo
@@ -91,9 +99,10 @@ func (a *application) connect(cx *core.Scope, current route) core.Node {
 	failure := core.NewSignal[error](cx, nil)
 	preview := core.NewSignal(cx, media.ServerInfo{})
 	candidate := core.NewSignal[*candidateSource](cx, nil)
+	quickCode := core.NewSignal(cx, "")
 	viewContext := cx.Context()
 	plex := current.provider == media.Plex
-	submit := func(signIn bool) {
+	submit := func(method connectionMethod) {
 		if busy.GetUntracked() {
 			return
 		}
@@ -109,21 +118,32 @@ func (a *application) connect(cx *core.Scope, current route) core.Node {
 			input.Token = input.Password
 			input.Password = ""
 		}
-		ctx, cancel := context.WithTimeout(viewContext, 35*time.Second)
+		timeout := 35 * time.Second
+		if method == quickConnection {
+			timeout = 8 * time.Minute
+		}
+		ctx, cancel := context.WithTimeout(viewContext, timeout)
 		busy.Set(true)
 		failure.Set(nil)
 		go func() {
 			defer cancel()
-			result, err := a.connectServer(ctx, form, input, signIn)
+			result, err := a.connectServer(ctx, form, input, method, func(code string) {
+				cx.Post(func() {
+					if viewContext.Err() == nil {
+						quickCode.Set(code)
+					}
+				})
+			})
 			cx.Post(func() {
 				if viewContext.Err() != nil {
 					return
 				}
 				busy.Set(false)
+				quickCode.Set("")
 				failure.Set(err)
 				if err == nil {
 					preview.Set(result.info)
-					if signIn {
+					if method != probeConnection {
 						password.Set("")
 						candidate.Set(&result)
 					}
@@ -135,12 +155,12 @@ func (a *application) connect(cx *core.Scope, current route) core.Node {
 		if result := candidate.Get(); result != nil {
 			return a.importSource(form, *result, func() { candidate.Set(nil) })
 		}
-		return connectionForm(form, current.provider, address, name, user, password, busy, failure, preview, submit)
+		return connectionForm(form, current.provider, address, name, user, password, busy, failure, preview, quickCode, submit)
 	})))
 }
 
 func connectionForm(cx *core.Scope, provider media.Provider, address, name, user, password *core.Signal[string],
-	busy *core.Signal[bool], failure *core.Signal[error], preview *core.Signal[media.ServerInfo], submit func(bool)) core.Node {
+	busy *core.Signal[bool], failure *core.Signal[error], preview *core.Signal[media.ServerInfo], quickCode *core.Signal[string], submit func(connectionMethod)) core.Node {
 	entry := func(id, label, example string, signal *core.Signal[string], masked bool, keyboard core.KeyboardType) core.Node {
 		return core.View{Class: "gap-1.5", Children: []core.Node{
 			core.Text{Content: label, Class: "text-sm font-medium"},
@@ -164,32 +184,44 @@ func connectionForm(cx *core.Scope, provider media.Provider, address, name, user
 		if err := failure.Get(); err != nil {
 			return notice(errorText(cx, err))
 		}
+		if code := quickCode.Get(); code != "" {
+			return notice(locales.QuickConnectInstruction(cx, code))
+		}
 		if info := preview.Get(); info.Name != "" {
 			return notice(locales.Connected(cx, strings.TrimSpace(info.Name+" "+info.Version)))
 		}
 		return nil
 	}), core.View{Class: "flex-row flex-wrap gap-3", Children: []core.Node{
 		ui.Button{Text: locales.TestConnection(cx), Variant: ui.ButtonOutline, Size: ui.SizeLarge, Disabled: busy.Get,
-			TestID: "test-connection", OnPress: func() { submit(false) }},
-		ui.Button{Text: locales.SignIn(cx), Size: ui.SizeLarge, Busy: busy.Get, TestID: "sign-in", OnPress: func() { submit(true) }},
+			TestID: "test-connection", OnPress: func() { submit(probeConnection) }},
+		ui.Button{Text: locales.SignIn(cx), Size: ui.SizeLarge, Busy: busy.Get, TestID: "sign-in", OnPress: func() { submit(passwordConnection) }},
 	}})
+	if provider == media.Jellyfin {
+		fields = append(fields, ui.Button{Text: locales.QuickConnect(cx), Variant: ui.ButtonOutline,
+			TestID: "quick-connect", Disabled: busy.Get, OnPress: func() { submit(quickConnection) }})
+	}
 	return core.View{Class: "gap-4 rounded-3xl border border-border bg-card p-5", Children: fields}
 }
 
-func (a *application) connectServer(ctx context.Context, form source, input media.Credentials, signIn bool) (candidateSource, error) {
+func (a *application) connectServer(ctx context.Context, form source, input media.Credentials, method connectionMethod, showCode func(string)) (candidateSource, error) {
 	guest, err := a.newMedia(form.Provider, form.Address, a.device, media.Session{})
 	if err != nil {
 		return candidateSource{}, err
 	}
 	info, err := guest.Probe(ctx)
-	if err != nil && (!signIn || form.Provider != media.Flymoo) {
+	if err != nil && (method == probeConnection || form.Provider != media.Flymoo) {
 		return candidateSource{}, err
 	}
 	result := candidateSource{source: form, info: info}
-	if !signIn {
+	if method == probeConnection {
 		return result, nil
 	}
-	session, err := guest.SignIn(ctx, input)
+	var session media.Session
+	if method == quickConnection {
+		session, err = awaitQuickConnect(ctx, guest, showCode)
+	} else {
+		session, err = guest.SignIn(ctx, input)
+	}
 	if err != nil {
 		return candidateSource{}, err
 	}
@@ -209,6 +241,31 @@ func (a *application) connectServer(ctx context.Context, form source, input medi
 	}
 	form.AccountID, form.ServerID, form.Libraries = session.UserID, info.ID, libraries
 	return candidateSource{source: form, info: info, session: session}, nil
+}
+
+func awaitQuickConnect(ctx context.Context, guest media.Client, showCode func(string)) (media.Session, error) {
+	quick, ok := guest.(media.QuickConnectClient)
+	if !ok {
+		return media.Session{}, media.ErrQuickConnectUnavailable
+	}
+	code, err := quick.BeginQuickConnect(ctx)
+	if err != nil {
+		return media.Session{}, err
+	}
+	showCode(code.Code)
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+	for {
+		session, done, err := quick.CheckQuickConnect(ctx, code)
+		if err != nil || done {
+			return session, err
+		}
+		select {
+		case <-ctx.Done():
+			return media.Session{}, ctx.Err()
+		case <-ticker.C:
+		}
+	}
 }
 
 func (a *application) importSource(cx *core.Scope, candidate candidateSource, back func()) core.Node {

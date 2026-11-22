@@ -72,3 +72,6 @@ seriesType: Show
 episodeType: Episode
 episodeLabel: "Episode {number}"
 seasonLabel: "Season {number}"
+quickConnect: Jellyfin Quick Connect
+quickConnectInstruction: "Enter {code} under Quick Connect on a signed-in Jellyfin device."
+quickConnectUnavailable: Enable Quick Connect on the Jellyfin server or use your password.

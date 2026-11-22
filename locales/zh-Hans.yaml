@@ -72,3 +72,6 @@ seriesType: 剧集
 episodeType: 分集
 episodeLabel: "第 {number} 集"
 seasonLabel: "第 {number} 季"
+quickConnect: Jellyfin 快速连接
+quickConnectInstruction: "在已登录的 Jellyfin 设备上打开快速连接，输入 {code}。"
+quickConnectUnavailable: 请在 Jellyfin 服务器上启用快速连接，或使用密码登录。

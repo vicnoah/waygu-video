@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
@@ -48,6 +49,9 @@ func TestDockerServers(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			if server.kind == Jellyfin {
+				verifyDockerQuickConnect(t, ctx, server.address, client.(*mediaBrowser), session.UserID)
+			}
 			libraries, err := client.Libraries(ctx)
 			if err != nil {
 				t.Fatal("libraries:", err)
@@ -86,6 +90,29 @@ func TestDockerServers(t *testing.T) {
 			verifyDockerMP4(t, ctx, stream)
 			verifyDockerResume(t, ctx, client, movieLibrary)
 		})
+	}
+}
+
+func verifyDockerQuickConnect(t *testing.T, ctx context.Context, address string, authorized *mediaBrowser, userID string) {
+	t.Helper()
+	client, err := NewClient(Jellyfin, address, NewDevice("Waygu Quick Connect fixture"), Session{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	guest := client.(QuickConnectClient)
+	code, err := guest.BeginQuickConnect(ctx)
+	if err != nil || len(code.Code) != 6 {
+		t.Fatalf("quick connect code: %v", err)
+	}
+	if _, done, err := guest.CheckQuickConnect(ctx, code); err != nil || done {
+		t.Fatalf("pending authorization: %v, %v", done, err)
+	}
+	if err := authorized.post(ctx, "QuickConnect/Authorize", url.Values{"code": {code.Code}}, nil, nil); err != nil {
+		t.Fatalf("approve quick connect: %v", err)
+	}
+	session, done, err := guest.CheckQuickConnect(ctx, code)
+	if err != nil || !done || session.UserID != userID || session.Token == "" {
+		t.Fatalf("exchange quick connect: %v", err)
 	}
 }
 
@@ -130,17 +157,27 @@ func verifyDockerResume(t *testing.T, ctx context.Context, client Client, movieL
 
 func findDockerItem(t *testing.T, ctx context.Context, client Client, query Query, kind Kind, title string) Item {
 	t.Helper()
-	page, err := client.Catalog(ctx, query)
-	if err != nil {
-		t.Fatal("catalog:", err)
-	}
-	for _, item := range page.Items {
-		if item.Kind == kind && strings.HasPrefix(item.Title, title) {
-			return item
+	tick := time.NewTicker(500 * time.Millisecond)
+	defer tick.Stop()
+	deadline := time.After(20 * time.Second)
+	for {
+		page, err := client.Catalog(ctx, query)
+		if err != nil {
+			t.Fatal("catalog:", err)
+		}
+		for _, item := range page.Items {
+			if item.Kind == kind && strings.HasPrefix(item.Title, title) {
+				return item
+			}
+		}
+		select {
+		case <-deadline:
+			t.Fatalf("catalog entry %q missing (returned %d items)", title, len(page.Items))
+		case <-tick.C:
+		case <-ctx.Done():
+			t.Fatal(ctx.Err())
 		}
 	}
-	t.Fatalf("catalog entry %q missing (returned %d items)", title, len(page.Items))
-	return Item{}
 }
 
 func verifyDockerMP4(t *testing.T, ctx context.Context, stream Stream) {

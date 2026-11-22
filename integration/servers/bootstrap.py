@@ -1,9 +1,10 @@
 """Configure the loopback-only Docker fixtures after compose up."""
 
 import json
+from http.client import HTTPException
 import os
 import time
-from urllib.error import HTTPError, URLError
+from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -32,8 +33,11 @@ def wait_for(base, path):
     deadline = time.monotonic() + 90
     while True:
         try:
-            return request(base, path)
-        except (HTTPError, URLError, TimeoutError):
+            data = request(base, path)
+            if data is None:
+                raise ValueError("readiness endpoint returned no JSON")
+            return data
+        except (OSError, HTTPException, ValueError):
             if time.monotonic() >= deadline:
                 raise
             time.sleep(2)

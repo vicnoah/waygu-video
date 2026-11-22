@@ -21,6 +21,16 @@ func TestSkipOnboarding(t *testing.T) {
 	app.Find("id:empty-add-source")
 }
 
+func TestTVNavigation(t *testing.T) {
+	app := nsgotest.Start(t, Root, nsgotest.Idiom(core.IdiomTV), nsgotest.Size(1280, 720))
+	app.Press("id:onboarding-later")
+	app.Press("id:tv-tab-settings")
+	app.Press("id:settings-add-source")
+	app.Find("id:choose-flymoo")
+	app.Press("id:back")
+	app.Find("id:settings-add-source")
+}
+
 func TestChineseAppName(t *testing.T) {
 	app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
 		cx.SetLocale("zh-Hans")

@@ -1,10 +1,10 @@
 # Delivery roadmap
 
-The Scenra files in `design/` define the product. The current app connects to Emby, Jellyfin, Plex and Flymoo, imports selected video libraries, lists and searches titles, shows movie and series details, and plays and reports progress. It has a native video path, an optional desktop libmpv path, and synchronized local XML comments.
+The Scenra files in `design/` define the product. The current app connects to Emby, Jellyfin, Plex and Flymoo, imports selected video libraries, lists and searches titles, shows movie and series details, and plays and reports progress. Jellyfin can also sign in with Quick Connect. It has a native video path, an optional desktop libmpv path, and synchronized local XML comments.
 
 ## Media sources
 
-- Add LAN discovery, Jellyfin Quick Connect, Plex account linking, and Flymoo FN Connect.
+- Add LAN discovery, Plex account linking, and Flymoo FN Connect.
 - Add multi-address failover, account recovery, media library management, cross-server title matching and version selection.
 - Verify the claimed Plex account flow. Extend Flymoo fixture coverage for artwork, authentication redirects and version-specific payloads.
 

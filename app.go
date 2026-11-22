@@ -97,6 +97,13 @@ func appRoot(cx *core.Scope, factory mediaFactory) core.Node {
 		tab: core.NewSignal(cx, 0), sourceFilter: core.NewSignal(cx, ""),
 		mpvPreferred: core.NewSignal(cx, mpvPreference == "true"),
 	}
+	cx.OnBackPress(func() bool {
+		if len(a.routes.GetUntracked()) <= 1 {
+			return false
+		}
+		a.back()
+		return true
+	})
 	return core.View{Class: "flex-1 bg-background", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
 		core.Dynamic(func(screenScope *core.Scope) core.Node {
 			stack := a.routes.Get()
@@ -171,6 +178,8 @@ func errorText(cx *core.Scope, err error) string {
 		return locales.InvalidAddress(cx)
 	case errors.Is(err, media.ErrAuthentication):
 		return locales.AuthenticationError(cx)
+	case errors.Is(err, media.ErrQuickConnectUnavailable):
+		return locales.QuickConnectUnavailable(cx)
 	case errors.Is(err, core.ErrSecretsUnavailable):
 		return locales.SecretUnavailable(cx)
 	default:

@@ -55,7 +55,7 @@ func (a *application) shell(cx *core.Scope) core.Node {
 			items := []core.Node{brand(locales.Brand(cx))}
 			for i := range titles {
 				items = append(items, ui.Button{Text: titles[i], Icon: icons[i], Variant: ui.ButtonGhost,
-					Size: ui.SizeLarge, OnPress: func() { a.tab.Set(i) }})
+					Size: ui.SizeLarge, TestID: "tv-tab-" + string(pages[i]), OnPress: func() { a.tab.Set(i) }})
 			}
 			return pageFrame(core.View{Class: "flex-row items-center gap-4 px-8 py-4", Children: items}, content)
 		}

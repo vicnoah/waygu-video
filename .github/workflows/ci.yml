@@ -126,9 +126,16 @@ jobs:
           if-no-files-found: error
 
   android:
-    name: Android emulator
+    name: Android / ${{ matrix.form }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {form: phone, api: 35, image: google_apis, profile: pixel_7}
+          - {form: tablet, api: 35, image: google_apis, profile: pixel_tablet}
+          - {form: tv, api: 36, image: android-tv, profile: tv_1080p}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -144,11 +151,17 @@ jobs:
       - name: Run Android UI smoke tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
-          api-level: 35
-          target: google_apis
+          api-level: ${{ matrix.api }}
+          target: ${{ matrix.image }}
+          profile: ${{ matrix.profile }}
           arch: x86_64
           ndk: 27.2.12479018
-          script: go tool nsgo test -target android -device emulator-5554 -run '^(TestChineseAppName|TestSkipOnboarding)$' -timeout 2m .
+          script: |
+            if [ "${{ matrix.form }}" = tv ]; then
+              go tool nsgo test -target android -device emulator-5554 -run '^TestChineseAppName$' -timeout 2m .
+            else
+              go tool nsgo test -target android -device emulator-5554 -run '^(TestChineseAppName|TestSkipOnboarding)$' -timeout 2m .
+            fi
 
   integration:
     name: Docker media servers and libmpv

@@ -43,9 +43,10 @@ func For(cx *core.Scope) Messages {
 // its method, for the TSX declarations of the messages
 // (tsx.RegisterMessages).
 var Parameters = map[string][]string{
-	"Connected":    {"name"},
-	"EpisodeLabel": {"number"},
-	"SeasonLabel":  {"number"},
+	"Connected":               {"name"},
+	"EpisodeLabel":            {"number"},
+	"SeasonLabel":             {"number"},
+	"QuickConnectInstruction": {"code"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -53,10 +54,11 @@ var Parameters = map[string][]string{
 // of the others; a key or a field left out leaves the message to the
 // catalog.
 type Translation struct {
-	Texts        map[string]string
-	Connected    func(name string) string
-	EpisodeLabel func(number string) string
-	SeasonLabel  func(number string) string
+	Texts                   map[string]string
+	Connected               func(name string) string
+	EpisodeLabel            func(number string) string
+	SeasonLabel             func(number string) string
+	QuickConnectInstruction func(code string) string
 }
 
 var supplied = map[string]Translation{}
@@ -134,6 +136,8 @@ const (
 	textMovieType
 	textSeriesType
 	textEpisodeType
+	textQuickConnect
+	textQuickConnectUnavailable
 	numTexts
 )
 
@@ -211,6 +215,8 @@ var keyOfText = [numTexts]string{
 	"movieType",
 	"seriesType",
 	"episodeType",
+	"quickConnect",
+	"quickConnectUnavailable",
 }
 
 // textsEn are the messages without arguments in en.
@@ -285,7 +291,9 @@ var textsEn = i18n.NewTexts(""+
 	"Server transcoding"+
 	"Movie"+
 	"Show"+
-	"Episode",
+	"Episode"+
+	"Jellyfin Quick Connect"+
+	"Enable Quick Connect on the Jellyfin server or use your password.",
 	[]uint16{
 		11,
 		47,
@@ -358,6 +366,8 @@ var textsEn = i18n.NewTexts(""+
 		5,
 		4,
 		7,
+		22,
+		65,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -432,7 +442,9 @@ var textsZhHans = i18n.NewTexts(""+
 	"服务器转码"+
 	"电影"+
 	"剧集"+
-	"分集",
+	"分集"+
+	"Jellyfin 快速连接"+
+	"请在 Jellyfin 服务器上启用快速连接，或使用密码登录。",
 	[]uint16{
 		12,
 		45,
@@ -505,6 +517,8 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		6,
 		6,
+		21,
+		73,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -569,6 +583,9 @@ func Supply(lang string, t Translation) {
 	}
 	if t.SeasonLabel != nil {
 		s.SeasonLabel = t.SeasonLabel
+	}
+	if t.QuickConnectInstruction != nil {
+		s.QuickConnectInstruction = t.QuickConnectInstruction
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -1149,3 +1166,41 @@ func (msgs Messages) SeasonLabel(number string) string {
 		}
 	}
 }
+
+// QuickConnect says "Jellyfin Quick Connect"
+// in the language the app shows under cx.
+func QuickConnect(cx *core.Scope) string { return For(cx).QuickConnect() }
+
+// QuickConnect is the package's QuickConnect in the language of msgs.
+func (msgs Messages) QuickConnect() string { return msgs.text(textQuickConnect) }
+
+// QuickConnectInstruction says "Enter {code} under Quick Connect on a signed-in Jellyfin device."
+// in the language the app shows under cx.
+func QuickConnectInstruction(cx *core.Scope, code string) string {
+	return For(cx).QuickConnectInstruction(code)
+}
+
+// QuickConnectInstruction is the package's QuickConnectInstruction in the language of msgs.
+func (msgs Messages) QuickConnectInstruction(code string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.QuickConnectInstruction(code))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].QuickConnectInstruction; f != nil {
+			return f(code)
+		}
+		switch lang {
+		case "", "en":
+			return "Enter " + msgs.arg(code) + " under Quick Connect on a signed-in Jellyfin device."
+		case "zh-Hans":
+			return "在已登录的 Jellyfin 设备上打开快速连接，输入 " + code + "。"
+		}
+	}
+}
+
+// QuickConnectUnavailable says "Enable Quick Connect on the Jellyfin server or use your password."
+// in the language the app shows under cx.
+func QuickConnectUnavailable(cx *core.Scope) string { return For(cx).QuickConnectUnavailable() }
+
+// QuickConnectUnavailable is the package's QuickConnectUnavailable in the language of msgs.
+func (msgs Messages) QuickConnectUnavailable() string { return msgs.text(textQuickConnectUnavailable) }
