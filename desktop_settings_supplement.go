@@ -16,7 +16,7 @@ func (a *application) desktopSettingsSupplement(cx *core.Scope, link desktopSett
 	case "subtitles":
 		content = a.desktopSettingsSubtitles(cx, failure)
 	case "appearance":
-		content = desktopFormGroup(locales.DesktopSettingsBasics(cx), a.desktopAppearanceRow(cx, failure))
+		content = a.appearanceSettings(cx)
 	case "library":
 		label := locales.MergeIdenticalTitles(cx)
 		content = desktopFormGroup(locales.MediaSources(cx),

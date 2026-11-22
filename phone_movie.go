@@ -125,7 +125,7 @@ func (a *application) phoneMovieDetail(cx *core.Scope, current route, copies fun
 		phoneMovieOptions(cx, current, state, copies, selectCopy, match),
 		moreDetails,
 	}}
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Children: []core.Node{
+	return core.View{Class: "relative flex-1 bg-waygu-page", Children: []core.Node{
 		core.Scroll{Class: "flex-1", TestID: "phone-movie-scroll", Children: []core.Node{
 			core.View{Class: "relative", Style: core.Style{PaddingEnv: core.EnvEdges{
 				Left: core.EnvSafeArea, Right: core.EnvSafeArea, Bottom: core.EnvSafeArea,
@@ -259,7 +259,7 @@ func (a *application) phoneMediaHero(cx *core.Scope, item media.Item, height, id
 	return core.View{Class: "relative shrink-0 overflow-hidden " + height, TestID: id, Children: []core.Node{
 		homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0"),
 		core.View{Class: "absolute inset-0 bg-linear-to-t from-black/90 via-black/35 to-black/45"},
-		core.View{Class: "absolute inset-x-0 bottom-0 h-12 bg-linear-to-b from-transparent to-[#f4f4f7] dark:to-[#0f1017]"},
+		core.View{Class: "absolute inset-x-0 bottom-0 h-12 bg-linear-to-b from-transparent to-waygu-page"},
 		core.View{Class: "absolute inset-x-0 top-0 flex-row items-center justify-between px-4 pt-1", Style: core.Style{
 			PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea},
 		}, Children: []core.Node{

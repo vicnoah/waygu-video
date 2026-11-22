@@ -84,7 +84,7 @@ func (a *application) desktopMovieDetail(cx *core.Scope, current route, copies f
 			}},
 		}}
 	})
-	return core.View{Class: "relative min-h-0 flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", TestID: "desktop-movie", Children: []core.Node{
+	return core.View{Class: "relative min-h-0 flex-1 bg-waygu-page", TestID: "desktop-movie", Children: []core.Node{
 		homeAmbient(false, true), homeAmbient(true, true),
 		core.Scroll{Class: "flex-1", TestID: "desktop-movie-scroll", Children: []core.Node{hero, main}},
 		ui.Dialog{Title: locales.Danmaku(cx), TestID: "detail-danmaku-dialog", Open: matchOpen.Get,
@@ -111,7 +111,7 @@ func (a *application) desktopMovieRecommendations(cx *core.Scope, source source,
 		seen[item.ID] = true
 		entry := catalogItem{source: source, item: item}
 		cards = append(cards, a.compactMediaCard(cx, entry, nil, 0, "w-36 shrink-0 gap-1.5 rounded-xl",
-			"h-52 rounded-xl shadow-lg shadow-black/15", true, func() { a.openCatalogEntry(entry) }))
+			"h-52 rounded-xl shadow-lg shadow-black/15", true, false, func() { a.openCatalogEntry(entry) }))
 	}
 	if len(cards) == 0 {
 		return nil

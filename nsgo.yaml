@@ -11,13 +11,15 @@ apple:
   info:
     UIBackgroundModes: [audio]
     NSLocalNetworkUsageDescription: Connect to media servers on your local network.
+    NSLocationWhenInUseUsageDescription: Use your approximate location to switch to dark appearance at sunset.
+    NSLocationUsageDescription: Use your approximate location to switch to dark appearance at sunset.
     NSCameraUsageDescription: Scan a QR code to fill in a media server address.
     NSAppTransportSecurity:
       NSAllowsLocalNetworking: true
 
 android:
   loopback_cleartext: true
-  permissions: [CAMERA]
+  permissions: [CAMERA, ACCESS_COARSE_LOCATION]
 
 icon:
   png: assets/Icon.png

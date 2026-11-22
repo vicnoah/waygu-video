@@ -87,7 +87,7 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 			locales.WelcomeContinueWatching(cx), locales.WelcomeContinueWatchingDetail(cx)),
 	}
 	add, later := locales.AddSource(cx), locales.Later(cx)
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
+	return core.View{Class: "relative flex-1 bg-waygu-page", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
 		core.SVGView{Class: "absolute inset-0 w-full h-full dark:hidden", SVG: welcomeAmbientLight},
 		core.SVGView{Class: "absolute inset-0 hidden w-full h-full dark:flex", SVG: welcomeAmbientDark},
 		core.Scroll{Class: "flex-1", Children: []core.Node{

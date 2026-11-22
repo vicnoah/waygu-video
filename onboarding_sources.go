@@ -18,7 +18,7 @@ import (
 const (
 	setupTitle  = "text-zinc-900 dark:text-zinc-50"
 	setupMuted  = "text-zinc-500 dark:text-zinc-400"
-	setupAccent = "text-violet-500 dark:text-violet-400"
+	setupAccent = "text-waygu-control dark:text-waygu-highlight"
 	setupBorder = "border border-zinc-900/8 dark:border-white/8"
 	setupRow    = "min-h-12 items-center flex-row gap-3 px-4 bg-white dark:bg-[#1a1b25]"
 )
@@ -159,7 +159,7 @@ func setupPage(cx *core.Scope, title string, back func(), body core.Node) core.N
 		header = append(header, core.Text{Content: title, Class: "absolute inset-x-0 text-center text-[17px] font-semibold " + setupTitle,
 			PointerEvents: core.PointerEventsNone})
 	}
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Style: core.Style{FlexShrink: 1,
+	return core.View{Class: "relative flex-1 bg-waygu-page", Style: core.Style{FlexShrink: 1,
 		PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea, Bottom: core.EnvKeyboard}}, Children: []core.Node{
 		core.SVGView{Class: "absolute inset-x-0 top-0 h-[1100px] w-full dark:hidden", SVG: welcomeAmbientLight},
 		core.SVGView{Class: "absolute inset-x-0 top-0 hidden h-[1100px] w-full dark:flex", SVG: welcomeAmbientDark},

@@ -145,6 +145,6 @@ func (a *application) tvSettingsPage(cx *core.Scope, initial tvSettingsSection, 
 			return core.View{Class: "flex-1", Children: append([]core.Node{content}, dialogs...)}
 		})
 	})
-	return core.View{Class: "relative flex-1 flex-row bg-[#f4f4f7] dark:bg-[#0f1017]", TestID: "tv-settings",
+	return core.View{Class: "relative flex-1 flex-row bg-waygu-page", TestID: "tv-settings",
 		Children: []core.Node{homeAmbient(false, true), homeAmbient(true, true), left, right}}
 }

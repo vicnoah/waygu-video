@@ -104,7 +104,7 @@ func (a *application) tvDetailHero(cx *core.Scope, l tvLayout, current route, st
 		}),
 		core.View{Class: "absolute inset-y-0 left-0 bg-linear-to-r from-black/85 via-black/60 to-transparent", Style: core.Style{Width: l.length(1440)}},
 		core.View{Class: "absolute inset-x-0 top-0 bg-linear-to-b from-black/55 to-transparent", Style: core.Style{Height: l.length(192)}},
-		core.View{Class: "absolute inset-x-0 bottom-0 bg-linear-to-b from-transparent to-[#f4f4f7] dark:to-[#0f1017]", Style: core.Style{Height: l.length(80)}},
+		core.View{Class: "absolute inset-x-0 bottom-0 bg-linear-to-b from-transparent to-waygu-page", Style: core.Style{Height: l.length(80)}},
 		core.View{Class: "absolute flex-row items-center justify-between",
 			Style: core.Style{Top: l.length(48), Left: l.length(96), Right: l.length(96)}, Children: []core.Node{
 				core.View{Class: "flex-row items-center", Style: core.Style{Gap: l.points(12)}, Children: []core.Node{

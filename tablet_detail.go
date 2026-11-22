@@ -173,7 +173,7 @@ func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies fu
 		size := cx.Env().Window()
 		return size.Width < size.Height || size.Width < 900
 	})
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Children: []core.Node{
+	return core.View{Class: "relative flex-1 bg-waygu-page", Children: []core.Node{
 		homeAmbient(false, true), homeAmbient(true, true),
 		core.View{Class: "flex-1", Style: core.Style{
 			PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea, Left: core.EnvSafeArea, Right: core.EnvSafeArea, Bottom: core.EnvSafeArea},

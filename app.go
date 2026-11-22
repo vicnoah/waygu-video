@@ -22,28 +22,29 @@ import (
 type screen string
 
 const (
-	screenWelcome           screen = "welcome"
-	screenSources           screen = "sources"
-	screenConnect           screen = "connect"
-	screenPlexLink          screen = "plex-link"
-	screenHome              screen = "home"
-	screenLibrary           screen = "library"
-	screenSearch            screen = "search"
-	screenFavorites         screen = "favorites"
-	screenHistory           screen = "history"
-	screenSettings          screen = "settings"
-	screenSourceSettings    screen = "settings-sources"
-	screenDanmakuSettings   screen = "settings-danmaku"
-	screenPlaybackSettings  screen = "settings-playback"
-	screenSubtitleSettings  screen = "settings-subtitles"
-	screenSubtitleLanguages screen = "settings-subtitle-languages"
-	screenManageLibraries   screen = "manage-libraries"
-	screenDetail            screen = "detail"
-	screenPlayer            screen = "player"
-	screenTVSettings        screen = "tv-settings"
-	screenTVPairPhone       screen = "tv-pair-phone"
-	screenDownloads         screen = "downloads"
-	screenParentalSettings  screen = "settings-parental"
+	screenWelcome            screen = "welcome"
+	screenSources            screen = "sources"
+	screenConnect            screen = "connect"
+	screenPlexLink           screen = "plex-link"
+	screenHome               screen = "home"
+	screenLibrary            screen = "library"
+	screenSearch             screen = "search"
+	screenFavorites          screen = "favorites"
+	screenHistory            screen = "history"
+	screenSettings           screen = "settings"
+	screenSourceSettings     screen = "settings-sources"
+	screenDanmakuSettings    screen = "settings-danmaku"
+	screenPlaybackSettings   screen = "settings-playback"
+	screenSubtitleSettings   screen = "settings-subtitles"
+	screenSubtitleLanguages  screen = "settings-subtitle-languages"
+	screenManageLibraries    screen = "manage-libraries"
+	screenDetail             screen = "detail"
+	screenPlayer             screen = "player"
+	screenTVSettings         screen = "tv-settings"
+	screenTVPairPhone        screen = "tv-pair-phone"
+	screenDownloads          screen = "downloads"
+	screenParentalSettings   screen = "settings-parental"
+	screenAppearanceSettings screen = "settings-appearance"
 )
 
 type route struct {
@@ -123,6 +124,8 @@ type application struct {
 	mergeTitles         *core.Signal[bool]
 	mpvPreferred        *core.Signal[bool]
 	appearance          *core.Signal[string]
+	appearancePrefs     *core.Signal[appearancePreferences]
+	effectiveAppearance *core.Memo[string]
 	bitrateLimit        *core.Signal[int]
 	versionPolicy       *core.Signal[media.VersionPolicy]
 	autoNext            *core.Signal[bool]
@@ -156,8 +159,13 @@ func appRoot(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer) c
 	})
 }
 
-func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, dandan danmakuFactory) core.Node {
-	cx.SetTheme(wayguTheme())
+func appRootWithDandan(_ *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, dandan danmakuFactory) core.Node {
+	return core.Dynamic(func(cx *core.Scope) core.Node {
+		return core.Untracked(cx, func() core.Node { return mountApp(cx, factory, plexAccount, dandan) })
+	})
+}
+
+func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, dandan danmakuFactory) core.Node {
 	storage := cx.Storage()
 	var sources []source
 	if data, ok := storage.GetItem(sourcesKey); ok {
@@ -209,7 +217,7 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 	a.desktopCategory = core.NewSignal(cx, libraryCategory(""))
 	a.desktopCollapsed = core.NewSignal(cx, false)
 	a.desktopPlayerVolume = core.NewSignal(cx, float32(0.75))
-	a.desktopLibraryState = core.NewSignal(cx, desktopLibraryState{mode: desktopGrid})
+	a.desktopLibraryState = core.NewSignal(cx, desktopLibraryState{mode: preferredDesktopLibraryMode(a.appearancePrefs.GetUntracked())})
 	a.initDesktopPreferences(cx, first)
 	a.desktopCollections = core.NewSignalFunc(cx, readDesktopCollections(storage), nil)
 	a.phoneSearch = newPhoneSearchState(cx)
@@ -265,6 +273,8 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 				return a.phoneSubtitleSettings(screenScope)
 			case screenSubtitleLanguages:
 				return a.phoneSubtitleLanguages(screenScope)
+			case screenAppearanceSettings:
+				return a.phoneAppearanceSettings(screenScope)
 			case screenParentalSettings:
 				return a.phoneParentalSettings(screenScope)
 			case screenDownloads:

@@ -37,7 +37,7 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 	personal := a.detailPersonal(cx, current, detail)
 	selected := core.NewSignal(cx, current.seriesView.tab)
 	reversed := core.NewSignal(cx, current.seriesView.reversed)
-	hideWatched := core.NewSignal(cx, current.seriesView.hideWatched)
+	hideWatched := core.NewSignal(cx, current.seriesView.hideWatched || a.appearancePrefs.GetUntracked().HideFinished)
 	menuEpisode := core.NewSignalFunc(cx, catalogItem{}, nil)
 	menuOpen := core.NewSignal(cx, false)
 	seasons := core.NewMemoFunc(cx, func() []media.Item {
@@ -259,7 +259,7 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 		return core.View{Class: "mx-4 gap-1 rounded-2xl bg-white p-2 shadow-sm shadow-black/5 dark:bg-[#1a1b25] " + setupBorder,
 			TestID: "series-episode-list", Role: core.RoleGroup, Children: list}
 	})
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Children: []core.Node{
+	return core.View{Class: "relative flex-1 bg-waygu-page", Children: []core.Node{
 		core.Scroll{Class: "flex-1", TestID: "phone-series-scroll", Children: []core.Node{
 			core.View{Class: "relative", Style: core.Style{PaddingEnv: core.EnvEdges{
 				Left: core.EnvSafeArea, Right: core.EnvSafeArea, Bottom: core.EnvSafeArea,

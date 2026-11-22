@@ -8,38 +8,6 @@ import (
 	"waygu-video/locales"
 )
 
-const appearanceKey = "appearance-v1"
-
-var appearanceChoices = []string{"system", "light", "dark"}
-
-func (a *application) applyAppearance(cx *core.Scope) {
-	stored, _ := a.storage.GetItem(appearanceKey)
-	if stored != "light" && stored != "dark" {
-		stored = "system"
-	}
-	a.appearance = core.NewSignal(cx, stored)
-	observeAppearance(cx, a.appearance.Get)
-}
-
-func observeAppearance(cx *core.Scope, appearance func() string) {
-	forced := false
-	cx.Effect(func() {
-		switch appearance() {
-		case "light":
-			cx.SetSubtreeAppearance(core.AppearanceLight)
-			forced = true
-		case "dark":
-			cx.SetSubtreeAppearance(core.AppearanceDark)
-			forced = true
-		default:
-			if forced {
-				cx.SetSubtreeAppearance(core.AppearanceSystem)
-				forced = false
-			}
-		}
-	})
-}
-
 func (a *application) tvSettingsOptions(cx *core.Scope, l tvLayout, section tvSettingsSection, current route, sources []source, dialogs *[]core.Node) []tvOption {
 	link := func(id, label string, destination route) tvOption {
 		return tvOption{id: id, label: label, action: func() { a.push(destination) }}
@@ -89,8 +57,11 @@ func (a *application) tvSettingsOptions(cx *core.Scope, l tvLayout, section tvSe
 			next := appearanceChoices[max(0, min(2, index()+delta))]
 			_ = storeSettingValue(a.storage, appearanceKey, a.appearance, next, next)
 		}
-		return []tvOption{{id: "tv-settings-appearance", label: locales.SettingsAppearance(cx),
-			value: func() string { return labels[index()] }, adjust: adjust}}
+		return []tvOption{
+			{id: "tv-settings-appearance", label: locales.SettingsAppearance(cx),
+				value: func() string { return labels[index()] }, adjust: adjust},
+			link("open-appearance-settings", locales.AppearanceMore(cx), route{screen: screenAppearanceSettings}),
+		}
 	case tvLibraries:
 		toggle := func(enabled bool) {
 			_ = storeSettingValue(a.storage, mergeTitlesKey, a.mergeTitles, enabled, strconv.FormatBool(enabled))

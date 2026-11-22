@@ -39,7 +39,7 @@ func (a *application) phoneShell(cx *core.Scope, definitions []ui.ShellTab) core
 			Then: tab.Content,
 		}}})
 		tabs = append(tabs, base.Tab{Label: tab.Text, TestID: tab.TestID, Selected: selected,
-			Class: "group h-12 flex-1 items-center justify-center gap-0.5 rounded-full selected:bg-violet-500/12",
+			Class: "group h-12 flex-1 items-center justify-center gap-0.5 rounded-full selected:bg-waygu-control/12",
 			Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)}, OnPress: func(core.PressEvent) {
 				if index == 1 && a.tab.GetUntracked() != 1 {
 					a.libraryView.Set(screenLibrary)
@@ -63,4 +63,4 @@ func (a *application) phoneShell(cx *core.Scope, definitions []ui.ShellTab) core
 	}}
 }
 
-const phoneTabTint = "text-zinc-500 group-selected:text-violet-500 dark:text-zinc-400 dark:group-selected:text-violet-400"
+const phoneTabTint = "text-zinc-500 group-selected:text-waygu-control dark:text-zinc-400 dark:group-selected:text-waygu-highlight"

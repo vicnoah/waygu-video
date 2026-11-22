@@ -105,7 +105,7 @@ func (a *application) tvFeatured(cx *core.Scope, l tvLayout, titles []catalogIte
 			}),
 			core.View{Class: "absolute inset-y-0 left-0 bg-linear-to-r from-black/85 via-black/55 to-transparent", Style: core.Style{Width: l.length(1360)}},
 			core.View{Class: "absolute inset-x-0 top-0 bg-linear-to-b from-black/60 to-transparent", Style: core.Style{Height: l.length(224)}},
-			core.View{Class: "absolute inset-x-0 bottom-0 bg-linear-to-b from-transparent to-[#f4f4f7] dark:to-[#0f1017]", Style: core.Style{Height: l.length(96)}},
+			core.View{Class: "absolute inset-x-0 bottom-0 bg-linear-to-b from-transparent to-waygu-page", Style: core.Style{Height: l.length(96)}},
 			core.View{Class: "absolute inset-x-0 top-0", Children: []core.Node{nav}},
 			core.View{Class: "absolute", Style: core.Style{Top: l.length(230), Left: l.length(96), Width: l.length(820), Gap: l.points(28)}, Children: []core.Node{
 				core.Dynamic(func(cx *core.Scope) core.Node { return tvFeaturedFacts(cx, l, titles[index.Get()]) }),
@@ -238,7 +238,7 @@ func (a *application) tvPosters(cx *core.Scope, l tvLayout, id, title, stripe st
 			details = append(details, strconv.FormatFloat(item.Rating, 'f', 1, 64))
 		}
 		cover := []core.Node{homeArtwork(item.Poster, "absolute inset-0")}
-		if quality := tvQuality(entry); quality != "" {
+		if quality := tvQuality(entry); quality != "" && a.appearancePrefs.Get().ShowQuality {
 			tag := l.text(quality, 14, "absolute top-3 left-3 rounded-md bg-black/55 px-2 py-1 font-bold text-white")
 			cover = append(cover, tag)
 		}

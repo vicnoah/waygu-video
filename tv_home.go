@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand/v2"
 	"slices"
 	"strconv"
 	"strings"
@@ -200,12 +201,14 @@ func (a *application) tvHeader(cx *core.Scope, l tvLayout, page func() screen, c
 		}}
 }
 
-const tvBackground = "bg-[#f4f4f7] dark:bg-[#0f1017]"
+const tvBackground = "bg-waygu-page"
 
 func (a *application) tvHome(cx *core.Scope, results *core.Resource[catalogResult]) core.Node {
 	l := tvLayoutFor(cx)
 	options := tvHomeOptions.Use(cx)
 	dismissals, dismiss := a.tvResumeDismissals(cx)
+	favorites := a.homeFavorites(cx)
+	seed := rand.Uint64()
 	return core.Scroll{Class: "flex-1 " + tvBackground, HideIndicator: true, TestID: "tv-home-scroll", Children: []core.Node{
 		core.Dynamic(func(cx *core.Scope) core.Node {
 			sources := a.browseSources()
@@ -233,8 +236,10 @@ func (a *application) tvHome(cx *core.Scope, results *core.Resource[catalogResul
 				children = append(children, message(notice(errorText(cx, result.failure)),
 					ui.Button{Text: locales.Retry(cx), Variant: ui.ButtonOutline, OnPress: results.Refetch}))
 			}
+			shelves := make(map[string]core.Node)
+			settings := a.appearancePrefs.Get().forHome(true)
 			if resume := a.homeResume(result, loading); len(resume) > 0 {
-				children = append(children, core.Dynamic(func(cx *core.Scope) core.Node {
+				shelves[homeContinue] = core.Dynamic(func(cx *core.Scope) core.Node {
 					hidden := dismissals.Get()
 					cards := make([]core.Node, 0, len(resume))
 					for _, entry := range resume {
@@ -248,7 +253,7 @@ func (a *application) tvHome(cx *core.Scope, results *core.Resource[catalogResul
 					}
 					return tvShelf(l, "tv-resume", locales.ContinueWatching(cx), "bg-violet-500",
 						l.text(locales.HomeItemCount(cx, strconv.Itoa(len(cards))), 20, tvMuted), nil, 32, cards)
-				}))
+				})
 			}
 			if len(recent) > 0 {
 				total := 0
@@ -256,11 +261,22 @@ func (a *application) tvHome(cx *core.Scope, results *core.Resource[catalogResul
 					total += status.total
 				}
 				all := l.action("tv-recent-all", locales.TvAllTitles(cx, strconv.Itoa(max(total, len(recent)))), lucide.ChevronRight(), tvShelfAction, options.openRecent)
-				children = append(children, a.tvPosters(cx, l, "tv-recent", locales.Recent(cx), "bg-fuchsia-500", nil, all, recent))
+				movies, series := recent, []catalogItem(nil)
+				if settings.HomeOrdered || !settings.enabled(homeRecent) || !settings.enabled(homeSeries) {
+					movies = slices.DeleteFunc(slices.Clone(recent), func(item catalogItem) bool { return item.item.Kind == media.Series })
+					series = slices.DeleteFunc(slices.Clone(recent), func(item catalogItem) bool { return item.item.Kind != media.Series })
+				}
+				if len(movies) > 0 {
+					shelves[homeRecent] = a.tvPosters(cx, l, "tv-recent", locales.Recent(cx), "bg-fuchsia-500", nil, all, movies)
+				}
+				if len(series) > 0 {
+					shelves[homeSeries] = a.tvPosters(cx, l, "tv-series", locales.HomeSeriesUpdates(cx), "bg-violet-500", nil, nil, series)
+				}
 				unmerged := recent
 				if len(result.resumeCatalog) > 0 {
 					unmerged = rules.catalog(result.resumeCatalog)
 				}
+				var grouped []core.Node
 				for _, source := range sources {
 					var items []catalogItem
 					for _, entry := range unmerged {
@@ -272,12 +288,28 @@ func (a *application) tvHome(cx *core.Scope, results *core.Resource[catalogResul
 						slices.SortStableFunc(items, func(a, b catalogItem) int { return b.item.AddedAt.Compare(a.item.AddedAt) })
 						dot, badge := tvProviderStyle(source.Provider)
 						tag := l.text(providerName(cx, source.Provider), 18, "rounded-md px-3 py-1 font-semibold "+badge)
-						children = append(children, a.tvPosters(cx, l, "tv-source-"+source.ID, locales.TvFromSource(cx, source.Name), dot, tag, nil, items))
+						grouped = append(grouped, a.tvPosters(cx, l, "tv-source-"+source.ID, locales.TvFromSource(cx, source.Name), dot, tag, nil, items))
 					}
 				}
-			} else if loading {
+				if len(grouped) > 0 {
+					shelves[homeGrouped] = core.Group(grouped)
+				}
+			}
+			shelves[homeFavorite] = core.Dynamic(func(cx *core.Scope) core.Node {
+				page, ready := favorites.Get()
+				items := a.parentalRules().catalog(page.items)
+				if !ready || len(items) == 0 || favorites.Loading() || a.kidsBrowsing() {
+					return nil
+				}
+				return a.tvPosters(cx, l, "tv-favorites", locales.AppearanceFavorites(cx), "bg-rose-500", nil, nil, items)
+			})
+			if settings.enabled(homeRandom) && len(recent) > 0 {
+				shelves[homeRandom] = a.tvPosters(cx, l, "tv-random", locales.AppearanceRandom(cx), "bg-violet-500", nil, nil, homeSuggestions(recent, seed))
+			}
+			children = append(children, homeModuleOrder(settings, shelves)...)
+			if len(recent) == 0 && loading {
 				children = append(children, message(hint(locales.Loading(cx))))
-			} else if len(sources) > 0 && len(children) == 2 {
+			} else if len(recent) == 0 && len(sources) > 0 && len(children) == 2 {
 				children = append(children, message(notice(locales.EmptyLibrary(cx))))
 			}
 			return core.View{Children: []core.Node{top,

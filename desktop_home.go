@@ -2,6 +2,7 @@ package main
 
 import (
 	"cmp"
+	"math/rand/v2"
 	"slices"
 	"strconv"
 	"strings"
@@ -20,6 +21,14 @@ import (
 
 func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalogResult], limit *core.Signal[int]) core.Node {
 	notices := core.NewSignal(cx, false)
+	favorites := a.homeFavorites(cx)
+	seed := rand.Uint64()
+	backdrop := core.NewSignal(cx, homeBackdrop{})
+	glow := homePosterGlow(cx, func() (homeBackdrop, bool) {
+		value := backdrop.Get()
+		prefs := a.appearancePrefs.Get()
+		return value, prefs.PosterAmbient && !(prefs.OLED && cx.Dark()) && value.image != ""
+	})
 	openSearch := func() { a.tab.Set(2) }
 	openLibrary := func(filter string, next libraryCategory) {
 		a.openDesktopLibrary(next, filter)
@@ -66,8 +75,14 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 		recent := slices.Clone(rules.catalog(result.items))
 		slices.SortStableFunc(recent, func(a, b catalogItem) int { return b.item.AddedAt.Compare(a.item.AddedAt) })
 		if featured := recommendHomeTitles(recent, 4); len(featured) > 0 {
-			nodes = append(nodes, core.Func(func(cx *core.Scope) core.Node { return a.desktopFeatured(cx, featured) }))
+			nodes = append(nodes, core.Func(func(cx *core.Scope) core.Node {
+				return a.desktopFeatured(cx, featured, func(entry catalogItem) {
+					backdrop.Set(homeBackdrop{entry.source.Address, cmp.Or(entry.item.Backdrop, entry.item.Poster)})
+				})
+			}))
 		}
+		shelves := make(map[string]core.Node)
+		settings := a.appearancePrefs.Get().forHome(true)
 		resume := a.homeResume(result, false)
 		build := func(items []catalogItem, card func(*core.Scope, catalogItem) core.Node) []core.Node {
 			cards := make([]core.Node, 0, len(items))
@@ -85,21 +100,22 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 			}
 		}
 		if len(resume) > 0 {
-			nodes = append(nodes, desktopHomeShelf(cx, "desktop-resume", locales.ContinueWatching(cx), nil,
-				build(resume, a.homeResumeCard), func() { a.openPersonalLibrary(screenHistory) }))
+			shelves[homeContinue] = desktopHomeShelf(cx, "desktop-resume", locales.ContinueWatching(cx), nil,
+				build(resume, a.homeResumeCard), func() { a.openPersonalLibrary(screenHistory) })
 		}
 		if len(films) > 0 {
-			nodes = append(nodes, desktopHomeShelf(cx, "desktop-recent", locales.Recent(cx), nil,
-				build(films, a.homePosterCard), func() { openLibrary(a.sourceFilter.GetUntracked(), "") }))
+			shelves[homeRecent] = desktopHomeShelf(cx, "desktop-recent", locales.Recent(cx), nil,
+				build(films, a.homePosterCard), func() { openLibrary(a.sourceFilter.GetUntracked(), "") })
 		}
 		if len(shows) > 0 {
-			nodes = append(nodes, desktopHomeShelf(cx, "desktop-series", locales.HomeSeriesUpdates(cx), nil,
-				build(shows, a.desktopSeriesCard), func() { openLibrary(a.sourceFilter.GetUntracked(), librarySeries) }))
+			shelves[homeSeries] = desktopHomeShelf(cx, "desktop-series", locales.HomeSeriesUpdates(cx), nil,
+				build(shows, a.desktopSeriesCard), func() { openLibrary(a.sourceFilter.GetUntracked(), librarySeries) })
 		}
 		unmerged := recent
 		if len(result.resumeCatalog) > 0 {
 			unmerged = rules.catalog(result.resumeCatalog)
 		}
+		var grouped []core.Node
 		for _, source := range a.browseSources() {
 			var entries []catalogItem
 			for _, entry := range unmerged {
@@ -115,17 +131,35 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 				}
 				_, style := tvProviderStyle(source.Provider)
 				badge := core.Text{Content: name, Class: "rounded px-1.5 py-0.5 text-[11px] font-medium " + style}
-				nodes = append(nodes, desktopHomeShelf(cx, "desktop-source-"+source.ID, locales.DesktopFromSource(cx, source.Name), badge,
+				grouped = append(grouped, desktopHomeShelf(cx, "desktop-source-"+source.ID, locales.DesktopFromSource(cx, source.Name), badge,
 					build(entries, a.homePosterCard), func() { openLibrary(source.ID, "") }))
 			}
 		}
+		if len(grouped) > 0 {
+			shelves[homeGrouped] = core.Group(grouped)
+		}
+		shelves[homeFavorite] = core.Dynamic(func(cx *core.Scope) core.Node {
+			page, ready := favorites.Get()
+			items := a.parentalRules().catalog(page.items)
+			if !ready || len(items) == 0 || favorites.Loading() || a.kidsBrowsing() {
+				return nil
+			}
+			return desktopHomeShelf(cx, "desktop-favorites", locales.AppearanceFavorites(cx), nil,
+				build(items, func(cx *core.Scope, entry catalogItem) core.Node { return a.homePoster(cx, entry, "favorite-title-") }),
+				func() { a.openPersonalLibrary(screenFavorites) })
+		})
+		if settings.enabled(homeRandom) && len(recent) > 0 {
+			shelves[homeRandom] = desktopHomeShelf(cx, "desktop-random", locales.AppearanceRandom(cx), nil,
+				build(homeSuggestions(recent, seed), func(cx *core.Scope, entry catalogItem) core.Node { return a.homePoster(cx, entry, "random-title-") }), nil)
+		}
+		nodes = append(nodes, homeModuleOrder(settings, shelves)...)
 		if len(nodes) == 0 {
 			nodes = append(nodes, core.View{Class: "px-8", Children: []core.Node{notice(locales.EmptyLibrary(cx))}})
 		}
 		return core.View{Class: "gap-9 pt-9 pb-10", Children: nodes}
 	})
-	return core.View{Class: "flex-1", TestID: "desktop-home", Children: []core.Node{
-		toolbar,
+	return core.View{Class: "relative flex-1", TestID: "desktop-home", Children: []core.Node{
+		glow, toolbar,
 		core.Scroll{Class: "flex-1", TestID: "desktop-home-scroll", Children: []core.Node{body}},
 		ui.Dialog{Title: locales.DesktopNotices(cx), Open: notices.Get, OnOpenChange: func(open bool, _ base.Reason) { notices.Set(open) },
 			Children: []core.Node{core.Dynamic(func(cx *core.Scope) core.Node {
@@ -175,8 +209,10 @@ func desktopHomeShelf(cx *core.Scope, id, title string, badge core.Node, cards [
 	}}
 }
 
-func (a *application) desktopFeatured(cx *core.Scope, entries []catalogItem) core.Node {
+func (a *application) desktopFeatured(cx *core.Scope, entries []catalogItem, changed func(catalogItem)) core.Node {
 	index := core.NewSignal(cx, 0)
+	cx.Effect(func() { changed(entries[index.Get()]) })
+	cx.Cleanup(func() { changed(catalogItem{}) })
 	cx.Effect(func() {
 		cursor := index.Get()
 		if len(entries) > 1 && !cx.Env().ReduceMotion() {

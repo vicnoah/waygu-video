@@ -70,13 +70,19 @@ func (a *application) compactLibrary(cx *core.Scope) core.Node {
 	}
 	actions := core.View{Class: "flex-row items-center gap-4", Children: []core.Node{
 		core.Dynamic(func(cx *core.Scope) core.Node {
-			list := current.Get().list
+			list := a.appearancePrefs.Get().Poster == "list"
 			icon, label := lucide.LayoutGrid(), locales.LibraryListView(cx)
 			if list {
 				icon, label = lucide.List(), locales.LibraryPosterView(cx)
 			}
 			return compactLibraryIcon(cx, "library-layout", label, icon, setupAccent, func() {
-				change(func(state *phoneLibraryState) { state.list = !state.list })
+				_ = a.saveAppearance(func(p *appearancePreferences) {
+					if list {
+						p.Poster = "portrait"
+					} else {
+						p.Poster = "list"
+					}
+				})
 			})
 		}),
 		compactLibraryIcon(cx, "library-filter", locales.LibraryFilters(cx), lucide.SlidersHorizontal(), setupTitle,
@@ -84,11 +90,17 @@ func (a *application) compactLibrary(cx *core.Scope) core.Node {
 	}}
 	content := core.Dynamic(func(cx *core.Scope) core.Node {
 		settings, result := current.Get(), page.Get()
+		prefs := a.appearancePrefs.Get()
 		q := request.Get()
 		initial, ready := preview.Get()
 		loading := len(q.sources) > 0 && (!ready || initial.query != q || preview.Loading())
 		indexing := result.hasMore && full.Loading()
 		matches := filterPhoneLibrary(rows.Get(), settings)
+		if prefs.HideFinished {
+			matches = slices.DeleteFunc(matches, func(entry catalogItem) bool {
+				return (entry.item.Kind == media.Series || entry.item.Kind == media.Episode) && catalogWatched(entry)
+			})
+		}
 		tryAgain := func() { refresh.Update(func(n uint64) uint64 { return n + 1 }) }
 		if len(q.sources) == 0 {
 			return compactLibraryEmpty(cx, lucide.LibraryBig(), locales.NoSources(cx),
@@ -116,22 +128,26 @@ func (a *application) compactLibrary(cx *core.Scope) core.Node {
 			TestID: "library-summary", Class: "text-xs " + setupMuted, MaxLines: 2}}
 		bookmarks := libraryBookmarkMap(a.progressResumeShelf(result.resume, q.sources, *q))
 		visible := min(len(matches), limit.Get())
-		if settings.list {
+		if prefs.Poster == "list" {
 			list := make([]core.Node, 0, visible)
 			for _, item := range matches[:visible] {
-				list = append(list, a.compactLibraryCard(cx, item, bookmarks, settings.resolution, true))
+				list = append(list, a.compactLibraryCard(cx, item, bookmarks, settings.resolution, "list"))
 			}
 			children = append(children, core.View{TestID: "library-list",
 				Class: "gap-px overflow-hidden rounded-2xl bg-zinc-200 shadow-sm dark:bg-white/8 " + setupBorder, Children: list})
 		} else {
-			grid := make([]core.Node, 0, (visible+2)/3)
-			for chunk := range slices.Chunk(matches[:visible], 3) {
-				cards := make([]core.Node, 0, 3)
+			perRow, width := 3, compactPosterWidth
+			if prefs.Poster == "landscape" {
+				perRow, width = 2, compactLandscapeWidth
+			}
+			grid := make([]core.Node, 0, (visible+perRow-1)/perRow)
+			for chunk := range slices.Chunk(matches[:visible], perRow) {
+				cards := make([]core.Node, 0, perRow)
 				for _, item := range chunk {
-					cards = append(cards, a.compactLibraryCard(cx, item, bookmarks, settings.resolution, false))
+					cards = append(cards, a.compactLibraryCard(cx, item, bookmarks, settings.resolution, prefs.Poster))
 				}
-				for len(cards) < 3 {
-					cards = append(cards, core.View{Class: compactPosterWidth})
+				for len(cards) < perRow {
+					cards = append(cards, core.View{Class: width})
 				}
 				grid = append(grid, core.View{Class: "flex-row justify-between", Children: cards})
 			}
@@ -146,7 +162,7 @@ func (a *application) compactLibrary(cx *core.Scope) core.Node {
 		}
 		return core.View{Class: "gap-5 px-5", Children: children}
 	})
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Children: []core.Node{
+	return core.View{Class: "relative flex-1 bg-waygu-page", Children: []core.Node{
 		homeAmbient(false, true), homeAmbient(true, true),
 		core.Scroll{Class: "flex-1", TestID: "phone-library-scroll", Children: []core.Node{
 			core.View{StyleFunc: func() core.Style {
@@ -350,16 +366,19 @@ func compactLibraryEmpty(cx *core.Scope, icon *core.SVG, label, action string, p
 }
 
 const compactPosterWidth = "w-28 max-w-[32%] min-w-0 shrink-0"
+const compactLandscapeWidth = "w-[48%] min-w-0 shrink-0"
 
-func (a *application) compactLibraryCard(cx *core.Scope, entry catalogItem, bookmarks map[copyKey]media.Item, resolution int, list bool) core.Node {
+func (a *application) compactLibraryCard(cx *core.Scope, entry catalogItem, bookmarks map[copyKey]media.Item, resolution int, mode string) core.Node {
 	shape, coverShape := compactPosterWidth+" gap-1.5 rounded-xl", "w-full rounded-xl shadow-lg shadow-black/15"
-	if list {
+	if mode == "landscape" {
+		shape = compactLandscapeWidth + " gap-1.5 rounded-xl"
+	} else if mode == "list" {
 		shape, coverShape = "flex-row items-center gap-3 bg-white px-3 py-2 dark:bg-[#1a1b25]", "w-12 shrink-0 rounded-lg"
 	}
-	return a.compactMediaCard(cx, entry, bookmarks, resolution, shape, coverShape, false, func() { a.openCatalogEntry(entry) })
+	return a.compactMediaCard(cx, entry, bookmarks, resolution, shape, coverShape, false, mode == "landscape", func() { a.openCatalogEntry(entry) })
 }
 
-func (a *application) compactMediaCard(cx *core.Scope, entry catalogItem, bookmarks map[copyKey]media.Item, resolution int, shape, coverShape string, desktop bool, open func()) core.Node {
+func (a *application) compactMediaCard(cx *core.Scope, entry catalogItem, bookmarks map[copyKey]media.Item, resolution int, shape, coverShape string, desktop, landscape bool, open func()) core.Node {
 	item := entry.item
 	details, progress := libraryCardDetails(cx, entry, bookmarks)
 	if desktop && item.Kind == media.Movie && len(item.Genres) > 0 {
@@ -369,8 +388,16 @@ func (a *application) compactMediaCard(cx *core.Scope, entry catalogItem, bookma
 		}
 	}
 	watched := catalogWatched(entry)
-	artwork := homeArtwork(item.Poster, "absolute inset-0 justify-center")
-	if desktop && item.Poster == "" {
+	prefs := a.appearancePrefs.Get()
+	art, aspect := item.Poster, float32(.7)
+	if landscape {
+		if item.Backdrop != "" {
+			art = item.Backdrop
+		}
+		aspect = 16.0 / 9
+	}
+	artwork := homeArtwork(art, "absolute inset-0 justify-center")
+	if desktop && art == "" {
 		artwork = core.View{Class: "absolute inset-0 items-center justify-center bg-[#f5f5f5] dark:bg-[#262626]", Children: []core.Node{
 			core.Icon{SVG: lucide.Image(), Class: "size-7 text-[#737373] dark:text-[#a3a3a3]"},
 		}}
@@ -396,21 +423,21 @@ func (a *application) compactMediaCard(cx *core.Scope, entry catalogItem, bookma
 	} else if item.Kind == media.Series && homeIsFresh(cx, item) && !watched {
 		quality, tint = locales.HomeNewShort(cx), "bg-violet-500"
 	}
-	if quality != "" {
+	if quality != "" && (tint != "bg-black/55" || prefs.ShowQuality) {
 		cover = append(cover, core.Text{Content: quality, TestID: a.catalogEntryID("library-quality-", entry),
 			Class: "absolute top-1.5 left-1.5 rounded-md px-1.5 py-0.5 text-[9px] font-bold text-white " + tint})
 	}
-	if watched {
-		cover = append(cover, core.View{Class: "absolute top-1.5 right-1.5 size-5 items-center justify-center rounded-full bg-violet-500 shadow-md",
+	if watched && prefs.ShowWatched {
+		cover = append(cover, core.View{Class: "absolute top-1.5 right-1.5 size-5 items-center justify-center rounded-full bg-waygu-control shadow-md",
 			Children: []core.Node{core.Icon{SVG: lucide.Check(), Class: "size-3 text-white"}}})
-	} else if progress.Duration > 0 && canResume(progress) {
+	} else if !watched && progress.Duration > 0 && canResume(progress) {
 		cover = append(cover, homeProgress(cx, "", "absolute inset-x-2 bottom-2", progress))
 	}
 	return base.Button{Label: item.Title, Hint: entry.source.Name, TestID: a.catalogEntryID("title-", entry),
 		Class: shape, Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
 		OnPress: func(core.PressEvent) { open() },
 		Children: []core.Node{
-			core.View{Class: "relative overflow-hidden " + coverShape, Style: core.Style{AspectRatio: 0.7},
+			core.View{Class: "relative overflow-hidden " + coverShape, Style: core.Style{AspectRatio: aspect},
 				TestID: a.catalogEntryID("library-poster-", entry), Children: cover},
 			core.View{Class: "min-w-0 gap-1.5", Children: []core.Node{
 				core.Text{Content: item.Title, Class: "text-[13px] font-medium " + setupTitle, MaxLines: 1},

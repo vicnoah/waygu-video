@@ -29,17 +29,25 @@ func (a *application) desktopLibraryResults(cx *core.Scope, rows *core.Memo[[]de
 		case desktopWall:
 			return max(1, min(10, int((width+8)/112)))
 		default:
+			if a.appearancePrefs.Get().Poster == "landscape" {
+				return max(1, min(5, int((width+16)/240)))
+			}
 			return max(1, min(7, int((width+16)/160)))
 		}
 	})
 	results := core.Dynamic(func(cx *core.Scope) core.Node {
 		layout, columns := mode.Get(), columns.Get()
+		landscape := a.appearancePrefs.Get().Poster == "landscape"
 		estimated, rowGap, gap := core.Points(252), core.Points(33), core.Points(16)
 		switch layout {
 		case desktopList:
 			estimated, rowGap, gap = 64, 1, 0
 		case desktopWall:
 			estimated, rowGap, gap = 156, 8, 8
+		case desktopGrid:
+			if landscape {
+				estimated = 168
+			}
 		}
 		return core.List{
 			Class: "flex-1 min-w-0 pb-8", TestID: "desktop-library-" + string(layout), Ref: ref,
@@ -60,9 +68,12 @@ func (a *application) desktopLibraryResults(cx *core.Scope, rows *core.Memo[[]de
 					case desktopWall:
 						return a.desktopLibraryWallCard(cx, entry)
 					default:
+						shape, cover := "w-36 max-w-full min-w-0 gap-1.5 rounded-xl", "h-52 rounded-xl shadow-lg shadow-black/15"
+						if landscape {
+							shape, cover = "w-56 max-w-full min-w-0 gap-1.5 rounded-xl", "w-full rounded-xl shadow-lg shadow-black/15"
+						}
 						return a.compactMediaCard(cx, entry, bookmarks.Get(), state.Get().filters.Resolution,
-							"w-36 max-w-full min-w-0 gap-1.5 rounded-xl", "h-52 rounded-xl shadow-lg shadow-black/15", true,
-							func() { a.openCatalogEntry(entry) })
+							shape, cover, true, landscape, func() { a.openCatalogEntry(entry) })
 					}
 				})
 			},
@@ -137,16 +148,17 @@ func (a *application) desktopLibraryListCard(cx *core.Scope, row desktopLibraryR
 	entry, item := row.entry, row.entry.item
 	description, progress := libraryCardDetails(cx, entry, bookmarks)
 	metadata := []string{entry.source.Name}
-	if quality := tvQuality(entry); quality != "" {
+	prefs := a.appearancePrefs.Get()
+	if quality := tvQuality(entry); quality != "" && prefs.ShowQuality {
 		metadata = append(metadata, quality)
 	}
 	if row.size > 0 {
 		metadata = append(metadata, mediaBytes(row.size))
 	}
 	status := []core.Node{}
-	if catalogWatched(entry) {
+	if catalogWatched(entry) && prefs.ShowWatched {
 		status = append(status, core.Icon{SVG: lucide.Check(), Class: "size-4 " + setupAccent})
-	} else if canResume(progress) {
+	} else if !catalogWatched(entry) && canResume(progress) {
 		status = append(status, core.View{Class: "w-20", Children: []core.Node{homeProgress(cx, "", "", progress)}})
 	}
 	if item.Favorite {

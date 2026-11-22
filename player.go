@@ -29,7 +29,6 @@ type playerMedia struct {
 }
 
 func (a *application) player(cx *core.Scope, current route) core.Node {
-	cx.SetTheme(wayguTheme())
 	cx.SetSubtreeAppearance(core.AppearanceDark)
 	platform := cx.Env().OS()
 	if (platform == core.OSIOS || platform == core.OSAndroid) && appLayoutIdiom(cx) == core.IdiomPhone {

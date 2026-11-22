@@ -24,7 +24,7 @@ func (a *application) desktopShell(cx *core.Scope, detail func(*core.Scope) core
 	}
 	cx.OnKey("mod+,", func() { a.openDesktopSettings(cx, desktopSettingsOverview) })
 	cx.OnKeyWith("mod+k", core.KeyOptions{Title: func() string { return locales.Search(cx) }}, openSearch)
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", TestID: "desktop-shell", Children: []core.Node{
+	return core.View{Class: "relative flex-1 bg-waygu-page", TestID: "desktop-shell", Children: []core.Node{
 		homeAmbient(false, true), homeAmbient(true, true),
 		core.View{Class: "flex-1 flex-row", Children: []core.Node{
 			core.Show{When: func() bool { return !collapsed.Get() }, Then: func(cx *core.Scope) core.Node {

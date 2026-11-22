@@ -54,11 +54,11 @@ func (a *application) initDesktopPreferences(cx *core.Scope, first screen) {
 	prefs := core.Untracked(cx, func() desktopPreferences { return readDesktopPreferences(a.storage) })
 	a.desktopPrefs = core.NewSignal(cx, prefs)
 	a.desktopSettingsTab = core.NewSignal(cx, desktopSettingsOverview)
-	if appLayoutIdiom(cx) != core.IdiomDesktop {
-		return
-	}
 	if prefs.Language != "" {
 		cx.SetLocale(prefs.Language)
+	}
+	if appLayoutIdiom(cx) != core.IdiomDesktop {
+		return
 	}
 	id := a.desktopDefaultSource()
 	a.sourceFilter.Set(id)
@@ -197,7 +197,7 @@ func desktopFormSelect[T comparable](cx *core.Scope, id, label string, choices [
 func desktopFormToggle(cx *core.Scope, id, label string, value func() bool, change func(bool)) core.Node {
 	return base.Switch{Label: label, TestID: id, Checked: value, OnChange: change, Disabled: func() bool { return change == nil },
 		Class: "shrink-0 rounded-full disabled:opacity-60", Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
-		TrackClass: "h-[22px] w-[38px] flex-row items-center justify-start rounded-full bg-zinc-900/15 px-0.5 checked:justify-end checked:bg-violet-500 dark:bg-white/15",
+		TrackClass: "h-[22px] w-[38px] flex-row items-center justify-start rounded-full bg-zinc-900/15 px-0.5 checked:justify-end checked:bg-waygu-control dark:bg-white/15",
 		ThumbClass: "size-[18px] rounded-full bg-white shadow-md"}
 }
 

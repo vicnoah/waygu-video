@@ -154,6 +154,7 @@ var Parameters = map[string][]string{
 	"ParentalMinutes":                 {"minutes"},
 	"ParentalHours":                   {"hours"},
 	"ParentalUnratedResult":           {"index"},
+	"AppearanceMoveModule":            {"name"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -273,6 +274,7 @@ type Translation struct {
 	ParentalMinutes                 func(minutes string) string
 	ParentalHours                   func(hours string) string
 	ParentalUnratedResult           func(index string) string
+	AppearanceMoveModule            func(name string) string
 }
 
 var supplied = map[string]Translation{}
@@ -932,6 +934,43 @@ const (
 	textParentalLimitReached
 	textParentalExtend
 	textParentalUsageUnavailable
+	textAppearanceTheme
+	textAppearanceMore
+	textAppearanceNight
+	textAppearanceNightHint
+	textAppearanceOLED
+	textAppearanceOLEDHint
+	textAppearanceAccent
+	textAppearanceViolet
+	textAppearanceBlue
+	textAppearanceGreen
+	textAppearanceAmber
+	textAppearanceRose
+	textAppearanceGradient
+	textAppearanceAppIcons
+	textAppearanceIconDefault
+	textAppearanceIconMidnight
+	textAppearanceIconWhite
+	textAppearanceIconSunset
+	textAppearanceAlternateIconUnavailable
+	textAppearanceHomeModules
+	textAppearanceReorderHint
+	textAppearanceFavorites
+	textAppearanceGroupSources
+	textAppearanceRandom
+	textAppearanceLibraryDisplay
+	textAppearancePosterStyle
+	textAppearancePortrait
+	textAppearanceLandscape
+	textAppearanceRatingSource
+	textAppearanceServerRating
+	textAppearanceWatchedMarks
+	textAppearanceQualityMarks
+	textAppearanceHideFinished
+	textAppearancePosterAmbient
+	textNSLocationWhenInUseUsageDescription
+	textNSLocationUsageDescription
+	textAppearanceLanguage
 	numTexts
 )
 
@@ -1591,6 +1630,43 @@ var keyOfText = [numTexts]string{
 	"parentalLimitReached",
 	"parentalExtend",
 	"parentalUsageUnavailable",
+	"appearanceTheme",
+	"appearanceMore",
+	"appearanceNight",
+	"appearanceNightHint",
+	"appearanceOLED",
+	"appearanceOLEDHint",
+	"appearanceAccent",
+	"appearanceViolet",
+	"appearanceBlue",
+	"appearanceGreen",
+	"appearanceAmber",
+	"appearanceRose",
+	"appearanceGradient",
+	"appearanceAppIcons",
+	"appearanceIconDefault",
+	"appearanceIconMidnight",
+	"appearanceIconWhite",
+	"appearanceIconSunset",
+	"appearanceAlternateIconUnavailable",
+	"appearanceHomeModules",
+	"appearanceReorderHint",
+	"appearanceFavorites",
+	"appearanceGroupSources",
+	"appearanceRandom",
+	"appearanceLibraryDisplay",
+	"appearancePosterStyle",
+	"appearancePortrait",
+	"appearanceLandscape",
+	"appearanceRatingSource",
+	"appearanceServerRating",
+	"appearanceWatchedMarks",
+	"appearanceQualityMarks",
+	"appearanceHideFinished",
+	"appearancePosterAmbient",
+	"NSLocationWhenInUseUsageDescription",
+	"NSLocationUsageDescription",
+	"appearanceLanguage",
 }
 
 // textsEn are the messages without arguments in en.
@@ -2247,7 +2323,44 @@ var textsEn = i18n.NewTexts(""+
 	"Playback is paused during restricted viewing hours."+
 	"Today's viewing time has been used."+
 	"Add 30 minutes"+
-	"Playback is paused because viewing usage could not be saved.",
+	"Playback is paused because viewing usage could not be saved."+
+	"Theme"+
+	"More appearance settings"+
+	"Switch to dark at night"+
+	"When using the light theme, switch after sunset."+
+	"Pure black background (OLED)"+
+	"Use a black background in dark mode to save power."+
+	"Accent color"+
+	"Violet"+
+	"Blue"+
+	"Green"+
+	"Amber"+
+	"Rose"+
+	"Gradient"+
+	"App icon"+
+	"Default"+
+	"Midnight"+
+	"White"+
+	"Sunset"+
+	"Launcher icon previews"+
+	"Home modules"+
+	"Drag the handles to reorder Home modules."+
+	"My favorites"+
+	"Group by media source"+
+	"Random recommendations"+
+	"Library display"+
+	"Poster style"+
+	"Portrait posters"+
+	"Landscape stills"+
+	"Rating source"+
+	"Media server"+
+	"Show watched marks"+
+	"Show quality badges"+
+	"Hide finished episodes"+
+	"Dynamic poster background"+
+	"Use approximate location to switch to dark appearance at sunset."+
+	"Use approximate location to switch to dark appearance at sunset."+
+	"Language",
 	[]uint16{
 		11,
 		47,
@@ -2902,6 +3015,43 @@ var textsEn = i18n.NewTexts(""+
 		35,
 		14,
 		60,
+		5,
+		24,
+		23,
+		48,
+		28,
+		50,
+		12,
+		6,
+		4,
+		5,
+		5,
+		4,
+		8,
+		8,
+		7,
+		8,
+		5,
+		6,
+		22,
+		12,
+		41,
+		12,
+		21,
+		22,
+		15,
+		12,
+		16,
+		16,
+		13,
+		12,
+		18,
+		19,
+		22,
+		25,
+		64,
+		64,
+		8,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -3558,7 +3708,44 @@ var textsZhHans = i18n.NewTexts(""+
 	"当前处于禁止观看时段。"+
 	"今天的观看时长已用完。"+
 	"延长 30 分钟"+
-	"观看时长记录保存失败，播放已暂停。",
+	"观看时长记录保存失败，播放已暂停。"+
+	"主题"+
+	"更多外观设置"+
+	"夜间自动切换深色"+
+	"跟随系统关闭时，日落后自动使用深色主题"+
+	"纯黑背景（OLED）"+
+	"深色模式下使用纯黑背景以节省电量"+
+	"强调色"+
+	"紫色"+
+	"蓝色"+
+	"绿色"+
+	"琥珀色"+
+	"玫瑰色"+
+	"渐变"+
+	"App 图标"+
+	"默认"+
+	"午夜"+
+	"纯白"+
+	"落日"+
+	"启动器图标预览"+
+	"首页模块"+
+	"拖动右侧把手调整首页模块顺序。"+
+	"我的收藏"+
+	"按媒体源分组"+
+	"随机推荐"+
+	"媒体库显示"+
+	"海报样式"+
+	"竖版海报"+
+	"横版剧照"+
+	"评分来源"+
+	"媒体服务器"+
+	"显示已观看标记"+
+	"显示画质角标"+
+	"隐藏已看完的剧集"+
+	"海报动态背景"+
+	"使用大致位置，在日落后自动切换深色外观。"+
+	"使用大致位置，在日落后自动切换深色外观。"+
+	"语言",
 	[]uint16{
 		12,
 		45,
@@ -4213,6 +4400,43 @@ var textsZhHans = i18n.NewTexts(""+
 		33,
 		16,
 		51,
+		6,
+		18,
+		24,
+		57,
+		22,
+		48,
+		9,
+		6,
+		6,
+		6,
+		9,
+		9,
+		6,
+		10,
+		6,
+		6,
+		6,
+		6,
+		21,
+		12,
+		45,
+		12,
+		18,
+		12,
+		15,
+		12,
+		12,
+		12,
+		12,
+		15,
+		21,
+		18,
+		24,
+		18,
+		60,
+		60,
+		6,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -4601,6 +4825,9 @@ func Supply(lang string, t Translation) {
 	}
 	if t.ParentalUnratedResult != nil {
 		s.ParentalUnratedResult = t.ParentalUnratedResult
+	}
+	if t.AppearanceMoveModule != nil {
+		s.AppearanceMoveModule = t.AppearanceMoveModule
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -11975,3 +12202,298 @@ func (msgs Messages) ParentalUnratedResult(index string) string {
 		}
 	}
 }
+
+// AppearanceTheme says "Theme"
+// in the language the app shows under cx.
+func AppearanceTheme(cx *core.Scope) string { return For(cx).AppearanceTheme() }
+
+// AppearanceTheme is the package's AppearanceTheme in the language of msgs.
+func (msgs Messages) AppearanceTheme() string { return msgs.text(textAppearanceTheme) }
+
+// AppearanceMore says "More appearance settings"
+// in the language the app shows under cx.
+func AppearanceMore(cx *core.Scope) string { return For(cx).AppearanceMore() }
+
+// AppearanceMore is the package's AppearanceMore in the language of msgs.
+func (msgs Messages) AppearanceMore() string { return msgs.text(textAppearanceMore) }
+
+// AppearanceNight says "Switch to dark at night"
+// in the language the app shows under cx.
+func AppearanceNight(cx *core.Scope) string { return For(cx).AppearanceNight() }
+
+// AppearanceNight is the package's AppearanceNight in the language of msgs.
+func (msgs Messages) AppearanceNight() string { return msgs.text(textAppearanceNight) }
+
+// AppearanceNightHint says "When using the light theme, switch after sunset."
+// in the language the app shows under cx.
+func AppearanceNightHint(cx *core.Scope) string { return For(cx).AppearanceNightHint() }
+
+// AppearanceNightHint is the package's AppearanceNightHint in the language of msgs.
+func (msgs Messages) AppearanceNightHint() string { return msgs.text(textAppearanceNightHint) }
+
+// AppearanceOLED says "Pure black background (OLED)"
+// in the language the app shows under cx.
+func AppearanceOLED(cx *core.Scope) string { return For(cx).AppearanceOLED() }
+
+// AppearanceOLED is the package's AppearanceOLED in the language of msgs.
+func (msgs Messages) AppearanceOLED() string { return msgs.text(textAppearanceOLED) }
+
+// AppearanceOLEDHint says "Use a black background in dark mode to save power."
+// in the language the app shows under cx.
+func AppearanceOLEDHint(cx *core.Scope) string { return For(cx).AppearanceOLEDHint() }
+
+// AppearanceOLEDHint is the package's AppearanceOLEDHint in the language of msgs.
+func (msgs Messages) AppearanceOLEDHint() string { return msgs.text(textAppearanceOLEDHint) }
+
+// AppearanceAccent says "Accent color"
+// in the language the app shows under cx.
+func AppearanceAccent(cx *core.Scope) string { return For(cx).AppearanceAccent() }
+
+// AppearanceAccent is the package's AppearanceAccent in the language of msgs.
+func (msgs Messages) AppearanceAccent() string { return msgs.text(textAppearanceAccent) }
+
+// AppearanceViolet says "Violet"
+// in the language the app shows under cx.
+func AppearanceViolet(cx *core.Scope) string { return For(cx).AppearanceViolet() }
+
+// AppearanceViolet is the package's AppearanceViolet in the language of msgs.
+func (msgs Messages) AppearanceViolet() string { return msgs.text(textAppearanceViolet) }
+
+// AppearanceBlue says "Blue"
+// in the language the app shows under cx.
+func AppearanceBlue(cx *core.Scope) string { return For(cx).AppearanceBlue() }
+
+// AppearanceBlue is the package's AppearanceBlue in the language of msgs.
+func (msgs Messages) AppearanceBlue() string { return msgs.text(textAppearanceBlue) }
+
+// AppearanceGreen says "Green"
+// in the language the app shows under cx.
+func AppearanceGreen(cx *core.Scope) string { return For(cx).AppearanceGreen() }
+
+// AppearanceGreen is the package's AppearanceGreen in the language of msgs.
+func (msgs Messages) AppearanceGreen() string { return msgs.text(textAppearanceGreen) }
+
+// AppearanceAmber says "Amber"
+// in the language the app shows under cx.
+func AppearanceAmber(cx *core.Scope) string { return For(cx).AppearanceAmber() }
+
+// AppearanceAmber is the package's AppearanceAmber in the language of msgs.
+func (msgs Messages) AppearanceAmber() string { return msgs.text(textAppearanceAmber) }
+
+// AppearanceRose says "Rose"
+// in the language the app shows under cx.
+func AppearanceRose(cx *core.Scope) string { return For(cx).AppearanceRose() }
+
+// AppearanceRose is the package's AppearanceRose in the language of msgs.
+func (msgs Messages) AppearanceRose() string { return msgs.text(textAppearanceRose) }
+
+// AppearanceGradient says "Gradient"
+// in the language the app shows under cx.
+func AppearanceGradient(cx *core.Scope) string { return For(cx).AppearanceGradient() }
+
+// AppearanceGradient is the package's AppearanceGradient in the language of msgs.
+func (msgs Messages) AppearanceGradient() string { return msgs.text(textAppearanceGradient) }
+
+// AppearanceAppIcons says "App icon"
+// in the language the app shows under cx.
+func AppearanceAppIcons(cx *core.Scope) string { return For(cx).AppearanceAppIcons() }
+
+// AppearanceAppIcons is the package's AppearanceAppIcons in the language of msgs.
+func (msgs Messages) AppearanceAppIcons() string { return msgs.text(textAppearanceAppIcons) }
+
+// AppearanceIconDefault says "Default"
+// in the language the app shows under cx.
+func AppearanceIconDefault(cx *core.Scope) string { return For(cx).AppearanceIconDefault() }
+
+// AppearanceIconDefault is the package's AppearanceIconDefault in the language of msgs.
+func (msgs Messages) AppearanceIconDefault() string { return msgs.text(textAppearanceIconDefault) }
+
+// AppearanceIconMidnight says "Midnight"
+// in the language the app shows under cx.
+func AppearanceIconMidnight(cx *core.Scope) string { return For(cx).AppearanceIconMidnight() }
+
+// AppearanceIconMidnight is the package's AppearanceIconMidnight in the language of msgs.
+func (msgs Messages) AppearanceIconMidnight() string { return msgs.text(textAppearanceIconMidnight) }
+
+// AppearanceIconWhite says "White"
+// in the language the app shows under cx.
+func AppearanceIconWhite(cx *core.Scope) string { return For(cx).AppearanceIconWhite() }
+
+// AppearanceIconWhite is the package's AppearanceIconWhite in the language of msgs.
+func (msgs Messages) AppearanceIconWhite() string { return msgs.text(textAppearanceIconWhite) }
+
+// AppearanceIconSunset says "Sunset"
+// in the language the app shows under cx.
+func AppearanceIconSunset(cx *core.Scope) string { return For(cx).AppearanceIconSunset() }
+
+// AppearanceIconSunset is the package's AppearanceIconSunset in the language of msgs.
+func (msgs Messages) AppearanceIconSunset() string { return msgs.text(textAppearanceIconSunset) }
+
+// AppearanceAlternateIconUnavailable says "Launcher icon previews"
+// in the language the app shows under cx.
+func AppearanceAlternateIconUnavailable(cx *core.Scope) string {
+	return For(cx).AppearanceAlternateIconUnavailable()
+}
+
+// AppearanceAlternateIconUnavailable is the package's AppearanceAlternateIconUnavailable in the language of msgs.
+func (msgs Messages) AppearanceAlternateIconUnavailable() string {
+	return msgs.text(textAppearanceAlternateIconUnavailable)
+}
+
+// AppearanceHomeModules says "Home modules"
+// in the language the app shows under cx.
+func AppearanceHomeModules(cx *core.Scope) string { return For(cx).AppearanceHomeModules() }
+
+// AppearanceHomeModules is the package's AppearanceHomeModules in the language of msgs.
+func (msgs Messages) AppearanceHomeModules() string { return msgs.text(textAppearanceHomeModules) }
+
+// AppearanceReorderHint says "Drag the handles to reorder Home modules."
+// in the language the app shows under cx.
+func AppearanceReorderHint(cx *core.Scope) string { return For(cx).AppearanceReorderHint() }
+
+// AppearanceReorderHint is the package's AppearanceReorderHint in the language of msgs.
+func (msgs Messages) AppearanceReorderHint() string { return msgs.text(textAppearanceReorderHint) }
+
+// AppearanceMoveModule says "Move {name}"
+// in the language the app shows under cx.
+func AppearanceMoveModule(cx *core.Scope, name string) string {
+	return For(cx).AppearanceMoveModule(name)
+}
+
+// AppearanceMoveModule is the package's AppearanceMoveModule in the language of msgs.
+func (msgs Messages) AppearanceMoveModule(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.AppearanceMoveModule(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].AppearanceMoveModule; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Move " + msgs.arg(name)
+		case "zh-Hans":
+			return "移动" + name
+		}
+	}
+}
+
+// AppearanceFavorites says "My favorites"
+// in the language the app shows under cx.
+func AppearanceFavorites(cx *core.Scope) string { return For(cx).AppearanceFavorites() }
+
+// AppearanceFavorites is the package's AppearanceFavorites in the language of msgs.
+func (msgs Messages) AppearanceFavorites() string { return msgs.text(textAppearanceFavorites) }
+
+// AppearanceGroupSources says "Group by media source"
+// in the language the app shows under cx.
+func AppearanceGroupSources(cx *core.Scope) string { return For(cx).AppearanceGroupSources() }
+
+// AppearanceGroupSources is the package's AppearanceGroupSources in the language of msgs.
+func (msgs Messages) AppearanceGroupSources() string { return msgs.text(textAppearanceGroupSources) }
+
+// AppearanceRandom says "Random recommendations"
+// in the language the app shows under cx.
+func AppearanceRandom(cx *core.Scope) string { return For(cx).AppearanceRandom() }
+
+// AppearanceRandom is the package's AppearanceRandom in the language of msgs.
+func (msgs Messages) AppearanceRandom() string { return msgs.text(textAppearanceRandom) }
+
+// AppearanceLibraryDisplay says "Library display"
+// in the language the app shows under cx.
+func AppearanceLibraryDisplay(cx *core.Scope) string { return For(cx).AppearanceLibraryDisplay() }
+
+// AppearanceLibraryDisplay is the package's AppearanceLibraryDisplay in the language of msgs.
+func (msgs Messages) AppearanceLibraryDisplay() string {
+	return msgs.text(textAppearanceLibraryDisplay)
+}
+
+// AppearancePosterStyle says "Poster style"
+// in the language the app shows under cx.
+func AppearancePosterStyle(cx *core.Scope) string { return For(cx).AppearancePosterStyle() }
+
+// AppearancePosterStyle is the package's AppearancePosterStyle in the language of msgs.
+func (msgs Messages) AppearancePosterStyle() string { return msgs.text(textAppearancePosterStyle) }
+
+// AppearancePortrait says "Portrait posters"
+// in the language the app shows under cx.
+func AppearancePortrait(cx *core.Scope) string { return For(cx).AppearancePortrait() }
+
+// AppearancePortrait is the package's AppearancePortrait in the language of msgs.
+func (msgs Messages) AppearancePortrait() string { return msgs.text(textAppearancePortrait) }
+
+// AppearanceLandscape says "Landscape stills"
+// in the language the app shows under cx.
+func AppearanceLandscape(cx *core.Scope) string { return For(cx).AppearanceLandscape() }
+
+// AppearanceLandscape is the package's AppearanceLandscape in the language of msgs.
+func (msgs Messages) AppearanceLandscape() string { return msgs.text(textAppearanceLandscape) }
+
+// AppearanceRatingSource says "Rating source"
+// in the language the app shows under cx.
+func AppearanceRatingSource(cx *core.Scope) string { return For(cx).AppearanceRatingSource() }
+
+// AppearanceRatingSource is the package's AppearanceRatingSource in the language of msgs.
+func (msgs Messages) AppearanceRatingSource() string { return msgs.text(textAppearanceRatingSource) }
+
+// AppearanceServerRating says "Media server"
+// in the language the app shows under cx.
+func AppearanceServerRating(cx *core.Scope) string { return For(cx).AppearanceServerRating() }
+
+// AppearanceServerRating is the package's AppearanceServerRating in the language of msgs.
+func (msgs Messages) AppearanceServerRating() string { return msgs.text(textAppearanceServerRating) }
+
+// AppearanceWatchedMarks says "Show watched marks"
+// in the language the app shows under cx.
+func AppearanceWatchedMarks(cx *core.Scope) string { return For(cx).AppearanceWatchedMarks() }
+
+// AppearanceWatchedMarks is the package's AppearanceWatchedMarks in the language of msgs.
+func (msgs Messages) AppearanceWatchedMarks() string { return msgs.text(textAppearanceWatchedMarks) }
+
+// AppearanceQualityMarks says "Show quality badges"
+// in the language the app shows under cx.
+func AppearanceQualityMarks(cx *core.Scope) string { return For(cx).AppearanceQualityMarks() }
+
+// AppearanceQualityMarks is the package's AppearanceQualityMarks in the language of msgs.
+func (msgs Messages) AppearanceQualityMarks() string { return msgs.text(textAppearanceQualityMarks) }
+
+// AppearanceHideFinished says "Hide finished episodes"
+// in the language the app shows under cx.
+func AppearanceHideFinished(cx *core.Scope) string { return For(cx).AppearanceHideFinished() }
+
+// AppearanceHideFinished is the package's AppearanceHideFinished in the language of msgs.
+func (msgs Messages) AppearanceHideFinished() string { return msgs.text(textAppearanceHideFinished) }
+
+// AppearancePosterAmbient says "Dynamic poster background"
+// in the language the app shows under cx.
+func AppearancePosterAmbient(cx *core.Scope) string { return For(cx).AppearancePosterAmbient() }
+
+// AppearancePosterAmbient is the package's AppearancePosterAmbient in the language of msgs.
+func (msgs Messages) AppearancePosterAmbient() string { return msgs.text(textAppearancePosterAmbient) }
+
+// NSLocationWhenInUseUsageDescription says "Use approximate location to switch to dark appearance at sunset."
+// in the language the app shows under cx.
+func NSLocationWhenInUseUsageDescription(cx *core.Scope) string {
+	return For(cx).NSLocationWhenInUseUsageDescription()
+}
+
+// NSLocationWhenInUseUsageDescription is the package's NSLocationWhenInUseUsageDescription in the language of msgs.
+func (msgs Messages) NSLocationWhenInUseUsageDescription() string {
+	return msgs.text(textNSLocationWhenInUseUsageDescription)
+}
+
+// NSLocationUsageDescription says "Use approximate location to switch to dark appearance at sunset."
+// in the language the app shows under cx.
+func NSLocationUsageDescription(cx *core.Scope) string { return For(cx).NSLocationUsageDescription() }
+
+// NSLocationUsageDescription is the package's NSLocationUsageDescription in the language of msgs.
+func (msgs Messages) NSLocationUsageDescription() string {
+	return msgs.text(textNSLocationUsageDescription)
+}
+
+// AppearanceLanguage says "Language"
+// in the language the app shows under cx.
+func AppearanceLanguage(cx *core.Scope) string { return For(cx).AppearanceLanguage() }
+
+// AppearanceLanguage is the package's AppearanceLanguage in the language of msgs.
+func (msgs Messages) AppearanceLanguage() string { return msgs.text(textAppearanceLanguage) }

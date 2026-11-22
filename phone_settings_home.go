@@ -77,7 +77,8 @@ func (a *application) phoneSettingsHome(cx *core.Scope) core.Node {
 			}, routeTo(screenDanmakuSettings)),
 		),
 		setupGroup(locales.SettingsInterfaceLibrary(cx), "",
-			(phoneSetting{locales.SettingsAppearance(cx), "", "bg-orange-500", lucide.Palette}).row(phoneSettingValue(locales.SettingsFollowSystem(cx))),
+			(phoneSetting{locales.SettingsAppearance(cx), "", "bg-orange-500", lucide.Palette}).linkValue(cx, "open-appearance-settings",
+				func() string { return appearanceModeLabel(cx, a.appearance.Get()) }, routeTo(screenAppearanceSettings)),
 			(phoneSetting{locales.SettingsLibraryMetadata(cx), "", "bg-indigo-500", lucide.Database}).unavailable(cx),
 		),
 		setupGroup(locales.SettingsAccountsData(cx), "",
@@ -105,7 +106,7 @@ func (a *application) phoneSettingsHome(cx *core.Scope) core.Node {
 		setupGroup(locales.SettingsOther(cx), footer,
 			aboutSetting(cx, version)),
 	}}
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Children: []core.Node{
+	return core.View{Class: "relative flex-1 bg-waygu-page", Children: []core.Node{
 		homeAmbient(false, false), homeAmbient(true, false),
 		core.Scroll{Class: "flex-1", TestID: "phone-settings-home", Children: []core.Node{body}},
 	}}

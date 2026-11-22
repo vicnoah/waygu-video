@@ -66,8 +66,7 @@ func (a *application) showDesktopSettingsWindow(cx *core.Scope, page desktopSett
 		Title: locales.Settings(cx), Key: "waygu-settings", Width: 1100, Height: 760,
 		Constraints: core.WindowConstraints{MinWidth: 820, MinHeight: 560},
 	}, func(cx *core.Scope) core.Node {
-		cx.SetTheme(wayguTheme())
-		observeAppearance(cx, a.appearance.Get)
+		a.mountAppearance(cx)
 		cx.SetTitleBar(core.TitleBarHidden, 48)
 		return a.desktopSettings(cx, cx.CurrentWindow().Close)
 	})
@@ -121,7 +120,7 @@ func (a *application) desktopSettings(cx *core.Scope, close func()) core.Node {
 			if matches(link) {
 				rows = append(rows, base.Button{Label: link.label, TestID: "desktop-settings-tab-" + string(link.page),
 					Selected: func() bool { return a.desktopSettingsTab.Get() == link.page },
-					Class:    "group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12",
+					Class:    "group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-waygu-control/12",
 					Style:    core.Style{FocusVisible: ui.FocusRing(cx, -2)}, OnPress: func(core.PressEvent) { pick(link.page) },
 					Children: []core.Node{
 						desktopSettingsBadge(link, "size-6 rounded-md", "size-3.5"),
@@ -163,7 +162,7 @@ func (a *application) desktopSettings(cx *core.Scope, close func()) core.Node {
 			Children: []core.Node{core.View{Class: padding, Children: []core.Node{content}}}}
 	})
 	cx.OnKeyWith("escape", core.KeyOptions{When: core.KeyNotEditing}, close)
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", TestID: "desktop-settings", Children: []core.Node{
+	return core.View{Class: "relative flex-1 bg-waygu-page", TestID: "desktop-settings", Children: []core.Node{
 		homeAmbient(false, true), homeAmbient(true, true),
 		desktopSettingsTitleBar(cx, close, func() { pick(desktopSettingsOverview) }),
 		core.View{Class: "min-h-0 flex-1 flex-row", Children: []core.Node{

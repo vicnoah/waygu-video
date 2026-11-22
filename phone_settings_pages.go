@@ -20,7 +20,7 @@ func phoneSettingsFrame(cx *core.Scope, title string, back func(), scrollID stri
 
 func phoneSettingsFrameAction(cx *core.Scope, title string, back func(), scrollID string, body, action core.Node, ref *core.Ref) core.Node {
 	label := locales.Settings(cx)
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Style: core.Style{
+	return core.View{Class: "relative flex-1 bg-waygu-page", Style: core.Style{
 		FlexShrink: 1, PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea, Bottom: core.EnvKeyboard},
 	}, Children: []core.Node{
 		homeAmbient(false, false), homeAmbient(true, false),
@@ -65,7 +65,7 @@ func (s phoneSetting) toggle(cx *core.Scope, id string, checked func() bool, cha
 	track := core.View{Class: "h-[31px] w-[51px] shrink-0 flex-row items-center rounded-full px-0.5",
 		ClassFunc: func() string {
 			if checked() {
-				return "justify-end bg-violet-500"
+				return "justify-end bg-waygu-control"
 			}
 			return "justify-start bg-zinc-900/15 dark:bg-zinc-50/15"
 		}, Children: []core.Node{

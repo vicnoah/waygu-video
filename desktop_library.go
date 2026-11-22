@@ -97,7 +97,13 @@ func (a *application) desktopLibrary(cx *core.Scope, category func() libraryCate
 	preview, full := a.libraryPages(cx, request.Get)
 	page := currentLibraryPage(cx, request.Get, preview, full)
 	items := core.NewMemoFunc(cx, func() []catalogItem {
-		return addLibraryDownloads(page.Get().items, a.libraryDownloads(*request.Get()))
+		items := addLibraryDownloads(page.Get().items, a.libraryDownloads(*request.Get()))
+		if a.appearancePrefs.Get().HideFinished {
+			items = slices.DeleteFunc(slices.Clone(items), func(entry catalogItem) bool {
+				return (entry.item.Kind == media.Series || entry.item.Kind == media.Episode) && catalogWatched(entry)
+			})
+		}
+		return items
 	}, nil)
 	entries := core.NewMemoFunc(cx, func() []desktopLibraryRow { return desktopLibraryEntries(items.Get()) }, nil)
 	filters := core.NewMemo(cx, func() desktopLibraryFilters { return current.Get().filters })
@@ -137,7 +143,7 @@ func (a *application) desktopLibrary(cx *core.Scope, category func() libraryCate
 	}
 	sort := func(order librarySort) { change(func(state *desktopLibraryState) { state.sort = order }) }
 	mode := func(mode desktopLibraryMode) { change(func(state *desktopLibraryState) { state.mode = mode }) }
-	return core.View{Class: "relative flex-1 min-h-0 gap-5 px-8 pt-6 bg-[#f4f4f7] dark:bg-[#0f1017]", TestID: "desktop-library",
+	return core.View{Class: "relative flex-1 min-h-0 gap-5 px-8 pt-6 bg-waygu-page", TestID: "desktop-library",
 		Children: []core.Node{
 			homeAmbient(false, true), homeAmbient(true, true),
 			core.View{Class: "min-h-[62px] flex-row flex-wrap items-center gap-4", TestID: "desktop-library-header", Children: []core.Node{

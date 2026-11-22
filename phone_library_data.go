@@ -21,7 +21,7 @@ type phoneLibraryState struct {
 	genre            string
 	year, resolution int
 	sort             librarySort
-	unwatched, list  bool
+	unwatched        bool
 }
 
 type librarySort uint8

@@ -44,7 +44,7 @@ func (a *application) tabletShell(cx *core.Scope) core.Node {
 			collapsed.Set(false)
 		}
 	}
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Children: []core.Node{
+	return core.View{Class: "relative flex-1 bg-waygu-page", Children: []core.Node{
 		homeAmbient(false, true), homeAmbient(true, true),
 		core.View{Class: "flex-1 flex-row", Style: core.Style{
 			PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea, Left: core.EnvSafeArea, Right: core.EnvSafeArea, Bottom: core.EnvSafeArea},
@@ -92,7 +92,7 @@ func (a *application) tabletShell(cx *core.Scope) core.Node {
 				OnRequestClose: func(string) { closeDrawer() }, Style: core.Style{
 					PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea, Left: core.EnvSafeArea, Bottom: core.EnvSafeArea},
 				}, Children: []core.Node{
-					core.View{Class: "w-56 shrink-0 flex-row bg-[#f4f4f7] dark:bg-[#0f1017]", PanActivation: homeHorizontalPan,
+					core.View{Class: "w-56 shrink-0 flex-row bg-waygu-page", PanActivation: homeHorizontalPan,
 						OnPan: func(event core.PanEvent) {
 							if event.Phase == core.GestureEnded && event.Translation.X <= -44 {
 								closeDrawer()
@@ -246,7 +246,7 @@ func tabletSidebarLink(cx *core.Scope, id, label string, icon func() *core.SVG, 
 	}
 }
 
-const tabletSidebarRow = "h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+const tabletSidebarRow = "h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-waygu-control/12"
 
 func (a *application) tabletSidebarSources(cx *core.Scope, afterSelect func()) core.Node {
 	return core.Dynamic(func(cx *core.Scope) core.Node {

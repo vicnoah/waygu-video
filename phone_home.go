@@ -1,6 +1,8 @@
 package main
 
 import (
+	"cmp"
+	"math/rand/v2"
 	"slices"
 	"strconv"
 	"strings"
@@ -23,6 +25,14 @@ type homeSourceStatus struct {
 
 func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult], limit *core.Signal[int], tablet bool) core.Node {
 	expansion := core.NewSignal(cx, "")
+	backdrop := core.NewSignal(cx, homeBackdrop{})
+	favoritePage := a.homeFavorites(cx)
+	randomSeed := rand.Uint64()
+	glow := homePosterGlow(cx, func() (homeBackdrop, bool) {
+		current := backdrop.Get()
+		settings := a.appearancePrefs.Get()
+		return current, settings.PosterAmbient && !(settings.OLED && cx.Dark()) && current.image != "" && a.tab.Get() == 0
+	})
 	selectSource := func(id string) {
 		a.sourceFilter.Set(id)
 		limit.Set(36)
@@ -74,38 +84,84 @@ func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult]
 				recent := slices.Clone(result.items)
 				slices.SortStableFunc(recent, func(a, b catalogItem) int { return b.item.AddedAt.Compare(a.item.AddedAt) })
 				if len(recent) > 0 {
-					sections = append(sections, a.homeHeroCarousel(cx, recommendHomeTitles(recent, 4), tablet))
+					sections = append(sections, core.Func(func(cx *core.Scope) core.Node {
+						return a.homeHeroCarousel(cx, recommendHomeTitles(recent, 4), tablet, func(entry catalogItem) {
+							backdrop.Set(homeBackdrop{entry.source.Address, cmp.Or(entry.item.Backdrop, entry.item.Poster)})
+						})
+					}))
 				}
+				settings := a.appearancePrefs.Get()
+				shelves := make(map[string]core.Node)
 				if len(resume) > 0 {
 					cards := make([]core.Node, 0, len(resume))
 					for _, entry := range resume {
 						cards = append(cards, a.homeResumeCard(cx, entry))
 					}
-					sections = append(sections, homeShelf("resume", locales.ContinueWatching(cx), cards, expansion, nil, tablet))
+					shelves[homeContinue] = homeShelf("resume", locales.ContinueWatching(cx), cards, expansion, nil, tablet)
 				}
-				if len(recent) > 0 {
-					var movies, series []core.Node
-					for _, entry := range recent {
-						card := a.homePosterCard(cx, entry)
-						if !tablet && entry.item.Kind == media.Series {
-							series = append(series, card)
-						} else {
-							movies = append(movies, card)
+				makeShelf := func(id, title, prefix string, items []catalogItem, more func()) core.Node {
+					if len(items) == 0 {
+						return nil
+					}
+					cards := make([]core.Node, 0, len(items))
+					for _, entry := range items {
+						cards = append(cards, a.homePoster(cx, entry, prefix))
+					}
+					return homeShelf(id, title, cards, expansion, more, tablet)
+				}
+				var movies, series []catalogItem
+				for _, entry := range recent {
+					if entry.item.Kind == media.Series {
+						series = append(series, entry)
+					} else {
+						movies = append(movies, entry)
+					}
+				}
+				var more func()
+				if result.hasMore && limit.Get() < 200 {
+					more = func() { limit.Update(func(n int) int { return min(n+36, 200) }) }
+				}
+				// The tablet reference mixes recent films and series in one shelf.
+				if tablet && !settings.HomeOrdered && settings.enabled(homeRecent) && settings.enabled(homeSeries) && !settings.enabled(homeGrouped) {
+					movies, series = recent, nil
+				}
+				shelves[homeRecent] = makeShelf("recent", locales.Recent(cx), "title-", movies, more)
+				shelves[homeSeries] = makeShelf("series", locales.HomeSeriesUpdates(cx), "title-", series, more)
+				if settings.enabled(homeGrouped) {
+					perSource := result.resumeCatalog
+					if len(perSource) == 0 {
+						perSource = recent
+					}
+					var groups []core.Node
+					for _, source := range sources {
+						var entries []catalogItem
+						for _, entry := range perSource {
+							if entry.source.ID == source.ID {
+								entries = append(entries, entry)
+							}
+						}
+						if shelf := makeShelf("group-"+source.ID, source.Name, "group-title-", entries, nil); shelf != nil {
+							groups = append(groups, shelf)
 						}
 					}
-					var more func()
-					if result.hasMore && limit.Get() < 200 {
-						more = func() { limit.Update(func(n int) int { return min(n+36, 200) }) }
+					if len(groups) > 0 {
+						shelves[homeGrouped] = core.Group(groups)
 					}
-					if len(movies) > 0 {
-						sections = append(sections, homeShelf("recent", locales.Recent(cx), movies, expansion, more, tablet))
+				}
+				shelves[homeFavorite] = core.Dynamic(func(cx *core.Scope) core.Node {
+					favorite, ready := favoritePage.Get()
+					if !ready || favoritePage.Loading() || a.kidsBrowsing() {
+						return nil
 					}
-					if len(series) > 0 {
-						sections = append(sections, homeShelf("series", locales.HomeSeriesUpdates(cx), series, expansion, more, tablet))
-					}
-				} else if loading {
+					return makeShelf("favorites", locales.AppearanceFavorites(cx), "favorite-title-", a.parentalRules().catalog(favorite.items), nil)
+				})
+				if settings.enabled(homeRandom) {
+					shelves[homeRandom] = makeShelf("random", locales.AppearanceRandom(cx), "random-title-", homeSuggestions(recent, randomSeed), nil)
+				}
+				sections = append(sections, homeModuleOrder(settings, shelves)...)
+				if len(recent) == 0 && loading {
 					sections = append(sections, core.Text{Content: locales.Loading(cx), Class: inset + " text-sm " + setupMuted})
-				} else if len(resume) == 0 && result.failure == nil {
+				} else if len(recent) == 0 && len(resume) == 0 && result.failure == nil {
 					sections = append(sections, core.View{Class: margins, Children: []core.Node{notice(locales.EmptyLibrary(cx))}})
 				}
 				if !tablet {
@@ -116,10 +172,10 @@ func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult]
 		}},
 	}}
 	if tablet {
-		return scroll
+		return core.View{Class: "relative flex-1", Children: []core.Node{glow, scroll}}
 	}
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Children: []core.Node{
-		homeAmbient(false, false), homeAmbient(true, false), scroll,
+	return core.View{Class: "relative flex-1 bg-waygu-page", Children: []core.Node{
+		homeAmbient(false, false), homeAmbient(true, false), glow, scroll,
 	}}
 }
 
@@ -133,11 +189,22 @@ func homeAmbient(dark, tablet bool) core.Node {
 	if dark {
 		visibility, svg = "hidden dark:flex", welcomeAmbientDark
 	}
-	return core.SVGView{Class: "absolute inset-x-0 top-0 w-full " + size + " " + visibility, SVG: svg}
+	return core.Func(func(cx *core.Scope) core.Node {
+		return core.SVGView{Class: "absolute inset-x-0 top-0 w-full " + size + " " + visibility, SVG: svg,
+			StyleFunc: func() core.Style {
+				if dark {
+					palette := cx.Palette()
+					if background, known := palette.Color("waygu-page"); known && background == core.RGB(0x000000) {
+						return core.Style{Display: core.DisplayNone}
+					}
+				}
+				return core.Style{}
+			}}
+	})
 }
 
 func (a *application) phoneHomeHeader(cx *core.Scope, summary, picker core.Node) core.Node {
-	avatar := base.Button{Label: locales.Settings(cx), TestID: "home-profile", Class: "size-8 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-md shadow-violet-500/30",
+	avatar := base.Button{Label: locales.Settings(cx), TestID: "home-profile", Class: "size-8 items-center justify-center rounded-full bg-linear-to-br from-waygu-control to-waygu-control-end shadow-md shadow-waygu-control/30",
 		Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, OnPress: func(core.PressEvent) { a.tab.Set(3) },
 		Children: []core.Node{core.Dynamic(func(*core.Scope) core.Node {
 			for _, source := range a.browseSources() {

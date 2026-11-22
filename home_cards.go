@@ -32,8 +32,10 @@ func recommendHomeTitles(recent []catalogItem, limit int) []catalogItem {
 
 var homeHorizontalPan = core.PanActivation{ActiveOffsetX: 12, FailOffsetY: 12}
 
-func (a *application) homeHeroCarousel(cx *core.Scope, titles []catalogItem, tablet bool) core.Node {
+func (a *application) homeHeroCarousel(cx *core.Scope, titles []catalogItem, tablet bool, changed func(catalogItem)) core.Node {
 	index := core.NewSignal(cx, 0)
+	cx.Effect(func() { changed(titles[index.Get()]) })
+	cx.Cleanup(func() { changed(catalogItem{}) })
 	if !tablet {
 		cx.Effect(func() {
 			cursor := index.Get()
@@ -186,8 +188,13 @@ func homeIsFresh(cx *core.Scope, item media.Item) bool {
 }
 
 func (a *application) homePosterCard(cx *core.Scope, entry catalogItem) core.Node {
+	return a.homePoster(cx, entry, "title-")
+}
+
+func (a *application) homePoster(cx *core.Scope, entry catalogItem, prefix string) core.Node {
 	item := entry.item
 	desktop := appLayoutIdiom(cx) == core.IdiomDesktop
+	prefs := a.appearancePrefs.Get()
 	width, height := "w-28", "h-40"
 	if desktop {
 		width, height = "w-36", "h-52"
@@ -196,11 +203,11 @@ func (a *application) homePosterCard(cx *core.Scope, entry catalogItem) core.Nod
 		homeArtwork(item.Poster, "absolute inset-0 justify-center"),
 		a.downloadBadge(entry),
 	}}
-	if item.Watched {
-		cover.Children = append(cover.Children, core.View{Class: "absolute top-1.5 right-1.5 size-5 items-center justify-center rounded-full bg-violet-500 shadow-md",
+	if item.Watched && prefs.ShowWatched {
+		cover.Children = append(cover.Children, core.View{Class: "absolute top-1.5 right-1.5 size-5 items-center justify-center rounded-full bg-waygu-control shadow-md",
 			Children: []core.Node{core.Icon{SVG: lucide.Check(), Class: "size-3 text-white"}}})
 	}
-	if quality := tvQuality(entry); desktop && quality != "" {
+	if quality := tvQuality(entry); desktop && quality != "" && prefs.ShowQuality {
 		cover.Children = append(cover.Children, core.Text{Content: quality, Class: "absolute top-2 left-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-white"})
 	} else if homeIsFresh(cx, item) {
 		cover.Children = append(cover.Children, core.Text{Content: locales.HomeNewShort(cx), Class: "absolute top-1.5 left-1.5 rounded-md bg-violet-500 px-1.5 py-0.5 text-[9px] font-bold text-white"})
@@ -215,7 +222,7 @@ func (a *application) homePosterCard(cx *core.Scope, entry catalogItem) core.Nod
 	if item.Rating > 0 {
 		meta = append(meta, strconv.FormatFloat(item.Rating, 'f', 1, 64))
 	}
-	return base.Button{Label: item.Title, Hint: entry.source.Name, TestID: a.catalogEntryID("title-", entry),
+	return base.Button{Label: item.Title, Hint: entry.source.Name, TestID: a.catalogEntryID(prefix, entry),
 		Class: width + " shrink-0 gap-1.5 rounded-xl", Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
 		OnPress: func(core.PressEvent) { a.openCatalogEntry(entry) }, Children: []core.Node{
 			cover,
