@@ -60,6 +60,7 @@ type plexMedia struct {
 type plexPart struct {
 	ID       int
 	Key      string
+	File     string
 	Duration int64
 	Size     int64
 	Stream   []plexTrack
@@ -360,9 +361,11 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 		})) {
 			continue
 		}
+		original := p.mediaURL(part.Key, nil)
 		stream := Stream{ItemID: item.ID, SourceID: sourceID, SessionID: rand.Text(),
 			Position: millis(entry.ViewOffset), Duration: millis(max(entry.Duration, part.Duration)),
-			URL: p.mediaURL(part.Key, nil), Method: DirectPlay}
+			URL: original, Method: DirectPlay,
+			File: SourceFile{Name: videoFileName(part.File), Size: part.Size, URL: original}}
 		switchAudio := audio != nil || plexAlternativeAudio(part.Stream)
 		if switchAudio || !plexDirect(version, options) {
 			params := url.Values{"path": {plexItemRoute(item.ID)}, "mediaIndex": {strconv.Itoa(index)}, "partIndex": {"0"},

@@ -1,6 +1,6 @@
 # Delivery roadmap
 
-The Scenra files in `design/` define the product. The current app connects to Emby, Jellyfin, Plex and Flymoo, imports selected video libraries, lists and searches titles, shows movie and series details, and plays and reports progress. Jellyfin supports Quick Connect. Plex supports account authorization by browser or QR code and lets users choose a discovered server. The app has a native video path, an optional desktop libmpv path, synchronized local XML comments, and a dismissible next-episode countdown. Emby, Jellyfin and Plex support a configurable streaming bitrate limit.
+The Scenra files in `design/` define the product. The current app connects to Emby, Jellyfin, Plex and Flymoo, imports selected video libraries, lists and searches titles, shows movie and series details, and plays and reports progress. Jellyfin supports Quick Connect. Plex supports account authorization by browser or QR code and lets users choose a discovered server. The app has a native video path, an optional desktop libmpv path, synchronized local and DandanPlay comments, and a dismissible next-episode countdown. Emby, Jellyfin and Plex support a configurable streaming bitrate limit.
 
 ## Media sources
 
@@ -17,7 +17,7 @@ The Scenra files in `design/` define the product. The current app connects to Em
 - The player switches Emby, Jellyfin and Plex audio at the current position, supports local SRT and WebVTT files, text subtitles from Emby and Jellyfin, external SRT and WebVTT from Plex, subtitle delay and playback speed on capable backends.
 - Desktop direct play with libmpv switches embedded audio and subtitles in place, including Flymoo streams and embedded Plex subtitles. It supports subtitle delay alongside the independent danmaku overlay.
 - Verify codec-driven direct stream and transcode decisions. Add network-specific bitrate preferences, Flymoo track selection and embedded Plex subtitles on native backends, subtitle image format coverage, subtitle language preferences, online search, caption styles and audio controls. Verify next-episode playback across seasons on TV devices and add intro and credits markers.
-- Add DandanPlay matching, comment binding and cache, additional comment import formats, and the player settings from `design/`.
+- With DandanPlay developer credentials, the player matches original files by fingerprint, offers episode search, remembers bindings per media source, and reuses their numbering within a season. It caches downloaded comments for 24 hours on native platforms and combines them with local XML or JSON comments. Add ASS import, other online sources, comment sending and the display preferences from `design/`.
 - Implement offline downloads, casting, settings, parental controls and iCloud sync. Complete the phone, tablet, desktop and TV views from `design/`.
 
 ## Platform verification

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -54,7 +55,7 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 		}
 		return choices[0]
 	}, func(a, b catalogCopy) bool { return a.key() == b.key() })
-	picker := core.Dynamic(func(cx *core.Scope) core.Node {
+	sourceOptions := core.NewMemoFunc(cx, func() []ui.Option[copyKey] {
 		choices := copies.Get()
 		if len(choices) < 2 {
 			return nil
@@ -76,6 +77,15 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 				}
 			}
 			options = append(options, ui.Option[copyKey]{Label: label, Value: copy.key()})
+		}
+		return options
+	}, func(a, b []ui.Option[copyKey]) bool {
+		return slices.EqualFunc(a, b, func(a, b ui.Option[copyKey]) bool { return a.Label == b.Label && a.Value == b.Value })
+	})
+	picker := core.Dynamic(func(cx *core.Scope) core.Node {
+		options := sourceOptions.Get()
+		if len(options) == 0 {
+			return nil
 		}
 		label := locales.PlaybackSource(cx)
 		return core.View{Class: "flex-row flex-wrap items-center gap-3", Children: []core.Node{

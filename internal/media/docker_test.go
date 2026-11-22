@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"waygu-video/internal/danmaku"
 	"waygu-video/internal/playback"
 )
 
@@ -94,7 +95,11 @@ func TestDockerServers(t *testing.T) {
 				t.Fatalf("playback: method %s, %v", stream.Method, err)
 			}
 			verifyDockerMP4(t, ctx, stream)
-			verifyDockerHLS(t, ctx, client, movie)
+			digest, size, err := danmaku.Fingerprint(ctx, stream.File.URL, stream.File.Headers)
+			if err != nil || len(digest) != 32 || size <= 0 || stream.File.Name == "" {
+				t.Fatalf("fingerprint the original video: bytes=%d, %v", size, err)
+			}
+			verifyDockerHLS(t, ctx, client, movie, digest)
 			verifyDockerResume(t, ctx, client, movieLibrary, showLibrary)
 			verifyDockerTracks(t, ctx, client, movieLibrary, server.kind)
 			verifyDockerVersions(t, ctx, client, movieLibrary)
@@ -214,11 +219,14 @@ func verifyDockerTracks(t *testing.T, ctx context.Context, client Client, librar
 	}
 }
 
-func verifyDockerHLS(t *testing.T, ctx context.Context, client Client, movie Item) {
+func verifyDockerHLS(t *testing.T, ctx context.Context, client Client, movie Item, originalDigest string) {
 	t.Helper()
 	stream, err := client.Playback(ctx, movie, PlaybackOptions{MaxBitrate: 300_000})
 	if err != nil || stream.Method != Transcode {
 		t.Fatalf("300 kbps playback: method %s, %v", stream.Method, err)
+	}
+	if digest, _, err := danmaku.Fingerprint(ctx, stream.File.URL, stream.File.Headers); err != nil || digest != originalDigest {
+		t.Fatalf("transcoding did not retain access to the original video: %v", err)
 	}
 	address, stop, err := playback.Open(stream.URL, stream.Headers)
 	if err != nil {

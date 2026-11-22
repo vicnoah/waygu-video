@@ -1,19 +1,25 @@
 package main
 
 import (
+	"context"
+	"math"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/icons/lucide"
 	"github.com/nsgo-dev/nsgo/ui"
 	"waygu-video/internal/danmaku"
+	"waygu-video/internal/media"
 	"waygu-video/locales"
 )
 
 type danmakuControls struct {
 	buttons core.Node
 	overlay core.Node
+	dialog  core.Node
 }
 
 type videoSample struct {
@@ -21,17 +27,55 @@ type videoSample struct {
 	seen     time.Time
 }
 
-func playerDanmaku(cx *core.Scope, sample *core.Signal[videoSample], size *core.Signal[core.Size], paused, buffering *core.Signal[bool],
+func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.Stream,
+	sample *core.Signal[videoSample], size *core.Signal[core.Size], paused, buffering *core.Signal[bool],
 	rate func() float32, useCanvas func() bool, showOnMPV func(*danmaku.Track)) danmakuControls {
-	track := core.NewSignal[*danmaku.Track](cx, nil)
+	type input struct {
+		local, remote []danmaku.Comment
+		shift         float64
+	}
+	local := core.NewSignalFunc(cx, []danmaku.Comment(nil), nil)
+	remote := core.NewSignalFunc(cx, input{}, nil)
+	track := core.NewResource(cx, func() (input, bool) {
+		sources := remote.Get()
+		sources.local = local.Get()
+		return sources, true
+	}, func(_ context.Context, sources input, _ core.ResourceInfo) (*danmaku.Track, error) {
+		if len(sources.local)+len(sources.remote) == 0 {
+			return nil, nil
+		}
+		comments := make([]danmaku.Comment, 0, len(sources.local)+len(sources.remote))
+		comments = append(comments, sources.local...)
+		shift := time.Duration(0)
+		if !math.IsNaN(sources.shift) {
+			shift = time.Duration(max(-86400, min(86400, sources.shift)) * float64(time.Second))
+		}
+		for _, comment := range sources.remote {
+			if shift > 0 && comment.At > time.Duration(math.MaxInt64)-shift {
+				continue
+			}
+			comment.At += shift
+			if comment.At >= 0 {
+				comments = append(comments, comment)
+			}
+		}
+		scheduled := danmaku.Schedule(comments, danmaku.DefaultSettings())
+		return &scheduled, nil
+	})
 	open := core.NewSignal(cx, false)
 	invalid := core.NewSignal(cx, false)
 	busy := core.NewSignal(cx, false)
 	clock := core.NewSignal(cx, time.Duration(0))
 	viewContext := cx.Context()
+	sourceButton, sourceDialog := a.onlineDanmaku(cx, current, stream, func(comments []danmaku.Comment, shift float64) {
+		remote.Set(input{remote: comments, shift: shift})
+		if len(comments) > 0 {
+			open.Set(true)
+		}
+	})
 
 	choose := func() {
-		cx.PickFiles(core.PickFilesOptions{Types: []string{".xml"}, Title: locales.AddDanmaku(cx)}, func(files []core.File, err error) {
+		cx.PickFiles(core.PickFilesOptions{Types: []string{".xml", ".json"}, Title: locales.AddDanmaku(cx)}, func(files []core.File, err error) {
 			if err != nil {
 				invalid.Set(true)
 				return
@@ -46,13 +90,16 @@ func playerDanmaku(cx *core.Scope, sample *core.Signal[videoSample], size *core.
 				if file.Temporary {
 					defer os.Remove(file.Path)
 				}
-				var result *danmaku.Track
+				var result []danmaku.Comment
 				if reader, err := file.Open(); err == nil {
-					comments, err := danmaku.ReadXML(reader)
+					if strings.EqualFold(filepath.Ext(file.Name), ".json") {
+						result, err = danmaku.ReadJSON(reader)
+					} else {
+						result, err = danmaku.ReadXML(reader)
+					}
 					reader.Close()
-					if err == nil && len(comments) > 0 {
-						value := danmaku.Schedule(comments, danmaku.DefaultSettings())
-						result = &value
+					if err != nil {
+						result = nil
 					}
 				}
 				cx.Post(func() {
@@ -60,9 +107,9 @@ func playerDanmaku(cx *core.Scope, sample *core.Signal[videoSample], size *core.
 						return
 					}
 					busy.Set(false)
-					invalid.Set(result == nil)
-					if result != nil {
-						track.Set(result)
+					invalid.Set(len(result) == 0)
+					if len(result) > 0 {
+						local.Set(result)
 						open.Set(true)
 					}
 				})
@@ -74,7 +121,7 @@ func playerDanmaku(cx *core.Scope, sample *core.Signal[videoSample], size *core.
 		if showOnMPV != nil {
 			var visible *danmaku.Track
 			if open.Get() {
-				visible = track.Get()
+				visible, _ = track.Get()
 			}
 			showOnMPV(visible)
 		}
@@ -82,7 +129,8 @@ func playerDanmaku(cx *core.Scope, sample *core.Signal[videoSample], size *core.
 	cx.Effect(func() {
 		value := sample.Get()
 		clock.Set(value.position)
-		if !open.Get() || !useCanvas() || paused.Get() || buffering.Get() || value.seen.IsZero() {
+		active, _ := track.Get()
+		if active == nil || !open.Get() || !useCanvas() || paused.Get() || buffering.Get() || value.seen.IsZero() {
 			return
 		}
 		speed := float64(rate())
@@ -100,10 +148,12 @@ func playerDanmaku(cx *core.Scope, sample *core.Signal[videoSample], size *core.
 	})
 
 	return danmakuControls{
+		dialog: sourceDialog,
 		buttons: core.View{Class: "flex-row items-center gap-1", Children: []core.Node{
+			sourceButton,
 			ui.Button{Label: locales.AddDanmaku(cx), Icon: lucide.FolderOpen, Variant: ui.ButtonSecondary,
 				Busy: busy.Get, TestID: "load-danmaku", OnPress: choose},
-			core.Show{When: func() bool { return track.Get() != nil }, Then: func(cx *core.Scope) core.Node {
+			core.Show{When: func() bool { value, _ := track.Get(); return value != nil }, Then: func(cx *core.Scope) core.Node {
 				return core.Dynamic(func(cx *core.Scope) core.Node {
 					label, variant := locales.ShowDanmaku(cx), ui.ButtonSecondary
 					if open.Get() {
@@ -114,10 +164,10 @@ func playerDanmaku(cx *core.Scope, sample *core.Signal[videoSample], size *core.
 				})
 			}},
 		}},
-		overlay: core.View{Class: "absolute inset-0", Children: []core.Node{
-			core.Show{When: func() bool { return open.Get() && useCanvas() }, Then: func(cx *core.Scope) core.Node {
+		overlay: core.View{Class: "absolute inset-0", PointerEvents: core.PointerEventsNone, Children: []core.Node{
+			core.Show{When: func() bool { value, _ := track.Get(); return open.Get() && value != nil && useCanvas() }, Then: func(cx *core.Scope) core.Node {
 				return core.Canvas{Class: "absolute inset-0", TestID: "danmaku-canvas", Draw: func(d *core.Drawing, bounds core.Size) {
-					comments := track.Get()
+					comments, _ := track.Get()
 					if comments != nil {
 						drawDanmaku(d, bounds, size.Get(), *comments, clock.Get())
 					}

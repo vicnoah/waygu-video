@@ -122,10 +122,26 @@ seekBack: Back 10 seconds
 seekForward: Forward 10 seconds
 playbackPosition: Playback position
 danmaku: Danmaku
-addDanmaku: Load danmaku XML
+addDanmaku: Import danmaku file
 hideDanmaku: Hide danmaku
 showDanmaku: Show danmaku
 danmakuFileError: The selected file does not contain readable danmaku comments.
+danmakuSources: Danmaku sources
+danmakuSearchTitle: Series or movie title
+danmakuSearch: Search DandanPlay
+danmakuBoundEpisode: "DandanPlay · {episode}"
+danmakuUnbind: Unlink this episode
+danmakuConfigure: Add DandanPlay credentials in Settings to search for comments.
+danmakuOnlineError: Could not load DandanPlay comments or matches.
+danmakuCredentialsError: DandanPlay rejected the credentials. Check the app ID, secret and device clock.
+danmakuBindingError: The danmaku link could not be saved on this device.
+danmakuNoResults: No matching episodes found.
+danmakuRefineSearch: Use a more specific title to see more relevant results.
+danmakuCredentialsHelp: Enter your DandanPlay developer credentials to match videos. Matching sends the title or file name and, when available, a file fingerprint to DandanPlay.
+danmakuAppID: DandanPlay app ID
+danmakuAppSecret: DandanPlay app secret
+danmakuConnect: Save DandanPlay credentials
+danmakuDisconnect: Remove DandanPlay credentials
 playbackSettings: Playback
 streamingQuality: Streaming quality
 playerQuality: Quality

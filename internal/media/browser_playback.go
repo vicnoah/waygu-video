@@ -25,6 +25,7 @@ type browserStream struct {
 type browserSource struct {
 	ID                      string
 	Name                    string
+	Path                    string
 	Container               string
 	Size                    int64
 	RunTimeTicks            int64
@@ -144,8 +145,12 @@ func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID 
 	if sessionID == "" {
 		sessionID = rand.Text()
 	}
+	params := url.Values{"Static": {"true"}, "MediaSourceId": {source.ID},
+		"DeviceId": {m.device.ID}, "PlaySessionId": {sessionID}}
+	original := m.mediaURL("Videos/"+url.PathEscape(item.ID)+"/stream", params)
 	stream := Stream{ItemID: item.ID, SourceID: source.ID, SessionID: sessionID,
-		Position: item.Position, Duration: max(item.Duration, fromTicks(source.RunTimeTicks))}
+		Position: item.Position, Duration: max(item.Duration, fromTicks(source.RunTimeTicks)),
+		File: SourceFile{Name: videoFileName(source.Path), Size: source.Size, URL: original}}
 	if audio != nil {
 		if !slices.ContainsFunc(source.MediaStreams, func(stream browserStream) bool {
 			return stream.Index == *audio && strings.EqualFold(stream.Type, "audio")
@@ -154,9 +159,7 @@ func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID 
 		}
 	}
 	if audio == nil && source.SupportsDirectPlay && source.Bitrate <= bitrate {
-		params := url.Values{"Static": {"true"}, "MediaSourceId": {source.ID},
-			"DeviceId": {m.device.ID}, "PlaySessionId": {sessionID}}
-		stream.URL = m.mediaURL("Videos/"+url.PathEscape(item.ID)+"/stream", params)
+		stream.URL = original
 		stream.Method = DirectPlay
 	} else if source.TranscodingUrl != "" {
 		stream.URL = m.mediaURL(source.TranscodingUrl, nil)

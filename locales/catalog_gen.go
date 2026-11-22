@@ -57,6 +57,7 @@ var Parameters = map[string][]string{
 	"TrackNumber":             {"number"},
 	"NumberedPlaybackVersion": {"number"},
 	"EpisodeDetails":          {"episode"},
+	"DanmakuBoundEpisode":     {"episode"},
 	"BitrateMegabits":         {"bitrate"},
 	"NextEpisodeCountdown":    {"seconds"},
 	"EpisodeLabel":            {"number"},
@@ -84,6 +85,7 @@ type Translation struct {
 	TrackNumber             func(number string) string
 	NumberedPlaybackVersion func(number string) string
 	EpisodeDetails          func(episode string) string
+	DanmakuBoundEpisode     func(episode string) string
 	BitrateMegabits         func(bitrate string) string
 	NextEpisodeCountdown    func(seconds string) string
 	EpisodeLabel            func(number string) string
@@ -209,6 +211,21 @@ const (
 	textHideDanmaku
 	textShowDanmaku
 	textDanmakuFileError
+	textDanmakuSources
+	textDanmakuSearchTitle
+	textDanmakuSearch
+	textDanmakuUnbind
+	textDanmakuConfigure
+	textDanmakuOnlineError
+	textDanmakuCredentialsError
+	textDanmakuBindingError
+	textDanmakuNoResults
+	textDanmakuRefineSearch
+	textDanmakuCredentialsHelp
+	textDanmakuAppID
+	textDanmakuAppSecret
+	textDanmakuConnect
+	textDanmakuDisconnect
 	textPlaybackSettings
 	textStreamingQuality
 	textPlayerQuality
@@ -347,6 +364,21 @@ var keyOfText = [numTexts]string{
 	"hideDanmaku",
 	"showDanmaku",
 	"danmakuFileError",
+	"danmakuSources",
+	"danmakuSearchTitle",
+	"danmakuSearch",
+	"danmakuUnbind",
+	"danmakuConfigure",
+	"danmakuOnlineError",
+	"danmakuCredentialsError",
+	"danmakuBindingError",
+	"danmakuNoResults",
+	"danmakuRefineSearch",
+	"danmakuCredentialsHelp",
+	"danmakuAppID",
+	"danmakuAppSecret",
+	"danmakuConnect",
+	"danmakuDisconnect",
 	"playbackSettings",
 	"streamingQuality",
 	"playerQuality",
@@ -479,10 +511,25 @@ var textsEn = i18n.NewTexts(""+
 	"Forward 10 seconds"+
 	"Playback position"+
 	"Danmaku"+
-	"Load danmaku XML"+
+	"Import danmaku file"+
 	"Hide danmaku"+
 	"Show danmaku"+
 	"The selected file does not contain readable danmaku comments."+
+	"Danmaku sources"+
+	"Series or movie title"+
+	"Search DandanPlay"+
+	"Unlink this episode"+
+	"Add DandanPlay credentials in Settings to search for comments."+
+	"Could not load DandanPlay comments or matches."+
+	"DandanPlay rejected the credentials. Check the app ID, secret and device clock."+
+	"The danmaku link could not be saved on this device."+
+	"No matching episodes found."+
+	"Use a more specific title to see more relevant results."+
+	"Enter your DandanPlay developer credentials to match videos. Matching sends the title or file name and, when available, a file fingerprint to DandanPlay."+
+	"DandanPlay app ID"+
+	"DandanPlay app secret"+
+	"Save DandanPlay credentials"+
+	"Remove DandanPlay credentials"+
 	"Playback"+
 	"Streaming quality"+
 	"Quality"+
@@ -612,10 +659,25 @@ var textsEn = i18n.NewTexts(""+
 		18,
 		17,
 		7,
-		16,
+		19,
 		12,
 		12,
 		61,
+		15,
+		21,
+		17,
+		19,
+		62,
+		46,
+		79,
+		51,
+		27,
+		55,
+		153,
+		17,
+		21,
+		27,
+		29,
 		8,
 		17,
 		7,
@@ -748,10 +810,25 @@ var textsZhHans = i18n.NewTexts(""+
 	"前进 10 秒"+
 	"播放进度"+
 	"弹幕"+
-	"导入弹幕 XML"+
+	"导入弹幕文件"+
 	"隐藏弹幕"+
 	"显示弹幕"+
 	"无法从所选文件读取弹幕。"+
+	"弹幕来源"+
+	"剧名或电影名"+
+	"搜索弹弹 Play"+
+	"解除本集绑定"+
+	"请在设置中填写弹弹 Play 开发者凭据，以搜索在线弹幕。"+
+	"无法加载弹弹 Play 的匹配结果或弹幕。"+
+	"弹弹 Play 拒绝了请求，请检查应用 ID、密钥和设备时间。"+
+	"无法在本机保存弹幕绑定。"+
+	"未找到匹配剧集。"+
+	"请填写更完整的标题以缩小搜索范围。"+
+	"填写弹弹 Play 开发者凭据即可匹配视频。匹配时会发送片名或文件名，以及可读取的文件指纹。"+
+	"弹弹 Play 应用 ID"+
+	"弹弹 Play 应用密钥"+
+	"保存弹弹 Play 凭据"+
+	"移除弹弹 Play 凭据"+
 	"播放"+
 	"在线播放画质"+
 	"画质"+
@@ -881,10 +958,25 @@ var textsZhHans = i18n.NewTexts(""+
 		13,
 		12,
 		6,
-		16,
+		18,
 		12,
 		12,
 		36,
+		12,
+		18,
+		17,
+		18,
+		75,
+		51,
+		75,
+		36,
+		24,
+		51,
+		126,
+		21,
+		24,
+		24,
+		24,
 		6,
 		18,
 		6,
@@ -1000,6 +1092,9 @@ func Supply(lang string, t Translation) {
 	}
 	if t.EpisodeDetails != nil {
 		s.EpisodeDetails = t.EpisodeDetails
+	}
+	if t.DanmakuBoundEpisode != nil {
+		s.DanmakuBoundEpisode = t.DanmakuBoundEpisode
 	}
 	if t.BitrateMegabits != nil {
 		s.BitrateMegabits = t.BitrateMegabits
@@ -2129,7 +2224,7 @@ func Danmaku(cx *core.Scope) string { return For(cx).Danmaku() }
 // Danmaku is the package's Danmaku in the language of msgs.
 func (msgs Messages) Danmaku() string { return msgs.text(textDanmaku) }
 
-// AddDanmaku says "Load danmaku XML"
+// AddDanmaku says "Import danmaku file"
 // in the language the app shows under cx.
 func AddDanmaku(cx *core.Scope) string { return For(cx).AddDanmaku() }
 
@@ -2156,6 +2251,135 @@ func DanmakuFileError(cx *core.Scope) string { return For(cx).DanmakuFileError()
 
 // DanmakuFileError is the package's DanmakuFileError in the language of msgs.
 func (msgs Messages) DanmakuFileError() string { return msgs.text(textDanmakuFileError) }
+
+// DanmakuSources says "Danmaku sources"
+// in the language the app shows under cx.
+func DanmakuSources(cx *core.Scope) string { return For(cx).DanmakuSources() }
+
+// DanmakuSources is the package's DanmakuSources in the language of msgs.
+func (msgs Messages) DanmakuSources() string { return msgs.text(textDanmakuSources) }
+
+// DanmakuSearchTitle says "Series or movie title"
+// in the language the app shows under cx.
+func DanmakuSearchTitle(cx *core.Scope) string { return For(cx).DanmakuSearchTitle() }
+
+// DanmakuSearchTitle is the package's DanmakuSearchTitle in the language of msgs.
+func (msgs Messages) DanmakuSearchTitle() string { return msgs.text(textDanmakuSearchTitle) }
+
+// DanmakuSearch says "Search DandanPlay"
+// in the language the app shows under cx.
+func DanmakuSearch(cx *core.Scope) string { return For(cx).DanmakuSearch() }
+
+// DanmakuSearch is the package's DanmakuSearch in the language of msgs.
+func (msgs Messages) DanmakuSearch() string { return msgs.text(textDanmakuSearch) }
+
+// DanmakuBoundEpisode says "DandanPlay · {episode}"
+// in the language the app shows under cx.
+func DanmakuBoundEpisode(cx *core.Scope, episode string) string {
+	return For(cx).DanmakuBoundEpisode(episode)
+}
+
+// DanmakuBoundEpisode is the package's DanmakuBoundEpisode in the language of msgs.
+func (msgs Messages) DanmakuBoundEpisode(episode string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DanmakuBoundEpisode(episode))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DanmakuBoundEpisode; f != nil {
+			return f(episode)
+		}
+		switch lang {
+		case "", "en":
+			return "DandanPlay · " + msgs.arg(episode)
+		case "zh-Hans":
+			return "弹弹 Play · " + episode
+		}
+	}
+}
+
+// DanmakuUnbind says "Unlink this episode"
+// in the language the app shows under cx.
+func DanmakuUnbind(cx *core.Scope) string { return For(cx).DanmakuUnbind() }
+
+// DanmakuUnbind is the package's DanmakuUnbind in the language of msgs.
+func (msgs Messages) DanmakuUnbind() string { return msgs.text(textDanmakuUnbind) }
+
+// DanmakuConfigure says "Add DandanPlay credentials in Settings to search for comments."
+// in the language the app shows under cx.
+func DanmakuConfigure(cx *core.Scope) string { return For(cx).DanmakuConfigure() }
+
+// DanmakuConfigure is the package's DanmakuConfigure in the language of msgs.
+func (msgs Messages) DanmakuConfigure() string { return msgs.text(textDanmakuConfigure) }
+
+// DanmakuOnlineError says "Could not load DandanPlay comments or matches."
+// in the language the app shows under cx.
+func DanmakuOnlineError(cx *core.Scope) string { return For(cx).DanmakuOnlineError() }
+
+// DanmakuOnlineError is the package's DanmakuOnlineError in the language of msgs.
+func (msgs Messages) DanmakuOnlineError() string { return msgs.text(textDanmakuOnlineError) }
+
+// DanmakuCredentialsError says "DandanPlay rejected the credentials. Check the app ID, secret and device clock."
+// in the language the app shows under cx.
+func DanmakuCredentialsError(cx *core.Scope) string { return For(cx).DanmakuCredentialsError() }
+
+// DanmakuCredentialsError is the package's DanmakuCredentialsError in the language of msgs.
+func (msgs Messages) DanmakuCredentialsError() string { return msgs.text(textDanmakuCredentialsError) }
+
+// DanmakuBindingError says "The danmaku link could not be saved on this device."
+// in the language the app shows under cx.
+func DanmakuBindingError(cx *core.Scope) string { return For(cx).DanmakuBindingError() }
+
+// DanmakuBindingError is the package's DanmakuBindingError in the language of msgs.
+func (msgs Messages) DanmakuBindingError() string { return msgs.text(textDanmakuBindingError) }
+
+// DanmakuNoResults says "No matching episodes found."
+// in the language the app shows under cx.
+func DanmakuNoResults(cx *core.Scope) string { return For(cx).DanmakuNoResults() }
+
+// DanmakuNoResults is the package's DanmakuNoResults in the language of msgs.
+func (msgs Messages) DanmakuNoResults() string { return msgs.text(textDanmakuNoResults) }
+
+// DanmakuRefineSearch says "Use a more specific title to see more relevant results."
+// in the language the app shows under cx.
+func DanmakuRefineSearch(cx *core.Scope) string { return For(cx).DanmakuRefineSearch() }
+
+// DanmakuRefineSearch is the package's DanmakuRefineSearch in the language of msgs.
+func (msgs Messages) DanmakuRefineSearch() string { return msgs.text(textDanmakuRefineSearch) }
+
+// DanmakuCredentialsHelp says "Enter your DandanPlay developer credentials to match videos. Matching sends the title or file name and, when available, a file fingerprint to DandanPlay."
+// in the language the app shows under cx.
+func DanmakuCredentialsHelp(cx *core.Scope) string { return For(cx).DanmakuCredentialsHelp() }
+
+// DanmakuCredentialsHelp is the package's DanmakuCredentialsHelp in the language of msgs.
+func (msgs Messages) DanmakuCredentialsHelp() string { return msgs.text(textDanmakuCredentialsHelp) }
+
+// DanmakuAppID says "DandanPlay app ID"
+// in the language the app shows under cx.
+func DanmakuAppID(cx *core.Scope) string { return For(cx).DanmakuAppID() }
+
+// DanmakuAppID is the package's DanmakuAppID in the language of msgs.
+func (msgs Messages) DanmakuAppID() string { return msgs.text(textDanmakuAppID) }
+
+// DanmakuAppSecret says "DandanPlay app secret"
+// in the language the app shows under cx.
+func DanmakuAppSecret(cx *core.Scope) string { return For(cx).DanmakuAppSecret() }
+
+// DanmakuAppSecret is the package's DanmakuAppSecret in the language of msgs.
+func (msgs Messages) DanmakuAppSecret() string { return msgs.text(textDanmakuAppSecret) }
+
+// DanmakuConnect says "Save DandanPlay credentials"
+// in the language the app shows under cx.
+func DanmakuConnect(cx *core.Scope) string { return For(cx).DanmakuConnect() }
+
+// DanmakuConnect is the package's DanmakuConnect in the language of msgs.
+func (msgs Messages) DanmakuConnect() string { return msgs.text(textDanmakuConnect) }
+
+// DanmakuDisconnect says "Remove DandanPlay credentials"
+// in the language the app shows under cx.
+func DanmakuDisconnect(cx *core.Scope) string { return For(cx).DanmakuDisconnect() }
+
+// DanmakuDisconnect is the package's DanmakuDisconnect in the language of msgs.
+func (msgs Messages) DanmakuDisconnect() string { return msgs.text(textDanmakuDisconnect) }
 
 // PlaybackSettings says "Playback"
 // in the language the app shows under cx.

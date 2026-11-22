@@ -122,10 +122,26 @@ seekBack: 后退 10 秒
 seekForward: 前进 10 秒
 playbackPosition: 播放进度
 danmaku: 弹幕
-addDanmaku: 导入弹幕 XML
+addDanmaku: 导入弹幕文件
 hideDanmaku: 隐藏弹幕
 showDanmaku: 显示弹幕
 danmakuFileError: 无法从所选文件读取弹幕。
+danmakuSources: 弹幕来源
+danmakuSearchTitle: 剧名或电影名
+danmakuSearch: 搜索弹弹 Play
+danmakuBoundEpisode: "弹弹 Play · {episode}"
+danmakuUnbind: 解除本集绑定
+danmakuConfigure: 请在设置中填写弹弹 Play 开发者凭据，以搜索在线弹幕。
+danmakuOnlineError: 无法加载弹弹 Play 的匹配结果或弹幕。
+danmakuCredentialsError: 弹弹 Play 拒绝了请求，请检查应用 ID、密钥和设备时间。
+danmakuBindingError: 无法在本机保存弹幕绑定。
+danmakuNoResults: 未找到匹配剧集。
+danmakuRefineSearch: 请填写更完整的标题以缩小搜索范围。
+danmakuCredentialsHelp: 填写弹弹 Play 开发者凭据即可匹配视频。匹配时会发送片名或文件名，以及可读取的文件指纹。
+danmakuAppID: 弹弹 Play 应用 ID
+danmakuAppSecret: 弹弹 Play 应用密钥
+danmakuConnect: 保存弹弹 Play 凭据
+danmakuDisconnect: 移除弹弹 Play 凭据
 playbackSettings: 播放
 streamingQuality: 在线播放画质
 playerQuality: 画质

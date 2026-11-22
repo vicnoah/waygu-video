@@ -12,6 +12,7 @@ import (
 	"github.com/nsgo-dev/nsgo"
 	"github.com/nsgo-dev/nsgo/core"
 
+	"waygu-video/internal/danmaku"
 	"waygu-video/internal/media"
 	"waygu-video/locales"
 )
@@ -72,6 +73,7 @@ type application struct {
 	storage       core.Storage
 	secrets       core.Secrets
 	newMedia      mediaFactory
+	newDandan     danmakuFactory
 	sources       *core.Signal[[]source]
 	routes        *core.Signal[[]route]
 	tab           *core.Signal[int]
@@ -102,6 +104,12 @@ func Root(cx *core.Scope) core.Node {
 }
 
 func appRoot(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer) core.Node {
+	return appRootWithDandan(cx, factory, plexAccount, func(credentials danmaku.DandanCredentials) *danmaku.DandanClient {
+		return danmaku.NewDandanClient(credentials, nil)
+	})
+}
+
+func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, dandan danmakuFactory) core.Node {
 	cx.SetTheme(wayguTheme())
 	storage := cx.Storage()
 	var sources []source
@@ -128,7 +136,7 @@ func appRoot(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer) c
 	}
 	a := &application{
 		scope:  cx,
-		device: media.Device{ID: deviceID, Name: "Waygu Video"}, storage: storage, secrets: cx.Secrets(), newMedia: factory,
+		device: media.Device{ID: deviceID, Name: "Waygu Video"}, storage: storage, secrets: cx.Secrets(), newMedia: factory, newDandan: dandan,
 		sources: core.NewSignalFunc(cx, sources, nil), routes: core.NewSignalFunc(cx, []route{{screen: first}}, nil),
 		tab: core.NewSignal(cx, 0), sourceFilter: core.NewSignal(cx, ""),
 		mergeTitles:   core.NewSignal(cx, mergeTitles != "false"),

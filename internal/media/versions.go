@@ -3,7 +3,10 @@ package media
 import (
 	"cmp"
 	"context"
+	"net/url"
+	"path"
 	"slices"
+	"strings"
 )
 
 // Version describes a playable file or rendition exposed by one media server.
@@ -17,6 +20,21 @@ type Version struct {
 
 type VersionClient interface {
 	Versions(context.Context, Item) ([]Version, error)
+}
+
+func videoFileName(value string) string {
+	value = strings.ReplaceAll(strings.TrimSpace(value), "\\", "/")
+	if strings.Contains(value, "://") {
+		parsed, err := url.Parse(value)
+		if err != nil {
+			return ""
+		}
+		value = parsed.Path
+	}
+	if name := path.Base(value); name != "." && name != "/" {
+		return name
+	}
+	return ""
 }
 
 type VersionPolicy string

@@ -270,7 +270,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		}
 		return video
 	})
-	comments := playerDanmaku(cx, sample, picture, paused, buffering, rate.Get, func() bool {
+	comments := a.playerDanmaku(cx, current, initial.stream, sample, picture, paused, buffering, rate.Get, func() bool {
 		decoder := desktop.Get()
 		return decoder == nil || !decoder.active()
 	}, func(track *danmaku.Track) {
@@ -348,6 +348,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				}},
 			}},
 		tracks.dialog,
+		comments.dialog,
 	}}
 }
 

@@ -157,6 +157,16 @@ type Stream struct {
 	Duration  time.Duration
 	Tracks    []Track
 	Rendition Version
+	File      SourceFile
+}
+
+// SourceFile is the original file of the selected version, even when the
+// player opens a re-encoded or remuxed stream.
+type SourceFile struct {
+	Name    string
+	Size    int64
+	URL     string
+	Headers http.Header
 }
 
 // VersionID identifies the selection. SourceID remains the server's media ID for progress reports.

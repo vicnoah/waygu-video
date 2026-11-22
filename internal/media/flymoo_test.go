@@ -157,6 +157,9 @@ func TestFlymooReferenceProtocol(t *testing.T) {
 		stream.Duration != 125500*time.Millisecond || stream.Position != 37*time.Second {
 		t.Fatalf("unexpected stream descriptor: %v", err)
 	}
+	if stream.File.URL != server.URL+"/v/api/v1/media/range/media-1" || stream.File.Headers.Get("Authorization") != "reference-token" {
+		t.Fatal("the rendition did not retain the authenticated original media range")
+	}
 	if err := client.Report(ctx, PlaybackState{Event: Progress, Stream: stream, Position: 15750 * time.Millisecond}); err != nil {
 		t.Fatalf("report: %v", err)
 	}
