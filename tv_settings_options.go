@@ -112,7 +112,7 @@ func (a *application) tvSettingsOptions(cx *core.Scope, l tvLayout, section tvSe
 		}
 		return []tvOption{link("settings-downloads", locales.StorageDownloads(cx), route{screen: screenDownloads})}
 	case tvParental:
-		return unavailable("tv-settings-parental-unavailable", locales.TvSettingsParental(cx))
+		return []tvOption{link("open-parental-settings", locales.TvSettingsParental(cx), route{screen: screenParentalSettings})}
 	default:
 		return []tvOption{{id: "tv-settings-version", label: locales.AppName(cx),
 			value: func() string { return core.App().Version }}}

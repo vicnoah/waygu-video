@@ -150,6 +150,10 @@ var Parameters = map[string][]string{
 	"DesktopSettingsVersion":          {"version"},
 	"DesktopSourceConnection":         {"source"},
 	"DesktopSourceRemoveHint":         {"source"},
+	"ParentalCount":                   {"count"},
+	"ParentalMinutes":                 {"minutes"},
+	"ParentalHours":                   {"hours"},
+	"ParentalUnratedResult":           {"index"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -265,6 +269,10 @@ type Translation struct {
 	DesktopSettingsVersion          func(version string) string
 	DesktopSourceConnection         func(source string) string
 	DesktopSourceRemoveHint         func(source string) string
+	ParentalCount                   func(count string) string
+	ParentalMinutes                 func(minutes string) string
+	ParentalHours                   func(hours string) string
+	ParentalUnratedResult           func(index string) string
 }
 
 var supplied = map[string]Translation{}
@@ -887,6 +895,43 @@ const (
 	textDesktopDanmakuEnabled
 	textDesktopDanmakuClearCache
 	textDesktopDanmakuClearCacheHint
+	textParentalEnabled
+	textParentalPIN
+	textParentalSetPIN
+	textParentalEnterPIN
+	textParentalRepeatPIN
+	textParentalPINFormat
+	textParentalPINMismatch
+	textParentalPINIncorrect
+	textParentalPINRetry
+	textParentalPINSet
+	textParentalPINUnset
+	textParentalConfirm
+	textParentalRestrictions
+	textParentalIntroduction
+	textParentalMaximumRating
+	textParentalUnrestricted
+	textParentalAllowedSources
+	textParentalRestrictSources
+	textParentalHiddenLibraries
+	textParentalKidsMode
+	textParentalKidsHint
+	textParentalTime
+	textParentalTimeHint
+	textParentalDailyLimit
+	textParentalWeekdays
+	textParentalWeekends
+	textParentalQuietHours
+	textParentalQuietFrom
+	textParentalQuietUntil
+	textParentalQuietInvalid
+	textParentalBlockedTitle
+	textParentalApprove
+	textParentalUnrated
+	textParentalQuietBlocked
+	textParentalLimitReached
+	textParentalExtend
+	textParentalUsageUnavailable
 	numTexts
 )
 
@@ -1509,6 +1554,43 @@ var keyOfText = [numTexts]string{
 	"desktopDanmakuEnabled",
 	"desktopDanmakuClearCache",
 	"desktopDanmakuClearCacheHint",
+	"parentalEnabled",
+	"parentalPIN",
+	"parentalSetPIN",
+	"parentalEnterPIN",
+	"parentalRepeatPIN",
+	"parentalPINFormat",
+	"parentalPINMismatch",
+	"parentalPINIncorrect",
+	"parentalPINRetry",
+	"parentalPINSet",
+	"parentalPINUnset",
+	"parentalConfirm",
+	"parentalRestrictions",
+	"parentalIntroduction",
+	"parentalMaximumRating",
+	"parentalUnrestricted",
+	"parentalAllowedSources",
+	"parentalRestrictSources",
+	"parentalHiddenLibraries",
+	"parentalKidsMode",
+	"parentalKidsHint",
+	"parentalTime",
+	"parentalTimeHint",
+	"parentalDailyLimit",
+	"parentalWeekdays",
+	"parentalWeekends",
+	"parentalQuietHours",
+	"parentalQuietFrom",
+	"parentalQuietUntil",
+	"parentalQuietInvalid",
+	"parentalBlockedTitle",
+	"parentalApprove",
+	"parentalUnrated",
+	"parentalQuietBlocked",
+	"parentalLimitReached",
+	"parentalExtend",
+	"parentalUsageUnavailable",
 }
 
 // textsEn are the messages without arguments in en.
@@ -2128,7 +2210,44 @@ var textsEn = i18n.NewTexts(""+
 	"Local address"+
 	"Enable danmaku"+
 	"Clear cache"+
-	"Clear downloaded DandanPlay comments from this device?",
+	"Clear downloaded DandanPlay comments from this device?"+
+	"Enable parental controls"+
+	"Access PIN"+
+	"Set access PIN"+
+	"Enter access PIN"+
+	"Confirm access PIN"+
+	"Enter four digits."+
+	"The PINs must match."+
+	"Incorrect access PIN."+
+	"Wait 30 seconds before trying again."+
+	"4-digit PIN set"+
+	"Not set"+
+	"Confirm"+
+	"Content restrictions"+
+	"Restricted content is hidden. Enter the access PIN to edit restrictions or unlock viewing."+
+	"Maximum rating"+
+	"No limit"+
+	"Allowed media sources"+
+	"Only use selected sources"+
+	"Hidden libraries"+
+	"Kids mode"+
+	"Show only age-appropriate animation and family titles."+
+	"Viewing time"+
+	"When viewing time runs out, playback pauses. Enter the PIN to add 30 minutes."+
+	"Daily viewing limit"+
+	"Weekdays"+
+	"Weekends"+
+	"No viewing during"+
+	"Start time"+
+	"End time"+
+	"Use different start and end times in HH:MM format."+
+	"This title is hidden by parental controls."+
+	"Approve this title"+
+	"This title has no recognized rating. Ask for approval before viewing."+
+	"Playback is paused during restricted viewing hours."+
+	"Today's viewing time has been used."+
+	"Add 30 minutes"+
+	"Playback is paused because viewing usage could not be saved.",
 	[]uint16{
 		11,
 		47,
@@ -2746,6 +2865,43 @@ var textsEn = i18n.NewTexts(""+
 		14,
 		11,
 		54,
+		24,
+		10,
+		14,
+		16,
+		18,
+		18,
+		20,
+		21,
+		36,
+		15,
+		7,
+		7,
+		20,
+		90,
+		14,
+		8,
+		21,
+		25,
+		16,
+		9,
+		54,
+		12,
+		77,
+		19,
+		8,
+		8,
+		17,
+		10,
+		8,
+		50,
+		42,
+		18,
+		69,
+		51,
+		35,
+		14,
+		60,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -3365,7 +3521,44 @@ var textsZhHans = i18n.NewTexts(""+
 	"内网地址"+
 	"启用弹幕"+
 	"清除"+
-	"清除这台设备已下载的弹弹play弹幕？",
+	"清除这台设备已下载的弹弹play弹幕？"+
+	"启用家长控制"+
+	"访问密码"+
+	"设置访问密码"+
+	"输入访问密码"+
+	"再次输入访问密码"+
+	"请输入 4 位数字。"+
+	"两次输入的密码不一致。"+
+	"访问密码不正确。"+
+	"请等待 30 秒后重试。"+
+	"已设置 4 位 PIN"+
+	"未设置"+
+	"确认"+
+	"内容限制"+
+	"开启后，超出分级的内容会被隐藏，修改设置与解锁需要输入访问密码。"+
+	"分级上限"+
+	"不限制"+
+	"允许的媒体源"+
+	"仅使用选中的媒体源"+
+	"隐藏的媒体库"+
+	"儿童模式"+
+	"只显示动画与家庭分级内容，界面简化"+
+	"使用时长"+
+	"到达时长后暂停播放，输入密码可临时延长 30 分钟。"+
+	"每日时长限制"+
+	"工作日"+
+	"周末"+
+	"禁止观看时段"+
+	"开始时间"+
+	"结束时间"+
+	"请以“小时:分钟”格式输入不同的开始和结束时间。"+
+	"家长控制已隐藏此内容。"+
+	"确认此内容"+
+	"此内容没有可识别的分级，需要先输入访问密码确认。"+
+	"当前处于禁止观看时段。"+
+	"今天的观看时长已用完。"+
+	"延长 30 分钟"+
+	"观看时长记录保存失败，播放已暂停。",
 	[]uint16{
 		12,
 		45,
@@ -3983,6 +4176,43 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		6,
 		49,
+		18,
+		12,
+		18,
+		18,
+		24,
+		24,
+		33,
+		24,
+		28,
+		19,
+		9,
+		6,
+		12,
+		96,
+		12,
+		9,
+		18,
+		27,
+		18,
+		12,
+		51,
+		12,
+		70,
+		18,
+		9,
+		6,
+		18,
+		12,
+		12,
+		70,
+		33,
+		15,
+		72,
+		33,
+		33,
+		16,
+		51,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -4359,6 +4589,18 @@ func Supply(lang string, t Translation) {
 	}
 	if t.DesktopSourceRemoveHint != nil {
 		s.DesktopSourceRemoveHint = t.DesktopSourceRemoveHint
+	}
+	if t.ParentalCount != nil {
+		s.ParentalCount = t.ParentalCount
+	}
+	if t.ParentalMinutes != nil {
+		s.ParentalMinutes = t.ParentalMinutes
+	}
+	if t.ParentalHours != nil {
+		s.ParentalHours = t.ParentalHours
+	}
+	if t.ParentalUnratedResult != nil {
+		s.ParentalUnratedResult = t.ParentalUnratedResult
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -11381,4 +11623,355 @@ func DesktopDanmakuClearCacheHint(cx *core.Scope) string {
 // DesktopDanmakuClearCacheHint is the package's DesktopDanmakuClearCacheHint in the language of msgs.
 func (msgs Messages) DesktopDanmakuClearCacheHint() string {
 	return msgs.text(textDesktopDanmakuClearCacheHint)
+}
+
+// ParentalEnabled says "Enable parental controls"
+// in the language the app shows under cx.
+func ParentalEnabled(cx *core.Scope) string { return For(cx).ParentalEnabled() }
+
+// ParentalEnabled is the package's ParentalEnabled in the language of msgs.
+func (msgs Messages) ParentalEnabled() string { return msgs.text(textParentalEnabled) }
+
+// ParentalPIN says "Access PIN"
+// in the language the app shows under cx.
+func ParentalPIN(cx *core.Scope) string { return For(cx).ParentalPIN() }
+
+// ParentalPIN is the package's ParentalPIN in the language of msgs.
+func (msgs Messages) ParentalPIN() string { return msgs.text(textParentalPIN) }
+
+// ParentalSetPIN says "Set access PIN"
+// in the language the app shows under cx.
+func ParentalSetPIN(cx *core.Scope) string { return For(cx).ParentalSetPIN() }
+
+// ParentalSetPIN is the package's ParentalSetPIN in the language of msgs.
+func (msgs Messages) ParentalSetPIN() string { return msgs.text(textParentalSetPIN) }
+
+// ParentalEnterPIN says "Enter access PIN"
+// in the language the app shows under cx.
+func ParentalEnterPIN(cx *core.Scope) string { return For(cx).ParentalEnterPIN() }
+
+// ParentalEnterPIN is the package's ParentalEnterPIN in the language of msgs.
+func (msgs Messages) ParentalEnterPIN() string { return msgs.text(textParentalEnterPIN) }
+
+// ParentalRepeatPIN says "Confirm access PIN"
+// in the language the app shows under cx.
+func ParentalRepeatPIN(cx *core.Scope) string { return For(cx).ParentalRepeatPIN() }
+
+// ParentalRepeatPIN is the package's ParentalRepeatPIN in the language of msgs.
+func (msgs Messages) ParentalRepeatPIN() string { return msgs.text(textParentalRepeatPIN) }
+
+// ParentalPINFormat says "Enter four digits."
+// in the language the app shows under cx.
+func ParentalPINFormat(cx *core.Scope) string { return For(cx).ParentalPINFormat() }
+
+// ParentalPINFormat is the package's ParentalPINFormat in the language of msgs.
+func (msgs Messages) ParentalPINFormat() string { return msgs.text(textParentalPINFormat) }
+
+// ParentalPINMismatch says "The PINs must match."
+// in the language the app shows under cx.
+func ParentalPINMismatch(cx *core.Scope) string { return For(cx).ParentalPINMismatch() }
+
+// ParentalPINMismatch is the package's ParentalPINMismatch in the language of msgs.
+func (msgs Messages) ParentalPINMismatch() string { return msgs.text(textParentalPINMismatch) }
+
+// ParentalPINIncorrect says "Incorrect access PIN."
+// in the language the app shows under cx.
+func ParentalPINIncorrect(cx *core.Scope) string { return For(cx).ParentalPINIncorrect() }
+
+// ParentalPINIncorrect is the package's ParentalPINIncorrect in the language of msgs.
+func (msgs Messages) ParentalPINIncorrect() string { return msgs.text(textParentalPINIncorrect) }
+
+// ParentalPINRetry says "Wait 30 seconds before trying again."
+// in the language the app shows under cx.
+func ParentalPINRetry(cx *core.Scope) string { return For(cx).ParentalPINRetry() }
+
+// ParentalPINRetry is the package's ParentalPINRetry in the language of msgs.
+func (msgs Messages) ParentalPINRetry() string { return msgs.text(textParentalPINRetry) }
+
+// ParentalPINSet says "4-digit PIN set"
+// in the language the app shows under cx.
+func ParentalPINSet(cx *core.Scope) string { return For(cx).ParentalPINSet() }
+
+// ParentalPINSet is the package's ParentalPINSet in the language of msgs.
+func (msgs Messages) ParentalPINSet() string { return msgs.text(textParentalPINSet) }
+
+// ParentalPINUnset says "Not set"
+// in the language the app shows under cx.
+func ParentalPINUnset(cx *core.Scope) string { return For(cx).ParentalPINUnset() }
+
+// ParentalPINUnset is the package's ParentalPINUnset in the language of msgs.
+func (msgs Messages) ParentalPINUnset() string { return msgs.text(textParentalPINUnset) }
+
+// ParentalConfirm says "Confirm"
+// in the language the app shows under cx.
+func ParentalConfirm(cx *core.Scope) string { return For(cx).ParentalConfirm() }
+
+// ParentalConfirm is the package's ParentalConfirm in the language of msgs.
+func (msgs Messages) ParentalConfirm() string { return msgs.text(textParentalConfirm) }
+
+// ParentalRestrictions says "Content restrictions"
+// in the language the app shows under cx.
+func ParentalRestrictions(cx *core.Scope) string { return For(cx).ParentalRestrictions() }
+
+// ParentalRestrictions is the package's ParentalRestrictions in the language of msgs.
+func (msgs Messages) ParentalRestrictions() string { return msgs.text(textParentalRestrictions) }
+
+// ParentalIntroduction says "Restricted content is hidden. Enter the access PIN to edit restrictions or unlock viewing."
+// in the language the app shows under cx.
+func ParentalIntroduction(cx *core.Scope) string { return For(cx).ParentalIntroduction() }
+
+// ParentalIntroduction is the package's ParentalIntroduction in the language of msgs.
+func (msgs Messages) ParentalIntroduction() string { return msgs.text(textParentalIntroduction) }
+
+// ParentalMaximumRating says "Maximum rating"
+// in the language the app shows under cx.
+func ParentalMaximumRating(cx *core.Scope) string { return For(cx).ParentalMaximumRating() }
+
+// ParentalMaximumRating is the package's ParentalMaximumRating in the language of msgs.
+func (msgs Messages) ParentalMaximumRating() string { return msgs.text(textParentalMaximumRating) }
+
+// ParentalUnrestricted says "No limit"
+// in the language the app shows under cx.
+func ParentalUnrestricted(cx *core.Scope) string { return For(cx).ParentalUnrestricted() }
+
+// ParentalUnrestricted is the package's ParentalUnrestricted in the language of msgs.
+func (msgs Messages) ParentalUnrestricted() string { return msgs.text(textParentalUnrestricted) }
+
+// ParentalAllowedSources says "Allowed media sources"
+// in the language the app shows under cx.
+func ParentalAllowedSources(cx *core.Scope) string { return For(cx).ParentalAllowedSources() }
+
+// ParentalAllowedSources is the package's ParentalAllowedSources in the language of msgs.
+func (msgs Messages) ParentalAllowedSources() string { return msgs.text(textParentalAllowedSources) }
+
+// ParentalRestrictSources says "Only use selected sources"
+// in the language the app shows under cx.
+func ParentalRestrictSources(cx *core.Scope) string { return For(cx).ParentalRestrictSources() }
+
+// ParentalRestrictSources is the package's ParentalRestrictSources in the language of msgs.
+func (msgs Messages) ParentalRestrictSources() string { return msgs.text(textParentalRestrictSources) }
+
+// ParentalHiddenLibraries says "Hidden libraries"
+// in the language the app shows under cx.
+func ParentalHiddenLibraries(cx *core.Scope) string { return For(cx).ParentalHiddenLibraries() }
+
+// ParentalHiddenLibraries is the package's ParentalHiddenLibraries in the language of msgs.
+func (msgs Messages) ParentalHiddenLibraries() string { return msgs.text(textParentalHiddenLibraries) }
+
+// ParentalCount says "{count}"
+// in the language the app shows under cx.
+func ParentalCount(cx *core.Scope, count string) string { return For(cx).ParentalCount(count) }
+
+// ParentalCount is the package's ParentalCount in the language of msgs.
+func (msgs Messages) ParentalCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.ParentalCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].ParentalCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count)
+		case "zh-Hans":
+			return count + " 个"
+		}
+	}
+}
+
+// ParentalKidsMode says "Kids mode"
+// in the language the app shows under cx.
+func ParentalKidsMode(cx *core.Scope) string { return For(cx).ParentalKidsMode() }
+
+// ParentalKidsMode is the package's ParentalKidsMode in the language of msgs.
+func (msgs Messages) ParentalKidsMode() string { return msgs.text(textParentalKidsMode) }
+
+// ParentalKidsHint says "Show only age-appropriate animation and family titles."
+// in the language the app shows under cx.
+func ParentalKidsHint(cx *core.Scope) string { return For(cx).ParentalKidsHint() }
+
+// ParentalKidsHint is the package's ParentalKidsHint in the language of msgs.
+func (msgs Messages) ParentalKidsHint() string { return msgs.text(textParentalKidsHint) }
+
+// ParentalTime says "Viewing time"
+// in the language the app shows under cx.
+func ParentalTime(cx *core.Scope) string { return For(cx).ParentalTime() }
+
+// ParentalTime is the package's ParentalTime in the language of msgs.
+func (msgs Messages) ParentalTime() string { return msgs.text(textParentalTime) }
+
+// ParentalTimeHint says "When viewing time runs out, playback pauses. Enter the PIN to add 30 minutes."
+// in the language the app shows under cx.
+func ParentalTimeHint(cx *core.Scope) string { return For(cx).ParentalTimeHint() }
+
+// ParentalTimeHint is the package's ParentalTimeHint in the language of msgs.
+func (msgs Messages) ParentalTimeHint() string { return msgs.text(textParentalTimeHint) }
+
+// ParentalDailyLimit says "Daily viewing limit"
+// in the language the app shows under cx.
+func ParentalDailyLimit(cx *core.Scope) string { return For(cx).ParentalDailyLimit() }
+
+// ParentalDailyLimit is the package's ParentalDailyLimit in the language of msgs.
+func (msgs Messages) ParentalDailyLimit() string { return msgs.text(textParentalDailyLimit) }
+
+// ParentalWeekdays says "Weekdays"
+// in the language the app shows under cx.
+func ParentalWeekdays(cx *core.Scope) string { return For(cx).ParentalWeekdays() }
+
+// ParentalWeekdays is the package's ParentalWeekdays in the language of msgs.
+func (msgs Messages) ParentalWeekdays() string { return msgs.text(textParentalWeekdays) }
+
+// ParentalWeekends says "Weekends"
+// in the language the app shows under cx.
+func ParentalWeekends(cx *core.Scope) string { return For(cx).ParentalWeekends() }
+
+// ParentalWeekends is the package's ParentalWeekends in the language of msgs.
+func (msgs Messages) ParentalWeekends() string { return msgs.text(textParentalWeekends) }
+
+// ParentalMinutes says "{minutes} min"
+// in the language the app shows under cx.
+func ParentalMinutes(cx *core.Scope, minutes string) string { return For(cx).ParentalMinutes(minutes) }
+
+// ParentalMinutes is the package's ParentalMinutes in the language of msgs.
+func (msgs Messages) ParentalMinutes(minutes string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.ParentalMinutes(minutes))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].ParentalMinutes; f != nil {
+			return f(minutes)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(minutes) + " min"
+		case "zh-Hans":
+			return minutes + " 分钟"
+		}
+	}
+}
+
+// ParentalHours says "{hours} hr"
+// in the language the app shows under cx.
+func ParentalHours(cx *core.Scope, hours string) string { return For(cx).ParentalHours(hours) }
+
+// ParentalHours is the package's ParentalHours in the language of msgs.
+func (msgs Messages) ParentalHours(hours string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.ParentalHours(hours))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].ParentalHours; f != nil {
+			return f(hours)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(hours) + " hr"
+		case "zh-Hans":
+			return hours + " 小时"
+		}
+	}
+}
+
+// ParentalQuietHours says "No viewing during"
+// in the language the app shows under cx.
+func ParentalQuietHours(cx *core.Scope) string { return For(cx).ParentalQuietHours() }
+
+// ParentalQuietHours is the package's ParentalQuietHours in the language of msgs.
+func (msgs Messages) ParentalQuietHours() string { return msgs.text(textParentalQuietHours) }
+
+// ParentalQuietFrom says "Start time"
+// in the language the app shows under cx.
+func ParentalQuietFrom(cx *core.Scope) string { return For(cx).ParentalQuietFrom() }
+
+// ParentalQuietFrom is the package's ParentalQuietFrom in the language of msgs.
+func (msgs Messages) ParentalQuietFrom() string { return msgs.text(textParentalQuietFrom) }
+
+// ParentalQuietUntil says "End time"
+// in the language the app shows under cx.
+func ParentalQuietUntil(cx *core.Scope) string { return For(cx).ParentalQuietUntil() }
+
+// ParentalQuietUntil is the package's ParentalQuietUntil in the language of msgs.
+func (msgs Messages) ParentalQuietUntil() string { return msgs.text(textParentalQuietUntil) }
+
+// ParentalQuietInvalid says "Use different start and end times in HH:MM format."
+// in the language the app shows under cx.
+func ParentalQuietInvalid(cx *core.Scope) string { return For(cx).ParentalQuietInvalid() }
+
+// ParentalQuietInvalid is the package's ParentalQuietInvalid in the language of msgs.
+func (msgs Messages) ParentalQuietInvalid() string { return msgs.text(textParentalQuietInvalid) }
+
+// ParentalBlockedTitle says "This title is hidden by parental controls."
+// in the language the app shows under cx.
+func ParentalBlockedTitle(cx *core.Scope) string { return For(cx).ParentalBlockedTitle() }
+
+// ParentalBlockedTitle is the package's ParentalBlockedTitle in the language of msgs.
+func (msgs Messages) ParentalBlockedTitle() string { return msgs.text(textParentalBlockedTitle) }
+
+// ParentalApprove says "Approve this title"
+// in the language the app shows under cx.
+func ParentalApprove(cx *core.Scope) string { return For(cx).ParentalApprove() }
+
+// ParentalApprove is the package's ParentalApprove in the language of msgs.
+func (msgs Messages) ParentalApprove() string { return msgs.text(textParentalApprove) }
+
+// ParentalUnrated says "This title has no recognized rating. Ask for approval before viewing."
+// in the language the app shows under cx.
+func ParentalUnrated(cx *core.Scope) string { return For(cx).ParentalUnrated() }
+
+// ParentalUnrated is the package's ParentalUnrated in the language of msgs.
+func (msgs Messages) ParentalUnrated() string { return msgs.text(textParentalUnrated) }
+
+// ParentalQuietBlocked says "Playback is paused during restricted viewing hours."
+// in the language the app shows under cx.
+func ParentalQuietBlocked(cx *core.Scope) string { return For(cx).ParentalQuietBlocked() }
+
+// ParentalQuietBlocked is the package's ParentalQuietBlocked in the language of msgs.
+func (msgs Messages) ParentalQuietBlocked() string { return msgs.text(textParentalQuietBlocked) }
+
+// ParentalLimitReached says "Today's viewing time has been used."
+// in the language the app shows under cx.
+func ParentalLimitReached(cx *core.Scope) string { return For(cx).ParentalLimitReached() }
+
+// ParentalLimitReached is the package's ParentalLimitReached in the language of msgs.
+func (msgs Messages) ParentalLimitReached() string { return msgs.text(textParentalLimitReached) }
+
+// ParentalExtend says "Add 30 minutes"
+// in the language the app shows under cx.
+func ParentalExtend(cx *core.Scope) string { return For(cx).ParentalExtend() }
+
+// ParentalExtend is the package's ParentalExtend in the language of msgs.
+func (msgs Messages) ParentalExtend() string { return msgs.text(textParentalExtend) }
+
+// ParentalUsageUnavailable says "Playback is paused because viewing usage could not be saved."
+// in the language the app shows under cx.
+func ParentalUsageUnavailable(cx *core.Scope) string { return For(cx).ParentalUsageUnavailable() }
+
+// ParentalUsageUnavailable is the package's ParentalUsageUnavailable in the language of msgs.
+func (msgs Messages) ParentalUsageUnavailable() string {
+	return msgs.text(textParentalUsageUnavailable)
+}
+
+// ParentalUnratedResult says "Unrated result {index}"
+// in the language the app shows under cx.
+func ParentalUnratedResult(cx *core.Scope, index string) string {
+	return For(cx).ParentalUnratedResult(index)
+}
+
+// ParentalUnratedResult is the package's ParentalUnratedResult in the language of msgs.
+func (msgs Messages) ParentalUnratedResult(index string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.ParentalUnratedResult(index))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].ParentalUnratedResult; f != nil {
+			return f(index)
+		}
+		switch lang {
+		case "", "en":
+			return "Unrated result " + msgs.arg(index)
+		case "zh-Hans":
+			return "未分级结果 " + index
+		}
+	}
 }

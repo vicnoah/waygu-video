@@ -121,7 +121,15 @@ func (a *application) downloadStorage(cx *core.Scope) core.Node {
 				}
 			})
 			rows := make([]core.Node, 0, len(entries))
+			rules := a.parentalRules()
+			sources := a.sources.Get()
 			for _, entry := range entries {
+				if rules.Enabled {
+					linked, exists := queue.source(entry, sources)
+					if !exists || !rules.visible(linked.ID, entry.Item) {
+						continue
+					}
+				}
 				rows = append(rows, a.downloadRow(cx, entry, confirm))
 			}
 			if len(rows) == 0 {

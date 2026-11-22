@@ -46,6 +46,9 @@ func TestTVNavigation(t *testing.T) {
 			app.Find("id:choose-flymoo")
 			app.Press("id:back")
 			app.Find("id:settings-add-source")
+			app.Press("id:tv-settings-section-parental")
+			app.Press("id:open-parental-settings")
+			app.Find("id:parental-enabled")
 		})
 	}
 }

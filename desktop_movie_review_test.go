@@ -56,10 +56,7 @@ func TestDockerDesktopMovieReview(t *testing.T) {
 				t.Helper()
 				app.WaitFor("id:tab-library", 8*time.Second)
 				app.Press("id:tab-library")
-				app.WaitFor("id:desktop-library-summary", 5*time.Second)
-				app.WaitUntil(8*time.Second, func() bool {
-					return strings.Contains(app.Find("id:desktop-library-summary").Text, "来自")
-				})
+				app.WaitFor("id:desktop-filter-source", 5*time.Second)
 				app.Press("id:desktop-filter-source")
 				label := map[string]string{"emby": "Emby", "jellyfin": "Jellyfin", "plex": "Plex"}[sourceID] + " 影视库"
 				app.Press("role:menuitem " + label)

@@ -69,10 +69,17 @@ func (a *application) detailLayout(cx *core.Scope, current route, idiom core.Idi
 		return a.relatedCopies(ctx, current, sources), nil
 	})
 	copies := core.NewMemoFunc(cx, func() []catalogCopy {
-		if loaded, ready := available.Get(); ready {
-			return prioritizeCopies(loaded, sources)
+		loaded, ready := available.Get()
+		if !ready {
+			loaded = append([]catalogCopy{anchor}, current.match.copies...)
 		}
-		return prioritizeCopies(append([]catalogCopy{anchor}, current.match.copies...), sources)
+		rules := a.parentalRules()
+		if rules.Enabled {
+			loaded = slices.DeleteFunc(slices.Clone(loaded), func(copy catalogCopy) bool {
+				return copy.key() != anchor.key() && !rules.visible(copy.source.ID, copy.item)
+			})
+		}
+		return prioritizeCopies(loaded, sources)
 	}, nil)
 	active := core.NewMemoFunc(cx, func() catalogCopy {
 		choices := copies.Get()
@@ -148,7 +155,7 @@ func (a *application) detailLayout(cx *core.Scope, current route, idiom core.Idi
 }
 
 func (a *application) detailResource(cx *core.Scope, current route) *core.Resource[detailResult] {
-	return core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (detailResult, error) {
+	return core.NewResource(cx, func() (parentalPolicy, bool) { return a.parentalRules(), true }, func(ctx context.Context, rules parentalPolicy, _ core.ResourceInfo) (detailResult, error) {
 		result := detailResult{item: current.item}
 		client, err := a.client(current.source)
 		if err != nil {
@@ -174,9 +181,19 @@ func (a *application) detailResource(cx *core.Scope, current route) *core.Resour
 				result.failure = err
 			}
 			for i := range result.children {
-				if result.children[i].LibraryID == "" {
-					result.children[i].LibraryID = result.item.LibraryID
+				child := &result.children[i]
+				if child.LibraryID == "" {
+					child.LibraryID = result.item.LibraryID
 				}
+				if rules.Enabled && child.Kind == media.Season && child.ContentRating == "" {
+					child.ContentRating = result.item.ContentRating
+					child.Genres = result.item.Genres
+				}
+			}
+			if rules.Enabled {
+				result.children = slices.DeleteFunc(result.children, func(item media.Item) bool {
+					return !rules.visible(current.source.ID, item)
+				})
 			}
 		}
 		return result, nil

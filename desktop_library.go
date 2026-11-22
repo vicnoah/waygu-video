@@ -82,7 +82,7 @@ func (a *application) desktopLibrary(cx *core.Scope, category func() libraryCate
 		})
 	}
 	availableLibraries := func() []ui.Option[string] {
-		return libraryChoices(cx, a.sources.Get(), current.Get().filters.Source, category())
+		return libraryChoices(cx, a.browseSources(), current.Get().filters.Source, category())
 	}
 	selectedSource := core.NewMemo(cx, func() string { return current.Get().filters.Source })
 	selectedLibrary := core.NewMemo(cx, func() string { return current.Get().filters.Library })
@@ -91,7 +91,7 @@ func (a *application) desktopLibrary(cx *core.Scope, category func() libraryCate
 		refresh.Get()
 		a.libraryChanges.Get()
 		a.progress.synced.Get()
-		return &catalogRequest{sources: a.sources.Get(), filter: selectedSource.Get(), library: selectedLibrary.Get(),
+		return &catalogRequest{sources: a.sources.Get(), parental: a.parentalRules(), filter: selectedSource.Get(), library: selectedLibrary.Get(),
 			category: category(), limit: 48, libraryFacts: true, merge: a.mergeTitles.Get()}
 	}, nil)
 	preview, full := a.libraryPages(cx, request.Get)
@@ -156,7 +156,7 @@ func (a *application) desktopLibrary(cx *core.Scope, category func() libraryCate
 					}, shuffle),
 			}},
 			core.Dynamic(func(cx *core.Scope) core.Node {
-				return desktopLibraryFilterBar(cx, filters.Get(), facets.Get(), a.sources.Get(), updateFilters, pickSource, clear, func() { filterDialog.Set(true) })
+				return desktopLibraryFilterBar(cx, filters.Get(), facets.Get(), a.browseSources(), updateFilters, pickSource, clear, func() { filterDialog.Set(true) })
 			}),
 			a.desktopLibraryResults(cx, rows, bookmarks, current, collapsed, waiting, func() error { return page.Get().failure },
 				func() { refresh.Update(func(value uint64) uint64 { return value + 1 }) }, sort),

@@ -27,15 +27,27 @@ func (a *application) nextEpisodeCard(cx *core.Scope, current route, client medi
 	if episode.Kind != media.Episode || episode.SeriesID == "" || episode.Episode <= 0 {
 		return nextEpisodeControls{unavailable: func() bool { return true }}
 	}
-	upcoming := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (media.Item, error) {
-		return findNextEpisode(ctx, client, episode)
-	})
+	upcoming := core.NewResource(cx, func() (parentalPolicy, bool) { return a.parentalRules(), true },
+		func(ctx context.Context, policy parentalPolicy, _ core.ResourceInfo) (media.Item, error) {
+			next, err := findNextEpisode(ctx, client, episode)
+			if next.LibraryID == "" {
+				next.LibraryID = episode.LibraryID
+			}
+			if !policy.visible(current.source.ID, next) {
+				return media.Item{}, err
+			}
+			return next, err
+		})
+	eligibleNext := func() (media.Item, bool) {
+		next, ready := upcoming.Get()
+		return next, ready && next.ID != "" && a.parentalRules().visible(current.source.ID, next)
+	}
 	dismissed := core.NewSignal(cx, false)
 	countdown := core.NewSignal(cx, 0)
 	play := func(next media.Item) { a.playEpisodeFrom(current, next) }
 	cx.Effect(func() {
-		next, ready := upcoming.Get()
-		if !ready || next.ID == "" || !finished.Get() || dismissed.Get() || !a.autoNext.Get() {
+		next, ready := eligibleNext()
+		if !ready || !finished.Get() || dismissed.Get() || !a.autoNext.Get() {
 			countdown.Set(0)
 			return
 		}
@@ -73,8 +85,8 @@ func (a *application) nextEpisodeCard(cx *core.Scope, current route, client medi
 		return length > 0 && at > 0 && length-at <= min(30*time.Second, length/3)
 	})
 	card := core.Dynamic(func(cx *core.Scope) core.Node {
-		next, ready := upcoming.Get()
-		if !ready || next.ID == "" || !visible.Get() {
+		next, ready := eligibleNext()
+		if !ready || !visible.Get() {
 			return nil
 		}
 		return core.View{Class: "self-end w-full max-w-[360px] gap-2 rounded-xl border border-border bg-card p-4", Children: []core.Node{
@@ -95,14 +107,14 @@ func (a *application) nextEpisodeCard(cx *core.Scope, current route, client medi
 		card: card,
 		play: func() {
 			cx.Untrack(func() {
-				if next, ready := upcoming.Get(); ready && next.ID != "" {
+				if next, ready := eligibleNext(); ready {
 					play(next)
 				}
 			})
 		},
 		unavailable: func() bool {
-			next, ready := upcoming.Get()
-			return !ready || next.ID == ""
+			_, ready := eligibleNext()
+			return !ready
 		},
 	}
 }
@@ -113,6 +125,9 @@ func (a *application) playEpisodeFrom(current route, next media.Item) {
 	if last.screen == screenPlayer && last.source.ID == current.source.ID && last.item.ID == current.item.ID && next.ID != current.item.ID {
 		if next.LibraryID == "" {
 			next.LibraryID = current.item.LibraryID
+		}
+		if !a.parentalRules().visible(current.source.ID, next) {
+			return
 		}
 		stack = slices.Clone(stack)
 		stack[len(stack)-1] = route{screen: screenPlayer, source: current.source, item: next, resume: true}

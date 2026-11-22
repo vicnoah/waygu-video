@@ -44,7 +44,7 @@ func (a *application) desktopMovieDetail(cx *core.Scope, current route, copies f
 	hero := core.Dynamic(func(cx *core.Scope) core.Node {
 		clips, _ := extras.Get()
 		var trailer func()
-		if index := slices.IndexFunc(clips, func(item media.Item) bool { return item.Trailer }); index >= 0 {
+		if index := slices.IndexFunc(clips, func(item media.Item) bool { return item.Trailer && a.parentalRules().visible(current.source.ID, item) }); index >= 0 {
 			trailer = func() { a.push(route{screen: screenPlayer, source: current.source, item: clips[index]}) }
 		}
 		return a.desktopMovieHero(cx, current, state, mask.Get(), reload, trailer)
@@ -105,7 +105,7 @@ func (a *application) desktopMovieRecommendations(cx *core.Scope, source source,
 	seen := map[string]bool{current: true}
 	var cards []core.Node
 	for _, item := range items {
-		if item.Kind != media.Movie || seen[item.ID] {
+		if item.Kind != media.Movie || seen[item.ID] || !a.parentalRules().visible(source.ID, item) {
 			continue
 		}
 		seen[item.ID] = true

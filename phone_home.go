@@ -51,7 +51,7 @@ func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult]
 		core.View{Class: gap, StyleFunc: bodyStyle, Children: []core.Node{
 			header,
 			core.Dynamic(func(cx *core.Scope) core.Node {
-				sources := a.sources.Get()
+				sources := a.browseSources()
 				if len(sources) == 0 {
 					return core.View{Class: margins + " items-center gap-4 rounded-3xl bg-white p-8 dark:bg-[#1a1b25] " + setupBorder, Children: []core.Node{
 						core.Icon{SVG: lucide.Clapperboard(), Class: "size-10 " + setupAccent}, hint(locales.NoSources(cx)),
@@ -140,7 +140,7 @@ func (a *application) phoneHomeHeader(cx *core.Scope, summary, picker core.Node)
 	avatar := base.Button{Label: locales.Settings(cx), TestID: "home-profile", Class: "size-8 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-md shadow-violet-500/30",
 		Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, OnPress: func(core.PressEvent) { a.tab.Set(3) },
 		Children: []core.Node{core.Dynamic(func(*core.Scope) core.Node {
-			for _, source := range a.sources.Get() {
+			for _, source := range a.browseSources() {
 				if filter := a.sourceFilter.Get(); filter != "" && filter != source.ID {
 					continue
 				}
@@ -167,7 +167,7 @@ func (a *application) phoneHomeHeader(cx *core.Scope, summary, picker core.Node)
 
 func (a *application) homeSummary(cx *core.Scope, results *core.Resource[catalogResult]) core.Node {
 	return core.Text{TestID: "home-summary", Class: "text-sm " + setupMuted, ContentFunc: func() string {
-		if len(a.sources.Get()) == 0 {
+		if len(a.browseSources()) == 0 {
 			return ""
 		}
 		if results.Loading() {
@@ -185,7 +185,7 @@ func (a *application) homeSummary(cx *core.Scope, results *core.Resource[catalog
 }
 
 func (a *application) homeSourceSelect(cx *core.Scope, results *core.Resource[catalogResult], selectSource func(string), tablet bool) core.Node {
-	return core.Show{When: func() bool { return len(a.sources.Get()) > 0 }, Then: func(cx *core.Scope) core.Node {
+	return core.Show{When: func() bool { return len(a.browseSources()) > 0 }, Then: func(cx *core.Scope) core.Node {
 		label := locales.AllSources(cx)
 		shape := "h-8 max-w-[154px] bg-white/80 dark:bg-[#1a1b25]/80"
 		trigger := "gap-1.5 px-3"
@@ -215,7 +215,7 @@ func (a *application) homeSourceSelect(cx *core.Scope, results *core.Resource[ca
 			ItemClass:  "min-h-11 items-center px-3 selected:bg-violet-500/12",
 			Items: func() []base.SelectItem {
 				items := []base.SelectItem{{Value: "all", Title: label}}
-				for _, source := range a.sources.Get() {
+				for _, source := range a.browseSources() {
 					items = append(items, base.SelectItem{Value: "source:" + source.ID, Title: source.Name})
 				}
 				return items
@@ -245,7 +245,7 @@ func (a *application) homeSourceSelect(cx *core.Scope, results *core.Resource[ca
 					return "bg-zinc-400"
 				}},
 				core.Text{Class: "min-w-0 shrink font-medium " + textSize + " " + setupTitle, MaxLines: 1, ContentFunc: func() string {
-					for _, source := range a.sources.Get() {
+					for _, source := range a.browseSources() {
 						if source.ID == a.sourceFilter.Get() {
 							return source.Name
 						}

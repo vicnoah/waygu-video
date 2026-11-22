@@ -45,7 +45,7 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 		a.desktopProfile(cx),
 	}}
 	body := core.Dynamic(func(cx *core.Scope) core.Node {
-		if len(a.sources.Get()) == 0 {
+		if len(a.browseSources()) == 0 {
 			return core.View{Class: "mx-8 items-center gap-4 rounded-3xl bg-white p-8 dark:bg-[#1a1b25] " + setupBorder, Children: []core.Node{
 				notice(locales.NoSources(cx)),
 				ui.Button{Text: locales.AddSource(cx), Icon: lucide.Plus, TestID: "empty-add-source",
@@ -62,7 +62,8 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 				notice(errorText(cx, result.failure)), ui.Button{Text: locales.Retry(cx), Variant: ui.ButtonOutline, OnPress: results.Refetch},
 			}})
 		}
-		recent := slices.Clone(result.items)
+		rules := a.parentalRules()
+		recent := slices.Clone(rules.catalog(result.items))
 		slices.SortStableFunc(recent, func(a, b catalogItem) int { return b.item.AddedAt.Compare(a.item.AddedAt) })
 		if featured := recommendHomeTitles(recent, 4); len(featured) > 0 {
 			nodes = append(nodes, core.Func(func(cx *core.Scope) core.Node { return a.desktopFeatured(cx, featured) }))
@@ -97,9 +98,9 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 		}
 		unmerged := recent
 		if len(result.resumeCatalog) > 0 {
-			unmerged = result.resumeCatalog
+			unmerged = rules.catalog(result.resumeCatalog)
 		}
-		for _, source := range a.sources.Get() {
+		for _, source := range a.browseSources() {
 			var entries []catalogItem
 			for _, entry := range unmerged {
 				if source.ID == entry.source.ID {
@@ -130,7 +131,7 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 			Children: []core.Node{core.Dynamic(func(cx *core.Scope) core.Node {
 				result, _ := results.Get()
 				var rows []core.Node
-				for _, entry := range a.sources.Get() {
+				for _, entry := range a.browseSources() {
 					if result.sources[entry.ID].failed {
 						rows = append(rows, hint(entry.Name+" · "+locales.HomeUnavailable(cx)))
 					}
@@ -154,7 +155,7 @@ func (a *application) desktopProfile(cx *core.Scope) core.Node {
 		Class: "size-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500",
 		Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, OnPress: func(core.PressEvent) { a.openDesktopSettings(cx, desktopSettingsOverview) },
 		Children: []core.Node{core.Dynamic(func(*core.Scope) core.Node {
-			for _, src := range a.sources.Get() {
+			for _, src := range a.browseSources() {
 				if letter, _ := utf8.DecodeRuneInString(strings.TrimSpace(src.Username)); letter != utf8.RuneError {
 					return core.Text{Content: string(unicode.ToUpper(letter)), Class: "text-sm font-semibold text-white"}
 				}

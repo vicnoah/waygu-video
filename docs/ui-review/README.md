@@ -12,6 +12,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Phone search · light and dark | [Title and credit search comparisons](phone-search.md) | Compared on GTK with real search results and saved history. Mobile device captures remain pending. |
 | Phone movie detail · light and dark | [Top and bottom comparisons and playback checks](phone-movie.md) | Compared on GTK with Docker movies, a trailer, and a featurette. Device captures and several design actions remain pending. |
 | Phone series detail · light and dark | [Season and specials comparisons](phone-series.md) | Compared on GTK with two seasons and a special. Phone device captures remain pending. |
+| Phone parental controls · light and dark | [PIN, rating and viewing-time comparisons](phone-parental.md) | Compared on GTK with Docker fixtures and verified with a simulated playback clock. Mobile and TV device checks remain pending. |
 | Tablet home · light and dark | [Screenshots and tablet interaction checks](tablet-home.md) | The tablet layout was compared on Linux GTK with three Docker media servers. Real-device captures remain pending. |
 | Tablet movie detail · light and dark | [Screenshots and playback checks](tablet-detail.md) | Compared on GTK with Docker movie metadata and tracks. Tablet device checks remain pending. |
 | TV home · light and dark | [Design, shelf and remote checks](tv-home.md) | Compared at 1920 × 1760 pt on GTK with three Docker media servers. Android TV D-pad navigation passed at 1920 × 1080. |
@@ -226,6 +227,15 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
 ```
 
 Capture `desktop-settings.scenra` and the four `views/desktop-settings-*.scenra` designs with the reference exporter. [Desktop Settings comparisons](desktop-settings.md)
+
+Capture phone parental controls with both appearances and verify the source allowlist against the Docker fixtures.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerPhoneParentalReview$' -screenshots .nsgo/ui-review/parental
+```
+
+Use `WAYGU_REVIEW_DESIGN=settings-parental.scenra` with the reference exporter. Run `TestPhoneParentalControlsAndPlaybackLimit` in the headless test suite to verify expiry and the protected extension.
 
 The reference uses the Scenra version pinned in this project and renders the original design files and components. Run it in its own module.
 

@@ -91,6 +91,11 @@ func (a *application) desktopPlayerEpisodePanel(cx *core.Scope, p desktopPlayerC
 		})
 	body := core.Dynamic(func(cx *core.Scope) core.Node {
 		items, _ := episodes.Get()
+		if rules := a.parentalRules(); rules.Enabled {
+			items = slices.DeleteFunc(slices.Clone(items), func(item media.Item) bool {
+				return !rules.visible(p.current.source.ID, inheritSeriesEpisode(item, episode))
+			})
+		}
 		choose := func(next media.Item) { a.playEpisodeFrom(p.current, next) }
 		var children []core.Node
 		if itemsSeason, _ := seasons.Get(); len(itemsSeason) > 0 {

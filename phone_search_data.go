@@ -70,7 +70,7 @@ func (a *application) loadSearchCredits(ctx context.Context, request catalogRequ
 	groups := make([]catalogResult, len(request.sources))
 	var workers sync.WaitGroup
 	for i, source := range request.sources {
-		if request.filter != "" && request.filter != source.ID {
+		if !request.parental.sourceAllowed(source.ID) || request.filter != "" && request.filter != source.ID {
 			continue
 		}
 		workers.Go(func() {
@@ -114,6 +114,9 @@ func (a *application) searchSourceCredits(ctx context.Context, source source, re
 		for _, item := range page.Items {
 			if item.ID != "" && (item.LibraryID == "" || item.LibraryID == library.ID) {
 				item.LibraryID = library.ID
+				if !request.parental.visible(source.ID, item) {
+					continue
+				}
 				result.items = append(result.items, catalogItem{source: source, item: item})
 			}
 		}

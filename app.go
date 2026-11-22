@@ -43,6 +43,7 @@ const (
 	screenTVSettings        screen = "tv-settings"
 	screenTVPairPhone       screen = "tv-pair-phone"
 	screenDownloads         screen = "downloads"
+	screenParentalSettings  screen = "settings-parental"
 )
 
 type route struct {
@@ -60,6 +61,7 @@ type route struct {
 	seriesView    seriesViewState
 	pairLink      string
 	settingsFlow  bool
+	sourceAdmin   bool
 }
 
 type source struct {
@@ -89,6 +91,11 @@ type mediaFactory func(media.Provider, string, media.Device, media.Session) (med
 type application struct {
 	scope               *core.Scope
 	lifetime            context.Context
+	parental            *core.Signal[parentalPolicy]
+	parentalUsage       *core.Signal[parentalUsage]
+	parentalApprovals   *core.Signal[map[copyKey]bool]
+	parentalPINFailures int
+	parentalPINRetry    time.Time
 	device              media.Device
 	storage             core.Storage
 	secrets             core.Secrets
@@ -189,6 +196,9 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 		autoNext:      core.NewSignal(cx, autoNext != "false"),
 		danmakuPrefs:  core.NewSignal(cx, core.Untracked(cx, func() danmakuPreferences { return readDanmakuPreferences(storage) })),
 	}
+	a.parental = core.NewSignalFunc(cx, core.Untracked(cx, func() parentalPolicy { return readParentalPolicy(storage) }), nil)
+	a.parentalUsage = core.NewSignal(cx, core.Untracked(cx, func() parentalUsage { return readParentalUsage(storage) }))
+	a.parentalApprovals = core.NewSignalFunc(cx, map[copyKey]bool{}, nil)
 	a.applyAppearance(cx)
 	a.progress = core.Untracked(cx, func() *progressOutbox { return newProgressOutbox(cx, storage) })
 	a.playbackPrefs = core.NewSignal(cx, core.Untracked(cx, func() playbackPreferences { return readPlaybackPreferences(storage) }))
@@ -221,28 +231,28 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 			case screenWelcome:
 				return a.welcome(screenScope)
 			case screenSources:
-				return a.chooseSource(screenScope)
+				return a.parentalSourceRoute(screenScope, current, a.chooseSource)
 			case screenConnect:
-				return a.connect(screenScope, current)
+				return a.parentalSourceRoute(screenScope, current, func(cx *core.Scope) core.Node { return a.connect(cx, current) })
 			case screenPlexLink:
 				account := plexAccount
 				if account == nil {
 					account = media.NewPlexAccount(a.device)
 				}
-				return a.linkPlex(screenScope, current.source, account)
+				return a.parentalSourceRoute(screenScope, current, func(cx *core.Scope) core.Node { return a.linkPlex(cx, current.source, account) })
 			case screenSourceSettings:
-				return a.phoneSourceSettings(screenScope)
+				return a.parentalSourceRoute(screenScope, current, a.phoneSourceSettings)
 			case screenDanmakuSettings:
 				return phoneSettingsPage(screenScope, locales.Danmaku(screenScope), a.back, "phone-danmaku-settings",
 					core.View{Class: "gap-4 px-4", Children: []core.Node{a.danmakuSettings(screenScope), a.danmakuDefaults(screenScope)}})
 			case screenManageLibraries:
-				return a.manageLibraries(screenScope, current.source)
+				return a.parentalSourceRoute(screenScope, current, func(cx *core.Scope) core.Node { return a.manageLibraries(cx, current.source) })
 			case screenDetail:
-				return a.detail(screenScope, current)
+				return a.parentalMediaRoute(screenScope, current, a.detail)
 			case screenPlayer:
-				return a.player(screenScope, current)
+				return a.parentalMediaRoute(screenScope, current, a.player)
 			case screenTVPairPhone:
-				return a.phoneTVPair(screenScope, current.pairLink)
+				return a.parentalSourceRoute(screenScope, current, func(cx *core.Scope) core.Node { return a.phoneTVPair(cx, current.pairLink) })
 			case screenTVSettings:
 				initial := tvSources
 				if current.item.ID != "" {
@@ -255,6 +265,8 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 				return a.phoneSubtitleSettings(screenScope)
 			case screenSubtitleLanguages:
 				return a.phoneSubtitleLanguages(screenScope)
+			case screenParentalSettings:
+				return a.phoneParentalSettings(screenScope)
 			case screenDownloads:
 				return a.downloadStorage(screenScope)
 			default:
@@ -266,6 +278,10 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 
 func (a *application) push(next route) {
 	stack := a.routes.GetUntracked()
+	switch next.screen {
+	case screenSources, screenConnect, screenPlexLink, screenSourceSettings, screenManageLibraries, screenTVPairPhone:
+		next.sourceAdmin = stack[len(stack)-1].sourceAdmin
+	}
 	a.routes.Set(append(slices.Clone(stack), next))
 }
 

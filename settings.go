@@ -131,6 +131,8 @@ func (a *application) settings(cx *core.Scope) core.Node {
 			core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: playbackControls},
 			a.danmakuSettings(cx),
 			a.danmakuDefaults(cx),
+			ui.Button{Text: locales.SettingsParental(cx), Icon: lucide.Shield, TestID: "open-parental-settings",
+				Variant: ui.ButtonOutline, OnPress: func() { a.push(route{screen: screenParentalSettings}) }},
 		},
 	}}}
 }

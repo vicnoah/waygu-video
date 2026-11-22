@@ -25,7 +25,7 @@ func (a *application) tvMediaDetail(cx *core.Scope, current route, copies func()
 		related = a.movieFeatures(cx, current, true)
 		trailer = func() media.Item {
 			items, _ := extras.Get()
-			if idx := slices.IndexFunc(items, func(item media.Item) bool { return item.Trailer }); idx >= 0 {
+			if idx := slices.IndexFunc(items, func(item media.Item) bool { return item.Trailer && a.parentalRules().visible(current.source.ID, item) }); idx >= 0 {
 				return items[idx]
 			}
 			return media.Item{}
@@ -67,6 +67,9 @@ func (a *application) tvMediaDetail(cx *core.Scope, current route, copies func()
 			}
 			seen[item.ID] = true
 			item.LibraryID = cmp.Or(item.LibraryID, current.item.LibraryID)
+			if !a.parentalRules().visible(current.source.ID, item) {
+				continue
+			}
 			entries = append(entries, catalogItem{source: current.source, item: item})
 		}
 		if len(entries) == 0 {

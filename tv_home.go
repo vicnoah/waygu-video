@@ -188,7 +188,7 @@ func (a *application) tvHeader(cx *core.Scope, l tvLayout, page func() screen, c
 				core.View{Class: "items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/40 ring-2 ring-white/30",
 					Style: core.Style{Width: l.length(56), Height: l.length(56)}, Children: []core.Node{
 						core.Dynamic(func(cx *core.Scope) core.Node {
-							for _, source := range a.sources.Get() {
+							for _, source := range a.browseSources() {
 								if initial, _ := utf8.DecodeRuneInString(strings.TrimSpace(source.Username)); initial != utf8.RuneError {
 									return l.text(string(unicode.ToUpper(initial)), 24, "font-semibold text-white")
 								}
@@ -208,10 +208,11 @@ func (a *application) tvHome(cx *core.Scope, results *core.Resource[catalogResul
 	dismissals, dismiss := a.tvResumeDismissals(cx)
 	return core.Scroll{Class: "flex-1 " + tvBackground, HideIndicator: true, TestID: "tv-home-scroll", Children: []core.Node{
 		core.Dynamic(func(cx *core.Scope) core.Node {
-			sources := a.sources.Get()
+			sources := a.browseSources()
 			result, ready := results.Get()
 			loading := !ready && results.Loading()
-			recent := slices.Clone(result.items)
+			rules := a.parentalRules()
+			recent := slices.Clone(rules.catalog(result.items))
 			slices.SortStableFunc(recent, func(a, b catalogItem) int { return b.item.AddedAt.Compare(a.item.AddedAt) })
 			featured := recommendHomeTitles(recent, 5)
 			header := core.View{Class: "bg-[#171720]", Children: []core.Node{options.header}}
@@ -258,7 +259,7 @@ func (a *application) tvHome(cx *core.Scope, results *core.Resource[catalogResul
 				children = append(children, a.tvPosters(cx, l, "tv-recent", locales.Recent(cx), "bg-fuchsia-500", nil, all, recent))
 				unmerged := recent
 				if len(result.resumeCatalog) > 0 {
-					unmerged = result.resumeCatalog
+					unmerged = rules.catalog(result.resumeCatalog)
 				}
 				for _, source := range sources {
 					var items []catalogItem

@@ -196,18 +196,20 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 			core.Scroll{Class: "flex-1", Children: []core.Node{
 				core.View{Class: "gap-5 px-3 " + top, Children: []core.Node{
 					header, search, core.View{Class: "gap-0.5", Children: browsing},
-					core.View{Class: "gap-0.5", Children: []core.Node{
-						tabletSidebarHeading(locales.MyLibrary(cx)),
-						tabletSidebarLink(cx, "tab-favorites", locales.Favorites(cx), lucide.Heart,
-							func() bool { return a.tab.Get() == 1 && a.libraryView.Get() == screenFavorites },
-							func() { a.openPersonalLibrary(screenFavorites); afterSelect() }),
-						tabletSidebarLink(cx, "tab-history", locales.WatchHistory(cx), lucide.Clock,
-							func() bool { return a.tab.Get() == 1 && a.libraryView.Get() == screenHistory },
-							func() { a.openPersonalLibrary(screenHistory); afterSelect() }),
-						downloads,
+					core.Show{When: func() bool { return !a.kidsBrowsing() }, Then: func(cx *core.Scope) core.Node {
+						return core.View{Class: "gap-0.5", Children: []core.Node{
+							tabletSidebarHeading(locales.MyLibrary(cx)),
+							tabletSidebarLink(cx, "tab-favorites", locales.Favorites(cx), lucide.Heart,
+								func() bool { return a.tab.Get() == 1 && a.libraryView.Get() == screenFavorites },
+								func() { a.openPersonalLibrary(screenFavorites); afterSelect() }),
+							tabletSidebarLink(cx, "tab-history", locales.WatchHistory(cx), lucide.Clock,
+								func() bool { return a.tab.Get() == 1 && a.libraryView.Get() == screenHistory },
+								func() { a.openPersonalLibrary(screenHistory); afterSelect() }),
+							downloads,
+						}}
 					}},
 					a.tabletSidebarSources(cx, afterSelect),
-					core.Show{When: func() bool { return wide && len(a.desktopCollections.Get()) > 0 }, Then: func(cx *core.Scope) core.Node { return a.desktopCollectionSidebar(cx, afterSelect) }},
+					core.Show{When: func() bool { return wide && !a.kidsBrowsing() && len(a.desktopCollections.Get()) > 0 }, Then: func(cx *core.Scope) core.Node { return a.desktopCollectionSidebar(cx, afterSelect) }},
 				}},
 			}},
 			core.View{Class: "mx-3 gap-0.5 border-t border-zinc-900/8 pb-4 pt-3 dark:border-white/8", Children: []core.Node{
@@ -248,7 +250,7 @@ const tabletSidebarRow = "h-9 flex-row items-center gap-3 rounded-lg px-3 select
 
 func (a *application) tabletSidebarSources(cx *core.Scope, afterSelect func()) core.Node {
 	return core.Dynamic(func(cx *core.Scope) core.Node {
-		sources := a.sources.Get()
+		sources := a.browseSources()
 		if len(sources) == 0 {
 			return nil
 		}
@@ -294,7 +296,7 @@ func (a *application) tabletSidebarSources(cx *core.Scope, afterSelect func()) c
 
 func (a *application) tabletSidebarProfile(cx *core.Scope, press func()) core.Node {
 	user := func() string {
-		for _, source := range a.sources.Get() {
+		for _, source := range a.browseSources() {
 			if name := strings.TrimSpace(source.Username); name != "" {
 				return name
 			}
@@ -321,7 +323,7 @@ func (a *application) tabletSidebarProfile(cx *core.Scope, press func()) core.No
 				core.Text{Class: "text-[11px] " + setupMuted, MaxLines: 1, ContentFunc: func() string {
 					statuses := a.sourceStatus.Get()
 					online := 0
-					for _, source := range a.sources.Get() {
+					for _, source := range a.browseSources() {
 						if statuses[source.ID].connected {
 							online++
 						}

@@ -27,6 +27,7 @@ type catalogItem struct {
 
 type catalogRequest struct {
 	sources      []source
+	parental     parentalPolicy
 	filter       string
 	library      string
 	search       string
@@ -42,6 +43,7 @@ type catalogRequest struct {
 
 type catalogResult struct {
 	items         []catalogItem
+	unrated       []catalogItem
 	resume        []catalogItem
 	hasMore       bool
 	failure       error
@@ -153,7 +155,7 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 		if page != screenHome {
 			selectedCategory = category.Get()
 		}
-		request := catalogRequest{sources: sources, filter: a.sourceFilter.Get(), library: library.Get(), search: term,
+		request := catalogRequest{sources: sources, parental: a.parentalRules(), filter: a.sourceFilter.Get(), library: library.Get(), search: term,
 			limit: limit.Get(), home: page == screenHome, personal: personal, category: selectedCategory, merge: a.mergeTitles.Get(),
 			libraryFacts: page == screenHome && (idiom == core.IdiomTV || idiom == core.IdiomDesktop)}
 		if request.home {
@@ -239,7 +241,9 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 		}},
 	}
 	if (idiom == core.IdiomPhone || idiom == core.IdiomTV) && (page == screenLibrary || personal != "") {
-		controls = append(controls, a.personalLibrarySwitch(cx, page))
+		controls = append(controls, core.Show{When: func() bool { return !a.kidsBrowsing() }, Then: func(cx *core.Scope) core.Node {
+			return a.personalLibrarySwitch(cx, page)
+		}})
 	}
 	if page == screenLibrary {
 		options := libraryCategories(cx, locales.AllCategories(cx))
@@ -249,7 +253,7 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 			core.Dynamic(func(cx *core.Scope) core.Node {
 				choices := []ui.Option[string]{{Label: locales.AllLibraries(cx)}}
 				filter := a.sourceFilter.Get()
-				request := catalogRequest{category: category.Get()}
+				request := catalogRequest{category: category.Get(), parental: a.parentalRules()}
 				for _, source := range a.sources.Get() {
 					if filter != "" && source.ID != filter {
 						continue
@@ -326,6 +330,9 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 				children = append(children, heading(locales.Recent(cx)))
 			}
 		}
+		if len(result.unrated) > 0 {
+			children = append(children, a.parentalUnratedResults(cx, result.unrated))
+		}
 		if len(result.items) > 0 {
 			cards := make([]core.Node, 0, len(result.items))
 			for _, entry := range result.items {
@@ -334,7 +341,7 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 			children = append(children, core.View{Class: "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6", Children: cards})
 		} else if loading {
 			children = append(children, hint(locales.Loading(cx)))
-		} else if result.failure == nil && len(result.resume) == 0 {
+		} else if result.failure == nil && len(result.resume) == 0 && len(result.unrated) == 0 {
 			children = append(children, notice(empty))
 		}
 		if result.hasMore && limit.Get() < 200 {
@@ -352,17 +359,20 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 }
 
 func (a *application) homeResume(result catalogResult, loading bool) []catalogItem {
-	request := catalogRequest{filter: a.sourceFilter.Get(), home: true}
+	request := catalogRequest{filter: a.sourceFilter.Get(), home: true, parental: a.parentalRules()}
 	sources := a.sources.Get()
 	merge := result.mergeResume || loading && len(sources) > 1 && request.filter == "" && a.mergeTitles.Get()
 	resume := a.progressResumeShelf(result.resume, sources, request)
-	return continueWatching(resume, result.resumeCatalog, merge)
+	return continueWatching(request.parental.catalog(resume), request.parental.catalog(result.resumeCatalog), merge)
 }
 
 func (a *application) loadCatalog(ctx context.Context, q catalogRequest) catalogResult {
 	groups := make([]catalogResult, len(q.sources))
 	var workers sync.WaitGroup
 	for i, source := range q.sources {
+		if !q.parental.sourceAllowed(source.ID) {
+			continue
+		}
 		if q.personal == screenFavorites && source.Provider == media.Plex {
 			continue
 		}
@@ -377,15 +387,17 @@ func (a *application) loadCatalog(ctx context.Context, q catalogRequest) catalog
 	}
 	for index, group := range groups {
 		all.items = append(all.items, group.items...)
+		all.unrated = append(all.unrated, group.unrated...)
 		all.resume = append(all.resume, group.resume...)
 		all.resumeCache = append(all.resumeCache, group.resumeCache...)
 		all.hasMore = all.hasMore || group.hasMore
 		all.failure = errors.Join(all.failure, group.failure)
 		all.connected = all.connected || group.connected
-		if q.home && (q.filter == "" || q.filter == q.sources[index].ID) {
+		if q.home && q.parental.sourceAllowed(q.sources[index].ID) && (q.filter == "" || q.filter == q.sources[index].ID) {
 			all.sources[q.sources[index].ID] = homeSourceStatus{total: group.total, connected: group.connected, failed: group.failure != nil}
 		}
 	}
+	all.resume = q.parental.catalog(all.resume)
 	if q.personal == screenHistory {
 		sortRecent(all.items)
 		return all
@@ -401,7 +413,7 @@ func (a *application) loadCatalog(ctx context.Context, q catalogRequest) catalog
 }
 
 func (q catalogRequest) includesLibrary(sourceID string, library sourceLibrary) bool {
-	if library.Hidden || (q.home && library.HideFromHome) || (q.library != "" && q.library != sourceID+"/"+library.ID) {
+	if !q.parental.sourceAllowed(sourceID) || !q.parental.libraryAllowed(sourceID, library.ID) || library.Hidden || (q.home && library.HideFromHome) || (q.library != "" && q.library != sourceID+"/"+library.ID) {
 		return false
 	}
 	category := library.category()
@@ -473,7 +485,9 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 			}
 		}
 		result.connected = true
-		result.total += max(page.Total, len(page.Items))
+		if !q.parental.Enabled {
+			result.total += max(page.Total, len(page.Items))
+		}
 		for _, item := range page.Items {
 			if q.personal != "" && item.LibraryID != "" && item.LibraryID != library.ID {
 				continue
@@ -484,6 +498,17 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 			if !seen[item.ID] && library.matchesCategory(q.category, item) {
 				if item.LibraryID == "" && !globalSearch {
 					item.LibraryID = library.ID
+				}
+				decision := q.parental.assess(source.ID, item)
+				if decision != parentalAllowed {
+					if decision == parentalUnrated && q.search != "" {
+						result.unrated = append(result.unrated, catalogItem{source: source, item: item})
+						seen[item.ID] = true
+					}
+					continue
+				}
+				if q.parental.Enabled {
+					result.total++
 				}
 				result.items = append(result.items, catalogItem{source: source, item: item})
 				seen[item.ID] = true

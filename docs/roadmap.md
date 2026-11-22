@@ -24,7 +24,8 @@ The Scenra files in `design/` define the product. The current app connects to Em
 - Desktop direct play with libmpv switches embedded audio and subtitles in place, including Flymoo streams and embedded Plex subtitles. It supports subtitle delay alongside the independent danmaku overlay.
 - Verify codec-driven direct stream and transcode decisions. Add network-specific bitrate preferences, Flymoo track selection and embedded Plex subtitles on native backends, subtitle image formats, online subtitle search, custom fonts, bilingual rendering, per-platform decoder and audio controls, and caption preferences for embedded libmpv tracks. Verify next-episode playback across seasons on TV devices and add intro and credits markers.
 - With DandanPlay developer credentials, the player matches original files by fingerprint, offers episode search, remembers bindings per media source, and reuses their numbering within a season. It caches downloaded comments for 24 hours on native platforms and combines them with local XML or JSON comments. Display and filter preferences are shared by the native and libmpv renderers. Playback applies keyword, regular expression and comment type filters, marks repeat counts, and saves time offsets per item. Add ASS import, other online sources, comment sending and user blocks.
-- Implement offline downloads, casting, settings, parental controls and iCloud sync. Complete the phone, tablet, desktop and TV views from `design/`.
+- Parental controls save device-local rating, library, source and viewing-time rules. The PIN protects changes and time extensions. Capture the shared form on real mobile and TV devices and expand regional rating coverage. [Phone comparison](ui-review/phone-parental.md)
+- Complete casting, the remaining settings and iCloud sync. Complete the phone, tablet, desktop and TV views from `design/`.
 
 ## Platform verification
 

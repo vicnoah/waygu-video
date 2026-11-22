@@ -95,7 +95,12 @@ func (a *application) phoneSettingsHome(cx *core.Scope) core.Node {
 					return mediaBytes(bytes)
 				}, routeTo(screenDownloads))
 			}),
-			(phoneSetting{locales.SettingsParental(cx), "", "bg-amber-500", lucide.Shield}).unavailable(cx),
+			(phoneSetting{locales.SettingsParental(cx), "", "bg-amber-500", lucide.Shield}).linkValue(cx, "open-parental-settings", func() string {
+				if a.parentalRules().Enabled {
+					return locales.SettingsEnabled(cx)
+				}
+				return locales.SettingsDisabled(cx)
+			}, routeTo(screenParentalSettings)),
 		),
 		setupGroup(locales.SettingsOther(cx), footer,
 			aboutSetting(cx, version)),

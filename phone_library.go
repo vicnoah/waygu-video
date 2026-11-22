@@ -27,11 +27,11 @@ func (a *application) compactLibrary(cx *core.Scope) core.Node {
 		if selected := current.Get().category; selected != "" {
 			return selected
 		}
-		return defaultPhoneLibrary(a.sources.Get(), a.sourceFilter.Get())
+		return defaultPhoneLibrary(a.browseSources(), a.sourceFilter.Get())
 	})
 	library := core.NewMemo(cx, func() string {
 		selected := current.Get().library
-		if selected != "" && slices.ContainsFunc(libraryChoices(cx, a.sources.Get(), a.sourceFilter.Get(), category.Get()), func(option ui.Option[string]) bool {
+		if selected != "" && slices.ContainsFunc(libraryChoices(cx, a.browseSources(), a.sourceFilter.Get(), category.Get()), func(option ui.Option[string]) bool {
 			return option.Value == selected
 		}) {
 			return selected
@@ -43,7 +43,7 @@ func (a *application) compactLibrary(cx *core.Scope) core.Node {
 		refresh.Get()
 		a.libraryChanges.Get()
 		a.progress.synced.Get()
-		return &catalogRequest{sources: a.sources.Get(), filter: a.sourceFilter.Get(), library: library.Get(),
+		return &catalogRequest{sources: a.sources.Get(), parental: a.parentalRules(), filter: a.sourceFilter.Get(), library: library.Get(),
 			category: category.Get(), libraryFacts: true, limit: phoneLibraryPageSize, merge: a.mergeTitles.Get()}
 	}, nil)
 	preview, full := a.libraryPages(cx, request.Get)
@@ -171,7 +171,7 @@ func (a *application) compactLibrary(cx *core.Scope) core.Node {
 			OnOpenChange: func(open bool, _ base.Reason) { filterOpen.Set(open) },
 			Children: []core.Node{core.Dynamic(func(cx *core.Scope) core.Node {
 				sourceOptions := []ui.Option[string]{{Label: locales.AllSources(cx)}}
-				for _, source := range a.sources.Get() {
+				for _, source := range a.browseSources() {
 					sourceOptions = append(sourceOptions, ui.Option[string]{Label: source.Name, Value: source.ID})
 				}
 				return core.View{Class: "gap-3", Children: []core.Node{
@@ -182,7 +182,7 @@ func (a *application) compactLibrary(cx *core.Scope) core.Node {
 								change(func(state *phoneLibraryState) { state.library = "" })
 							})
 						}},
-					ui.Select[string]{Label: locales.Library(cx), Options: libraryChoices(cx, a.sources.Get(), a.sourceFilter.Get(), category.Get()),
+					ui.Select[string]{Label: locales.Library(cx), Options: libraryChoices(cx, a.browseSources(), a.sourceFilter.Get(), category.Get()),
 						TestID: "catalog-library", Value: library.Get, OnChange: func(id string) {
 							change(func(state *phoneLibraryState) { state.library = id })
 						}},

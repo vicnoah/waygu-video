@@ -169,11 +169,12 @@ func setupPage(cx *core.Scope, title string, back func(), body core.Node) core.N
 }
 
 func setupGroup(title, detail string, rows ...core.Node) core.Node {
-	children := []core.Node{
-		core.Text{Content: title, Class: "px-4 text-xs font-medium uppercase tracking-wide " + setupMuted},
-		core.View{Class: "gap-px overflow-hidden rounded-2xl bg-zinc-200 shadow-sm shadow-black/5 dark:bg-white/7 " + setupBorder,
-			Children: rows},
+	var children []core.Node
+	if title != "" {
+		children = append(children, core.Text{Content: title, Class: "px-4 text-xs font-medium uppercase tracking-wide " + setupMuted})
 	}
+	children = append(children, core.View{Class: "gap-px overflow-hidden rounded-2xl bg-zinc-200 shadow-sm shadow-black/5 dark:bg-white/7 " + setupBorder,
+		Children: rows})
 	if detail != "" {
 		children = append(children, core.Text{Content: detail, Class: "px-4 text-xs leading-relaxed " + setupMuted})
 	}

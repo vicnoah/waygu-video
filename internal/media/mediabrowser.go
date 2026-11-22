@@ -173,7 +173,7 @@ type browserItem struct {
 
 func (m *mediaBrowser) itemFields() string {
 	if m.kind == Emby {
-		return browserItemFields + ",UserDataLastPlayedDate"
+		return browserItemFields + ",OfficialRating,UserDataLastPlayedDate"
 	}
 	return browserItemFields
 }

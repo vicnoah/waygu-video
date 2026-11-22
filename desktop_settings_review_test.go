@@ -74,6 +74,8 @@ func TestDesktopSettingsWindow(t *testing.T) {
 	if value, _ := app.Storage().GetItem(appearanceKey); value != "dark" {
 		t.Fatalf("saved appearance = %q", value)
 	}
+	window.Press("id:desktop-settings-tab-parental")
+	window.Find("id:parental-enabled")
 	window.Press("id:desktop-settings-tab-sources")
 	window.Press("id:source-settings-add")
 	app.WaitFor("id:lan-discovery", 3*time.Second)

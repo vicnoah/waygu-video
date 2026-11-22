@@ -81,7 +81,7 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 		for _, item := range items {
 			rows = append(rows, catalogItem{source: current.source, item: inheritSeriesEpisode(item, current.item)})
 		}
-		return latestSeriesBookmark(pending(rows))
+		return latestSeriesBookmark(a.parentalRules().catalog(pending(rows)))
 	}, sameSeriesBookmark)
 
 	activeTab := core.NewMemo(cx, func() string {
@@ -129,6 +129,9 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 		items := make([]catalogItem, 0, len(page.items))
 		ids := make(map[string]bool, len(page.items))
 		for _, item := range page.items {
+			if !a.parentalRules().visible(current.source.ID, item) {
+				continue
+			}
 			items = append(items, catalogItem{source: current.source, item: item})
 			ids[item.ID] = true
 		}

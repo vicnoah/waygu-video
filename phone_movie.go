@@ -86,13 +86,16 @@ func (a *application) phoneMovieDetail(cx *core.Scope, current route, copies fun
 			children = append(children, phoneMovieCast(cx, item.People, func() { castOpen.Set(true) }))
 		}
 		if clips, _ := extras.Get(); len(clips) != 0 {
-			children = append(children, a.phoneMovieExtras(cx, current.source, clips))
+			clips = a.parentalVisibleItems(current.source.ID, clips)
+			if len(clips) != 0 {
+				children = append(children, a.phoneMovieExtras(cx, current.source, clips))
+			}
 		}
 		if matches, _ := related.Get(); len(matches) != 0 {
 			var cards []core.Node
 			seen := map[string]bool{item.ID: true}
 			for _, match := range matches {
-				if match.Kind == media.Movie && !seen[match.ID] {
+				if match.Kind == media.Movie && !seen[match.ID] && a.parentalRules().visible(current.source.ID, match) {
 					seen[match.ID] = true
 					cards = append(cards, a.homePosterCard(cx, catalogItem{source: current.source, item: match}))
 				}

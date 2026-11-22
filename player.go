@@ -1,7 +1,9 @@
 package main
 
 import (
+	"cmp"
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -43,6 +45,8 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	options, remembered := a.initialPlaybackOptions(current)
 	options.SubtitleIndex = &noServerSubtitles
 	subtitlePrefs := a.subtitlePrefs.GetUntracked()
+	restrictions := core.Untracked(cx, a.parentalRules)
+	approved := a.parentalApprovals.GetUntracked()[copyKey{current.source.ID, current.item.ID}]
 	resource := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (playerMedia, error) {
 		if offline {
 			return a.downloadedMedia(download, current.source, platform)
@@ -50,6 +54,23 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 		client, err := a.client(current.source)
 		if err != nil {
 			return playerMedia{}, err
+		}
+		if restrictions.Enabled {
+			if item, err := client.Detail(ctx, current.item); err == nil {
+				item.LibraryID = cmp.Or(item.LibraryID, current.item.LibraryID)
+				item.ContentRating = cmp.Or(item.ContentRating, current.item.ContentRating)
+				if len(item.Genres) == 0 {
+					item.Genres = current.item.Genres
+				}
+				switch restrictions.assess(current.source.ID, item) {
+				case parentalBlocked:
+					return playerMedia{}, errParentalMedia
+				case parentalUnrated:
+					if !approved {
+						return playerMedia{}, errParentalMedia
+					}
+				}
+			}
 		}
 		stream, err := openPlaybackVersion(ctx, client, current.item, options, remembered)
 		if err != nil {
@@ -77,6 +98,8 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 				message := errorText(cx, err)
 				if offline {
 					message = locales.DownloadFileUnavailable(cx)
+				} else if errors.Is(err, errParentalMedia) {
+					message = locales.ParentalBlockedTitle(cx)
 				}
 				state = core.View{Class: "items-center gap-4", Children: []core.Node{
 					notice(message), ui.Button{Text: locales.Retry(cx), OnPress: resource.Refetch},
@@ -129,7 +152,8 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	}
 	sample := core.NewSignal(cx, videoSample{})
 	picture := core.NewSignal(cx, core.Size{})
-	paused := core.NewSignal(cx, false)
+	status, _ := a.parental.GetUntracked().viewingLimit(cx.WallTime(), a.parentalUsage.GetUntracked())
+	paused := core.NewSignal(cx, status != parentalCanPlay)
 	prefs := a.playbackPrefs.GetUntracked()
 	fit := core.NewSignal(cx, prefs.resizeMode())
 	pip := core.NewSignal(cx, core.PictureInPictureState{})
@@ -138,6 +162,11 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	failure := core.NewSignal(cx, false)
 	buffering := core.NewSignal(cx, false)
 	switchingPlayback := core.NewSignal(cx, false)
+	budgetReady := core.NewSignal(cx, false)
+	blocked, parentalOverlay := a.parentalViewing(cx, func() bool {
+		return budgetReady.Get() && !paused.Get() && !buffering.Get() && !ended.Get() && !failure.Get()
+	}, func() { paused.Set(true) })
+	videoMount := core.NewSignal(cx, uint64(0))
 	audioError := core.NewSignal(cx, false)
 	qualityError := core.NewSignal(cx, false)
 	desktop := core.NewSignal[*desktopVideo](cx, nil)
@@ -217,6 +246,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 					position.Set(0)
 				}
 				loaded = false
+				budgetReady.Set(false)
 				ended.Set(false)
 				failure.Set(false)
 				buffering.Set(true)
@@ -237,11 +267,14 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	}
 	image := core.Dynamic(func(cx *core.Scope) core.Node {
 		active := medium.Get()
+		videoMount.Get()
+		restrictions := a.parentalRules()
+		pipAllowed := cx.Env().OS() == core.OSIOS && !(restrictions.Enabled && restrictions.TimeLimit)
 		video := core.Video{Source: active.url, PausedFunc: paused.Get, RateFunc: rate.Get, Ref: ref,
 			TestID: "video-player", Class: "absolute inset-0", ResizeModeFunc: fit.Get, ProgressInterval: 150 * time.Millisecond,
 			AudioSession:         core.AudioSessionPlayback,
-			PictureInPicture:     cx.Env().OS() == core.OSIOS,
-			AutoPictureInPicture: cx.Env().OS() == core.OSIOS && !prefs.DisableAutoPiP,
+			PictureInPicture:     pipAllowed,
+			AutoPictureInPicture: pipAllowed && !prefs.DisableAutoPiP,
 			OnPictureInPicture:   pip.Set,
 			OnLoad: func(info core.VideoInfo) {
 				picture.Set(info.Size)
@@ -249,6 +282,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 					duration.Set(info.Duration)
 				}
 				loaded = true
+				budgetReady.Set(true)
 				if !offline {
 					a.rememberPlayedCopy(current)
 					a.rememberPlaybackVersion(current, active.client, active.stream.VersionID())
@@ -288,6 +322,12 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				}
 			},
 			OnPlay: func() {
+				if core.Untracked(cx, blocked) {
+					// Native controls can resume even while the bound pause value is true.
+					budgetReady.Set(false)
+					videoMount.Update(func(mount uint64) uint64 { return mount + 1 })
+					return
+				}
 				if paused.GetUntracked() {
 					paused.Set(false)
 					report(media.Progress)
@@ -345,6 +385,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	}
 	tracks := playerTracks(cx, activeStream, directDecoder, current.subtitleTrack, a.subtitlePrefs.Get, position, rate, canChangeRate, switchingPlayback, audioError, chooseAudio, quality, a.playerSubtitleStyle)
 	toggle := func() {
+		if core.Untracked(cx, blocked) {
+			return
+		}
 		if ended.GetUntracked() {
 			seek(0)
 			report(media.Started)
@@ -426,7 +469,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		}}
 	}}
 	if desktopLayout {
-		return a.desktopPlayer(cx, desktopPlayerControls{
+		desktopPlayer := a.desktopPlayer(cx, desktopPlayerControls{
 			current: current, client: initial.client, stream: activeStream,
 			position: position, duration: duration, paused: paused, picture: picture,
 			rate: rate, volume: a.desktopPlayerVolume, canRate: canChangeRate.Get, seek: seek, toggle: toggle,
@@ -442,9 +485,10 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			},
 			buffering: buffering.Get,
 		}, []core.Node{image, comments.overlay, tracks.captions, transportNotice})
+		return core.View{Class: "relative flex-1", Children: []core.Node{desktopPlayer, parentalOverlay}}
 	}
 	return core.View{Class: "relative flex-1 overflow-hidden bg-black", Style: core.Style{FlexShrink: 1},
-		Children: []core.Node{image, comments.overlay, tracks.captions, chrome, transportNotice, tracks.dialog, comments.dialog}}
+		Children: []core.Node{image, comments.overlay, tracks.captions, chrome, transportNotice, tracks.dialog, comments.dialog, parentalOverlay}}
 }
 
 func playbackReports(client media.Client, watch *progressWatch) (func(media.PlaybackState), func(*media.PlaybackState)) {

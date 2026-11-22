@@ -50,7 +50,7 @@ func (a *application) compactSearch(cx *core.Scope) core.Node {
 		refresh.Get()
 		a.libraryChanges.Get()
 		a.progress.synced.Get()
-		return &catalogRequest{sources: a.sources.Get(), filter: filter.Get(), search: state.term.Get(), limit: 48,
+		return &catalogRequest{sources: a.sources.Get(), parental: a.parentalRules(), filter: filter.Get(), search: state.term.Get(), limit: 48,
 			libraryFacts: true, scan: true, merge: a.mergeTitles.Get()}
 	}, nil)
 	cx.Effect(func() {
@@ -92,7 +92,7 @@ func (a *application) compactSearch(cx *core.Scope) core.Node {
 				}},
 		}},
 		core.Dynamic(func(cx *core.Scope) core.Node {
-			return phoneSearchSources(cx, a.sources.Get(), filter.Get, func(id string) {
+			return phoneSearchSources(cx, a.browseSources(), filter.Get, func(id string) {
 				cx.Batch(func() {
 					state.source.Set(id)
 					state.term.Set(strings.TrimSpace(state.draft.GetUntracked()))
@@ -102,6 +102,9 @@ func (a *application) compactSearch(cx *core.Scope) core.Node {
 		}),
 	}}
 	history := core.Dynamic(func(cx *core.Scope) core.Node {
+		if a.kidsBrowsing() {
+			return nil
+		}
 		return a.phoneSearchHistory(cx, state.history.Get(), submit)
 	})
 	results := core.Dynamic(func(cx *core.Scope) core.Node {
@@ -131,7 +134,11 @@ func (a *application) compactSearch(cx *core.Scope) core.Node {
 				!strings.Contains(strings.ToLower(entry.item.OriginalTitle), needle)
 		})
 		entries := combinePhoneSearch(q, matched.result.items, people.result.items, local)
+		unrated := a.parentalUnratedResults(cx, matched.result.unrated)
 		if len(entries) == 0 {
+			if unrated != nil {
+				return core.View{Class: "px-5", Children: []core.Node{unrated}}
+			}
 			if loading {
 				return hintSearch(locales.Loading(cx))
 			}
@@ -144,9 +151,13 @@ func (a *application) compactSearch(cx *core.Scope) core.Node {
 				core.Text{Content: locales.SearchNoResults(cx), Class: "text-center text-sm " + setupMuted},
 			}}
 		}
-		return a.phoneSearchResults(cx, entries, q.search, visible.Get(), loading, matched.result.failure, func() {
+		list := a.phoneSearchResults(cx, entries, q.search, visible.Get(), loading, matched.result.failure, func() {
 			visible.Update(func(n int) int { return n + 24 })
 		})
+		if unrated != nil {
+			return core.View{Class: "gap-4", Children: []core.Node{list, core.View{Class: "px-5", Children: []core.Node{unrated}}}}
+		}
+		return list
 	})
 	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Children: []core.Node{
 		homeAmbient(false, true), homeAmbient(true, true),

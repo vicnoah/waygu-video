@@ -62,12 +62,13 @@ func (q *downloadQueue) available() bool { return q.store.Dir != "" }
 func (a *application) libraryDownloads(query catalogRequest) []catalogItem {
 	var items []catalogItem
 	sources := a.sources.Get()
+	query.parental = a.parentalRules()
 	for _, entry := range a.downloads.entries.Get() {
 		if entry.State != downloadComplete {
 			continue
 		}
 		selected, exists := a.downloads.source(entry, sources)
-		if !exists || (query.filter != "" && selected.ID != query.filter) {
+		if !exists || !query.parental.visible(selected.ID, entry.Item) || (query.filter != "" && selected.ID != query.filter) {
 			continue
 		}
 		for _, library := range selected.Libraries {

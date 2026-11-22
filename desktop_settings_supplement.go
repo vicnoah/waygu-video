@@ -33,7 +33,7 @@ func (a *application) desktopSettingsSupplement(cx *core.Scope, link desktopSett
 		content = desktopFormGroup(locales.StorageDownloads(cx), desktopFormRow(locales.StorageDownloads(cx), desktopSettingsAction(cx,
 			"desktop-settings-downloads", locales.SettingsEdit(cx), setupAccent, func() { a.openDesktopSettingsFlow(route{screen: screenDownloads}) })))
 	case "parental":
-		content = desktopFormGroup(link.label, desktopUnavailableChoice(cx, link.label))
+		content = a.parentalSettings(cx)
 	case "keys":
 		content = desktopFormGroup(locales.PlaybackSettings(cx),
 			desktopShortcut(locales.Pause(cx)+" / "+locales.Play(cx), "Space"),
