@@ -86,7 +86,7 @@ func TestDandanSignedMatchingAndCache(t *testing.T) {
 	cache := t.TempDir()
 	read := func() {
 		comments, err := client.CachedComments(ctx, cache, matched.Episodes[0].ID)
-		if err != nil || len(comments) != 1 || comments[0] != (Comment{At: 12340 * time.Millisecond, Mode: Top, Color: 0xff0000, Text: "Example"}) {
+		if err != nil || len(comments) != 1 || comments[0] != (Comment{At: 12340 * time.Millisecond, Mode: Top, Color: 0xff0000, Text: "Example", User: "u"}) {
 			t.Fatalf("comments = %+v, %v", comments, err)
 		}
 	}

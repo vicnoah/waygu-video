@@ -251,8 +251,7 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 			case screenSourceSettings:
 				return a.parentalSourceRoute(screenScope, current, a.phoneSourceSettings)
 			case screenDanmakuSettings:
-				return phoneSettingsPage(screenScope, locales.Danmaku(screenScope), a.back, "phone-danmaku-settings",
-					core.View{Class: "gap-4 px-4", Children: []core.Node{a.danmakuSettings(screenScope), a.danmakuDefaults(screenScope)}})
+				return a.phoneDanmakuSettings(screenScope)
 			case screenManageLibraries:
 				return a.parentalSourceRoute(screenScope, current, func(cx *core.Scope) core.Node { return a.manageLibraries(cx, current.source) })
 			case screenDetail:

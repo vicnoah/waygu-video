@@ -118,6 +118,7 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 	}
 	panel := core.NewSignal(cx, false)
 	tab := core.NewSignal(cx, 0)
+	openMatch := func() { tab.Set(1); panel.Set(true) }
 	invalid := core.NewSignal(cx, false)
 	busy := core.NewSignal(cx, false)
 	clock := core.NewSignal(cx, time.Duration(0))
@@ -127,7 +128,7 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 		source = a.onlineDanmaku(cx, current, stream, func(comments []danmaku.Comment, shift float64) {
 			remote.Set(remoteComments{comments, shift})
 			enableRemote.Set(true)
-		}, func() { panel.Set(false) })
+		}, func() { panel.Set(false) }, openMatch)
 	} else {
 		source = hint(locales.DownloadOfflinePlayback(cx))
 	}
@@ -275,7 +276,7 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 	})
 	return danmakuControls{
 		dialog: dialog, openPanel: func() { panel.Set(true) }, panelOpen: panel.Get, importFile: choose,
-		openMatch: func() { tab.Set(1); panel.Set(true) },
+		openMatch: openMatch,
 		offset:    offset.Get, setOffset: setOffset,
 		events: func() []danmaku.Event {
 			if value, _ := track.Get(); value != nil {

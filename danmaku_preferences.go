@@ -22,7 +22,8 @@ type danmakuPreferences struct {
 	Enabled, AutoMatch, Bold, ReserveSubtitles, Deduplicate bool
 	Scrolling, Top, Bottom, Colored                         bool
 	DisableDandan, DisableLocal                             bool
-	Keywords, Patterns                                      string
+	Keywords, Patterns, BlockedUsers                        string
+	PromptOnMiss                                            bool
 }
 
 func readDanmakuPreferences(storage core.Storage) danmakuPreferences {
@@ -64,6 +65,12 @@ func (p danmakuPreferences) rendererSettings(offset time.Duration) danmaku.Setti
 	settings.Bold, settings.ReserveSubtitles, settings.Deduplicate = p.Bold, p.ReserveSubtitles, p.Deduplicate
 	settings.HideScrolling, settings.HideTop, settings.HideBottom, settings.HideColored = !p.Scrolling, !p.Top, !p.Bottom, !p.Colored
 	settings.Keywords = danmakuRules(p.Keywords)
+	if users := danmakuRules(p.BlockedUsers); len(users) > 0 {
+		settings.BlockedUsers = make(map[string]bool, len(users))
+		for _, user := range users {
+			settings.BlockedUsers[user] = true
+		}
+	}
 	for _, pattern := range danmakuRules(p.Patterns) {
 		if compiled, err := regexp.Compile(pattern); err == nil {
 			settings.Patterns = append(settings.Patterns, compiled)

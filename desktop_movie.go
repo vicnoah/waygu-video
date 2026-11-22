@@ -95,7 +95,7 @@ func (a *application) desktopMovieDetail(cx *core.Scope, current route, copies f
 			},
 			Children: []core.Node{core.Show{When: matchOpen.Get, Then: func(cx *core.Scope) core.Node {
 				return core.Scroll{Class: "max-h-[350px]", Children: []core.Node{
-					a.onlineDanmaku(cx, current, media.Stream{}, nil, closeMatch),
+					a.onlineDanmaku(cx, current, media.Stream{}, nil, closeMatch, nil),
 				}}
 			}}}, Footer: []core.Node{ui.Button{Text: locales.Back(cx), TestID: "detail-close-danmaku", OnPress: closeMatch}}},
 	}}

@@ -51,6 +51,7 @@ func TestPlayerBindsDandanPlayAndReusesComments(t *testing.T) {
 	}))
 	defer video.Close()
 	app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
+		shellIdiom.Provide(cx, core.IdiomPhone)
 		return appRootWithDandan(cx, func(_ media.Provider, _ string, _ media.Device, session media.Session) (media.Client, error) {
 			return dandanVideoFixture{fixtureServer: fixtureServer{session: session}, url: video.URL + "/fixture.mp4"}, nil
 		}, nil, func(credentials danmaku.DandanCredentials) *danmaku.DandanClient {
@@ -66,6 +67,8 @@ func TestPlayerBindsDandanPlayAndReusesComments(t *testing.T) {
 	}
 	app.Press(settingsTab)
 	app.Press("id:open-phone-danmaku-settings")
+	app.Press("id:phone-danmaku-dandan")
+	app.WaitFor("id:dandan-app-id", time.Second)
 	app.Type("id:dandan-app-id", "ui-fixture-id")
 	app.Type("id:dandan-app-secret", "ui-fixture-secret")
 	app.Press("id:dandan-save")
@@ -75,10 +78,12 @@ func TestPlayerBindsDandanPlayAndReusesComments(t *testing.T) {
 			t.Fatal("credential was written to plain app storage")
 		}
 	}
+	app.Press("id:close-phone-danmaku-editor")
+	app.WaitForGone("id:dandan-app-id", time.Second)
 	app.Press("id:back")
 	app.Press(homeTab)
-	app.WaitFor("id:title-test-film", time.Second)
-	app.Press("id:title-test-film")
+	app.WaitFor("id:home-hero-details", 3*time.Second)
+	app.Press("id:home-hero-details")
 	app.WaitFor("text:Fixture synopsis", time.Second)
 	app.Press("id:detail-play")
 	app.WaitFor("id:video-player", time.Second)

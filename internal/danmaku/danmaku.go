@@ -34,6 +34,7 @@ type Comment struct {
 	Mode  Mode
 	Color uint32
 	Text  string
+	User  string `json:",omitempty"`
 }
 
 // ReadXML reads the Bilibili-compatible XML format used by locally saved
@@ -76,7 +77,7 @@ func ReadXML(reader io.Reader) ([]Comment, error) {
 // ParseComment decodes the parameter string of a Bilibili XML or DandanPlay
 // comment. XML has a font-size field before color, while DandanPlay omits it.
 func ParseComment(parameters, text string, xmlFontSize bool) (Comment, bool) {
-	fields := strings.SplitN(parameters, ",", 5)
+	fields := strings.SplitN(parameters, ",", 9)
 	colorIndex := 2
 	if xmlFontSize {
 		colorIndex = 3
@@ -103,7 +104,13 @@ func ParseComment(parameters, text string, xmlFontSize bool) (Comment, bool) {
 	if err != nil {
 		color = White
 	}
-	return Comment{At: time.Duration(seconds * float64(time.Second)), Mode: mode, Color: uint32(color), Text: text}, true
+	var user string
+	if userIndex := colorIndex + 1; xmlFontSize && len(fields) > 6 {
+		user = strings.TrimSpace(fields[6])
+	} else if !xmlFontSize && len(fields) > userIndex {
+		user = strings.TrimSpace(fields[userIndex])
+	}
+	return Comment{At: time.Duration(seconds * float64(time.Second)), Mode: mode, Color: uint32(color), Text: text, User: user}, true
 }
 
 type Settings struct {
@@ -122,6 +129,7 @@ type Settings struct {
 	HideTop, HideBottom bool
 	HideColored         bool
 	Keywords            []string
+	BlockedUsers        map[string]bool
 	Patterns            []*regexp.Regexp
 }
 
@@ -303,7 +311,7 @@ func checkedSettings(s Settings) Settings {
 func passes(c Comment, s Settings, keywords []string) bool {
 	if c.Text == "" || (c.Mode != Scroll && c.Mode != Top && c.Mode != Bottom) ||
 		(c.Mode == Scroll && s.HideScrolling) || (c.Mode == Top && s.HideTop) ||
-		(c.Mode == Bottom && s.HideBottom) || (c.Color != White && s.HideColored) {
+		(c.Mode == Bottom && s.HideBottom) || (c.Color != White && s.HideColored) || s.BlockedUsers[c.User] {
 		return false
 	}
 	text := strings.ToLower(c.Text)

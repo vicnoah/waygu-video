@@ -803,3 +803,38 @@ appearancePosterAmbient: "Dynamic poster background"
 NSLocationWhenInUseUsageDescription: "Use approximate location to switch to dark appearance at sunset."
 NSLocationUsageDescription: "Use approximate location to switch to dark appearance at sunset."
 appearanceLanguage: "Language"
+phoneDanmakuBasic: Basic
+phoneDanmakuSourcesTitle: Danmaku sources
+phoneDanmakuSourceHint: Configure DandanPlay with a developer app ID and secret. Import XML or JSON from the player.
+phoneDanmakuUnconfigured: Unconfigured
+phoneDanmakuCustom: Custom danmaku server
+phoneDanmakuMatchTitle: Matching
+phoneDanmakuMatchHint: Identify episodes using the file hash and file name
+phoneDanmakuOnMiss: When automatic matching fails
+phoneDanmakuPrompt: Prompt to search manually
+phoneDanmakuIgnore: Continue without prompting
+phoneDanmakuDeduplicate: Merge and deduplicate comments
+phoneDanmakuBlockedUsers: Blocked users
+phoneDanmakuFilterLevel: Filter level
+phoneDanmakuUsersHint: Enter one sender ID from a danmaku file or source per line.
+phoneDanmakuUsers: "{count} users"
+phoneDanmakuRules: "{count} entries"
+phoneDanmakuSendCache: Sending and cache
+phoneDanmakuSendAccount: Account for sending
+phoneDanmakuSendHint: Sending public comments requires a DandanPlay account.
+phoneDanmakuCache: Danmaku cache
+phoneDanmakuClear: Clear danmaku cache
+phoneDanmakuFont: Font
+phoneDanmakuFontBold: System default · Bold
+phoneDanmakuFontRegular: System default · Regular
+phoneDanmakuColored: Show colored danmaku
+phoneDanmakuReserve: Keep danmaku out of the subtitle area
+phoneDanmakuQuarter: 1/4 screen
+phoneDanmakuHalf: 1/2 screen
+phoneDanmakuThreeQuarters: 3/4 screen
+phoneDanmakuPreviewArea: "Danmaku area {fraction}"
+phoneDanmakuSampleScene: Here comes the scene!
+phoneDanmakuSampleArt: The animation is incredible
+phoneDanmakuDisableSource: Disable this source
+phoneDanmakuBlockWords: Blocked words
+phoneDanmakuDensity: On-screen density

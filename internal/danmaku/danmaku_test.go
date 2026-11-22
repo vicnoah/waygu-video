@@ -73,3 +73,21 @@ func TestDisplaySettingsAndDuplicatesReachASS(t *testing.T) {
 		t.Fatalf("subtitle reservation, type filtering or deduplication toggle was ignored: %+v", track.Events)
 	}
 }
+
+func TestScheduleBlocksSenderFromBothFormats(t *testing.T) {
+	xml, err := ReadXML(strings.NewReader(`<i><d p="0,1,25,16777215,1,0,blocked,101">XML</d>
+		<d p="0,1,25,16777215,1,0,allowed,102">Allowed</d><d p="0,1,25,16777215">Anonymous</d></i>`))
+	if err != nil || len(xml) != 3 || xml[0].User != "blocked" || xml[1].User != "allowed" || xml[2].User != "" {
+		t.Fatalf("XML sender identities = %+v, %v", xml, err)
+	}
+	remote, err := ReadJSON(strings.NewReader(`{"comments":[{"p":"0,1,16777215,blocked","m":"Remote"}]}`))
+	if err != nil || len(remote) != 1 || remote[0].User != "blocked" {
+		t.Fatalf("DandanPlay sender identity = %+v, %v", remote, err)
+	}
+	settings := DefaultSettings()
+	settings.BlockedUsers = map[string]bool{"blocked": true}
+	track := Schedule(append(xml, remote...), settings)
+	if len(track.Events) != 2 || track.Events[0].Text != "Allowed" || track.Events[1].Text != "Anonymous" {
+		t.Fatalf("sender filter scheduled %+v", track.Events)
+	}
+}

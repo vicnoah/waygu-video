@@ -12,6 +12,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Phone search · light and dark | [Title and credit search comparisons](phone-search.md) | Compared on GTK with real search results and saved history. Mobile device captures remain pending. |
 | Phone movie detail · light and dark | [Top and bottom comparisons and playback checks](phone-movie.md) | Compared on GTK with Docker movies, a trailer, and a featurette. Device captures and several design actions remain pending. |
 | Phone series detail · light and dark | [Season and specials comparisons](phone-series.md) | Compared on GTK with two seasons and a special. Phone device captures remain pending. |
+| Phone danmaku settings · light and dark | [Preview, matching and filter comparisons](phone-danmaku-settings.md) | Compared on GTK. Tests exercise the preview, matching, playback and local cache. Separate providers, public posting and mobile captures remain pending. |
 | Phone appearance · light and dark | [Layout and saved preference checks](phone-appearance.md) | Compared on GTK at phone width. The local Docker fixtures verify home and library effects. Mobile device captures remain pending. |
 | Phone parental controls · light and dark | [PIN, rating and viewing-time comparisons](phone-parental.md) | Compared on GTK with Docker fixtures and verified with a simulated playback clock. Mobile and TV device checks remain pending. |
 | Tablet home · light and dark | [Screenshots and tablet interaction checks](tablet-home.md) | The tablet layout was compared on Linux GTK with three Docker media servers. Real-device captures remain pending. |
@@ -245,6 +246,14 @@ go tool nsgo test -target linux -run '^TestPhoneAppearanceReview$' -screenshots 
 ```
 
 Use `WAYGU_REVIEW_DESIGN=settings-appearance.scenra` with the reference exporter. Run `TestDockerHomeAppearance` with the local Docker fixtures to verify home modules and the library cover layout.
+
+Capture the phone danmaku settings at the full reference height. Use a display at least 2200 pt tall for GTK.
+
+```sh
+go tool nsgo test -target linux -run '^TestPhoneDanmakuSettingsReview$' -screenshots .nsgo/ui-review/danmaku-settings
+```
+
+Use `WAYGU_REVIEW_DESIGN=settings-danmaku.scenra` with the reference exporter. Use the local Docker fixtures with `TestDockerPhonePlayerDesignReview` to verify danmaku during playback.
 
 The reference uses the Scenra version pinned in this project and renders the original design files and components. Run it in its own module.
 

@@ -26,7 +26,7 @@ func (c *DandanClient) CachedComments(ctx context.Context, cacheDir string, epis
 		return c.Comments(ctx, episode)
 	}
 	dir := filepath.Join(cacheDir, "dandanplay")
-	key := sha256.Sum256(fmt.Appendf(nil, "%s:%d", c.credentials.AppID, episode))
+	key := sha256.Sum256(fmt.Appendf(nil, "v2:%s:%d", c.credentials.AppID, episode))
 	path := filepath.Join(dir, fmt.Sprintf("%x.json.gz", key))
 	if comments, ok := readCommentCache(path); ok {
 		return comments, nil
@@ -103,6 +103,25 @@ func pruneCommentCache(dir string) {
 
 // ClearCachedComments removes files written by CachedComments.
 func ClearCachedComments(cacheDir string) error {
+	return visitCachedComments(cacheDir, func(root *os.Root, entry fs.DirEntry) error {
+		return root.Remove(entry.Name())
+	})
+}
+
+// CachedCommentBytes reports the bytes occupied by comments on disk.
+func CachedCommentBytes(cacheDir string) (int64, error) {
+	var size int64
+	err := visitCachedComments(cacheDir, func(root *os.Root, entry fs.DirEntry) error {
+		info, err := root.Lstat(entry.Name())
+		if err == nil && info.Mode().IsRegular() {
+			size += info.Size()
+		}
+		return err
+	})
+	return size, err
+}
+
+func visitCachedComments(cacheDir string, visit func(*os.Root, fs.DirEntry) error) error {
 	if cacheDir == "" {
 		return nil
 	}
@@ -135,7 +154,7 @@ func ClearCachedComments(cacheDir string) error {
 		if _, err := hex.DecodeString(hash); err != nil {
 			continue
 		}
-		if err := root.Remove(entry.Name()); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		if err := visit(root, entry); err != nil && !errors.Is(err, fs.ErrNotExist) {
 			failures = append(failures, err)
 		}
 	}

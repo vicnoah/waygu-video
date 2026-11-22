@@ -803,3 +803,38 @@ appearancePosterAmbient: "海报动态背景"
 NSLocationWhenInUseUsageDescription: "使用大致位置，在日落后自动切换深色外观。"
 NSLocationUsageDescription: "使用大致位置，在日落后自动切换深色外观。"
 appearanceLanguage: "语言"
+phoneDanmakuBasic: 基础
+phoneDanmakuSourcesTitle: 弹幕源
+phoneDanmakuSourceHint: 使用开发者 App ID 和密钥配置弹弹play，也可在播放器内导入 XML 或 JSON。
+phoneDanmakuUnconfigured: 未设置
+phoneDanmakuCustom: 自定义弹幕服务器
+phoneDanmakuMatchTitle: 匹配
+phoneDanmakuMatchHint: 使用文件哈希 + 文件名识别剧集与集数
+phoneDanmakuOnMiss: 匹配失败时
+phoneDanmakuPrompt: 提示手动搜索
+phoneDanmakuIgnore: 继续播放，不提示
+phoneDanmakuDeduplicate: 多来源合并去重
+phoneDanmakuBlockedUsers: 屏蔽的用户
+phoneDanmakuFilterLevel: 屏蔽等级
+phoneDanmakuUsersHint: 每行输入一个弹幕文件或来源中的发送者 ID。
+phoneDanmakuUsers: "{count} 人"
+phoneDanmakuRules: "{count} 条"
+phoneDanmakuSendCache: 发送与缓存
+phoneDanmakuSendAccount: 发送弹幕账号
+phoneDanmakuSendHint: 发送公开弹幕需要登录弹弹play账号。
+phoneDanmakuCache: 弹幕缓存
+phoneDanmakuClear: 清除弹幕缓存
+phoneDanmakuFont: 字体
+phoneDanmakuFontBold: 系统默认 · 粗体
+phoneDanmakuFontRegular: 系统默认 · 常规
+phoneDanmakuColored: 显示彩色弹幕
+phoneDanmakuReserve: 字幕区域内不显示弹幕
+phoneDanmakuQuarter: 1/4 屏
+phoneDanmakuHalf: 1/2 屏
+phoneDanmakuThreeQuarters: 3/4 屏
+phoneDanmakuPreviewArea: "弹幕显示区域 {fraction}"
+phoneDanmakuSampleScene: 名场面来了！！
+phoneDanmakuSampleArt: 这一集画面太顶了
+phoneDanmakuDisableSource: 停用此来源
+phoneDanmakuBlockWords: 屏蔽词
+phoneDanmakuDensity: 同屏密度

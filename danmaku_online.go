@@ -88,7 +88,7 @@ type danmakuBinding struct {
 }
 
 func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.Stream,
-	apply func([]danmaku.Comment, float64), closePanel func()) core.Node {
+	apply func([]danmaku.Comment, float64), closePanel, showOnMiss func()) core.Node {
 	key, seasonKey := danmakuBindingKey(current), danmakuSeasonKey(current)
 	var saved danmaku.DandanEpisode
 	var season danmakuSeason
@@ -124,9 +124,10 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 	credentials := core.NewResource(cx, nil, func(context.Context, struct{}, core.ResourceInfo) (danmaku.DandanCredentials, error) {
 		return a.dandanCredentials()
 	})
+	sourceEnabled := core.NewMemo(cx, func() bool { return !a.danmakuPrefs.Get().DisableDandan })
 	canSearch := func() bool {
 		value, ok := credentials.Get()
-		return ok && value.AppID != "" && value.Secret != ""
+		return sourceEnabled.Get() && ok && value.AppID != "" && value.Secret != ""
 	}
 	autoMatch := core.NewMemo(cx, func() bool { return a.danmakuPrefs.Get().AutoMatch })
 	type danmakuQuery struct {
@@ -136,7 +137,7 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 	resource := core.NewResource(cx, func() (danmakuQuery, bool) {
 		request := query.Get()
 		value, _ := credentials.Get()
-		active := request.action != danmakuIdle && value.AppID != "" && value.Secret != "" && !a.danmakuPrefs.Get().DisableDandan
+		active := request.action != danmakuIdle && value.AppID != "" && value.Secret != "" && sourceEnabled.Get()
 		if request.action == danmakuIdentify && saved.ID <= 0 {
 			active = active && autoMatch.Get()
 		}
@@ -172,13 +173,20 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 		}
 		return result, err
 	})
+	prompted := false
 	cx.Effect(func() {
 		result, ready := resource.Get()
-		if !ready {
+		if !ready || resource.Loading() || resource.Err() != nil {
 			return
 		}
 		matches.Set(result.matches)
 		if result.bound.ID <= 0 {
+			prefs := a.danmakuPrefs.GetUntracked()
+			if showOnMiss != nil && !prompted && prefs.Enabled && prefs.AutoMatch && !prefs.DisableDandan &&
+				prefs.PromptOnMiss && query.GetUntracked().action == danmakuIdentify {
+				prompted = true
+				showOnMiss()
+			}
 			return
 		}
 		picked.Set(result.bound)
@@ -244,6 +252,8 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 			}
 			rows = append(rows, notice(message), ui.Button{Text: locales.Retry(cx), Variant: ui.ButtonOutline,
 				OnPress: resource.Refetch})
+		} else if !sourceEnabled.Get() {
+			rows = append(rows, hint(locales.SettingsDisabled(cx)))
 		} else if !canSearch() {
 			rows = append(rows, hint(locales.DanmakuConfigure(cx)))
 		}

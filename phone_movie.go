@@ -153,7 +153,7 @@ func (a *application) phoneMovieDetail(cx *core.Scope, current route, copies fun
 			OnOpenChange: func(open bool, _ base.Reason) { matchOpen.Set(open) },
 			Children: []core.Node{core.Show{When: matchOpen.Get, Then: func(cx *core.Scope) core.Node {
 				return core.Scroll{Class: "max-h-[350px]", Children: []core.Node{
-					a.onlineDanmaku(cx, current, media.Stream{}, nil, func() { matchOpen.Set(false) }),
+					a.onlineDanmaku(cx, current, media.Stream{}, nil, func() { matchOpen.Set(false) }, nil),
 				}}
 			}}}, Footer: []core.Node{ui.Button{Text: locales.Back(cx), TestID: "detail-close-danmaku",
 				OnPress: func() { matchOpen.Set(false) }}}},

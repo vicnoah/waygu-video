@@ -155,6 +155,9 @@ var Parameters = map[string][]string{
 	"ParentalHours":                   {"hours"},
 	"ParentalUnratedResult":           {"index"},
 	"AppearanceMoveModule":            {"name"},
+	"PhoneDanmakuUsers":               {"count"},
+	"PhoneDanmakuRules":               {"count"},
+	"PhoneDanmakuPreviewArea":         {"fraction"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -275,6 +278,9 @@ type Translation struct {
 	ParentalHours                   func(hours string) string
 	ParentalUnratedResult           func(index string) string
 	AppearanceMoveModule            func(name string) string
+	PhoneDanmakuUsers               func(count string) string
+	PhoneDanmakuRules               func(count string) string
+	PhoneDanmakuPreviewArea         func(fraction string) string
 }
 
 var supplied = map[string]Translation{}
@@ -971,6 +977,38 @@ const (
 	textNSLocationWhenInUseUsageDescription
 	textNSLocationUsageDescription
 	textAppearanceLanguage
+	textPhoneDanmakuBasic
+	textPhoneDanmakuSourcesTitle
+	textPhoneDanmakuSourceHint
+	textPhoneDanmakuUnconfigured
+	textPhoneDanmakuCustom
+	textPhoneDanmakuMatchTitle
+	textPhoneDanmakuMatchHint
+	textPhoneDanmakuOnMiss
+	textPhoneDanmakuPrompt
+	textPhoneDanmakuIgnore
+	textPhoneDanmakuDeduplicate
+	textPhoneDanmakuBlockedUsers
+	textPhoneDanmakuFilterLevel
+	textPhoneDanmakuUsersHint
+	textPhoneDanmakuSendCache
+	textPhoneDanmakuSendAccount
+	textPhoneDanmakuSendHint
+	textPhoneDanmakuCache
+	textPhoneDanmakuClear
+	textPhoneDanmakuFont
+	textPhoneDanmakuFontBold
+	textPhoneDanmakuFontRegular
+	textPhoneDanmakuColored
+	textPhoneDanmakuReserve
+	textPhoneDanmakuQuarter
+	textPhoneDanmakuHalf
+	textPhoneDanmakuThreeQuarters
+	textPhoneDanmakuSampleScene
+	textPhoneDanmakuSampleArt
+	textPhoneDanmakuDisableSource
+	textPhoneDanmakuBlockWords
+	textPhoneDanmakuDensity
 	numTexts
 )
 
@@ -1667,6 +1705,38 @@ var keyOfText = [numTexts]string{
 	"NSLocationWhenInUseUsageDescription",
 	"NSLocationUsageDescription",
 	"appearanceLanguage",
+	"phoneDanmakuBasic",
+	"phoneDanmakuSourcesTitle",
+	"phoneDanmakuSourceHint",
+	"phoneDanmakuUnconfigured",
+	"phoneDanmakuCustom",
+	"phoneDanmakuMatchTitle",
+	"phoneDanmakuMatchHint",
+	"phoneDanmakuOnMiss",
+	"phoneDanmakuPrompt",
+	"phoneDanmakuIgnore",
+	"phoneDanmakuDeduplicate",
+	"phoneDanmakuBlockedUsers",
+	"phoneDanmakuFilterLevel",
+	"phoneDanmakuUsersHint",
+	"phoneDanmakuSendCache",
+	"phoneDanmakuSendAccount",
+	"phoneDanmakuSendHint",
+	"phoneDanmakuCache",
+	"phoneDanmakuClear",
+	"phoneDanmakuFont",
+	"phoneDanmakuFontBold",
+	"phoneDanmakuFontRegular",
+	"phoneDanmakuColored",
+	"phoneDanmakuReserve",
+	"phoneDanmakuQuarter",
+	"phoneDanmakuHalf",
+	"phoneDanmakuThreeQuarters",
+	"phoneDanmakuSampleScene",
+	"phoneDanmakuSampleArt",
+	"phoneDanmakuDisableSource",
+	"phoneDanmakuBlockWords",
+	"phoneDanmakuDensity",
 }
 
 // textsEn are the messages without arguments in en.
@@ -2360,7 +2430,39 @@ var textsEn = i18n.NewTexts(""+
 	"Dynamic poster background"+
 	"Use approximate location to switch to dark appearance at sunset."+
 	"Use approximate location to switch to dark appearance at sunset."+
-	"Language",
+	"Language"+
+	"Basic"+
+	"Danmaku sources"+
+	"Configure DandanPlay with a developer app ID and secret. Import XML or JSON from the player."+
+	"Unconfigured"+
+	"Custom danmaku server"+
+	"Matching"+
+	"Identify episodes using the file hash and file name"+
+	"When automatic matching fails"+
+	"Prompt to search manually"+
+	"Continue without prompting"+
+	"Merge and deduplicate comments"+
+	"Blocked users"+
+	"Filter level"+
+	"Enter one sender ID from a danmaku file or source per line."+
+	"Sending and cache"+
+	"Account for sending"+
+	"Sending public comments requires a DandanPlay account."+
+	"Danmaku cache"+
+	"Clear danmaku cache"+
+	"Font"+
+	"System default · Bold"+
+	"System default · Regular"+
+	"Show colored danmaku"+
+	"Keep danmaku out of the subtitle area"+
+	"1/4 screen"+
+	"1/2 screen"+
+	"3/4 screen"+
+	"Here comes the scene!"+
+	"The animation is incredible"+
+	"Disable this source"+
+	"Blocked words"+
+	"On-screen density",
 	[]uint16{
 		11,
 		47,
@@ -3052,6 +3154,38 @@ var textsEn = i18n.NewTexts(""+
 		64,
 		64,
 		8,
+		5,
+		15,
+		92,
+		12,
+		21,
+		8,
+		51,
+		29,
+		25,
+		26,
+		30,
+		13,
+		12,
+		59,
+		17,
+		19,
+		54,
+		13,
+		19,
+		4,
+		22,
+		25,
+		20,
+		37,
+		10,
+		10,
+		10,
+		21,
+		27,
+		19,
+		13,
+		17,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -3745,7 +3879,39 @@ var textsZhHans = i18n.NewTexts(""+
 	"海报动态背景"+
 	"使用大致位置，在日落后自动切换深色外观。"+
 	"使用大致位置，在日落后自动切换深色外观。"+
-	"语言",
+	"语言"+
+	"基础"+
+	"弹幕源"+
+	"使用开发者 App ID 和密钥配置弹弹play，也可在播放器内导入 XML 或 JSON。"+
+	"未设置"+
+	"自定义弹幕服务器"+
+	"匹配"+
+	"使用文件哈希 + 文件名识别剧集与集数"+
+	"匹配失败时"+
+	"提示手动搜索"+
+	"继续播放，不提示"+
+	"多来源合并去重"+
+	"屏蔽的用户"+
+	"屏蔽等级"+
+	"每行输入一个弹幕文件或来源中的发送者 ID。"+
+	"发送与缓存"+
+	"发送弹幕账号"+
+	"发送公开弹幕需要登录弹弹play账号。"+
+	"弹幕缓存"+
+	"清除弹幕缓存"+
+	"字体"+
+	"系统默认 · 粗体"+
+	"系统默认 · 常规"+
+	"显示彩色弹幕"+
+	"字幕区域内不显示弹幕"+
+	"1/4 屏"+
+	"1/2 屏"+
+	"3/4 屏"+
+	"名场面来了！！"+
+	"这一集画面太顶了"+
+	"停用此来源"+
+	"屏蔽词"+
+	"同屏密度",
 	[]uint16{
 		12,
 		45,
@@ -4437,6 +4603,38 @@ var textsZhHans = i18n.NewTexts(""+
 		60,
 		60,
 		6,
+		6,
+		9,
+		94,
+		9,
+		24,
+		6,
+		51,
+		15,
+		18,
+		24,
+		21,
+		15,
+		12,
+		60,
+		15,
+		18,
+		49,
+		12,
+		18,
+		6,
+		22,
+		22,
+		18,
+		30,
+		7,
+		7,
+		7,
+		21,
+		24,
+		15,
+		9,
+		12,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -4828,6 +5026,15 @@ func Supply(lang string, t Translation) {
 	}
 	if t.AppearanceMoveModule != nil {
 		s.AppearanceMoveModule = t.AppearanceMoveModule
+	}
+	if t.PhoneDanmakuUsers != nil {
+		s.PhoneDanmakuUsers = t.PhoneDanmakuUsers
+	}
+	if t.PhoneDanmakuRules != nil {
+		s.PhoneDanmakuRules = t.PhoneDanmakuRules
+	}
+	if t.PhoneDanmakuPreviewArea != nil {
+		s.PhoneDanmakuPreviewArea = t.PhoneDanmakuPreviewArea
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -12497,3 +12704,305 @@ func AppearanceLanguage(cx *core.Scope) string { return For(cx).AppearanceLangua
 
 // AppearanceLanguage is the package's AppearanceLanguage in the language of msgs.
 func (msgs Messages) AppearanceLanguage() string { return msgs.text(textAppearanceLanguage) }
+
+// PhoneDanmakuBasic says "Basic"
+// in the language the app shows under cx.
+func PhoneDanmakuBasic(cx *core.Scope) string { return For(cx).PhoneDanmakuBasic() }
+
+// PhoneDanmakuBasic is the package's PhoneDanmakuBasic in the language of msgs.
+func (msgs Messages) PhoneDanmakuBasic() string { return msgs.text(textPhoneDanmakuBasic) }
+
+// PhoneDanmakuSourcesTitle says "Danmaku sources"
+// in the language the app shows under cx.
+func PhoneDanmakuSourcesTitle(cx *core.Scope) string { return For(cx).PhoneDanmakuSourcesTitle() }
+
+// PhoneDanmakuSourcesTitle is the package's PhoneDanmakuSourcesTitle in the language of msgs.
+func (msgs Messages) PhoneDanmakuSourcesTitle() string {
+	return msgs.text(textPhoneDanmakuSourcesTitle)
+}
+
+// PhoneDanmakuSourceHint says "Configure DandanPlay with a developer app ID and secret. Import XML or JSON from the player."
+// in the language the app shows under cx.
+func PhoneDanmakuSourceHint(cx *core.Scope) string { return For(cx).PhoneDanmakuSourceHint() }
+
+// PhoneDanmakuSourceHint is the package's PhoneDanmakuSourceHint in the language of msgs.
+func (msgs Messages) PhoneDanmakuSourceHint() string { return msgs.text(textPhoneDanmakuSourceHint) }
+
+// PhoneDanmakuUnconfigured says "Unconfigured"
+// in the language the app shows under cx.
+func PhoneDanmakuUnconfigured(cx *core.Scope) string { return For(cx).PhoneDanmakuUnconfigured() }
+
+// PhoneDanmakuUnconfigured is the package's PhoneDanmakuUnconfigured in the language of msgs.
+func (msgs Messages) PhoneDanmakuUnconfigured() string {
+	return msgs.text(textPhoneDanmakuUnconfigured)
+}
+
+// PhoneDanmakuCustom says "Custom danmaku server"
+// in the language the app shows under cx.
+func PhoneDanmakuCustom(cx *core.Scope) string { return For(cx).PhoneDanmakuCustom() }
+
+// PhoneDanmakuCustom is the package's PhoneDanmakuCustom in the language of msgs.
+func (msgs Messages) PhoneDanmakuCustom() string { return msgs.text(textPhoneDanmakuCustom) }
+
+// PhoneDanmakuMatchTitle says "Matching"
+// in the language the app shows under cx.
+func PhoneDanmakuMatchTitle(cx *core.Scope) string { return For(cx).PhoneDanmakuMatchTitle() }
+
+// PhoneDanmakuMatchTitle is the package's PhoneDanmakuMatchTitle in the language of msgs.
+func (msgs Messages) PhoneDanmakuMatchTitle() string { return msgs.text(textPhoneDanmakuMatchTitle) }
+
+// PhoneDanmakuMatchHint says "Identify episodes using the file hash and file name"
+// in the language the app shows under cx.
+func PhoneDanmakuMatchHint(cx *core.Scope) string { return For(cx).PhoneDanmakuMatchHint() }
+
+// PhoneDanmakuMatchHint is the package's PhoneDanmakuMatchHint in the language of msgs.
+func (msgs Messages) PhoneDanmakuMatchHint() string { return msgs.text(textPhoneDanmakuMatchHint) }
+
+// PhoneDanmakuOnMiss says "When automatic matching fails"
+// in the language the app shows under cx.
+func PhoneDanmakuOnMiss(cx *core.Scope) string { return For(cx).PhoneDanmakuOnMiss() }
+
+// PhoneDanmakuOnMiss is the package's PhoneDanmakuOnMiss in the language of msgs.
+func (msgs Messages) PhoneDanmakuOnMiss() string { return msgs.text(textPhoneDanmakuOnMiss) }
+
+// PhoneDanmakuPrompt says "Prompt to search manually"
+// in the language the app shows under cx.
+func PhoneDanmakuPrompt(cx *core.Scope) string { return For(cx).PhoneDanmakuPrompt() }
+
+// PhoneDanmakuPrompt is the package's PhoneDanmakuPrompt in the language of msgs.
+func (msgs Messages) PhoneDanmakuPrompt() string { return msgs.text(textPhoneDanmakuPrompt) }
+
+// PhoneDanmakuIgnore says "Continue without prompting"
+// in the language the app shows under cx.
+func PhoneDanmakuIgnore(cx *core.Scope) string { return For(cx).PhoneDanmakuIgnore() }
+
+// PhoneDanmakuIgnore is the package's PhoneDanmakuIgnore in the language of msgs.
+func (msgs Messages) PhoneDanmakuIgnore() string { return msgs.text(textPhoneDanmakuIgnore) }
+
+// PhoneDanmakuDeduplicate says "Merge and deduplicate comments"
+// in the language the app shows under cx.
+func PhoneDanmakuDeduplicate(cx *core.Scope) string { return For(cx).PhoneDanmakuDeduplicate() }
+
+// PhoneDanmakuDeduplicate is the package's PhoneDanmakuDeduplicate in the language of msgs.
+func (msgs Messages) PhoneDanmakuDeduplicate() string { return msgs.text(textPhoneDanmakuDeduplicate) }
+
+// PhoneDanmakuBlockedUsers says "Blocked users"
+// in the language the app shows under cx.
+func PhoneDanmakuBlockedUsers(cx *core.Scope) string { return For(cx).PhoneDanmakuBlockedUsers() }
+
+// PhoneDanmakuBlockedUsers is the package's PhoneDanmakuBlockedUsers in the language of msgs.
+func (msgs Messages) PhoneDanmakuBlockedUsers() string {
+	return msgs.text(textPhoneDanmakuBlockedUsers)
+}
+
+// PhoneDanmakuFilterLevel says "Filter level"
+// in the language the app shows under cx.
+func PhoneDanmakuFilterLevel(cx *core.Scope) string { return For(cx).PhoneDanmakuFilterLevel() }
+
+// PhoneDanmakuFilterLevel is the package's PhoneDanmakuFilterLevel in the language of msgs.
+func (msgs Messages) PhoneDanmakuFilterLevel() string { return msgs.text(textPhoneDanmakuFilterLevel) }
+
+// PhoneDanmakuUsersHint says "Enter one sender ID from a danmaku file or source per line."
+// in the language the app shows under cx.
+func PhoneDanmakuUsersHint(cx *core.Scope) string { return For(cx).PhoneDanmakuUsersHint() }
+
+// PhoneDanmakuUsersHint is the package's PhoneDanmakuUsersHint in the language of msgs.
+func (msgs Messages) PhoneDanmakuUsersHint() string { return msgs.text(textPhoneDanmakuUsersHint) }
+
+// PhoneDanmakuUsers says "{count} users"
+// in the language the app shows under cx.
+func PhoneDanmakuUsers(cx *core.Scope, count string) string { return For(cx).PhoneDanmakuUsers(count) }
+
+// PhoneDanmakuUsers is the package's PhoneDanmakuUsers in the language of msgs.
+func (msgs Messages) PhoneDanmakuUsers(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhoneDanmakuUsers(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhoneDanmakuUsers; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " users"
+		case "zh-Hans":
+			return count + " 人"
+		}
+	}
+}
+
+// PhoneDanmakuRules says "{count} entries"
+// in the language the app shows under cx.
+func PhoneDanmakuRules(cx *core.Scope, count string) string { return For(cx).PhoneDanmakuRules(count) }
+
+// PhoneDanmakuRules is the package's PhoneDanmakuRules in the language of msgs.
+func (msgs Messages) PhoneDanmakuRules(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhoneDanmakuRules(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhoneDanmakuRules; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " entries"
+		case "zh-Hans":
+			return count + " 条"
+		}
+	}
+}
+
+// PhoneDanmakuSendCache says "Sending and cache"
+// in the language the app shows under cx.
+func PhoneDanmakuSendCache(cx *core.Scope) string { return For(cx).PhoneDanmakuSendCache() }
+
+// PhoneDanmakuSendCache is the package's PhoneDanmakuSendCache in the language of msgs.
+func (msgs Messages) PhoneDanmakuSendCache() string { return msgs.text(textPhoneDanmakuSendCache) }
+
+// PhoneDanmakuSendAccount says "Account for sending"
+// in the language the app shows under cx.
+func PhoneDanmakuSendAccount(cx *core.Scope) string { return For(cx).PhoneDanmakuSendAccount() }
+
+// PhoneDanmakuSendAccount is the package's PhoneDanmakuSendAccount in the language of msgs.
+func (msgs Messages) PhoneDanmakuSendAccount() string { return msgs.text(textPhoneDanmakuSendAccount) }
+
+// PhoneDanmakuSendHint says "Sending public comments requires a DandanPlay account."
+// in the language the app shows under cx.
+func PhoneDanmakuSendHint(cx *core.Scope) string { return For(cx).PhoneDanmakuSendHint() }
+
+// PhoneDanmakuSendHint is the package's PhoneDanmakuSendHint in the language of msgs.
+func (msgs Messages) PhoneDanmakuSendHint() string { return msgs.text(textPhoneDanmakuSendHint) }
+
+// PhoneDanmakuCache says "Danmaku cache"
+// in the language the app shows under cx.
+func PhoneDanmakuCache(cx *core.Scope) string { return For(cx).PhoneDanmakuCache() }
+
+// PhoneDanmakuCache is the package's PhoneDanmakuCache in the language of msgs.
+func (msgs Messages) PhoneDanmakuCache() string { return msgs.text(textPhoneDanmakuCache) }
+
+// PhoneDanmakuClear says "Clear danmaku cache"
+// in the language the app shows under cx.
+func PhoneDanmakuClear(cx *core.Scope) string { return For(cx).PhoneDanmakuClear() }
+
+// PhoneDanmakuClear is the package's PhoneDanmakuClear in the language of msgs.
+func (msgs Messages) PhoneDanmakuClear() string { return msgs.text(textPhoneDanmakuClear) }
+
+// PhoneDanmakuFont says "Font"
+// in the language the app shows under cx.
+func PhoneDanmakuFont(cx *core.Scope) string { return For(cx).PhoneDanmakuFont() }
+
+// PhoneDanmakuFont is the package's PhoneDanmakuFont in the language of msgs.
+func (msgs Messages) PhoneDanmakuFont() string { return msgs.text(textPhoneDanmakuFont) }
+
+// PhoneDanmakuFontBold says "System default · Bold"
+// in the language the app shows under cx.
+func PhoneDanmakuFontBold(cx *core.Scope) string { return For(cx).PhoneDanmakuFontBold() }
+
+// PhoneDanmakuFontBold is the package's PhoneDanmakuFontBold in the language of msgs.
+func (msgs Messages) PhoneDanmakuFontBold() string { return msgs.text(textPhoneDanmakuFontBold) }
+
+// PhoneDanmakuFontRegular says "System default · Regular"
+// in the language the app shows under cx.
+func PhoneDanmakuFontRegular(cx *core.Scope) string { return For(cx).PhoneDanmakuFontRegular() }
+
+// PhoneDanmakuFontRegular is the package's PhoneDanmakuFontRegular in the language of msgs.
+func (msgs Messages) PhoneDanmakuFontRegular() string { return msgs.text(textPhoneDanmakuFontRegular) }
+
+// PhoneDanmakuColored says "Show colored danmaku"
+// in the language the app shows under cx.
+func PhoneDanmakuColored(cx *core.Scope) string { return For(cx).PhoneDanmakuColored() }
+
+// PhoneDanmakuColored is the package's PhoneDanmakuColored in the language of msgs.
+func (msgs Messages) PhoneDanmakuColored() string { return msgs.text(textPhoneDanmakuColored) }
+
+// PhoneDanmakuReserve says "Keep danmaku out of the subtitle area"
+// in the language the app shows under cx.
+func PhoneDanmakuReserve(cx *core.Scope) string { return For(cx).PhoneDanmakuReserve() }
+
+// PhoneDanmakuReserve is the package's PhoneDanmakuReserve in the language of msgs.
+func (msgs Messages) PhoneDanmakuReserve() string { return msgs.text(textPhoneDanmakuReserve) }
+
+// PhoneDanmakuQuarter says "1/4 screen"
+// in the language the app shows under cx.
+func PhoneDanmakuQuarter(cx *core.Scope) string { return For(cx).PhoneDanmakuQuarter() }
+
+// PhoneDanmakuQuarter is the package's PhoneDanmakuQuarter in the language of msgs.
+func (msgs Messages) PhoneDanmakuQuarter() string { return msgs.text(textPhoneDanmakuQuarter) }
+
+// PhoneDanmakuHalf says "1/2 screen"
+// in the language the app shows under cx.
+func PhoneDanmakuHalf(cx *core.Scope) string { return For(cx).PhoneDanmakuHalf() }
+
+// PhoneDanmakuHalf is the package's PhoneDanmakuHalf in the language of msgs.
+func (msgs Messages) PhoneDanmakuHalf() string { return msgs.text(textPhoneDanmakuHalf) }
+
+// PhoneDanmakuThreeQuarters says "3/4 screen"
+// in the language the app shows under cx.
+func PhoneDanmakuThreeQuarters(cx *core.Scope) string { return For(cx).PhoneDanmakuThreeQuarters() }
+
+// PhoneDanmakuThreeQuarters is the package's PhoneDanmakuThreeQuarters in the language of msgs.
+func (msgs Messages) PhoneDanmakuThreeQuarters() string {
+	return msgs.text(textPhoneDanmakuThreeQuarters)
+}
+
+// PhoneDanmakuPreviewArea says "Danmaku area {fraction}"
+// in the language the app shows under cx.
+func PhoneDanmakuPreviewArea(cx *core.Scope, fraction string) string {
+	return For(cx).PhoneDanmakuPreviewArea(fraction)
+}
+
+// PhoneDanmakuPreviewArea is the package's PhoneDanmakuPreviewArea in the language of msgs.
+func (msgs Messages) PhoneDanmakuPreviewArea(fraction string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhoneDanmakuPreviewArea(fraction))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhoneDanmakuPreviewArea; f != nil {
+			return f(fraction)
+		}
+		switch lang {
+		case "", "en":
+			return "Danmaku area " + msgs.arg(fraction)
+		case "zh-Hans":
+			return "弹幕显示区域 " + fraction
+		}
+	}
+}
+
+// PhoneDanmakuSampleScene says "Here comes the scene!"
+// in the language the app shows under cx.
+func PhoneDanmakuSampleScene(cx *core.Scope) string { return For(cx).PhoneDanmakuSampleScene() }
+
+// PhoneDanmakuSampleScene is the package's PhoneDanmakuSampleScene in the language of msgs.
+func (msgs Messages) PhoneDanmakuSampleScene() string { return msgs.text(textPhoneDanmakuSampleScene) }
+
+// PhoneDanmakuSampleArt says "The animation is incredible"
+// in the language the app shows under cx.
+func PhoneDanmakuSampleArt(cx *core.Scope) string { return For(cx).PhoneDanmakuSampleArt() }
+
+// PhoneDanmakuSampleArt is the package's PhoneDanmakuSampleArt in the language of msgs.
+func (msgs Messages) PhoneDanmakuSampleArt() string { return msgs.text(textPhoneDanmakuSampleArt) }
+
+// PhoneDanmakuDisableSource says "Disable this source"
+// in the language the app shows under cx.
+func PhoneDanmakuDisableSource(cx *core.Scope) string { return For(cx).PhoneDanmakuDisableSource() }
+
+// PhoneDanmakuDisableSource is the package's PhoneDanmakuDisableSource in the language of msgs.
+func (msgs Messages) PhoneDanmakuDisableSource() string {
+	return msgs.text(textPhoneDanmakuDisableSource)
+}
+
+// PhoneDanmakuBlockWords says "Blocked words"
+// in the language the app shows under cx.
+func PhoneDanmakuBlockWords(cx *core.Scope) string { return For(cx).PhoneDanmakuBlockWords() }
+
+// PhoneDanmakuBlockWords is the package's PhoneDanmakuBlockWords in the language of msgs.
+func (msgs Messages) PhoneDanmakuBlockWords() string { return msgs.text(textPhoneDanmakuBlockWords) }
+
+// PhoneDanmakuDensity says "On-screen density"
+// in the language the app shows under cx.
+func PhoneDanmakuDensity(cx *core.Scope) string { return For(cx).PhoneDanmakuDensity() }
+
+// PhoneDanmakuDensity is the package's PhoneDanmakuDensity in the language of msgs.
+func (msgs Messages) PhoneDanmakuDensity() string { return msgs.text(textPhoneDanmakuDensity) }
