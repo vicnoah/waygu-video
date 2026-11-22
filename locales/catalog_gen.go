@@ -47,6 +47,10 @@ var Parameters = map[string][]string{
 	"AddDiscoveredSource":       {"name"},
 	"Connected":                 {"name"},
 	"SignedInAs":                {"name"},
+	"HomeSummary":               {"sources", "count"},
+	"HomeItemCount":             {"count"},
+	"HomeDuration":              {"minutes"},
+	"HomeEpisode":               {"season", "episode"},
 	"MoveSourceUp":              {"name"},
 	"MoveSourceDown":            {"name"},
 	"ShowNamedLibrary":          {"name"},
@@ -83,6 +87,10 @@ type Translation struct {
 	AddDiscoveredSource       func(name string) string
 	Connected                 func(name string) string
 	SignedInAs                func(name string) string
+	HomeSummary               func(sources string, count string) string
+	HomeItemCount             func(count string) string
+	HomeDuration              func(minutes string) string
+	HomeEpisode               func(season string, episode string) string
 	MoveSourceUp              func(name string) string
 	MoveSourceDown            func(name string) string
 	ShowNamedLibrary          func(name string) string
@@ -171,6 +179,15 @@ const (
 	textCompleteSource
 	textNoLibraries
 	textHome
+	textHomeGreeting
+	textHomeBySource
+	textHomeUnavailable
+	textHomeFeatured
+	textHomeNewRelease
+	textHomeNewShort
+	textHomeSeriesUpdates
+	textHomeSeeAll
+	textHomeCollapse
 	textLibrary
 	textSearch
 	textSettings
@@ -381,6 +398,15 @@ var keyOfText = [numTexts]string{
 	"completeSource",
 	"noLibraries",
 	"home",
+	"homeGreeting",
+	"homeBySource",
+	"homeUnavailable",
+	"homeFeatured",
+	"homeNewRelease",
+	"homeNewShort",
+	"homeSeriesUpdates",
+	"homeSeeAll",
+	"homeCollapse",
 	"library",
 	"search",
 	"settings",
@@ -589,6 +615,15 @@ var textsEn = i18n.NewTexts(""+
 	"Done"+
 	"This account has no video libraries."+
 	"Home"+
+	"Welcome back"+
+	"By source"+
+	"Connection error"+
+	"Featured"+
+	"Recently added"+
+	"New"+
+	"Series updates"+
+	"See all"+
+	"Show less"+
 	"Library"+
 	"Search"+
 	"Settings"+
@@ -794,6 +829,15 @@ var textsEn = i18n.NewTexts(""+
 		4,
 		36,
 		4,
+		12,
+		9,
+		16,
+		8,
+		14,
+		3,
+		14,
+		7,
+		9,
 		7,
 		6,
 		8,
@@ -1002,6 +1046,15 @@ var textsZhHans = i18n.NewTexts(""+
 	"完成"+
 	"此账号没有可导入的影视库。"+
 	"首页"+
+	"欢迎回来"+
+	"按媒体源"+
+	"连接异常"+
+	"今日推荐"+
+	"新入库"+
+	"新"+
+	"剧集更新"+
+	"全部"+
+	"收起"+
 	"媒体库"+
 	"搜索"+
 	"设置"+
@@ -1206,6 +1259,15 @@ var textsZhHans = i18n.NewTexts(""+
 		27,
 		6,
 		39,
+		6,
+		12,
+		12,
+		12,
+		12,
+		9,
+		3,
+		12,
+		6,
 		6,
 		9,
 		6,
@@ -1420,6 +1482,18 @@ func Supply(lang string, t Translation) {
 	}
 	if t.SignedInAs != nil {
 		s.SignedInAs = t.SignedInAs
+	}
+	if t.HomeSummary != nil {
+		s.HomeSummary = t.HomeSummary
+	}
+	if t.HomeItemCount != nil {
+		s.HomeItemCount = t.HomeItemCount
+	}
+	if t.HomeDuration != nil {
+		s.HomeDuration = t.HomeDuration
+	}
+	if t.HomeEpisode != nil {
+		s.HomeEpisode = t.HomeEpisode
 	}
 	if t.MoveSourceUp != nil {
 		s.MoveSourceUp = t.MoveSourceUp
@@ -2023,6 +2097,161 @@ func Home(cx *core.Scope) string { return For(cx).Home() }
 
 // Home is the package's Home in the language of msgs.
 func (msgs Messages) Home() string { return msgs.text(textHome) }
+
+// HomeGreeting says "Welcome back"
+// in the language the app shows under cx.
+func HomeGreeting(cx *core.Scope) string { return For(cx).HomeGreeting() }
+
+// HomeGreeting is the package's HomeGreeting in the language of msgs.
+func (msgs Messages) HomeGreeting() string { return msgs.text(textHomeGreeting) }
+
+// HomeSummary says "{sources} online · {count} loaded"
+// in the language the app shows under cx.
+func HomeSummary(cx *core.Scope, sources string, count string) string {
+	return For(cx).HomeSummary(sources, count)
+}
+
+// HomeSummary is the package's HomeSummary in the language of msgs.
+func (msgs Messages) HomeSummary(sources string, count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.HomeSummary(sources, count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].HomeSummary; f != nil {
+			return f(sources, count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(sources) + " online · " + msgs.arg(count) + " loaded"
+		case "zh-Hans":
+			return sources + " 个媒体源在线 · 已载入 " + count + " 项"
+		}
+	}
+}
+
+// HomeBySource says "By source"
+// in the language the app shows under cx.
+func HomeBySource(cx *core.Scope) string { return For(cx).HomeBySource() }
+
+// HomeBySource is the package's HomeBySource in the language of msgs.
+func (msgs Messages) HomeBySource() string { return msgs.text(textHomeBySource) }
+
+// HomeItemCount says "{count} items"
+// in the language the app shows under cx.
+func HomeItemCount(cx *core.Scope, count string) string { return For(cx).HomeItemCount(count) }
+
+// HomeItemCount is the package's HomeItemCount in the language of msgs.
+func (msgs Messages) HomeItemCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.HomeItemCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].HomeItemCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " items"
+		case "zh-Hans":
+			return count + " 项"
+		}
+	}
+}
+
+// HomeUnavailable says "Connection error"
+// in the language the app shows under cx.
+func HomeUnavailable(cx *core.Scope) string { return For(cx).HomeUnavailable() }
+
+// HomeUnavailable is the package's HomeUnavailable in the language of msgs.
+func (msgs Messages) HomeUnavailable() string { return msgs.text(textHomeUnavailable) }
+
+// HomeFeatured says "Featured"
+// in the language the app shows under cx.
+func HomeFeatured(cx *core.Scope) string { return For(cx).HomeFeatured() }
+
+// HomeFeatured is the package's HomeFeatured in the language of msgs.
+func (msgs Messages) HomeFeatured() string { return msgs.text(textHomeFeatured) }
+
+// HomeNewRelease says "Recently added"
+// in the language the app shows under cx.
+func HomeNewRelease(cx *core.Scope) string { return For(cx).HomeNewRelease() }
+
+// HomeNewRelease is the package's HomeNewRelease in the language of msgs.
+func (msgs Messages) HomeNewRelease() string { return msgs.text(textHomeNewRelease) }
+
+// HomeNewShort says "New"
+// in the language the app shows under cx.
+func HomeNewShort(cx *core.Scope) string { return For(cx).HomeNewShort() }
+
+// HomeNewShort is the package's HomeNewShort in the language of msgs.
+func (msgs Messages) HomeNewShort() string { return msgs.text(textHomeNewShort) }
+
+// HomeDuration says "{minutes} min"
+// in the language the app shows under cx.
+func HomeDuration(cx *core.Scope, minutes string) string { return For(cx).HomeDuration(minutes) }
+
+// HomeDuration is the package's HomeDuration in the language of msgs.
+func (msgs Messages) HomeDuration(minutes string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.HomeDuration(minutes))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].HomeDuration; f != nil {
+			return f(minutes)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(minutes) + " min"
+		case "zh-Hans":
+			return minutes + " 分钟"
+		}
+	}
+}
+
+// HomeSeriesUpdates says "Series updates"
+// in the language the app shows under cx.
+func HomeSeriesUpdates(cx *core.Scope) string { return For(cx).HomeSeriesUpdates() }
+
+// HomeSeriesUpdates is the package's HomeSeriesUpdates in the language of msgs.
+func (msgs Messages) HomeSeriesUpdates() string { return msgs.text(textHomeSeriesUpdates) }
+
+// HomeSeeAll says "See all"
+// in the language the app shows under cx.
+func HomeSeeAll(cx *core.Scope) string { return For(cx).HomeSeeAll() }
+
+// HomeSeeAll is the package's HomeSeeAll in the language of msgs.
+func (msgs Messages) HomeSeeAll() string { return msgs.text(textHomeSeeAll) }
+
+// HomeCollapse says "Show less"
+// in the language the app shows under cx.
+func HomeCollapse(cx *core.Scope) string { return For(cx).HomeCollapse() }
+
+// HomeCollapse is the package's HomeCollapse in the language of msgs.
+func (msgs Messages) HomeCollapse() string { return msgs.text(textHomeCollapse) }
+
+// HomeEpisode says "Season {season} · Episode {episode}"
+// in the language the app shows under cx.
+func HomeEpisode(cx *core.Scope, season string, episode string) string {
+	return For(cx).HomeEpisode(season, episode)
+}
+
+// HomeEpisode is the package's HomeEpisode in the language of msgs.
+func (msgs Messages) HomeEpisode(season string, episode string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.HomeEpisode(season, episode))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].HomeEpisode; f != nil {
+			return f(season, episode)
+		}
+		switch lang {
+		case "", "en":
+			return "Season " + msgs.arg(season) + " · Episode " + msgs.arg(episode)
+		case "zh-Hans":
+			return "第 " + season + " 季 · 第 " + episode + " 集"
+		}
+	}
+}
 
 // Library says "Library"
 // in the language the app shows under cx.

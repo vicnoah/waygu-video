@@ -44,9 +44,25 @@ type catalogResult struct {
 	resumeCache   []resumeCacheUpdate
 	resumeCatalog []catalogItem
 	mergeResume   bool
+	total         int
+	connected     bool
+	sources       map[string]homeSourceStatus
 }
 
 func (a *application) shell(cx *core.Scope) core.Node {
+	layout := core.NewMemo(cx, func() core.Idiom {
+		idiom := cx.Env().Idiom()
+		if idiom == core.IdiomDesktop {
+			if width := cx.Env().Window().Width; width > 0 && width < 560 {
+				return core.IdiomPhone
+			}
+		}
+		return idiom
+	})
+	return core.Dynamic(func(cx *core.Scope) core.Node { return a.shellLayout(cx, layout.Get()) })
+}
+
+func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 	titles := []string{locales.Home(cx), locales.Library(cx), locales.Search(cx), locales.Settings(cx)}
 	icons := []func() *core.SVG{lucide.House, lucide.LibraryBig, lucide.Search, lucide.Settings}
 	pages := []screen{screenHome, screenLibrary, screenSearch, screenSettings}
@@ -54,9 +70,8 @@ func (a *application) shell(cx *core.Scope) core.Node {
 		if pages[index] == screenSettings {
 			return a.settings(cx)
 		}
-		return a.browse(cx, pages[index])
+		return a.browse(cx, pages[index], idiom == core.IdiomPhone)
 	}
-	idiom := cx.Env().Idiom()
 	if idiom == core.IdiomDesktop || idiom == core.IdiomTablet || idiom == core.IdiomTV {
 		content := core.Dynamic(func(cx *core.Scope) core.Node { return page(cx, a.tab.Get()) })
 		if idiom == core.IdiomTV {
@@ -87,10 +102,14 @@ func (a *application) shell(cx *core.Scope) core.Node {
 		tabs = append(tabs, ui.ShellTab{Text: title, Icon: icons[i], SystemIcon: systemIcons[i],
 			TestID: "tab-" + string(pages[i]), Content: func(cx *core.Scope) core.Node { return page(cx, i) }})
 	}
+	if idiom == core.IdiomPhone {
+		tabs[1].Icon = lucide.Clapperboard
+		return a.phoneShell(cx, tabs)
+	}
 	return ui.TabShell{Tabs: tabs, Selected: a.tab.Get, OnChange: a.tab.Set}
 }
 
-func (a *application) browse(cx *core.Scope, page screen) core.Node {
+func (a *application) browse(cx *core.Scope, page screen, phone bool) core.Node {
 	query := core.NewSignal(cx, "")
 	draft := core.NewSignal(cx, "")
 	library := core.NewSignal(cx, "")
@@ -123,6 +142,9 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 				}
 			}
 		})
+		if phone {
+			return a.phoneHome(cx, results, limit)
+		}
 	}
 	title := locales.Home(cx)
 	if page == screenLibrary {
@@ -220,11 +242,7 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 				Variant: ui.ButtonOutline, OnPress: results.Refetch})
 		}
 		if page == screenHome {
-			request := catalogRequest{filter: a.sourceFilter.Get(), home: true}
-			sources := a.sources.Get()
-			merge := result.mergeResume || loading && len(sources) > 1 && request.filter == "" && a.mergeTitles.Get()
-			resume := a.progressResumeShelf(result.resume, sources, request)
-			result.resume = continueWatching(resume, result.resumeCatalog, merge)
+			result.resume = a.homeResume(result, loading)
 			if len(result.items) > 0 {
 				children = append(children, a.hero(cx, result.items[0]))
 			}
@@ -255,9 +273,17 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 	return core.Scroll{Class: "flex-1", Children: []core.Node{core.View{
 		Class: "gap-5 p-5 md:p-8", StyleFunc: func() core.Style {
 			return core.Style{PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea, Bottom: core.EnvKeyboard},
-				Padding: core.Edges{Bottom: 24 + ui.TabBarInset(cx)}}
+				Padding: core.Edges{Bottom: 24 + tabBarInset(cx)}}
 		}, Children: controls,
 	}}}
+}
+
+func (a *application) homeResume(result catalogResult, loading bool) []catalogItem {
+	request := catalogRequest{filter: a.sourceFilter.Get(), home: true}
+	sources := a.sources.Get()
+	merge := result.mergeResume || loading && len(sources) > 1 && request.filter == "" && a.mergeTitles.Get()
+	resume := a.progressResumeShelf(result.resume, sources, request)
+	return continueWatching(resume, result.resumeCatalog, merge)
 }
 
 func (a *application) loadCatalog(ctx context.Context, q catalogRequest) catalogResult {
@@ -270,12 +296,18 @@ func (a *application) loadCatalog(ctx context.Context, q catalogRequest) catalog
 	}
 	workers.Wait()
 	var all catalogResult
-	for _, group := range groups {
+	if q.home {
+		all.sources = make(map[string]homeSourceStatus, len(q.sources))
+	}
+	for index, group := range groups {
 		all.items = append(all.items, group.items...)
 		all.resume = append(all.resume, group.resume...)
 		all.resumeCache = append(all.resumeCache, group.resumeCache...)
 		all.hasMore = all.hasMore || group.hasMore
 		all.failure = errors.Join(all.failure, group.failure)
+		if q.home && (q.filter == "" || q.filter == q.sources[index].ID) {
+			all.sources[q.sources[index].ID] = homeSourceStatus{total: group.total, connected: group.connected, failed: group.failure != nil}
+		}
 	}
 	merge := q.merge && len(q.sources) > 1 && q.filter == "" && q.library == ""
 	if q.home && merge {
@@ -326,6 +358,8 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 			result.failure = errors.Join(result.failure, err)
 			continue
 		}
+		result.connected = true
+		result.total += max(page.Total, len(page.Items))
 		for _, item := range page.Items {
 			if globalSearch && (len(libraries) < len(source.Libraries) || q.category != "") && item.LibraryID != library.ID {
 				continue
@@ -357,7 +391,6 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 
 func (a *application) hero(cx *core.Scope, entry catalogItem) core.Node {
 	item := entry.item
-	open := func() { a.push(route{screen: screenDetail, source: entry.source, item: item, match: entry.match}) }
 	art := item.Backdrop
 	if art == "" {
 		art = item.Poster
@@ -370,35 +403,48 @@ func (a *application) hero(cx *core.Scope, entry catalogItem) core.Node {
 			core.Text{Content: item.Title, Class: "text-3xl font-bold text-white md:text-5xl"},
 			core.Text{Content: itemMetadata(cx, item), Class: "text-sm text-zinc-200"},
 			core.View{Class: "flex-row gap-2", Children: []core.Node{
-				ui.Button{Text: locales.Play(cx), Icon: lucide.Play, Size: ui.SizeLarge, OnPress: func() {
-					if playable(item) {
-						next := route{screen: screenPlayer, source: entry.source, item: item, resume: true, match: entry.match}
-						if remembered := a.rememberedCopy(next); remembered != "" {
-							for _, copy := range entry.match.copies {
-								if encodeCopyKey(copy.key()) == remembered {
-									next.source, next.item = copy.source, copy.item
-									break
-								}
-							}
-						}
-						a.push(next)
-					} else {
-						open()
-					}
-				}},
-				ui.Button{Text: locales.Details(cx), Icon: lucide.Info, Variant: ui.ButtonSecondary, Size: ui.SizeLarge, OnPress: open},
+				ui.Button{Text: locales.Play(cx), Icon: lucide.Play, Size: ui.SizeLarge, OnPress: func() { a.playCatalogEntry(entry) }},
+				ui.Button{Text: locales.Details(cx), Icon: lucide.Info, Variant: ui.ButtonSecondary, Size: ui.SizeLarge,
+					OnPress: func() { a.openCatalogEntry(entry) }},
 			}},
 		}},
 	}}
 }
 
+func (a *application) openCatalogEntry(entry catalogItem) {
+	a.push(route{screen: screenDetail, source: entry.source, item: entry.item, match: entry.match})
+}
+
+func (a *application) playCatalogEntry(entry catalogItem) {
+	if !playable(entry.item) {
+		a.openCatalogEntry(entry)
+		return
+	}
+	next := route{screen: screenPlayer, source: entry.source, item: entry.item, resume: true, match: entry.match}
+	if remembered := a.rememberedCopy(next); remembered != "" {
+		for _, copy := range entry.match.copies {
+			if encodeCopyKey(copy.key()) == remembered {
+				next.source, next.item = copy.source, copy.item
+				break
+			}
+		}
+	}
+	a.push(next)
+}
+
+func (a *application) catalogEntryID(prefix string, entry catalogItem) string {
+	if len(a.sources.GetUntracked()) > 1 {
+		return prefix + entry.source.ID + "-" + entry.item.ID
+	}
+	return prefix + entry.item.ID
+}
+
 func (a *application) posterCard(cx *core.Scope, entry catalogItem) core.Node {
 	item := entry.item
-	id := "title-" + item.ID
+	id := a.catalogEntryID("title-", entry)
 	label := item.Title
 	description := itemMetadata(cx, item)
 	if len(a.sources.GetUntracked()) > 1 {
-		id = "title-" + entry.source.ID + "-" + item.ID
 		label += " · " + entry.source.Name
 		if description != "" {
 			description += " · "
@@ -412,7 +458,7 @@ func (a *application) posterCard(cx *core.Scope, entry catalogItem) core.Node {
 	}
 	return base.Button{Label: label, Style: style, TestID: id,
 		OnPress: func(core.PressEvent) {
-			a.push(route{screen: screenDetail, source: entry.source, item: item, match: entry.match})
+			a.openCatalogEntry(entry)
 		}, Children: []core.Node{core.View{Class: "w-full gap-2", Children: []core.Node{
 			core.View{Class: "relative h-52 items-center justify-center overflow-hidden rounded-2xl border border-border bg-card", Children: []core.Node{art}},
 			core.Text{Content: item.Title, Class: "line-clamp-1 text-sm font-semibold"},

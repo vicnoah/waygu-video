@@ -41,6 +41,7 @@ type plexMetadata struct {
 	Year, Index, ParentIndex, LibrarySectionID  int
 	Rating                                      float64
 	Duration, ViewOffset                        int64
+	AddedAt                                     int64
 	LastViewedAt                                int64
 	ViewCount                                   int
 	Genre                                       []struct{ Tag string }
@@ -252,6 +253,9 @@ func (p *plexClient) item(entry plexMetadata) Item {
 		ExternalIDs: make(map[string]string, len(entry.Guid))}
 	if entry.LastViewedAt > 0 {
 		item.LastPlayed = time.Unix(entry.LastViewedAt, 0).UTC()
+	}
+	if entry.AddedAt > 0 {
+		item.AddedAt = time.Unix(entry.AddedAt, 0).UTC()
 	}
 	for _, genre := range entry.Genre {
 		item.Genres = append(item.Genres, genre.Tag)

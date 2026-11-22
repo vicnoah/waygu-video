@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const browserItemFields = "Overview,Genres,ProviderIds,PrimaryImageAspectRatio"
+const browserItemFields = "Overview,Genres,ProviderIds,PrimaryImageAspectRatio,DateCreated"
 
 type mediaBrowser struct {
 	api
@@ -143,6 +143,7 @@ type browserItem struct {
 	ProductionYear    int
 	CommunityRating   float64
 	RunTimeTicks      int64
+	DateCreated       string
 	Genres            []string
 	ProviderIds       map[string]string
 	ImageTags         map[string]string
@@ -266,13 +267,14 @@ func (m *mediaBrowser) items(entries []browserItem) []Item {
 
 func (m *mediaBrowser) item(entry browserItem) Item {
 	lastPlayed, _ := time.Parse(time.RFC3339Nano, entry.UserData.LastPlayedDate)
+	addedAt, _ := time.Parse(time.RFC3339Nano, entry.DateCreated)
 	item := Item{
 		ID: entry.ID, Kind: Kind(strings.ToLower(entry.Type)), Title: entry.Name,
 		SeriesID: entry.SeriesID, SeriesTitle: entry.SeriesName, Overview: entry.Overview,
 		Year: entry.ProductionYear, Rating: entry.CommunityRating, Genres: entry.Genres,
 		Duration: fromTicks(entry.RunTimeTicks), Position: fromTicks(entry.UserData.PlaybackPositionTicks),
-		LastPlayed: lastPlayed,
-		Watched:    entry.UserData.Played, Favorite: entry.UserData.IsFavorite,
+		AddedAt: addedAt, LastPlayed: lastPlayed,
+		Watched: entry.UserData.Played, Favorite: entry.UserData.IsFavorite,
 		ExternalIDs: make(map[string]string, len(entry.ProviderIds)),
 	}
 	for key, id := range entry.ProviderIds {

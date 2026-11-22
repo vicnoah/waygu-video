@@ -20,10 +20,7 @@ func (a *application) resumeShelfView(cx *core.Scope, items []catalogItem) core.
 	cards := make([]core.Node, 0, len(items))
 	for _, entry := range items {
 		item := entry.item
-		id := "resume-" + item.ID
-		if len(a.sources.GetUntracked()) > 1 {
-			id = "resume-" + entry.source.ID + "-" + item.ID
-		}
+		id := a.catalogEntryID("resume-", entry)
 		var cover core.Node = core.Icon{SVG: lucide.Film(), Class: "size-9 text-primary"}
 		art := item.Backdrop
 		if art == "" {
@@ -54,7 +51,7 @@ func (a *application) resumeShelfView(cx *core.Scope, items []catalogItem) core.
 		cards = append(cards, base.Button{Label: locales.ResumeCardLabel(cx, item.Title), TestID: id,
 			Style: core.Style{Width: width, FlexShrink: 0, CornerRadius: 12, FocusVisible: ui.FocusRing(cx, 3)},
 			OnPress: func(core.PressEvent) {
-				a.push(route{screen: screenPlayer, source: entry.source, item: item, resume: true, resumeLocal: entry.pending})
+				a.playResumeEntry(entry)
 			},
 			Children: []core.Node{core.View{Class: "w-full gap-1", Children: []core.Node{mediaBox,
 				core.Text{Content: item.Title, Class: "line-clamp-1 text-sm font-semibold"},
@@ -64,4 +61,8 @@ func (a *application) resumeShelfView(cx *core.Scope, items []catalogItem) core.
 	return core.Scroll{Horizontal: true, Style: core.Style{FlexShrink: 0}, Children: []core.Node{
 		core.View{Class: "flex-row gap-4 pb-2", Children: cards},
 	}}
+}
+
+func (a *application) playResumeEntry(entry catalogItem) {
+	a.push(route{screen: screenPlayer, source: entry.source, item: entry.item, resume: true, resumeLocal: entry.pending})
 }

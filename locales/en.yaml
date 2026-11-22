@@ -60,6 +60,19 @@ importLibraries: Choose libraries to import
 completeSource: Done
 noLibraries: This account has no video libraries.
 home: Home
+homeGreeting: Welcome back
+homeSummary: "{sources} online · {count} loaded"
+homeBySource: By source
+homeItemCount: "{count} items"
+homeUnavailable: Connection error
+homeFeatured: Featured
+homeNewRelease: Recently added
+homeNewShort: New
+homeDuration: "{minutes} min"
+homeSeriesUpdates: Series updates
+homeSeeAll: See all
+homeCollapse: Show less
+homeEpisode: "Season {season} · Episode {episode}"
 library: Library
 search: Search
 settings: Settings

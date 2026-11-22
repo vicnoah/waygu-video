@@ -13,8 +13,8 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [桌面/播放器](../../design/desktop-player.scenra#L1) | default | `desktop · 1440 × 810` | danmaku, episodes, info | Pending |
 | [桌面/设置窗口](../../design/desktop-settings.scenra#L1) | light | `desktop · 1100 × 760` | — | Pending |
 | [设置窗口 · 深色](../../design/desktop-settings.scenra#L135) | dark | `desktop · 1100 × 760` | — | Pending |
-| [手机/首页](../../design/home.scenra#L1) | light | `phone · auto × 1480` | — | Pending |
-| [首页 · 深色](../../design/home.scenra#L143) | dark | `phone · auto × 1480` | — | Pending |
+| [手机/首页](../../design/home.scenra#L1) | light | `phone · auto × 1480` | — | [Compared](home.md) |
+| [首页 · 深色](../../design/home.scenra#L143) | dark | `phone · auto × 1480` | — | [Compared](home.md) |
 | [手机/媒体库](../../design/library.scenra#L1) | light | `phone · auto × 1100` | anime, docs, movies, shows | Pending |
 | [媒体库 · 深色](../../design/library.scenra#L94) | dark | `phone · auto × 1100` | anime, docs, movies, shows | Pending |
 | [手机/电影详情](../../design/movie-detail.scenra#L1) | light | `phone · auto × 1960` | — | Pending |

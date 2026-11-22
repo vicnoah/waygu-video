@@ -16,6 +16,7 @@ REVIEWS = {
     "welcome.scenra": "welcome.md",
     "add-source.scenra": "add-source.md",
     "source-login.scenra": "source-login.md",
+    "home.scenra": "home.md",
 }
 
 

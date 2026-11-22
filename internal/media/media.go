@@ -86,6 +86,7 @@ type Item struct {
 	SeriesExternalIDs map[string]string
 	Duration          time.Duration
 	Position          time.Duration
+	AddedAt           time.Time
 	LastPlayed        time.Time
 	Watched           bool
 	Favorite          bool

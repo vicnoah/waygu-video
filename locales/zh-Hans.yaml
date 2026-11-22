@@ -60,6 +60,19 @@ importLibraries: 选择要导入的媒体库
 completeSource: 完成
 noLibraries: 此账号没有可导入的影视库。
 home: 首页
+homeGreeting: 欢迎回来
+homeSummary: "{sources} 个媒体源在线 · 已载入 {count} 项"
+homeBySource: 按媒体源
+homeItemCount: "{count} 项"
+homeUnavailable: 连接异常
+homeFeatured: 今日推荐
+homeNewRelease: 新入库
+homeNewShort: 新
+homeDuration: "{minutes} 分钟"
+homeSeriesUpdates: 剧集更新
+homeSeeAll: 全部
+homeCollapse: 收起
+homeEpisode: "第 {season} 季 · 第 {episode} 集"
 library: 媒体库
 search: 搜索
 settings: 设置

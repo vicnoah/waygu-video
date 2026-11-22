@@ -64,7 +64,7 @@ func (a *application) settings(cx *core.Scope) core.Node {
 	return core.Scroll{Class: "flex-1", Children: []core.Node{core.View{
 		Class: "gap-5 p-5 md:p-8", StyleFunc: func() core.Style {
 			return core.Style{PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea, Bottom: core.EnvKeyboard},
-				Padding: core.Edges{Bottom: 24 + ui.TabBarInset(cx)}}
+				Padding: core.Edges{Bottom: 24 + tabBarInset(cx)}}
 		}, Children: []core.Node{
 			heading(locales.Settings(cx)),
 			core.View{Class: "flex-row flex-wrap items-center justify-between gap-3", Children: []core.Node{
