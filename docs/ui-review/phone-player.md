@@ -52,9 +52,9 @@ The scan and ellipsis icons retain their position in the main comparison. Their 
 
 The source strip shows the Scenra panel, the local row before import and the same row after importing an ASS file with four comments. Manual match and Import use the design's two centered 36 pt buttons. The local row opens the picker when empty, then shows the imported format, comment count and a switch. Scenra's Bilibili and Bahamut rows push the actions below the fold in its four-source example. The fixture's two source rows leave both actions visible.
 
-![Scenra player and the Emby clip with the imported ASS comments](images/phone-player-danmaku-ass.png)
+![Scenra player and native ASS comments in Original and Fill and crop](images/phone-player-danmaku-ass.png)
 
-The playback comparison shows the native GTK video paused at the fixture's comment window. The comments include both scrolling directions and pinned top and bottom text. The app lays out these comments using the playback settings for size, speed, opacity and lane spacing. Its first comment lane sits closer to the top edge than Scenra's example. The pill opens file import. Public comment sending, which Scenra assigns to that pill, remains open. The Docker test covers import with Emby, Jellyfin and Plex, and the libmpv test checks the imported overlay against decoded frame pixels. [Fixture and capture commands](../../integration/servers/TESTING.md#ass-danmaku-import)
+The first frame is Scenra. The two native frames show the paused Emby fixture in Original and Fill and crop. In both, the first comment lane starts 64 pt from the top at the design size. Default rows are about 28 pt apart there. The layout adds a system top inset when present and uses the visible video area to schedule the remaining lanes. The test checks the original and cropped views, the 2.35:1 frame, and a simulated 12 pt top system inset. The pill opens file import. Public comment sending, which Scenra assigns to that pill, remains open. The Docker test covers import with Emby, Jellyfin and Plex, and the libmpv test checks the imported overlay against decoded frame pixels. [Fixture and capture commands](../../integration/servers/TESTING.md#ass-danmaku-import)
 
 ## Findings
 

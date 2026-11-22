@@ -34,6 +34,7 @@ func (p desktopPlayerControls) timeline(cx *core.Scope) core.Node {
 			return base.SingleValue(at.Seconds())
 		}, Max: func() float64 { return p.duration.Get().Seconds() }, Step: func() float64 { return 1 },
 		Disabled: func() bool { return p.duration.Get() <= 0 }, Class: "h-4 flex-1",
+		Marks:    []core.Node{p.bufferedMarks()},
 		OnChange: func(v base.SliderValue) { drag.Set(time.Duration(v.Start * float64(time.Second))) },
 		OnChangeEnd: func(v base.SliderValue) {
 			p.seek(time.Duration(v.Start * float64(time.Second)))
@@ -66,17 +67,32 @@ func (p desktopPlayerControls) timeline(cx *core.Scope) core.Node {
 	return core.View{Class: "relative gap-1", OnLayout: func(bounds core.Bounds) { width.Set(bounds.Size.Width) }, Children: []core.Node{
 		p.heatmap(cx),
 		core.View{Class: "relative h-4 flex-row items-center", OnMouseEnter: move, OnMouseMove: move, OnMouseLeave: func(core.MouseEvent) { hover.Set(-1) },
-			Children: []core.Node{
-				core.Canvas{Class: "absolute inset-0", Draw: func(d *core.Drawing, size core.Size) {
-					if info, ok := p.stats(); ok && info.Buffered > 0 {
-						start, length := p.position.Get(), p.duration.Get()
-						a, b := tvPlaybackFraction(start, length), tvPlaybackFraction(start+info.Buffered, length)
-						d.SetFillColor(core.RGBA(0xffffff, .34)).FillRect(float32(size.Width)*float32(a), 5, float32(size.Width)*float32(b-a), 6)
-					}
-				}},
-				rail,
-			}},
+			Children: []core.Node{rail}},
 		preview,
+	}}
+}
+
+func (p desktopPlayerControls) bufferedMarks() core.Node {
+	return core.Show{When: func() bool {
+		info, ok := p.stats()
+		return ok && len(info.CacheRanges) > 0 && p.duration.Get() > 0 && !p.cast.active()
+	}, Then: func(*core.Scope) core.Node {
+		return core.View{Class: "absolute inset-0 overflow-hidden rounded-full", PointerEvents: core.PointerEventsNone,
+			Children: []core.Node{core.Canvas{Class: "absolute inset-0", TestID: "desktop-player-buffered",
+				Draw: func(d *core.Drawing, size core.Size) {
+					info, _ := p.stats()
+					length := p.duration.Get()
+					// Composite to the design's 45% white over the 20% base rail.
+					const cachedOpacity = (.45 - .20) / (1 - .20)
+					d.SetFillColor(core.RGBA(0xffffff, cachedOpacity))
+					for _, cached := range info.CacheRanges {
+						start := float32(tvPlaybackFraction(cached.Start, length)) * float32(size.Width)
+						end := float32(tvPlaybackFraction(cached.End, length)) * float32(size.Width)
+						if end > start {
+							d.FillRect(start, 0, end-start, float32(size.Height))
+						}
+					}
+				}}}}
 	}}
 }
 

@@ -56,13 +56,24 @@ With the same three fixtures, `TestDockerOfflineDownloadReview` saves an origina
 
 `TestReadASSAndSchedule` imports UTF‑8 and UTF‑16 files and checks time, ASS primary colors, direction, sender filters and offsets. Fixed comments use their ASS alignment, and horizontal movement selects the corresponding scrolling direction. The shared scheduler supplies duration, placement and styling from the user's playback settings. The importer uses dialogue text and omits ASS drawing commands. `TestRenderWithASS` schedules imported dialogue and checks the resulting libmpv pixels before and after changing the display settings. [ASS format guide](https://github.com/libass/libass/wiki/ASS-File-Format-Guide)
 
-`TestDockerASSDanmakuReview` opens the generated Track Test clip through Emby, Jellyfin and Plex. It verifies the picker advertises all three supported formats, imports a synthetic ASS file through the local row, exercises the source toggle and rejects a malformed replacement. The native GTK run uses Emby, decodes the test video, selects the generated file in the GTK picker with `xdotool` on X11, and captures the Sources panel before and after import and the resulting overlay. [Scenra comparison](../../docs/ui-review/phone-player.md#ass-file-import)
+`TestDockerASSDanmakuReview` opens the generated Track Test clip through Emby, Jellyfin and Plex. It verifies the picker advertises all three supported formats, imports a synthetic ASS file through the local row, exercises the source toggle and rejects a malformed replacement. It also checks the first lane in the original, cropped and fixed-ratio frames and a simulated system top inset. The native GTK run selects the generated file in the GTK picker with `xdotool` on X11 and captures the source panel and overlay on the decoded Emby clip. [Scenra comparison](../../docs/ui-review/phone-player.md#ass-file-import)
 
 ```sh
 WAYGU_TEST_SERVERS=1 WAYGU_TEST_MPV=1 go tool nsgo test ./... \
   -run '^(TestReadASS|TestRenderWithASS|TestDockerASSDanmakuReview)' -count=1
 GDK_DEBUG=no-portals go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerASSDanmakuReview$' -screenshots .nsgo/ui-review/phone-danmaku-ass
+```
+
+## Desktop buffered timeline
+
+`TestSwitchEmbeddedTracksDuringAuthenticatedPlayback` checks that an HTTP fixture served through the authenticated playback proxy reports a seekable libmpv cache range. `TestMergeCacheRangesKeepsGaps` verifies that overlapping intervals merge and a gap stays open. The Linux GTK review decodes an Emby episode with libmpv and verifies the cache drawing fits the 6 pt rail. [Timeline comparison](../../docs/ui-review/desktop-player.md#episodes-and-timeline)
+
+```sh
+WAYGU_TEST_MPV=1 go tool nsgo test ./... \
+  -run '^(TestMergeCacheRangesKeepsGaps|TestSwitchEmbeddedTracksDuringAuthenticatedPlayback)$' -count=1
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 -env WAYGU_TEST_DESKTOP_MPV=1 \
+  -run '^TestDockerDesktopPlayerReview$' -screenshots .nsgo/ui-review/desktop-player-buffer
 ```
 
 ## DLNA casting

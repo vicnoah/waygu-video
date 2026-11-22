@@ -30,11 +30,17 @@ type Status struct {
 
 type Stats struct {
 	Buffered              time.Duration
+	CacheRanges           []CacheRange
 	FPS                   float64
 	Bitrate, DownloadRate int64
 	DroppedFrames         int64
 	VideoCodec, Hardware  string
 	AudioOutput           string
+}
+
+// CacheRange is a seekable interval in the current demuxer cache.
+type CacheRange struct {
+	Start, End time.Duration
 }
 
 type TrackKind string

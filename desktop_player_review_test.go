@@ -126,6 +126,18 @@ func TestDockerDesktopPlayerReview(t *testing.T) {
 		}
 	}
 	const timeline = "id:desktop-player-position-rail"
+	if useMPV {
+		buffer := app.WaitFor("id:desktop-player-buffered", 6*time.Second)
+		if width := app.Find(timeline).Frame.Size.Width; buffer.Frame.Size.Width != width || buffer.Frame.Size.Height != 6 {
+			t.Fatalf("buffer range track = %+v, want %v × 6", buffer.Frame, width)
+		}
+		app.WaitUntil(3*time.Second, func() bool {
+			return slices.ContainsFunc(app.FindMounted("id:desktop-player-buffered").Ops, func(op core.DrawOp) bool {
+				return op.W > 20 && op.H == 6
+			})
+		})
+		capture("buffered")
+	}
 	if nsgotest.Target() != "" {
 		app.PressAt(timeline, core.Point{X: 17, Y: 8})
 		app.WaitUntil(5*time.Second, func() bool {

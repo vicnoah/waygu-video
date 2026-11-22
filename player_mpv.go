@@ -48,7 +48,7 @@ func mpvVideo(cx *core.Scope, native core.Video) desktopVideo {
 	mode := core.NewSignal(cx, mpvOpening)
 	pixels := core.NewSignal[*image.RGBA](cx, nil)
 	tracks := core.NewSignalFunc[[]mpv.Track](cx, nil, slices.Equal)
-	stats := core.NewSignal(cx, mpv.Stats{})
+	stats := core.NewSignalFunc(cx, mpv.Stats{}, nil)
 	requests := make(chan mpvTrackChange, 2)
 	stopped := make(chan struct{})
 	var desired atomic.Pointer[mpvCommand]

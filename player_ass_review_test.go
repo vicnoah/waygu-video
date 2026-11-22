@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -155,11 +156,37 @@ Dialogue: 0,0:00:00.30,0:00:04.30,Default,,0,0,0,,{\an2}ASS 底部弹幕
 			if target == "" {
 				app.Progress(video, 2*time.Second, 24*time.Second)
 				app.WaitFor("text:00:00:02", time.Second)
+			}
+			expectLane := func(wantTop core.Points) {
+				t.Helper()
 				app.WaitUntil(time.Second, func() bool {
-					return slices.ContainsFunc(app.FindMounted(canvas).Ops, func(op core.DrawOp) bool { return op.Text == "ASS 顶部弹幕" })
+					picture := app.Find("id:phone-player-picture").Frame
+					wantFont := 17 * picture.Size.Height / 390
+					return slices.ContainsFunc(app.FindMounted(canvas).Ops, func(op core.DrawOp) bool {
+						top := picture.Origin.Y + core.Points(op.Y) - op.Font.Size
+						return op.Text == "ASS 顶部弹幕" && math.Abs(float64(top-wantTop)) < 1 &&
+							math.Abs(float64(op.Font.Size-wantFont)) < 1
+					})
 				})
-			} else {
+			}
+			expectLane(64)
+			if target == "linux" {
 				app.Screenshot("phone-danmaku-ass-playback")
+			}
+			if provider == "emby" {
+				for _, ratio := range []string{"crop", "2-35-1"} {
+					app.Press("id:phone-player-fit")
+					app.Press("id:phone-player-ratio-" + ratio)
+					app.WaitForGone("id:phone-player-ratio-panel", 3*time.Second)
+					expectLane(64)
+					if target == "linux" && ratio == "crop" {
+						app.Screenshot("phone-danmaku-ass-fill")
+					}
+				}
+				if target == "" {
+					app.SetEnvironment(core.Environment{Locale: "zh-Hans", SafeArea: core.Edges{Top: 12}})
+					expectLane(76)
+				}
 			}
 			app.Press("id:danmaku-sources")
 			pick("id:danmaku-import-file", "[Events]\nDialogue: malformed\n")

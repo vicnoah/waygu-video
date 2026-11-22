@@ -117,6 +117,7 @@ func ParseComment(parameters, text string, xmlFontSize bool) (Comment, bool) {
 type Settings struct {
 	Width, Height       int
 	FontSize            int
+	TopInset, RowGap    int
 	Opacity             float64
 	Area                float64
 	Speed               float64
@@ -135,7 +136,7 @@ type Settings struct {
 }
 
 func DefaultSettings() Settings {
-	return Settings{Width: 1280, Height: 720, FontSize: 28, Opacity: .9, Area: .6,
+	return Settings{Width: 1280, Height: 720, FontSize: 28, RowGap: 8, Opacity: .9, Area: .6,
 		Speed: 1, MaxOnScreen: 32, Outline: 1.5, Bold: true, ReserveSubtitles: true, Deduplicate: true}
 }
 
@@ -201,13 +202,14 @@ func ScheduleContext(ctx context.Context, comments []Comment, settings Settings)
 	}
 	comments = slices.Clone(comments)
 	slices.SortStableFunc(comments, func(a, b Comment) int { return cmp.Compare(a.At, b.At) })
-	rowHeight := settings.FontSize + 8
-	bottom := settings.Height
+	rowHeight := settings.FontSize + settings.RowGap
+	available := settings.Height - settings.TopInset
+	bottom := available
 	if settings.ReserveSubtitles {
 		bottom = bottom * 4 / 5
 	}
 	rows := bottom / rowHeight
-	scrollRows := min(rows, int(float64(settings.Height)*settings.Area)/rowHeight)
+	scrollRows := min(rows, int(float64(available)*settings.Area)/rowHeight)
 	if scrollRows == 0 {
 		return track
 	}
@@ -269,7 +271,7 @@ func ScheduleContext(ctx context.Context, comments []Comment, settings Settings)
 		}
 		duration := 4 * time.Second
 		x0, x1 := settings.Width/2, settings.Width/2
-		y := rowHeight * row
+		y := settings.TopInset + rowHeight*row
 		if comment.Mode == Scroll {
 			duration = time.Duration(float64(8*time.Second) / settings.Speed)
 			x0, x1 = settings.Width, -estimatedWidth(comment.Text, settings.FontSize)
@@ -299,6 +301,10 @@ func checkedSettings(s Settings) Settings {
 	if s.FontSize <= 0 {
 		s.FontSize = defaults.FontSize
 	}
+	if s.RowGap <= 0 {
+		s.RowGap = defaults.RowGap
+	}
+	s.TopInset = max(0, min(s.TopInset, s.Height))
 	if !(s.Opacity > 0 && s.Opacity <= 1) {
 		s.Opacity = defaults.Opacity
 	}

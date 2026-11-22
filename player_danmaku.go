@@ -51,7 +51,8 @@ type importedDanmaku struct {
 
 func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.Stream,
 	sample *core.Signal[videoSample], size *core.Signal[core.Size], paused, buffering *core.Signal[bool],
-	resize func() core.ResizeMode, rate func() float32, tvSettings, useCanvas func() bool, showOnMPV func(*danmaku.Track)) danmakuControls {
+	resize func() core.ResizeMode, pictureArea func() core.Bounds, rate func() float32,
+	tvSettings, useCanvas func() bool, showOnMPV func(*danmaku.Track)) danmakuControls {
 	type remoteComments struct {
 		comments []danmaku.Comment
 		shift    float64
@@ -61,10 +62,25 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 		remote          remoteComments
 		prefs           danmakuPreferences
 		offset          time.Duration
+		landscape       bool
+		headerInset     int
 	}
 	idiom := core.Untracked(cx, func() core.Idiom { return appLayoutIdiom(cx) })
 	tv := idiom == core.IdiomTV
 	const tvTopInset = 150
+	const phoneTopLane core.Points = 64
+	phoneInset := core.NewMemo(cx, func() int {
+		if !phoneLandscape(cx) {
+			return 0
+		}
+		picture := pictureArea()
+		frame := visibleDanmakuFrame(picture.Size, size.Get(), resize())
+		floor := phoneTopLane + cx.Env().SafeArea().Top - picture.Origin.Y - frame.Origin.Y
+		if frame.Size.Height <= 0 || floor <= 0 {
+			return 0
+		}
+		return int(math.Ceil(float64(min(1, floor/frame.Size.Height)) * float64(danmaku.DefaultSettings().Height)))
+	})
 	editor := a.editDanmaku(cx)
 	offset, setOffset, offsetControls := a.danmakuOffset(cx, current)
 	key := "danmaku-local-notes-v1:" + danmakuItemKey(current)
@@ -83,7 +99,8 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 	enableLocal := core.NewSignal(cx, true)
 	enableRemote := core.NewSignal(cx, true)
 	track := core.NewResource(cx, func() (input, bool) {
-		sources := input{prefs: a.danmakuPrefs.Get(), offset: offset.Get(), authored: authored.Get()}
+		sources := input{prefs: a.danmakuPrefs.Get(), offset: offset.Get(), authored: authored.Get(),
+			landscape: phoneLandscape(cx), headerInset: phoneInset.Get()}
 		if enableLocal.Get() && !sources.prefs.DisableLocal {
 			sources.local = local.Get().comments
 		}
@@ -112,6 +129,10 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 		settings := sources.prefs.rendererSettings(sources.offset)
 		if tv {
 			settings.Height -= tvTopInset * settings.Height / 1080
+		} else if sources.landscape {
+			// Scenra's 390 pt frame uses 17 pt glyphs on 28 pt rows.
+			settings.FontSize = 31 * sources.prefs.FontScale / 100
+			settings.RowGap, settings.TopInset = 21, sources.headerInset
 		}
 		scheduled := danmaku.ScheduleContext(ctx, comments, settings)
 		return &scheduled, ctx.Err()
@@ -344,11 +365,19 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 				canvas := core.Canvas{Class: "absolute inset-0", TestID: "danmaku-canvas", Draw: func(d *core.Drawing, bounds core.Size) {
 					comments, _ := track.Get()
 					if comments != nil {
-						var inset core.Points
-						if tv {
-							inset = tvLayoutFor(cx).points(tvTopInset)
+						frame := resize().Fit(size.Get(), bounds, core.ObjectPosition{})
+						switch {
+						case phoneLandscape(cx):
+							frame = visibleDanmakuFrame(bounds, size.Get(), resize())
+							d.Save().BeginPath().Rect(float32(frame.Origin.X), float32(frame.Origin.Y),
+								float32(frame.Size.Width), float32(frame.Size.Height)).Clip()
+							defer d.Restore()
+						case tv:
+							inset := min(tvLayoutFor(cx).points(tvTopInset), frame.Size.Height/4)
+							frame.Origin.Y += inset
+							frame.Size.Height -= inset
 						}
-						drawDanmaku(d, bounds, size.Get(), resize(), *comments, clock.Get(), inset)
+						drawDanmaku(d, frame, *comments, clock.Get())
 					}
 				}}
 				if !tv {
@@ -430,11 +459,22 @@ func (a *application) danmakuOffset(cx *core.Scope, current route) (*core.Signal
 
 }
 
-func drawDanmaku(d *core.Drawing, bounds, video core.Size, resize core.ResizeMode, track danmaku.Track, at time.Duration, inset core.Points) {
+func visibleDanmakuFrame(bounds, video core.Size, resize core.ResizeMode) core.Bounds {
 	frame := resize.Fit(video, bounds, core.ObjectPosition{})
-	top := min(inset, frame.Size.Height/4)
-	width, height := float32(frame.Size.Width), float32(frame.Size.Height-top)
-	x, y := float32(frame.Origin.X), float32(frame.Origin.Y+top)
+	left, top := max(0, frame.Origin.X), max(0, frame.Origin.Y)
+	right := min(bounds.Width, frame.Origin.X+frame.Size.Width)
+	bottom := min(bounds.Height, frame.Origin.Y+frame.Size.Height)
+	return core.Bounds{Origin: core.Point{X: left, Y: top}, Size: core.Size{
+		Width: max(0, right-left), Height: max(0, bottom-top),
+	}}
+}
+
+func drawDanmaku(d *core.Drawing, frame core.Bounds, track danmaku.Track, at time.Duration) {
+	width, height := float32(frame.Size.Width), float32(frame.Size.Height)
+	if width <= 0 || height <= 0 {
+		return
+	}
+	x, y := float32(frame.Origin.X), float32(frame.Origin.Y)
 	scaleX, scaleY := width/float32(track.Width), height/float32(track.Height)
 	scale := min(scaleX, scaleY)
 	font := core.Font{Size: core.Points(max(6, float32(track.FontSize)*scale)), Weight: core.FontWeightNormal}

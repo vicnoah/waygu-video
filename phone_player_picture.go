@@ -43,13 +43,22 @@ func (mode playerPictureMode) ratio() core.Points {
 }
 
 func (mode playerPictureMode) viewport(size core.Size) core.Style {
+	frame := mode.frame(size)
+	x, y := frame.Origin.X, frame.Origin.Y
+	if x == 0 && y == 0 {
+		return core.Style{}
+	}
+	return core.Style{Left: core.Pt(x), Right: core.Pt(x), Top: core.Pt(y), Bottom: core.Pt(y)}
+}
+
+func (mode playerPictureMode) frame(size core.Size) core.Bounds {
 	ratio := mode.ratio()
 	if ratio == 0 || size.Width <= 0 || size.Height <= 0 {
-		return core.Style{}
+		return core.Bounds{Size: size}
 	}
 	x := max(0, (size.Width-size.Height*ratio)/2)
 	y := max(0, (size.Height-size.Width/ratio)/2)
-	return core.Style{Left: core.Pt(x), Right: core.Pt(x), Top: core.Pt(y), Bottom: core.Pt(y)}
+	return core.Bounds{Origin: core.Point{X: x, Y: y}, Size: core.Size{Width: size.Width - 2*x, Height: size.Height - 2*y}}
 }
 
 func (p phonePlayerControls) picturePanel(cx *core.Scope, open *core.Signal[bool]) core.Node {

@@ -212,7 +212,7 @@ func phoneDanmakuPreview(cx *core.Scope, prefs func() danmakuPreferences) core.N
 								event.Y = min(50, max(0, int(limit)-settings.FontSize))
 							}
 						}
-						drawDanmaku(d, bounds, bounds, core.Contain, track, 5300*time.Millisecond, 0)
+						drawDanmaku(d, core.Bounds{Size: bounds}, track, 5300*time.Millisecond)
 					}
 				}},
 				core.Text{Class: "absolute bottom-2 right-3 text-[10px] text-white/70", TestID: "phone-danmaku-preview-area",

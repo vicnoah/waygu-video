@@ -544,7 +544,8 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		return video
 	})
 	tvSettings := core.NewSignal(cx, false)
-	comments := a.playerDanmaku(cx, current, initial.stream, sample, picture, paused, buffering, fit, rate.Get, tvSettings.Get, func() bool {
+	pictureArea := func() core.Bounds { return pictureMode.Get().frame(viewport.Get()) }
+	comments := a.playerDanmaku(cx, current, initial.stream, sample, picture, paused, buffering, fit, pictureArea, rate.Get, tvSettings.Get, func() bool {
 		decoder := desktop.Get()
 		return decoder == nil || !decoder.active()
 	}, func(track *danmaku.Track) {

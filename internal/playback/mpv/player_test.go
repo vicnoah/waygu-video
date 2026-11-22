@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -18,6 +19,18 @@ import (
 	"waygu-video/internal/mediahttp"
 	"waygu-video/internal/playback"
 )
+
+func TestMergeCacheRangesKeepsGaps(t *testing.T) {
+	ranges := []CacheRange{
+		{Start: 9 * time.Second, End: 12 * time.Second},
+		{Start: 2 * time.Second, End: 5 * time.Second},
+		{Start: 0, End: 3 * time.Second},
+	}
+	want := []CacheRange{{Start: 0, End: 5 * time.Second}, {Start: 9 * time.Second, End: 12 * time.Second}}
+	if got := mergeCacheRanges(ranges); !slices.Equal(got, want) {
+		t.Fatalf("merged cache ranges = %v, want %v", got, want)
+	}
+}
 
 func TestRenderWithASS(t *testing.T) {
 	if os.Getenv("WAYGU_TEST_MPV") != "1" {
@@ -154,6 +167,14 @@ func TestSwitchEmbeddedTracksDuringAuthenticatedPlayback(t *testing.T) {
 			t.Fatal("libmpv could not open the authenticated stream")
 		}
 		return event.Loaded
+	})
+	until(t, func() bool {
+		for _, cached := range p.Stats().CacheRanges {
+			if cached.Start == 0 && cached.End > 8*time.Second {
+				return true
+			}
+		}
+		return false
 	})
 	var original, alternate, caption Track
 	for _, track := range p.Tracks() {

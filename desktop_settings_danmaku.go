@@ -140,7 +140,7 @@ func desktopDanmakuPreview(cx *core.Scope, prefs func() danmakuPreferences) core
 			settings.FontSize = 18 * p.FontScale / 100
 			settings.Outline = 0
 			track := danmaku.Schedule(samples, settings)
-			drawDanmaku(d, bounds, bounds, core.Contain, track, 5500*time.Millisecond, 0)
+			drawDanmaku(d, core.Bounds{Size: bounds}, track, 5500*time.Millisecond)
 		}},
 		core.Text{Content: locales.DesktopDanmakuPreview(cx), Class: "absolute bottom-2.5 right-3 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-zinc-300"},
 	}}

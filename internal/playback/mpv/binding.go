@@ -25,6 +25,7 @@ type api struct {
 	getProperty       func(uintptr, string, int32, unsafe.Pointer) int32
 	getPropertyString func(uintptr, string) *byte
 	free              func(unsafe.Pointer)
+	freeNode          func(*propertyNode)
 	command           func(uintptr, **byte) int32
 	waitEvent         func(uintptr, float64) *event
 	createRender      func(*uintptr, uintptr, *renderParam) int32
@@ -77,6 +78,7 @@ func bind() (*api, error) {
 		{"mpv_set_option_string", &a.setOptionString}, {"mpv_set_property_string", &a.setPropertyString},
 		{"mpv_get_property", &a.getProperty}, {"mpv_command", &a.command}, {"mpv_wait_event", &a.waitEvent},
 		{"mpv_get_property_string", &a.getPropertyString}, {"mpv_free", &a.free},
+		{"mpv_free_node_contents", &a.freeNode},
 		{"mpv_render_context_create", &a.createRender}, {"mpv_render_context_free", &a.freeRender},
 		{"mpv_render_context_update", &a.updateRender}, {"mpv_render_context_render", &a.render},
 	} {
@@ -207,6 +209,13 @@ func (p *backend) stringProperty(name string) string {
 		return ""
 	}
 	defer p.api.free(unsafe.Pointer(first))
+	return readCString(first)
+}
+
+func readCString(first *byte) string {
+	if first == nil {
+		return ""
+	}
 	n := 0
 	for *(*byte)(unsafe.Add(unsafe.Pointer(first), n)) != 0 {
 		n++
@@ -247,7 +256,7 @@ func (p *backend) timeProperty(name string) time.Duration {
 }
 
 func (p *backend) stats() Stats {
-	return Stats{Buffered: p.timeProperty("demuxer-cache-duration"), FPS: p.doubleProperty("container-fps"),
+	return Stats{Buffered: p.timeProperty("demuxer-cache-duration"), CacheRanges: p.cacheRanges(), FPS: p.doubleProperty("container-fps"),
 		Bitrate: int64(p.doubleProperty("video-bitrate")), DownloadRate: p.intProperty("cache-speed"),
 		DroppedFrames: p.intProperty("frame-drop-count"), VideoCodec: p.stringProperty("video-codec"),
 		Hardware: p.stringProperty("hwdec-current"), AudioOutput: p.stringProperty("current-ao")}
