@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"maps"
-	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -84,6 +83,9 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 	if idiom == core.IdiomTV {
 		return a.tvShell(cx)
 	}
+	if idiom == core.IdiomDesktop {
+		return a.desktopShell(cx)
+	}
 	titles := []string{locales.Home(cx), locales.Library(cx), locales.Search(cx), locales.Settings(cx)}
 	icons := []func() *core.SVG{lucide.House, lucide.LibraryBig, lucide.Search, lucide.Settings}
 	pages := []screen{screenHome, screenLibrary, screenSearch, screenSettings}
@@ -111,39 +113,7 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 		}
 		a.tab.Set(index)
 	}
-	if idiom == core.IdiomDesktop {
-		content := core.Dynamic(func(cx *core.Scope) core.Node { return page(cx, a.tab.Get()) })
-		var items []ui.SidebarItem
-		for i, title := range titles {
-			items = append(items, ui.SidebarItem{ID: string(pages[i]), Text: title, Icon: icons[i], TestID: "tab-" + string(pages[i])})
-		}
-		personal := []ui.SidebarItem{
-			{ID: string(screenFavorites), Text: locales.Favorites(cx), Icon: lucide.Heart, TestID: "tab-favorites"},
-			{ID: string(screenHistory), Text: locales.WatchHistory(cx), Icon: lucide.Clock, TestID: "tab-history"},
-		}
-		if a.downloads.available() {
-			personal = append(personal, ui.SidebarItem{ID: string(screenDownloads), Text: locales.OfflineDownloads(cx), Icon: lucide.Download, TestID: "tab-downloads"})
-		}
-		sidebar := ui.Sidebar{Sections: []ui.SidebarSection{{Items: items}, {Title: locales.MyLibrary(cx), Items: personal}},
-			Selected: func() string {
-				if a.tab.Get() == 1 {
-					return string(a.libraryView.Get())
-				}
-				return string(pages[a.tab.Get()])
-			}, OnSelect: func(id string) {
-				view := screen(id)
-				if view == screenDownloads {
-					a.push(route{screen: screenDownloads})
-				} else if view == screenFavorites || view == screenHistory {
-					a.openPersonalLibrary(view)
-				} else if index := slices.Index(pages, view); index >= 0 {
-					selectTab(index)
-				}
-			}}
-		return ui.SidebarShell{DefaultWidth: 210, Fixed: true,
-			SidebarActions: []core.Node{brand(locales.Brand(cx))}, Sidebar: []core.Node{sidebar},
-			Content: []core.Node{content}}
-	}
+
 	systemIcons := []string{"house", "film", "magnifyingglass", "gearshape"}
 	var tabs []ui.ShellTab
 	for i, title := range titles {
@@ -179,9 +149,13 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 	results := core.NewResource(cx, func() (catalogRequest, bool) {
 		sources := a.sources.Get()
 		term := query.Get()
+		var selectedCategory libraryCategory
+		if page != screenHome {
+			selectedCategory = category.Get()
+		}
 		request := catalogRequest{sources: sources, filter: a.sourceFilter.Get(), library: library.Get(), search: term,
-			limit: limit.Get(), home: page == screenHome, personal: personal, category: category.Get(), merge: a.mergeTitles.Get(),
-			libraryFacts: page == screenHome && idiom == core.IdiomTV}
+			limit: limit.Get(), home: page == screenHome, personal: personal, category: selectedCategory, merge: a.mergeTitles.Get(),
+			libraryFacts: page == screenHome && (idiom == core.IdiomTV || idiom == core.IdiomDesktop)}
 		if request.home {
 			request.cachedResume = core.Untracked(cx, func() map[string][]media.Item { return a.readResumeCache(sources) })
 		}
@@ -208,7 +182,7 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 	if page == screenHome {
 		cx.Effect(func() {
 			if result, ready := results.Get(); ready && !results.Loading() {
-				if idiom == core.IdiomTablet {
+				if idiom == core.IdiomTablet || idiom == core.IdiomDesktop {
 					a.sourceStatus.Update(func(current map[string]homeSourceStatus) map[string]homeSourceStatus {
 						status := make(map[string]homeSourceStatus, len(current)+len(result.sources))
 						if a.sourceFilter.GetUntracked() != "" {
@@ -228,6 +202,9 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 		}
 		if idiom == core.IdiomTV {
 			return a.tvHome(cx, results)
+		}
+		if idiom == core.IdiomDesktop {
+			return a.desktopHome(cx, results, limit, category)
 		}
 	}
 	title, empty := locales.Home(cx), locales.EmptyLibrary(cx)

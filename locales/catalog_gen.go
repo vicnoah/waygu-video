@@ -126,6 +126,8 @@ var Parameters = map[string][]string{
 	"TvPlayerDanmakuCount":           {"count"},
 	"TvDanmakuRuleCount":             {"count"},
 	"TvPairCode":                     {"code"},
+	"DesktopOnlineCount":             {"count"},
+	"DesktopFromSource":              {"source"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -217,6 +219,8 @@ type Translation struct {
 	TvPlayerDanmakuCount           func(count string) string
 	TvDanmakuRuleCount             func(count string) string
 	TvPairCode                     func(code string) string
+	DesktopOnlineCount             func(count string) string
+	DesktopFromSource              func(source string) string
 }
 
 var supplied = map[string]Translation{}
@@ -705,6 +709,8 @@ const (
 	textTvPairNetworkError
 	textTvPairCredentialError
 	textTvPairPhoneSend
+	textDesktopNotices
+	textDesktopNoNotices
 	numTexts
 )
 
@@ -1193,6 +1199,8 @@ var keyOfText = [numTexts]string{
 	"tvPairNetworkError",
 	"tvPairCredentialError",
 	"tvPairPhoneSend",
+	"desktopNotices",
+	"desktopNoNotices",
 }
 
 // textsEn are the messages without arguments in en.
@@ -1678,7 +1686,9 @@ var textsEn = i18n.NewTexts(""+
 	"Scan a valid Waygu TV pairing code."+
 	"Could not connect to the TV. Check the code and use the same network."+
 	"The TV could not save these sign-in details."+
-	"Send to TV",
+	"Send to TV"+
+	"Media source notices"+
+	"No media source notices",
 	[]uint16{
 		11,
 		47,
@@ -2162,6 +2172,8 @@ var textsEn = i18n.NewTexts(""+
 		69,
 		44,
 		10,
+		20,
+		23,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -2647,7 +2659,9 @@ var textsZhHans = i18n.NewTexts(""+
 	"请扫描有效的肥牛视频电视配对码。"+
 	"无法连接电视，请确认配对码并连接同一网络。"+
 	"电视无法保存这组登录信息。"+
-	"发送到电视",
+	"发送到电视"+
+	"媒体源通知"+
+	"暂无媒体源通知",
 	[]uint16{
 		12,
 		45,
@@ -3131,6 +3145,8 @@ var textsZhHans = i18n.NewTexts(""+
 		63,
 		39,
 		15,
+		15,
+		21,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -3435,6 +3451,12 @@ func Supply(lang string, t Translation) {
 	}
 	if t.TvPairCode != nil {
 		s.TvPairCode = t.TvPairCode
+	}
+	if t.DesktopOnlineCount != nil {
+		s.DesktopOnlineCount = t.DesktopOnlineCount
+	}
+	if t.DesktopFromSource != nil {
+		s.DesktopFromSource = t.DesktopFromSource
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -8854,3 +8876,65 @@ func TvPairPhoneSend(cx *core.Scope) string { return For(cx).TvPairPhoneSend() }
 
 // TvPairPhoneSend is the package's TvPairPhoneSend in the language of msgs.
 func (msgs Messages) TvPairPhoneSend() string { return msgs.text(textTvPairPhoneSend) }
+
+// DesktopOnlineCount says "{count} online"
+// in the language the app shows under cx.
+func DesktopOnlineCount(cx *core.Scope, count string) string {
+	return For(cx).DesktopOnlineCount(count)
+}
+
+// DesktopOnlineCount is the package's DesktopOnlineCount in the language of msgs.
+func (msgs Messages) DesktopOnlineCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopOnlineCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopOnlineCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " online"
+		case "zh-Hans":
+			return count + " 个在线"
+		}
+	}
+}
+
+// DesktopNotices says "Media source notices"
+// in the language the app shows under cx.
+func DesktopNotices(cx *core.Scope) string { return For(cx).DesktopNotices() }
+
+// DesktopNotices is the package's DesktopNotices in the language of msgs.
+func (msgs Messages) DesktopNotices() string { return msgs.text(textDesktopNotices) }
+
+// DesktopNoNotices says "No media source notices"
+// in the language the app shows under cx.
+func DesktopNoNotices(cx *core.Scope) string { return For(cx).DesktopNoNotices() }
+
+// DesktopNoNotices is the package's DesktopNoNotices in the language of msgs.
+func (msgs Messages) DesktopNoNotices() string { return msgs.text(textDesktopNoNotices) }
+
+// DesktopFromSource says "From {source}"
+// in the language the app shows under cx.
+func DesktopFromSource(cx *core.Scope, source string) string {
+	return For(cx).DesktopFromSource(source)
+}
+
+// DesktopFromSource is the package's DesktopFromSource in the language of msgs.
+func (msgs Messages) DesktopFromSource(source string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopFromSource(source))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopFromSource; f != nil {
+			return f(source)
+		}
+		switch lang {
+		case "", "en":
+			return "From " + msgs.arg(source)
+		case "zh-Hans":
+			return "来自" + source
+		}
+	}
+}

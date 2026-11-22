@@ -18,6 +18,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | TV detail · light and dark | [Movie details, resume and remote checks](tv-detail.md) | Compared at 1920 × 1640 pt on GTK. Android TV remote navigation passed at 1920 × 1080. |
 | TV player | [Playback, seek preview and quick settings comparisons](tv-player.md) | Compared at 1920 × 1080 pt on GTK. Android TV remote playback passed against Emby. Buffered progress and tvOS checks remain pending. |
 | TV settings · light and dark | [Danmaku, focus and pairing comparisons](tv-settings.md) | Compared at 1920 × 1080 pt on GTK. Pairing was tested with a Docker media source and the phone form. |
+| Desktop home · light and dark | [Sidebar, carousel and shelf comparisons](desktop-home.md) | Compared on GTK at the design size and checked at the normal desktop window size. Native macOS and Windows captures remain pending. |
 | Phone settings and source management · light and dark | [Comparison and server checks](phone-source-settings.md) | Compared on GTK with three Docker media servers. Source reordering, sync and removal are tested. Phone device captures remain pending. |
 | Phone landscape player · all seven panel tabs | [Playback and panel comparisons](phone-player.md) | Compared at 844 × 390 pt on GTK with an Emby video and subtitle fixture. Phone rotation and system gestures remain pending. |
 | Phone playback and subtitle settings · light and dark | [Settings comparison and playback checks](phone-player-settings.md) | Compared on GTK. Audio and caption preferences were verified against Emby and Jellyfin. Device captures and several controls remain pending. |
@@ -133,6 +134,15 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
 ```
 
 Use `WAYGU_REVIEW_DESIGN=tv-settings.scenra` to export the references.
+
+Capture the desktop home in both appearances, then check the scroll position at the normal 1440 × 900 pt window size.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerDesktopHomeReview$' -screenshots .nsgo/ui-review/desktop-home
+```
+
+Use `WAYGU_REVIEW_DESIGN=desktop-main.scenra` to export the references.
 
 Capture the personal state transitions with the same servers.
 

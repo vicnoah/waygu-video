@@ -1,0 +1,51 @@
+package main
+
+import (
+	"github.com/nsgo-dev/nsgo/core"
+	"github.com/nsgo-dev/nsgo/icons/lucide"
+
+	"waygu-video/locales"
+)
+
+func (a *application) desktopShell(cx *core.Scope) core.Node {
+	category := core.NewSignal(cx, libraryCategory(""))
+	collapsed := core.NewSignal(cx, false)
+	openSearch := func() {
+		cx.Batch(func() {
+			a.sourceFilter.Set("")
+			a.tab.Set(2)
+		})
+	}
+	cx.OnKeyWith("mod+k", core.KeyOptions{Title: func() string { return locales.Search(cx) }}, openSearch)
+	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", TestID: "desktop-shell", Children: []core.Node{
+		homeAmbient(false, true), homeAmbient(true, true),
+		core.View{Class: "flex-1 flex-row", Children: []core.Node{
+			core.Show{When: func() bool { return !collapsed.Get() }, Then: func(cx *core.Scope) core.Node {
+				return a.tabletSidebar(cx, category, func() { collapsed.Set(true) }, func() {})
+			}},
+			core.View{Class: "min-w-0 flex-1", Children: []core.Node{
+				core.Show{When: collapsed.Get, Then: func(cx *core.Scope) core.Node {
+					return core.View{Class: "flex-row items-center px-8 pt-2", Children: []core.Node{
+						tabletPanelButton(cx, locales.OpenSidebar(cx), "desktop-sidebar-open", lucide.PanelLeft(), func() { collapsed.Set(false) }),
+					}}
+				}},
+				core.Dynamic(func(cx *core.Scope) core.Node {
+					switch a.tab.Get() {
+					case 1:
+						page := a.libraryView.Get()
+						if page == screenLibrary {
+							return a.browse(cx, page, core.IdiomDesktop, category)
+						}
+						return a.browse(cx, page, core.IdiomDesktop, nil)
+					case 2:
+						return a.browse(cx, screenSearch, core.IdiomDesktop, nil)
+					case 3:
+						return a.settings(cx)
+					default:
+						return a.browse(cx, screenHome, core.IdiomDesktop, category)
+					}
+				}),
+			}},
+		}},
+	}}
+}

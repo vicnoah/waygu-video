@@ -121,6 +121,11 @@ func tabletPanelButton(cx *core.Scope, label, id string, icon *core.SVG, press f
 }
 
 func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[libraryCategory], closePanel, afterSelect func()) core.Node {
+	wide := appLayoutIdiom(cx) == core.IdiomDesktop
+	id, width, top, closeID := "tablet-sidebar", "w-56", "pt-3", "tablet-sidebar-close"
+	if wide {
+		id, width, top, closeID = "desktop-sidebar", "w-60", "pt-12", "desktop-sidebar-close"
+	}
 	open := func(tab int, kind libraryCategory) {
 		cx.Batch(func() {
 			a.sourceFilter.Set("")
@@ -138,7 +143,7 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 			func() bool { return false }, func() { afterSelect(); a.push(route{screen: screenDownloads}) })
 	}
 	header := core.View{Class: "flex-row items-center justify-between pr-1", Children: []core.Node{
-		tabletBrand(cx), tabletPanelButton(cx, locales.CloseSidebar(cx), "tablet-sidebar-close", lucide.PanelLeftClose(), closePanel),
+		tabletBrand(cx), tabletPanelButton(cx, locales.CloseSidebar(cx), closeID, lucide.PanelLeftClose(), closePanel),
 	}}
 	search := base.Button{Label: locales.Search(cx), TestID: "tab-search",
 		Class: "h-9 flex-row items-center gap-2 rounded-lg bg-white px-3 shadow-sm shadow-black/5 dark:bg-[#1a1b25] " + setupBorder,
@@ -156,15 +161,22 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 	}
 	icons := []func() *core.SVG{lucide.Film, lucide.Tv, lucide.Sparkles, lucide.Globe}
 	for i, option := range libraryCategories(cx, "")[1:] {
-		browsing = append(browsing, tabletSidebarLink(cx, "tablet-library-"+string(option.Value), option.Label, icons[i],
+		entryID := "tablet-library-" + string(option.Value)
+		if wide {
+			entryID = "desktop-library-" + string(option.Value)
+			if option.Value == libraryMovies {
+				entryID = "tab-library"
+			}
+		}
+		browsing = append(browsing, tabletSidebarLink(cx, entryID, option.Label, icons[i],
 			func() bool {
 				return a.tab.Get() == 1 && a.libraryView.Get() == screenLibrary && category.Get() == option.Value
 			}, func() { open(1, option.Value) }))
 	}
-	return core.View{Class: "w-56 shrink-0 border-r border-zinc-900/8 bg-[#e9e9f0]/40 dark:border-white/8 dark:bg-[#1a1b25]/40", TestID: "tablet-sidebar",
+	return core.View{Class: width + " shrink-0 border-r border-zinc-900/8 bg-[#e9e9f0]/40 dark:border-white/8 dark:bg-[#1a1b25]/40", TestID: id,
 		Children: []core.Node{
 			core.Scroll{Class: "flex-1", Children: []core.Node{
-				core.View{Class: "gap-5 px-3 pt-3", Children: []core.Node{
+				core.View{Class: "gap-5 px-3 " + top, Children: []core.Node{
 					header, search, core.View{Class: "gap-0.5", Children: browsing},
 					core.View{Class: "gap-0.5", Children: []core.Node{
 						tabletSidebarHeading(locales.MyLibrary(cx)),

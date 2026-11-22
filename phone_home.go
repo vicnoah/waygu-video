@@ -195,6 +195,19 @@ func (a *application) homeSourceSelect(cx *core.Scope, results *core.Resource[ca
 			trigger = "gap-2 px-3.5"
 			textSize, dotSize, iconSize = "text-sm", "size-2", "size-4"
 		}
+		var online core.Node
+		if appLayoutIdiom(cx) == core.IdiomDesktop {
+			online = core.Text{Class: "shrink-0 text-xs " + setupMuted, TestID: "desktop-home-online", ContentFunc: func() string {
+				result, _ := results.Get()
+				var connected int
+				for _, status := range result.sources {
+					if status.connected {
+						connected++
+					}
+				}
+				return locales.DesktopOnlineCount(cx, strconv.Itoa(connected))
+			}}
+		}
 		return base.Select{Label: locales.MediaSources(cx), TestID: "home-source-filter",
 			Class:      "rounded-full shadow-sm shadow-black/5 " + shape + " " + setupBorder,
 			Style:      core.Style{FocusVisible: ui.FocusRing(cx, 2)},
@@ -239,6 +252,7 @@ func (a *application) homeSourceSelect(cx *core.Scope, results *core.Resource[ca
 					}
 					return label
 				}},
+				online,
 				core.Icon{SVG: lucide.ChevronDown(), Class: iconSize + " shrink-0 " + setupMuted},
 			}},
 			RenderItem: func(row base.SelectEntry) core.Node {
@@ -295,7 +309,7 @@ func (a *application) homeSourceCards(cx *core.Scope, sources []source, statuses
 	}}
 }
 
-func homeSectionTitle(cx *core.Scope, title, more string, selectMore func(), id, padding string) core.Node {
+func homeSectionTitle(cx *core.Scope, title, more string, selectMore func(), id, padding string) core.View {
 	nodes := []core.Node{core.Text{Content: title, Class: "text-lg font-bold " + setupTitle}}
 	if selectMore != nil {
 		nodes = append(nodes, base.Button{Label: more, TestID: id, Class: "flex-row items-center gap-0.5",

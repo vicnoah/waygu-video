@@ -27,6 +27,7 @@ REVIEWS = {
     "tv-detail.scenra": "tv-detail.md",
     "tv-player.scenra": "tv-player.md",
     "tv-settings.scenra": "tv-settings.md",
+    "desktop-main.scenra": "desktop-home.md",
     "settings.scenra": "phone-source-settings.md",
     "settings-sources.scenra": "phone-source-settings.md",
     "player.scenra": "phone-player.md",

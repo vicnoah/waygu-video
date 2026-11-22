@@ -563,3 +563,7 @@ tvPairPhoneInvalid: Scan a valid Waygu TV pairing code.
 tvPairNetworkError: Could not connect to the TV. Check the code and use the same network.
 tvPairCredentialError: The TV could not save these sign-in details.
 tvPairPhoneSend: Send to TV
+desktopOnlineCount: "{count} online"
+desktopNotices: Media source notices
+desktopNoNotices: No media source notices
+desktopFromSource: "From {source}"

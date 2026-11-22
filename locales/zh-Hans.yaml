@@ -563,3 +563,7 @@ tvPairPhoneInvalid: 请扫描有效的肥牛视频电视配对码。
 tvPairNetworkError: 无法连接电视，请确认配对码并连接同一网络。
 tvPairCredentialError: 电视无法保存这组登录信息。
 tvPairPhoneSend: 发送到电视
+desktopOnlineCount: "{count} 个在线"
+desktopNotices: 媒体源通知
+desktopNoNotices: 暂无媒体源通知
+desktopFromSource: "来自{source}"
