@@ -232,13 +232,15 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	var danmakuTrack *danmaku.Track
 	loaded := false
 	var lastReport time.Time
-	watch := a.beginProgressWatch(current, initial)
-	var enqueue func(media.PlaybackState)
-	var finish func(*media.PlaybackState)
-	if offline {
-		enqueue, finish = a.localPlaybackReports(current, watch)
-	} else {
-		enqueue, finish = playbackReports(initial.client, watch)
+	enqueue := func(media.PlaybackState) {}
+	finish := func(*media.PlaybackState) {}
+	if !prefs.DisableProgressRecording {
+		watch := a.beginProgressWatch(current, initial)
+		if offline {
+			enqueue, finish = a.localPlaybackReports(current, watch)
+		} else {
+			enqueue, finish = playbackReports(initial.client, watch)
+		}
 	}
 	snapshot := func(event media.PlaybackEvent) media.PlaybackState {
 		stream := medium.GetUntracked().stream

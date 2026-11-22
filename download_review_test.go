@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -157,6 +158,7 @@ func TestDockerOfflineDownloadReview(t *testing.T) {
 				t.Fatalf("downloaded file does not decode at the expected height: %q, %v", probe, err)
 			}
 			const checkpoint = 96 * time.Second
+			key := (pendingProgress{Account: mediaAccountKey(entry), Update: media.OfflineProgress{ItemID: movie.ID}}).key()
 			if nsgotest.Target() == "" {
 				app.Play("id:video-player", core.VideoInfo{Duration: 6 * time.Minute})
 				app.Progress("id:video-player", checkpoint, 6*time.Minute)
@@ -172,7 +174,6 @@ func TestDockerOfflineDownloadReview(t *testing.T) {
 			}
 			app.Press("id:close-player")
 			if nsgotest.Target() == "" {
-				key := (pendingProgress{Account: mediaAccountKey(entry), Update: media.OfflineProgress{ItemID: movie.ID}}).key()
 				if _, exists := app.Storage().GetItem(key); !exists {
 					t.Fatal("offline playback did not queue its progress")
 				}
@@ -191,7 +192,30 @@ func TestDockerOfflineDownloadReview(t *testing.T) {
 			}
 			app.Press("id:back")
 			app.Press("id:tab-settings")
+			if nsgotest.Target() == "" {
+				app.Press("id:open-phone-playback-settings")
+				app.Press("id:phone-remember-progress")
+				app.Press("id:back")
+			}
 			app.Press("id:settings-downloads")
+			if nsgotest.Target() == "" {
+				before, _ := app.Storage().GetItem(downloadQueueKey)
+				app.Press("id:download-play-" + id)
+				app.WaitFor("id:video-player", 5*time.Second)
+				app.Play("id:video-player", core.VideoInfo{Duration: 6 * time.Minute})
+				if video := app.FindMounted("id:video-player"); !slices.Contains(video.Seeks, checkpoint) {
+					t.Fatal("turning off recording should preserve the download's existing resume point")
+				}
+				app.Progress("id:video-player", 2*time.Minute, 6*time.Minute)
+				app.PauseVideo("id:video-player", core.VideoPauseControls)
+				app.Press("id:close-player")
+				if after, _ := app.Storage().GetItem(downloadQueueKey); before != after {
+					t.Fatal("playback with recording off changed the saved download")
+				}
+				if _, exists := app.Storage().GetItem(key); exists {
+					t.Fatal("playback with recording off queued an offline update")
+				}
+			}
 			app.Press("id:download-remove-" + id)
 			app.Press("id:confirm-remove-download-" + id)
 			app.WaitForGone("id:download-row-"+id, 5*time.Second)

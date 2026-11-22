@@ -38,6 +38,18 @@ func TestPhonePlaybackAndSubtitleSettingsReview(t *testing.T) {
 			app.WaitFor("id:phone-streaming-quality >> text:原画", time.Second)
 			app.WaitFor("id:phone-cellular-quality >> text:4 Mbps", time.Second)
 			capture("settings-playback")
+			if !app.Find("id:phone-remember-progress").Props.Checked {
+				t.Fatal("legacy settings should remember playback progress")
+			}
+			app.Press("id:phone-remember-progress")
+			if !readPlaybackPreferences(app.Storage()).DisableProgressRecording {
+				t.Fatal("turning off progress recording was not saved")
+			}
+			capture("settings-playback-progress-off")
+			app.Press("id:phone-remember-progress")
+			if readPlaybackPreferences(app.Storage()).DisableProgressRecording {
+				t.Fatal("turning progress recording back on was not saved")
+			}
 			if !app.Find("id:phone-prefer-direct").Props.Checked {
 				t.Fatal("legacy settings should prefer direct play")
 			}
@@ -109,6 +121,37 @@ func TestPhonePlaybackAndSubtitleSettingsReview(t *testing.T) {
 			app.Press("id:back")
 			app.WaitFor("id:subtitle-language-order", time.Second)
 		})
+	}
+}
+
+func TestAndroidRememberPlaybackPosition(t *testing.T) {
+	if nsgotest.Target() != "android" {
+		t.Skip("requires an Android phone viewport")
+	}
+	app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
+		cx.SetSubtreeAppearance(core.AppearanceLight)
+		return Root(cx)
+	}, nsgotest.Environment(core.Environment{Locale: "zh-Hans"}),
+		nsgotest.Storage(map[string]string{seenKey: "true"}))
+	app.Press("id:tab-settings")
+	app.Press("id:open-phone-playback-settings")
+	const page = "id:phone-playback-settings"
+	const control = "id:phone-remember-progress"
+	app.WaitFor(page, 3*time.Second)
+	app.Scroll(page, 900)
+	app.Advance(450 * time.Millisecond)
+	app.Screenshot("android-remember-progress-on")
+	app.Press(control)
+	if !readPlaybackPreferences(app.Storage()).DisableProgressRecording {
+		t.Fatal("turning off playback progress did not save on Android")
+	}
+	app.Advance(450 * time.Millisecond)
+	app.Screenshot("android-remember-progress-off")
+	app.Press("id:back")
+	app.Press("id:open-phone-playback-settings")
+	app.Scroll(page, 900)
+	if app.Find(control).Props.Checked {
+		t.Fatal("reopening settings did not restore the Android switch")
 	}
 }
 

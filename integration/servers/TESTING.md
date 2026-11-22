@@ -35,6 +35,12 @@ Stop the fixture services with `docker compose -f integration/servers/compose.ya
 
 With the same three fixtures, `TestDockerOfflineDownloadReview` saves an original video from the detail page, restarts the app with the saved data, disconnects the test gateway, opens the cached movie from the library and probes the local file with `ffprobe`. The headless case reconnects and verifies the offline checkpoint in the server's detail response. GTK also advances the native playback clock while the gateway refuses requests. The download store fixture checks byte ranges after cancellation, verifies the supplied response MD5 and final SHA-256, and checks the space limit and deletion.
 
+## Remember playback progress
+
+`TestDockerRememberPlaybackPosition` seeds the same movie at 92 seconds on Emby, Jellyfin and Plex. The phone player seeks to the existing point, then advances and closes while recording is off. The containers retain the previous position and the app saves no pending checkpoint. Turning the setting back on and repeating playback updates each server to 123 seconds.
+
+`TestDockerOfflineDownloadReview` also reopens each completed download with recording off. It seeks to the stored 96 seconds and verifies that another seek, pause and exit leave the saved download and sync queue unchanged. [Playback settings comparison](../../docs/ui-review/phone-player-settings.md#remember-playback-progress) · [Emby playback check-ins](https://dev.emby.media/doc/restapi/Playback-Check-ins.html)
+
 ## Streaming quality
 
 `TestDockerPreferredPlaybackMethod` opens the same title through the phone player on Emby, Jellyfin and Plex with Prefer direct play enabled and disabled. `ffprobe` decodes frames from the player's MP4 and HLS URLs. The phone and desktop settings tests exercise the shared preference and verify that it is saved.

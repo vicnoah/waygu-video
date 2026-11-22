@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
 	"slices"
 	"strings"
 	"sync/atomic"
@@ -84,6 +85,71 @@ func TestOfflinePlaybackRestoresPendingAfterRestart(t *testing.T) {
 		_, found := second.Storage().GetItem(key)
 		return !found
 	})
+}
+
+func TestDockerRememberPlaybackPosition(t *testing.T) {
+	if os.Getenv("WAYGU_TEST_SERVERS") != "1" || nsgotest.Target() != "" {
+		t.Skip("requires the Docker media servers and the simulated playback surface")
+	}
+	config, secrets := homeReviewSources(t)
+	for _, provider := range []string{"emby", "jellyfin", "plex"} {
+		t.Run(provider, func(t *testing.T) {
+			client, movie := reviewFixtureItem(t, config, secrets, provider, "Waygu Resume Test")
+			ctx, cancel := context.WithTimeout(t.Context(), 25*time.Second)
+			defer cancel()
+			const previous = 92 * time.Second
+			const position = 123 * time.Second
+			setDockerCopyProgress(t, ctx, client, movie, previous)
+			app := nsgotest.Start(t, Root, nsgotest.Idiom(core.IdiomPhone), nsgotest.Size(390, 800),
+				nsgotest.Offscreen(), nsgotest.Storage(config), nsgotest.Secrets(secrets))
+			for _, remember := range []bool{false, true} {
+				app.Press("id:tab-settings")
+				app.Press("id:open-phone-playback-settings")
+				app.Press("id:phone-remember-progress")
+				if app.Find("id:phone-remember-progress").Props.Checked != remember {
+					t.Fatalf("remember playback progress switch should be %t", remember)
+				}
+				app.Press("id:back")
+				app.Press("id:tab-search")
+				app.Clear("id:search-query")
+				app.Type("id:search-query", movie.Title)
+				app.Press("id:search-source-" + provider)
+				result := "id:title-" + provider + "-" + movie.ID
+				app.WaitFor(result, 10*time.Second)
+				app.Press(result)
+				app.WaitFor("id:detail-play >> text:Resume from", 5*time.Second)
+				app.Press("id:detail-play")
+				app.WaitFor("id:video-player", 5*time.Second)
+				app.Play("id:video-player", core.VideoInfo{Duration: movie.Duration})
+				if seeks := app.FindMounted("id:video-player").Seeks; !slices.Contains(seeks, previous) {
+					t.Fatalf("did not resume at the existing position %s (seeks %v)", previous, seeks)
+				}
+				app.Progress("id:video-player", position, movie.Duration)
+				app.PauseVideo("id:video-player", core.VideoPauseControls)
+				app.Press("id:close-player")
+				app.WaitFor("id:detail-play", time.Second)
+				if !remember {
+					app.Advance(2 * time.Second)
+					for _, key := range app.Storage().Keys() {
+						if strings.HasPrefix(key, progressKeyPrefix) {
+							t.Fatal("playback with recording off wrote a pending checkpoint")
+						}
+					}
+					detail, err := client.Detail(ctx, movie)
+					if err != nil || detail.Position != previous || detail.Watched {
+						t.Fatalf("playback with recording off changed server progress to %s or watched=%t: %v",
+							detail.Position, detail.Watched, err)
+					}
+					app.Press("id:back")
+					continue
+				}
+				app.WaitUntil(5*time.Second, func() bool {
+					detail, err := client.Detail(ctx, movie)
+					return err == nil && detail.Position == position
+				})
+			}
+		})
+	}
 }
 
 type offlineFixture struct {

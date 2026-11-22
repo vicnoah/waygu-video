@@ -235,6 +235,15 @@ go tool nsgo test -target linux -run '^TestPhonePlaybackAndSubtitleSettingsRevie
 
 Use `WAYGU_REVIEW_DESIGN=settings-playback.scenra` or `settings-subtitles.scenra` with the reference exporter. Run `TestDockerPhonePlayerUsesSettings` with the local Docker fixtures to verify the saved settings through the player.
 
+Capture the progress switch before and after tapping it on an Android phone, then verify the saved state after reopening the page.
+
+```sh
+go tool nsgo test -target android -device <serial> -run '^TestAndroidRememberPlaybackPosition$' \
+  -screenshots .nsgo/ui-review/android-progress
+```
+
+The comparison uses the installed APK on a Pixel 7 emulator. Capture both states from the emulator display with `adb -s <serial> exec-out screencap -p` to include Android's status bar and hardware clipping.
+
 Capture the desktop Settings window, overview, and the General, Playback, Danmaku and Media Sources pages in both appearances. The media source test uses the local Docker fixtures.
 
 ```sh

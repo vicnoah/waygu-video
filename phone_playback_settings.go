@@ -108,8 +108,9 @@ func (a *application) phonePlaybackSettings(cx *core.Scope) core.Node {
 				row(phoneSettingValueSized(func() string { return locales.SettingsIntroMarkers(cx) }, "w-[196px] justify-end")),
 		),
 		setupGroup(locales.SettingsControls(cx), "",
-			(phoneSetting{locales.SettingsRememberProgress(cx), "", "bg-blue-500", lucide.Clock}).
-				toggle(cx, "", func() bool { return true }, nil),
+			(phoneSetting{locales.SettingsRememberProgress(cx), "", "bg-blue-500", lucide.RotateCcwClock}).
+				toggle(cx, "phone-remember-progress", func() bool { return !a.playbackPrefs.Get().DisableProgressRecording },
+					func(enabled bool) { save(func(p *playbackPreferences) { p.DisableProgressRecording = !enabled }) }),
 			phoneSettingChoice(cx, phoneSetting{locales.SettingsSeekBack(cx), "", "bg-blue-500", lucide.RotateCcw},
 				"phone-seek-back", steps, func() int { return a.playbackPrefs.Get().BackSeconds },
 				func(value int) { save(func(p *playbackPreferences) { p.BackSeconds = value }) }),
