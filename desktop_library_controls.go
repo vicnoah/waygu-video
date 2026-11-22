@@ -93,24 +93,8 @@ func desktopLibraryModePicker(cx *core.Scope, current func() desktopLibraryMode,
 		TestID: "desktop-library-modes", Children: rows}
 }
 
-func desktopLibraryFilterBar(cx *core.Scope, filters desktopLibraryFilters, facets libraryFacets, sources []source,
+func desktopLibraryFilterBar(cx *core.Scope, readFilters func() desktopLibraryFilters, readFacets func() libraryFacets, readSources func() []source,
 	change func(func(*desktopLibraryFilters)), sourceChanged func(string), clear, open func()) core.Node {
-	genres := []ui.Option[string]{{Label: locales.LibraryAnyGenre(cx)}}
-	for _, genre := range facets.genres {
-		genres = append(genres, ui.Option[string]{Label: genre, Value: genre})
-	}
-	years := []ui.Option[int]{{Label: locales.LibraryAnyYear(cx)}}
-	for _, year := range facets.years {
-		years = append(years, ui.Option[int]{Label: strconv.Itoa(year), Value: year})
-	}
-	resolutions := []ui.Option[int]{{Label: locales.LibraryAnyResolution(cx)}}
-	for _, resolution := range facets.resolutions {
-		resolutions = append(resolutions, ui.Option[int]{Label: libraryResolutionName(resolution), Value: resolution})
-	}
-	sourceOptions := []ui.Option[string]{{Label: locales.AllSources(cx)}}
-	for _, source := range sources {
-		sourceOptions = append(sourceOptions, ui.Option[string]{Label: source.Name, Value: source.ID})
-	}
 	toggle := func(id, label string, active bool, icon *core.SVG, action func()) core.Node {
 		class, tint := desktopLibrarySurface, "text-zinc-900/80 dark:text-zinc-50/80"
 		if active {
@@ -118,37 +102,68 @@ func desktopLibraryFilterBar(cx *core.Scope, filters desktopLibraryFilters, face
 		}
 		return desktopLibraryAction(cx, id, label, icon, active, desktopFilterShape+" "+class, tint, true, nil, action)
 	}
-	filterLabel, filterStyle := locales.DesktopFilterLabel(cx), desktopLibrarySurface
-	count := filters.count()
-	if count > 0 {
-		filterLabel, filterStyle = locales.DesktopFilterCount(cx, strconv.Itoa(count)), "border border-violet-500/50 bg-violet-500/15"
-	}
-	var resolution core.Node
-	if filters.Resolution == 0 {
-		resolution = desktopLibraryMenu(cx, "desktop-filter-resolution", locales.LibraryResolution(cx), locales.LibraryResolution(cx),
-			desktopFilterShape, nil, resolutions, filters.Resolution, func(value int) { change(func(f *desktopLibraryFilters) { f.Resolution = value }) })
-	} else {
-		resolution = toggle("desktop-filter-remove-resolution", locales.DesktopResolutionValue(cx, libraryResolutionName(filters.Resolution)),
-			true, lucide.X(), func() { change(func(f *desktopLibraryFilters) { f.Resolution = 0 }) })
-	}
-	hdr := (*core.SVG)(nil)
-	if filters.HDR {
-		hdr = lucide.X()
-	}
-	return core.View{Class: "flex-row flex-wrap items-center gap-2", TestID: "desktop-library-filters", Children: []core.Node{
-		desktopLibraryAction(cx, "desktop-library-filters-open", filterLabel, lucide.Funnel(), count > 0,
-			desktopFilterShape+" "+filterStyle, "font-medium "+libraryFilterTint(count > 0), false, nil, open),
-		desktopLibraryMenu(cx, "desktop-filter-genre", locales.LibraryGenre(cx), libraryFilterValue(locales.LibraryGenre(cx), genres, filters.Genre),
-			desktopFilterShape, nil, genres, filters.Genre, func(value string) { change(func(f *desktopLibraryFilters) { f.Genre = value }) }),
-		desktopLibraryMenu(cx, "desktop-filter-year", locales.LibraryYear(cx), libraryFilterValue(locales.LibraryYear(cx), years, filters.Year),
-			desktopFilterShape, nil, years, filters.Year, func(value int) { change(func(f *desktopLibraryFilters) { f.Year = value }) }),
-		resolution,
-		toggle("desktop-filter-hdr", locales.DesktopHDR(cx), filters.HDR, hdr, func() { change(func(f *desktopLibraryFilters) { f.HDR = !f.HDR }) }),
-		desktopLibraryMenu(cx, "desktop-filter-source", locales.MediaSources(cx), libraryFilterValue(locales.DesktopLibrarySource(cx), sourceOptions, filters.Source),
-			desktopFilterShape, nil, sourceOptions, filters.Source, sourceChanged),
-		toggle("desktop-filter-unwatched", locales.LibraryUnwatched(cx), filters.Unwatched, nil, func() { change(func(f *desktopLibraryFilters) { f.Unwatched = !f.Unwatched }) }),
-		toggle("desktop-filter-favorite", locales.Favorites(cx), filters.Favorite, nil, func() { change(func(f *desktopLibraryFilters) { f.Favorite = !f.Favorite }) }),
-		core.View{Class: "flex-1"},
-		desktopLibraryAction(cx, "desktop-library-clear", locales.DesktopClearAll(cx), nil, false, "h-8", setupMuted, false, func() bool { return count == 0 }, clear),
-	}}
+	metadata := core.Dynamic(func(cx *core.Scope) core.Node {
+		filters, facets := readFilters(), readFacets()
+		genres := []ui.Option[string]{{Label: locales.LibraryAnyGenre(cx)}}
+		for _, genre := range facets.genres {
+			genres = append(genres, ui.Option[string]{Label: genre, Value: genre})
+		}
+		years := []ui.Option[int]{{Label: locales.LibraryAnyYear(cx)}}
+		for _, year := range facets.years {
+			years = append(years, ui.Option[int]{Label: strconv.Itoa(year), Value: year})
+		}
+		resolutions := []ui.Option[int]{{Label: locales.LibraryAnyResolution(cx)}}
+		for _, resolution := range facets.resolutions {
+			resolutions = append(resolutions, ui.Option[int]{Label: libraryResolutionName(resolution), Value: resolution})
+		}
+		filterLabel, filterStyle := locales.DesktopFilterLabel(cx), desktopLibrarySurface
+		count := filters.count()
+		if count > 0 {
+			filterLabel, filterStyle = locales.DesktopFilterCount(cx, strconv.Itoa(count)), "border border-violet-500/50 bg-violet-500/15"
+		}
+		var resolution core.Node
+		if filters.Resolution == 0 {
+			resolution = desktopLibraryMenu(cx, "desktop-filter-resolution", locales.LibraryResolution(cx), locales.LibraryResolution(cx),
+				desktopFilterShape, nil, resolutions, filters.Resolution, func(value int) { change(func(f *desktopLibraryFilters) { f.Resolution = value }) })
+		} else {
+			resolution = toggle("desktop-filter-remove-resolution", locales.DesktopResolutionValue(cx, libraryResolutionName(filters.Resolution)),
+				true, lucide.X(), func() { change(func(f *desktopLibraryFilters) { f.Resolution = 0 }) })
+		}
+		hdr := (*core.SVG)(nil)
+		if filters.HDR {
+			hdr = lucide.X()
+		}
+		return core.Group([]core.Node{
+			desktopLibraryAction(cx, "desktop-library-filters-open", filterLabel, lucide.Funnel(), count > 0,
+				desktopFilterShape+" "+filterStyle, "font-medium "+libraryFilterTint(count > 0), false, nil, open),
+			desktopLibraryMenu(cx, "desktop-filter-genre", locales.LibraryGenre(cx), libraryFilterValue(locales.LibraryGenre(cx), genres, filters.Genre),
+				desktopFilterShape, nil, genres, filters.Genre, func(value string) { change(func(f *desktopLibraryFilters) { f.Genre = value }) }),
+			desktopLibraryMenu(cx, "desktop-filter-year", locales.LibraryYear(cx), libraryFilterValue(locales.LibraryYear(cx), years, filters.Year),
+				desktopFilterShape, nil, years, filters.Year, func(value int) { change(func(f *desktopLibraryFilters) { f.Year = value }) }),
+			resolution,
+			toggle("desktop-filter-hdr", locales.DesktopHDR(cx), filters.HDR, hdr, func() { change(func(f *desktopLibraryFilters) { f.HDR = !f.HDR }) }),
+		})
+	})
+	// Loading more catalog metadata must leave an open source menu in place.
+	sourceMenu := core.Dynamic(func(cx *core.Scope) core.Node {
+		selected := readFilters().Source
+		sourceOptions := []ui.Option[string]{{Label: locales.AllSources(cx)}}
+		for _, source := range readSources() {
+			sourceOptions = append(sourceOptions, ui.Option[string]{Label: source.Name, Value: source.ID})
+		}
+		return desktopLibraryMenu(cx, "desktop-filter-source", locales.MediaSources(cx), libraryFilterValue(locales.DesktopLibrarySource(cx), sourceOptions, selected),
+			desktopFilterShape, nil, sourceOptions, selected, sourceChanged)
+	})
+	personal := core.Dynamic(func(cx *core.Scope) core.Node {
+		filters := readFilters()
+		count := filters.count()
+		return core.Group([]core.Node{
+			toggle("desktop-filter-unwatched", locales.LibraryUnwatched(cx), filters.Unwatched, nil, func() { change(func(f *desktopLibraryFilters) { f.Unwatched = !f.Unwatched }) }),
+			toggle("desktop-filter-favorite", locales.Favorites(cx), filters.Favorite, nil, func() { change(func(f *desktopLibraryFilters) { f.Favorite = !f.Favorite }) }),
+			core.View{Class: "flex-1"},
+			desktopLibraryAction(cx, "desktop-library-clear", locales.DesktopClearAll(cx), nil, false, "h-8", setupMuted, false, func() bool { return count == 0 }, clear),
+		})
+	})
+	return core.View{Class: "flex-row flex-wrap items-center gap-2", TestID: "desktop-library-filters",
+		Children: []core.Node{metadata, sourceMenu, personal}}
 }

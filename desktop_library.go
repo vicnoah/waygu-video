@@ -155,9 +155,7 @@ func (a *application) desktopLibrary(cx *core.Scope, category func() libraryCate
 						return !slices.ContainsFunc(rows.Get(), func(row desktopLibraryRow) bool { return playable(row.entry.item) })
 					}, shuffle),
 			}},
-			core.Dynamic(func(cx *core.Scope) core.Node {
-				return desktopLibraryFilterBar(cx, filters.Get(), facets.Get(), a.browseSources(), updateFilters, pickSource, clear, func() { filterDialog.Set(true) })
-			}),
+			desktopLibraryFilterBar(cx, filters.Get, facets.Get, a.browseSources, updateFilters, pickSource, clear, func() { filterDialog.Set(true) }),
 			a.desktopLibraryResults(cx, rows, bookmarks, current, collapsed, waiting, func() error { return page.Get().failure },
 				func() { refresh.Update(func(value uint64) uint64 { return value + 1 }) }, sort),
 			a.desktopLibraryDialog(cx, filterDialog, category, availableLibraries, current, updateFilters, clear),

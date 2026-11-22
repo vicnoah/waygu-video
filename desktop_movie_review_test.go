@@ -59,6 +59,7 @@ func TestDockerDesktopMovieReview(t *testing.T) {
 				app.WaitFor("id:desktop-filter-source", 5*time.Second)
 				app.Press("id:desktop-filter-source")
 				label := map[string]string{"emby": "Emby", "jellyfin": "Jellyfin", "plex": "Plex"}[sourceID] + " 影视库"
+				app.WaitFor("role:menuitem "+label, 3*time.Second)
 				app.Press("role:menuitem " + label)
 				app.Advance(350 * time.Millisecond)
 				card := "id:title-" + sourceID + "-" + itemID
