@@ -368,13 +368,17 @@ func compactLibraryEmpty(cx *core.Scope, icon *core.SVG, label, action string, p
 const compactPosterWidth = "w-28 max-w-[32%] min-w-0 shrink-0"
 
 func (a *application) compactLibraryCard(cx *core.Scope, entry catalogItem, bookmarks map[copyKey]media.Item, resolution int, list bool) core.Node {
-	item := entry.item
-	details, progress := libraryCardDetails(cx, entry, bookmarks)
-	watched := catalogWatched(entry)
 	shape, coverShape := compactPosterWidth+" gap-1.5 rounded-xl", "w-full rounded-xl shadow-lg shadow-black/15"
 	if list {
 		shape, coverShape = "flex-row items-center gap-3 bg-white px-3 py-2 dark:bg-[#1a1b25]", "w-12 shrink-0 rounded-lg"
 	}
+	return a.compactMediaCard(cx, entry, bookmarks, resolution, shape, coverShape, func() { a.openCatalogEntry(entry) })
+}
+
+func (a *application) compactMediaCard(cx *core.Scope, entry catalogItem, bookmarks map[copyKey]media.Item, resolution int, shape, coverShape string, open func()) core.Node {
+	item := entry.item
+	details, progress := libraryCardDetails(cx, entry, bookmarks)
+	watched := catalogWatched(entry)
 	cover := []core.Node{homeArtwork(item.Poster, "absolute inset-0 justify-center"), a.downloadBadge(entry)}
 	var best media.VideoProfile
 	for _, profile := range catalogVideoProfiles(entry) {
@@ -408,7 +412,7 @@ func (a *application) compactLibraryCard(cx *core.Scope, entry catalogItem, book
 	}
 	return base.Button{Label: item.Title, Hint: entry.source.Name, TestID: a.catalogEntryID("title-", entry),
 		Class: shape, Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
-		OnPress: func(core.PressEvent) { a.openCatalogEntry(entry) },
+		OnPress: func(core.PressEvent) { open() },
 		Children: []core.Node{
 			core.View{Class: "relative overflow-hidden " + coverShape, Style: core.Style{AspectRatio: 0.7},
 				TestID: a.catalogEntryID("library-poster-", entry), Children: cover},

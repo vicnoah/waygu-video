@@ -301,7 +301,7 @@ func phoneMovieSynopsis(cx *core.Scope, item media.Item) core.Node {
 	for _, person := range item.People {
 		if person.Director {
 			directors = append(directors, person.Name)
-		} else if len(cast) < 4 {
+		} else if person.Kind != "composer" && len(cast) < 4 {
 			cast = append(cast, person.Name)
 		}
 	}

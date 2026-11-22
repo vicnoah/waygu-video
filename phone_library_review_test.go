@@ -57,7 +57,7 @@ func TestDockerLibraryFormats(t *testing.T) {
 }
 
 func TestLibraryFilterFindsTitlesBeyondFirstTwoHundred(t *testing.T) {
-	page, err := scanCatalogPages(t.Context(), pagedLibraryFixture{}, media.Query{LibraryID: "movies", CatalogFacts: true})
+	page, err := scanCatalogPages(t.Context(), pagedLibraryFixture{}.Catalog, media.Query{LibraryID: "movies", CatalogFacts: true})
 	if err != nil || page.Total != 230 || len(page.Items) != 230 {
 		t.Fatalf("catalog scan loaded %d/%d items: %v", len(page.Items), page.Total, err)
 	}

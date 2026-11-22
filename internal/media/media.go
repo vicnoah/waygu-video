@@ -70,6 +70,7 @@ const (
 type Person struct {
 	Name, Role, Portrait string
 	Director             bool
+	Kind                 string
 }
 
 // VideoProfile describes the picture format exposed in catalog metadata.

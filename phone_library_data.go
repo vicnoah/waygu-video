@@ -56,7 +56,7 @@ func defaultPhoneLibrary(sources []source, filter string) libraryCategory {
 	return libraryMovies
 }
 
-func scanCatalogPages(ctx context.Context, client media.Client, query media.Query) (media.Page, error) {
+func scanCatalogPages(ctx context.Context, list func(context.Context, media.Query) (media.Page, error), query media.Query) (media.Page, error) {
 	query.Limit = 100
 	var result media.Page
 	seen := make(map[string]bool)
@@ -64,7 +64,7 @@ func scanCatalogPages(ctx context.Context, client media.Client, query media.Quer
 		if err := ctx.Err(); err != nil {
 			return result, err
 		}
-		batch, err := client.Catalog(ctx, query)
+		batch, err := list(ctx, query)
 		if err != nil {
 			return result, err
 		}

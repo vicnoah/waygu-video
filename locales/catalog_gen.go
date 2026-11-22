@@ -66,6 +66,8 @@ var Parameters = map[string][]string{
 	"ShowNamedLibraryOnHome":    {"name"},
 	"MoveLibraryUp":             {"name"},
 	"MoveLibraryDown":           {"name"},
+	"SearchGroupCount":          {"group", "count"},
+	"SearchCreditCount":         {"role", "count"},
 	"ResumeCardLabel":           {"title"},
 	"ResumePercent":             {"number"},
 	"ResumeRemaining":           {"time_"},
@@ -132,6 +134,8 @@ type Translation struct {
 	ShowNamedLibraryOnHome    func(name string) string
 	MoveLibraryUp             func(name string) string
 	MoveLibraryDown           func(name string) string
+	SearchGroupCount          func(group string, count string) string
+	SearchCreditCount         func(role string, count string) string
 	ResumeCardLabel           func(title string) string
 	ResumePercent             func(number string) string
 	ResumeRemaining           func(time_ string) string
@@ -285,6 +289,15 @@ const (
 	textNoSources
 	textEmptyLibrary
 	textSearchHint
+	textSearchAllSources
+	textSearchPhoneHint
+	textSearchRecentQueries
+	textSearchClearQuery
+	textSearchClearHistory
+	textSearchClear
+	textSearchNoResults
+	textSearchActor
+	textSearchComposer
 	textSearchAction
 	textContinueWatching
 	textRecent
@@ -590,6 +603,15 @@ var keyOfText = [numTexts]string{
 	"noSources",
 	"emptyLibrary",
 	"searchHint",
+	"searchAllSources",
+	"searchPhoneHint",
+	"searchRecentQueries",
+	"searchClearQuery",
+	"searchClearHistory",
+	"searchClear",
+	"searchNoResults",
+	"searchActor",
+	"searchComposer",
 	"searchAction",
 	"continueWatching",
 	"recent",
@@ -893,6 +915,15 @@ var textsEn = i18n.NewTexts(""+
 	"Add a media source to browse your movies and shows."+
 	"No matching titles"+
 	"Search movies and shows"+
+	"All"+
+	"Search titles or people"+
+	"Recent searches"+
+	"Clear search"+
+	"Clear search history"+
+	"Clear"+
+	"No matching titles"+
+	"Actor"+
+	"Composer"+
 	"Search library"+
 	"Continue watching"+
 	"Recently added"+
@@ -1193,6 +1224,15 @@ var textsEn = i18n.NewTexts(""+
 		51,
 		18,
 		23,
+		3,
+		23,
+		15,
+		12,
+		20,
+		5,
+		18,
+		5,
+		8,
 		14,
 		17,
 		14,
@@ -1496,6 +1536,15 @@ var textsZhHans = i18n.NewTexts(""+
 	"添加媒体源，开始浏览电影与剧集。"+
 	"没有找到匹配的影片"+
 	"搜索电影和剧集"+
+	"全部"+
+	"搜索片名或演职人员"+
+	"最近搜索"+
+	"清空搜索框"+
+	"清除搜索历史"+
+	"清除"+
+	"没有找到匹配的影片"+
+	"演员"+
+	"配乐"+
 	"搜索媒体库"+
 	"继续观看"+
 	"最近添加"+
@@ -1796,6 +1845,15 @@ var textsZhHans = i18n.NewTexts(""+
 		48,
 		27,
 		21,
+		6,
+		27,
+		12,
+		15,
+		18,
+		6,
+		27,
+		6,
+		6,
 		15,
 		12,
 		12,
@@ -2107,6 +2165,12 @@ func Supply(lang string, t Translation) {
 	}
 	if t.MoveLibraryDown != nil {
 		s.MoveLibraryDown = t.MoveLibraryDown
+	}
+	if t.SearchGroupCount != nil {
+		s.SearchGroupCount = t.SearchGroupCount
+	}
+	if t.SearchCreditCount != nil {
+		s.SearchCreditCount = t.SearchCreditCount
 	}
 	if t.ResumeCardLabel != nil {
 		s.ResumeCardLabel = t.ResumeCardLabel
@@ -3563,6 +3627,117 @@ func SearchHint(cx *core.Scope) string { return For(cx).SearchHint() }
 
 // SearchHint is the package's SearchHint in the language of msgs.
 func (msgs Messages) SearchHint() string { return msgs.text(textSearchHint) }
+
+// SearchAllSources says "All"
+// in the language the app shows under cx.
+func SearchAllSources(cx *core.Scope) string { return For(cx).SearchAllSources() }
+
+// SearchAllSources is the package's SearchAllSources in the language of msgs.
+func (msgs Messages) SearchAllSources() string { return msgs.text(textSearchAllSources) }
+
+// SearchPhoneHint says "Search titles or people"
+// in the language the app shows under cx.
+func SearchPhoneHint(cx *core.Scope) string { return For(cx).SearchPhoneHint() }
+
+// SearchPhoneHint is the package's SearchPhoneHint in the language of msgs.
+func (msgs Messages) SearchPhoneHint() string { return msgs.text(textSearchPhoneHint) }
+
+// SearchRecentQueries says "Recent searches"
+// in the language the app shows under cx.
+func SearchRecentQueries(cx *core.Scope) string { return For(cx).SearchRecentQueries() }
+
+// SearchRecentQueries is the package's SearchRecentQueries in the language of msgs.
+func (msgs Messages) SearchRecentQueries() string { return msgs.text(textSearchRecentQueries) }
+
+// SearchClearQuery says "Clear search"
+// in the language the app shows under cx.
+func SearchClearQuery(cx *core.Scope) string { return For(cx).SearchClearQuery() }
+
+// SearchClearQuery is the package's SearchClearQuery in the language of msgs.
+func (msgs Messages) SearchClearQuery() string { return msgs.text(textSearchClearQuery) }
+
+// SearchClearHistory says "Clear search history"
+// in the language the app shows under cx.
+func SearchClearHistory(cx *core.Scope) string { return For(cx).SearchClearHistory() }
+
+// SearchClearHistory is the package's SearchClearHistory in the language of msgs.
+func (msgs Messages) SearchClearHistory() string { return msgs.text(textSearchClearHistory) }
+
+// SearchClear says "Clear"
+// in the language the app shows under cx.
+func SearchClear(cx *core.Scope) string { return For(cx).SearchClear() }
+
+// SearchClear is the package's SearchClear in the language of msgs.
+func (msgs Messages) SearchClear() string { return msgs.text(textSearchClear) }
+
+// SearchNoResults says "No matching titles"
+// in the language the app shows under cx.
+func SearchNoResults(cx *core.Scope) string { return For(cx).SearchNoResults() }
+
+// SearchNoResults is the package's SearchNoResults in the language of msgs.
+func (msgs Messages) SearchNoResults() string { return msgs.text(textSearchNoResults) }
+
+// SearchGroupCount says "{group} · {count}"
+// in the language the app shows under cx.
+func SearchGroupCount(cx *core.Scope, group string, count string) string {
+	return For(cx).SearchGroupCount(group, count)
+}
+
+// SearchGroupCount is the package's SearchGroupCount in the language of msgs.
+func (msgs Messages) SearchGroupCount(group string, count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SearchGroupCount(group, count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SearchGroupCount; f != nil {
+			return f(group, count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(group) + " · " + msgs.arg(count)
+		case "zh-Hans":
+			return group + " · " + count
+		}
+	}
+}
+
+// SearchCreditCount says "{role} · {count} titles"
+// in the language the app shows under cx.
+func SearchCreditCount(cx *core.Scope, role string, count string) string {
+	return For(cx).SearchCreditCount(role, count)
+}
+
+// SearchCreditCount is the package's SearchCreditCount in the language of msgs.
+func (msgs Messages) SearchCreditCount(role string, count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SearchCreditCount(role, count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SearchCreditCount; f != nil {
+			return f(role, count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(role) + " · " + msgs.arg(count) + " titles"
+		case "zh-Hans":
+			return role + " · " + count + " 部"
+		}
+	}
+}
+
+// SearchActor says "Actor"
+// in the language the app shows under cx.
+func SearchActor(cx *core.Scope) string { return For(cx).SearchActor() }
+
+// SearchActor is the package's SearchActor in the language of msgs.
+func (msgs Messages) SearchActor() string { return msgs.text(textSearchActor) }
+
+// SearchComposer says "Composer"
+// in the language the app shows under cx.
+func SearchComposer(cx *core.Scope) string { return For(cx).SearchComposer() }
+
+// SearchComposer is the package's SearchComposer in the language of msgs.
+func (msgs Messages) SearchComposer() string { return msgs.text(textSearchComposer) }
 
 // SearchAction says "Search library"
 // in the language the app shows under cx.

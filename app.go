@@ -88,6 +88,7 @@ type application struct {
 	libraryView    *core.Signal[screen]
 	libraryChanges *core.Signal[uint64]
 	phoneLibrary   *core.Signal[phoneLibraryState]
+	phoneSearch    phoneSearchState
 	sourceFilter   *core.Signal[string]
 	sourceStatus   *core.Signal[map[string]homeSourceStatus]
 	mergeTitles    *core.Signal[bool]
@@ -164,6 +165,7 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 	}
 	a.progress = core.Untracked(cx, func() *progressOutbox { return newProgressOutbox(cx, storage) })
 	a.phoneLibrary = core.NewSignal(cx, phoneLibraryState{})
+	a.phoneSearch = newPhoneSearchState(cx)
 	a.scheduleProgressReplay(time.Second)
 	a.downloads = core.Untracked(cx, func() *downloadQueue { return newDownloadQueue(cx, a) })
 	a.downloads.pump()

@@ -133,6 +133,17 @@ mediaSources: Media sources
 noSources: Add a media source to browse your movies and shows.
 emptyLibrary: No matching titles
 searchHint: Search movies and shows
+searchAllSources: All
+searchPhoneHint: Search titles or people
+searchRecentQueries: Recent searches
+searchClearQuery: Clear search
+searchClearHistory: Clear search history
+searchClear: Clear
+searchNoResults: No matching titles
+searchGroupCount: "{group} · {count}"
+searchCreditCount: "{role} · {count} titles"
+searchActor: Actor
+searchComposer: Composer
 searchAction: Search library
 continueWatching: Continue watching
 recent: Recently added

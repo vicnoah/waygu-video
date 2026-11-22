@@ -22,8 +22,8 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [手机/弹幕面板](../../design/player-danmaku.scenra#L1) | default | `phone · 844 × 390` | block, show, source | Pending |
 | [手机/字幕与音轨](../../design/player-tracks.scenra#L1) | default | `phone · 844 × 390` | audio, quality, speed, subs | Pending |
 | [手机/播放器](../../design/player.scenra#L1) | default | `phone · 844 × 390` | — | Pending |
-| [手机/搜索](../../design/search.scenra#L1) | light | `phone` | — | Pending |
-| [搜索 · 深色](../../design/search.scenra#L81) | dark | `phone` | — | Pending |
+| [手机/搜索](../../design/search.scenra#L1) | light | `phone` | — | [Compared](phone-search.md) |
+| [搜索 · 深色](../../design/search.scenra#L81) | dark | `phone` | — | [Compared](phone-search.md) |
 | [手机/剧集详情](../../design/series-detail.scenra#L1) | light | `phone · auto × 1500` | extras, s1, s2 | [Compared](phone-series.md) |
 | [剧集详情 · 深色](../../design/series-detail.scenra#L146) | dark | `phone · auto × 1500` | extras, s1, s2 | [Compared](phone-series.md) |
 | [设置/关于与帮助](../../design/settings-about.scenra#L1) | light | `phone · auto × 1320` | — | Pending |

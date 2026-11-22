@@ -85,6 +85,9 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 		if pages[index] == screenSettings {
 			return a.settings(cx)
 		}
+		if pages[index] == screenSearch && idiom == core.IdiomPhone {
+			return a.compactSearch(cx)
+		}
 		if pages[index] == screenLibrary {
 			return core.Dynamic(func(cx *core.Scope) core.Node {
 				view := a.libraryView.Get()
@@ -474,14 +477,19 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 		var page media.Page
 		var err error
 		if q.scan {
-			page, err = scanCatalogPages(ctx, client, query)
+			page, err = scanCatalogPages(ctx, client.Catalog, query)
 		} else {
 			page, err = list(ctx, library.Library, query)
 		}
 		globalSearch := err != nil && source.Provider == media.Flymoo && q.search != "" && q.library == ""
 		if globalSearch {
 			// Older FnOS servers omit the library ID on global search results.
-			page, err = client.Catalog(ctx, media.Query{Limit: q.limit, Search: q.search})
+			fallback := media.Query{Limit: q.limit, Search: q.search, CatalogFacts: q.libraryFacts}
+			if q.scan {
+				page, err = scanCatalogPages(ctx, client.Catalog, fallback)
+			} else {
+				page, err = client.Catalog(ctx, fallback)
+			}
 		}
 		if err != nil {
 			result.failure = errors.Join(result.failure, err)

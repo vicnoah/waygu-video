@@ -9,6 +9,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Connect to server · both appearances and all provider tabs | [Screenshots and sign-in checks](source-login.md) | Compared on Linux GTK. The Emby advanced group and the real device checks remain pending. The Plex form lacks a Scenra variant. |
 | Phone home · light and dark | [Screenshots and media server checks](home.md) | The compact layout was compared on Linux GTK with three Docker media servers. Phone device captures and some metadata details remain pending. |
 | Phone media library · light and dark | [Category, poster and list comparisons](phone-library.md) | Compared on GTK with categorized Docker libraries. Mobile device captures remain pending. |
+| Phone search · light and dark | [Title and credit search comparisons](phone-search.md) | Compared on GTK with real search results and saved history. Mobile device captures remain pending. |
 | Phone movie detail · light and dark | [Top and bottom comparisons and playback checks](phone-movie.md) | Compared on GTK with Docker movies, a trailer, and a featurette. Device captures and several design actions remain pending. |
 | Phone series detail · light and dark | [Season and specials comparisons](phone-series.md) | Compared on GTK with two seasons and a special. Phone device captures remain pending. |
 | Tablet home · light and dark | [Screenshots and tablet interaction checks](tablet-home.md) | The tablet layout was compared on Linux GTK with three Docker media servers. Real-device captures remain pending. |
@@ -49,6 +50,15 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
 ```
 
 Use `WAYGU_REVIEW_DESIGN=library.scenra` with `WAYGU_REVIEW_PANEL=movies`, `shows`, `anime` or `docs` to render each Scenra reference.
+
+Capture compact search with a title query and a scoped director query. The test also captures the idle and empty states.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerPhoneSearchReview$' -screenshots .nsgo/ui-review/search
+```
+
+Use `WAYGU_REVIEW_DESIGN=search.scenra` to export the Scenra reference.
 
 Capture the compact movie detail at 390 pt wide with the Emby clip, cast, and extras indexed by the fixtures.
 

@@ -133,6 +133,17 @@ mediaSources: 媒体源
 noSources: 添加媒体源，开始浏览电影与剧集。
 emptyLibrary: 没有找到匹配的影片
 searchHint: 搜索电影和剧集
+searchAllSources: 全部
+searchPhoneHint: 搜索片名或演职人员
+searchRecentQueries: 最近搜索
+searchClearQuery: 清空搜索框
+searchClearHistory: 清除搜索历史
+searchClear: 清除
+searchNoResults: 没有找到匹配的影片
+searchGroupCount: "{group} · {count}"
+searchCreditCount: "{role} · {count} 部"
+searchActor: 演员
+searchComposer: 配乐
 searchAction: 搜索媒体库
 continueWatching: 继续观看
 recent: 最近添加

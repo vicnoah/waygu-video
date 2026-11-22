@@ -31,11 +31,14 @@ type plexContainer struct {
 	TotalSize  int
 	Directory  []struct{ Key, Title, Type string }
 	Metadata   []plexMetadata
-	Hub        []struct{ Metadata []plexMetadata }
+	Hub        []struct {
+		Metadata, Directory []plexMetadata
+	}
 }
 
 type plexMetadata struct {
 	RatingKey, Type, Title, Summary, Thumb, Art string
+	Reason, ReasonTitle                         string
 	OriginalTitle, ContentRating                string
 	ParentRatingKey, GrandparentRatingKey       string
 	GrandparentTitle                            string
@@ -174,6 +177,9 @@ func (p *plexClient) Catalog(ctx context.Context, q Query) (Page, error) {
 	}
 	if search != "" {
 		params.Set("title", search)
+		if q.CatalogFacts {
+			params.Set("includeOptionalElements", "Director,Role")
+		}
 	}
 	container, err := p.get(ctx, route, params)
 	if err != nil {
@@ -266,12 +272,12 @@ func (p *plexClient) item(entry plexMetadata) Item {
 	}
 	for _, director := range entry.Director {
 		if director.Tag != "" {
-			item.People = append(item.People, Person{Name: director.Tag, Director: true, Portrait: p.mediaURL(director.Thumb, nil)})
+			item.People = append(item.People, Person{Name: director.Tag, Director: true, Kind: "director", Portrait: p.mediaURL(director.Thumb, nil)})
 		}
 	}
 	for _, actor := range entry.Role {
 		if actor.Tag != "" {
-			item.People = append(item.People, Person{Name: actor.Tag, Role: actor.Role, Portrait: p.mediaURL(actor.Thumb, nil)})
+			item.People = append(item.People, Person{Name: actor.Tag, Role: actor.Role, Kind: "actor", Portrait: p.mediaURL(actor.Thumb, nil)})
 		}
 	}
 	if entry.LibrarySectionID > 0 {

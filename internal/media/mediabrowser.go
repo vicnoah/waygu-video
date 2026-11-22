@@ -173,11 +173,18 @@ func (m *mediaBrowser) itemFields() string {
 }
 
 func (m *mediaBrowser) Catalog(ctx context.Context, q Query) (Page, error) {
+	return m.catalog(ctx, q, nil)
+}
+
+func (m *mediaBrowser) catalog(ctx context.Context, q Query, people []string) (Page, error) {
 	offset, limit := q.bounds()
 	params := m.userQuery()
 	fields := m.itemFields()
 	if q.CatalogFacts {
 		fields += ",MediaStreams,MediaSources,ChildCount,RecursiveItemCount"
+		if q.Search != "" || len(people) > 0 {
+			fields += ",People"
+		}
 		if m.kind == Emby {
 			fields += ",ProductionYear,CommunityRating"
 		}
@@ -191,6 +198,9 @@ func (m *mediaBrowser) Catalog(ctx context.Context, q Query) (Page, error) {
 	params.Set("Limit", strconv.Itoa(limit))
 	if q.LibraryID != "" {
 		params.Set("ParentId", q.LibraryID)
+	}
+	if len(people) > 0 {
+		params.Set("PersonIds", strings.Join(people, ","))
 	}
 	if search := strings.TrimSpace(q.Search); search != "" {
 		params.Set("SearchTerm", search)
@@ -297,11 +307,11 @@ func (m *mediaBrowser) item(entry browserItem) Item {
 		ExternalIDs: make(map[string]string, len(entry.ProviderIds)),
 	}
 	for _, person := range entry.People {
-		director := strings.EqualFold(person.Type, "director")
-		if person.Name == "" || (!director && !strings.EqualFold(person.Type, "actor")) {
+		kind := strings.ToLower(person.Type)
+		if person.Name == "" || (kind != "director" && kind != "actor" && kind != "composer") {
 			continue
 		}
-		credit := Person{Name: person.Name, Role: person.Role, Director: director}
+		credit := Person{Name: person.Name, Role: person.Role, Kind: kind, Director: kind == "director"}
 		if person.ID != "" && person.PrimaryImageTag != "" {
 			credit.Portrait = m.image(person.ID, "Primary", person.PrimaryImageTag)
 		}
