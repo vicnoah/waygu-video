@@ -46,24 +46,8 @@ func (a *application) compactLibrary(cx *core.Scope) core.Node {
 		return &catalogRequest{sources: a.sources.Get(), filter: a.sourceFilter.Get(), library: library.Get(),
 			category: category.Get(), libraryFacts: true, limit: phoneLibraryPageSize, merge: a.mergeTitles.Get()}
 	}, nil)
-	preview, full := a.phoneLibraryPages(cx, request.Get)
-	page := core.NewMemoFunc(cx, func() catalogResult {
-		q := request.Get()
-		initial, _ := preview.Get()
-		all, ready := full.Get()
-		if ready && all.query == q {
-			result := all.result
-			result.resume = initial.result.resume
-			if !result.connected && result.failure != nil {
-				result.items = initial.result.items
-			}
-			return result
-		}
-		if initial.query == q {
-			return initial.result
-		}
-		return catalogResult{}
-	}, nil)
+	preview, full := a.libraryPages(cx, request.Get)
+	page := currentLibraryPage(cx, request.Get, preview, full)
 	rows := core.NewMemoFunc(cx, func() []catalogItem {
 		q := request.Get()
 		return addLibraryDownloads(page.Get().items, a.libraryDownloads(*q))
@@ -372,14 +356,26 @@ func (a *application) compactLibraryCard(cx *core.Scope, entry catalogItem, book
 	if list {
 		shape, coverShape = "flex-row items-center gap-3 bg-white px-3 py-2 dark:bg-[#1a1b25]", "w-12 shrink-0 rounded-lg"
 	}
-	return a.compactMediaCard(cx, entry, bookmarks, resolution, shape, coverShape, func() { a.openCatalogEntry(entry) })
+	return a.compactMediaCard(cx, entry, bookmarks, resolution, shape, coverShape, false, func() { a.openCatalogEntry(entry) })
 }
 
-func (a *application) compactMediaCard(cx *core.Scope, entry catalogItem, bookmarks map[copyKey]media.Item, resolution int, shape, coverShape string, open func()) core.Node {
+func (a *application) compactMediaCard(cx *core.Scope, entry catalogItem, bookmarks map[copyKey]media.Item, resolution int, shape, coverShape string, desktop bool, open func()) core.Node {
 	item := entry.item
 	details, progress := libraryCardDetails(cx, entry, bookmarks)
+	if desktop && item.Kind == media.Movie && len(item.Genres) > 0 {
+		details = item.Genres[0]
+		if item.Year > 0 {
+			details = strconv.Itoa(item.Year) + " · " + details
+		}
+	}
 	watched := catalogWatched(entry)
-	cover := []core.Node{homeArtwork(item.Poster, "absolute inset-0 justify-center"), a.downloadBadge(entry)}
+	artwork := homeArtwork(item.Poster, "absolute inset-0 justify-center")
+	if desktop && item.Poster == "" {
+		artwork = core.View{Class: "absolute inset-0 items-center justify-center bg-[#f5f5f5] dark:bg-[#262626]", Children: []core.Node{
+			core.Icon{SVG: lucide.Image(), Class: "size-7 text-[#737373] dark:text-[#a3a3a3]"},
+		}}
+	}
+	cover := []core.Node{artwork, a.downloadBadge(entry)}
 	var best media.VideoProfile
 	for _, profile := range catalogVideoProfiles(entry) {
 		if resolution > 0 && libraryResolution(profile) != resolution {

@@ -31,6 +31,8 @@ github.com/makiuchi-d/gozxing v0.1.1 h1:xxqijhoedi+/lZlhINteGbywIrewVdVv2wl9r5O9
 github.com/makiuchi-d/gozxing v0.1.1/go.mod h1:eRIHbOjX7QWxLIDJoQuMLhuXg9LAuw6znsUtRkNw9DU=
 github.com/modelcontextprotocol/go-sdk v1.8.0 h1:KIvahhYqwtbeniWVPs3TcXEA7b8jEtwfBpOTAI+Urx4=
 github.com/modelcontextprotocol/go-sdk v1.8.0/go.mod h1:dL7u98E/zjJTGzEq+j30jQ8K2k1mb6LeAH4inEcSGts=
+github.com/mozillazg/go-pinyin v0.21.0 h1:Wo8/NT45z7P3er/9YSLHA3/kjZzbLz5hR7i+jGeIGao=
+github.com/mozillazg/go-pinyin v0.21.0/go.mod h1:iR4EnMMRXkfpFVV5FMi4FNB6wGq9NV6uDWbUuPhP4Yc=
 github.com/nsgo-dev/goja v0.1.0-nsgo.2.0.20261121173409-f05dab9a4261 h1:XuJvjyPe2+RyhrcRCdv4p+9o1IdQG3fR8pmGFTZaHBE=
 github.com/nsgo-dev/goja v0.1.0-nsgo.2.0.20261121173409-f05dab9a4261/go.mod h1:a8RchL/4Hq7YGP5XrWPTMOEFFyo2J6qe8GLHZQNRxxo=
 github.com/nsgo-dev/nsgo v0.2.1-0.20261121221132-091984681603 h1:pviCclLmUPDLsV4f+xXI24EZXpZ8tMMzPZ74KW213Dw=

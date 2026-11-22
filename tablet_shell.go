@@ -127,6 +127,11 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 		id, width, top, closeID = "desktop-sidebar", "w-60", "pt-12", "desktop-sidebar-close"
 	}
 	open := func(tab int, kind libraryCategory) {
+		if wide && tab == 1 {
+			a.openDesktopLibrary(kind, "")
+			afterSelect()
+			return
+		}
 		cx.Batch(func() {
 			a.sourceFilter.Set("")
 			category.Set(kind)
@@ -170,7 +175,8 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 		}
 		browsing = append(browsing, tabletSidebarLink(cx, entryID, option.Label, icons[i],
 			func() bool {
-				return a.tab.Get() == 1 && a.libraryView.Get() == screenLibrary && category.Get() == option.Value
+				return a.tab.Get() == 1 && a.libraryView.Get() == screenLibrary && category.Get() == option.Value &&
+					(!wide || a.desktopLibraryState.Get().collection == "")
 			}, func() { open(1, option.Value) }))
 	}
 	return core.View{Class: width + " shrink-0 border-r border-zinc-900/8 bg-[#e9e9f0]/40 dark:border-white/8 dark:bg-[#1a1b25]/40", TestID: id,
@@ -189,6 +195,7 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 						downloads,
 					}},
 					a.tabletSidebarSources(cx, afterSelect),
+					core.Show{When: func() bool { return wide && len(a.desktopCollections.Get()) > 0 }, Then: a.desktopCollectionSidebar},
 				}},
 			}},
 			core.View{Class: "mx-3 gap-0.5 border-t border-zinc-900/8 pb-4 pt-3 dark:border-white/8", Children: []core.Node{

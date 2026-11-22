@@ -147,14 +147,18 @@ type browserItem struct {
 	CommunityRating                float64
 	ChildCount, RecursiveItemCount int
 	MediaStreams                   []browserStream
-	MediaSources                   []struct{ MediaStreams []browserStream }
-	RunTimeTicks                   int64
-	DateCreated                    string
-	Genres                         []string
-	ProviderIds                    map[string]string
-	ImageTags                      map[string]string
-	BackdropImageTags              []string
-	People                         []struct {
+	MediaSources                   []struct {
+		Size         int64
+		MediaStreams []browserStream
+	}
+	RunTimeTicks      int64
+	DateCreated       string
+	PremiereDate      string
+	Genres            []string
+	ProviderIds       map[string]string
+	ImageTags         map[string]string
+	BackdropImageTags []string
+	People            []struct {
 		ID, Name, Role, Type, PrimaryImageTag string
 	}
 	UserData struct {
@@ -182,7 +186,7 @@ func (m *mediaBrowser) catalog(ctx context.Context, q Query, people []string) (P
 	params := m.userQuery()
 	fields := m.itemFields()
 	if q.CatalogFacts {
-		fields += ",MediaStreams,MediaSources,ChildCount,RecursiveItemCount"
+		fields += ",MediaStreams,MediaSources,ChildCount,RecursiveItemCount,PremiereDate"
 		if q.Search != "" || len(people) > 0 {
 			fields += ",People"
 		}
@@ -297,13 +301,14 @@ func (m *mediaBrowser) items(entries []browserItem) []Item {
 func (m *mediaBrowser) item(entry browserItem) Item {
 	lastPlayed, _ := time.Parse(time.RFC3339Nano, entry.UserData.LastPlayedDate)
 	addedAt, _ := time.Parse(time.RFC3339Nano, entry.DateCreated)
+	releasedAt, _ := time.Parse(time.RFC3339Nano, entry.PremiereDate)
 	item := Item{
 		ID: entry.ID, Kind: Kind(strings.ToLower(entry.Type)), Title: entry.Name,
 		SeriesID: entry.SeriesID, SeriesTitle: entry.SeriesName, Overview: entry.Overview,
 		OriginalTitle: entry.OriginalTitle, ContentRating: entry.OfficialRating,
 		Year: entry.ProductionYear, Rating: entry.CommunityRating, Genres: entry.Genres,
 		Duration: fromTicks(entry.RunTimeTicks), Position: fromTicks(entry.UserData.PlaybackPositionTicks),
-		AddedAt: addedAt, LastPlayed: lastPlayed,
+		AddedAt: addedAt, LastPlayed: lastPlayed, ReleasedAt: releasedAt,
 		Watched: entry.UserData.Played, Favorite: entry.UserData.IsFavorite,
 		ExternalIDs: make(map[string]string, len(entry.ProviderIds)),
 	}
@@ -338,6 +343,7 @@ func (m *mediaBrowser) item(entry browserItem) Item {
 	}
 	addStreams(entry.MediaStreams)
 	for _, source := range entry.MediaSources {
+		item.FileSize = max(item.FileSize, source.Size)
 		addStreams(source.MediaStreams)
 	}
 	if tag := entry.ImageTags["Logo"]; tag != "" {

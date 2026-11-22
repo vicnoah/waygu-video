@@ -4,8 +4,10 @@ go 1.27.3
 
 require (
 	github.com/ebitengine/purego v0.11.3
+	github.com/mozillazg/go-pinyin v0.21.0
 	github.com/nsgo-dev/nsgo v0.2.1-0.20261121221132-091984681603
 	golang.org/x/sys v0.50.0
+	golang.org/x/text v0.44.0
 	rsc.io/qr v0.2.0
 )
 
@@ -29,7 +31,6 @@ require (
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
-	golang.org/x/text v0.44.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )

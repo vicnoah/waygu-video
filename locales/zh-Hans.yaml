@@ -567,3 +567,23 @@ desktopOnlineCount: "{count} 个在线"
 desktopNotices: 媒体源通知
 desktopNoNotices: 暂无媒体源通知
 desktopFromSource: "来自{source}"
+desktopSmartCollections: 智能合集
+desktopCollectionName: 合集名称
+desktopSaveCollection: 保存为智能合集
+desktopDeleteCollection: 删除智能合集
+desktopShuffle: 随机播放
+desktopGridView: 网格视图
+desktopPosterWall: 海报墙
+desktopFilterLabel: 筛选
+desktopFilterCount: "筛选 · {count}"
+desktopHDR: HDR / 杜比视界
+desktopResolutionValue: "分辨率：{resolution}"
+desktopLibrarySource: 来源
+desktopLibraryReleaseDate: 上映日期
+desktopLibraryDuration: 时长
+desktopLibraryFileSize: 文件大小
+desktopLibraryLastPlayed: 最近播放
+desktopLibraryTotalSize: "{summary} · 共 {size}"
+desktopLibraryKnownSize: "{summary} · 已知 {size}"
+desktopClearAll: 清除全部
+desktopMovieCount: "{count} 部 · 来自 {sources} 个媒体源"

@@ -237,7 +237,7 @@ func (a *application) phoneSearchResults(cx *core.Scope, entries []catalogItem, 
 		cards := make([]core.Node, 0, min(len(movies), limit))
 		for _, entry := range movies[:min(len(movies), limit)] {
 			cards = append(cards, a.compactMediaCard(cx, entry, nil, 0, "w-28 shrink-0 gap-1.5 rounded-xl",
-				"w-full rounded-xl shadow-lg shadow-black/15", func() {
+				"w-full rounded-xl shadow-lg shadow-black/15", false, func() {
 					a.savePhoneSearch(term)
 					a.openCatalogEntry(entry)
 				}))

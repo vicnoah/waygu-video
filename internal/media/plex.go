@@ -40,6 +40,7 @@ type plexMetadata struct {
 	RatingKey, Type, Title, Summary, Thumb, Art string
 	Reason, ReasonTitle, Subtype                string
 	OriginalTitle, ContentRating                string
+	OriginallyAvailableAt                       string
 	ParentRatingKey, GrandparentRatingKey       string
 	GrandparentTitle                            string
 	Year, Index, ParentIndex, LibrarySectionID  int
@@ -81,6 +82,7 @@ type plexTrack struct {
 	LanguageCode string
 	Title        string
 	DisplayTitle string
+	ColorTrc     string
 	Key          string
 	Default      bool
 	Forced       bool
@@ -177,9 +179,13 @@ func (p *plexClient) Catalog(ctx context.Context, q Query) (Page, error) {
 	}
 	if search != "" {
 		params.Set("title", search)
-		if q.CatalogFacts {
-			params.Set("includeOptionalElements", "Director,Role")
+	}
+	if q.CatalogFacts {
+		optional := "Stream"
+		if search != "" {
+			optional += ",Director,Role"
 		}
+		params.Set("includeOptionalElements", optional)
 	}
 	container, err := p.get(ctx, route, params)
 	if err != nil {
@@ -262,6 +268,7 @@ func (p *plexClient) item(entry plexMetadata) Item {
 		Position: millis(entry.ViewOffset), Watched: entry.ViewCount > 0, SeriesTitle: entry.GrandparentTitle,
 		Poster: p.mediaURL(entry.Thumb, nil), Backdrop: p.mediaURL(entry.Art, nil),
 		ExternalIDs: make(map[string]string, len(entry.Guid))}
+	item.ReleasedAt, _ = time.Parse("2006-01-02", entry.OriginallyAvailableAt)
 	if entry.LastViewedAt > 0 {
 		item.LastPlayed = time.Unix(entry.LastViewedAt, 0).UTC()
 	}
@@ -307,8 +314,27 @@ func (p *plexClient) item(entry plexMetadata) Item {
 		item.Episode, item.Season, item.SeriesID = entry.Index, entry.ParentIndex, entry.GrandparentRatingKey
 	}
 	for _, medium := range entry.Media {
+		var size int64
+		var videoRange string
+		for _, part := range medium.Part {
+			size += max(0, part.Size)
+			for _, stream := range part.Stream {
+				if stream.StreamType != 1 {
+					continue
+				}
+				switch {
+				case strings.Contains(strings.ToLower(stream.DisplayTitle), "dolby vision"):
+					videoRange = "DOVI"
+				case videoRange == "" && stream.ColorTrc == "smpte2084":
+					videoRange = "HDR10"
+				case videoRange == "" && stream.ColorTrc == "arib-std-b67":
+					videoRange = "HLG"
+				}
+			}
+		}
+		item.FileSize = max(item.FileSize, size)
 		if medium.Width > 0 || medium.Height > 0 {
-			item.addVideoProfile(VideoProfile{Width: medium.Width, Height: medium.Height})
+			item.addVideoProfile(VideoProfile{Width: medium.Width, Height: medium.Height, Range: videoRange})
 		}
 	}
 	return item

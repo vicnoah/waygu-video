@@ -204,7 +204,7 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 			return a.tvHome(cx, results)
 		}
 		if idiom == core.IdiomDesktop {
-			return a.desktopHome(cx, results, limit, category)
+			return a.desktopHome(cx, results, limit)
 		}
 	}
 	title, empty := locales.Home(cx), locales.EmptyLibrary(cx)

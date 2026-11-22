@@ -61,8 +61,8 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [TV/播放器](../../design/tv-player.scenra#L1) | default | `desktop · 1920 × 1080` | — | [Compared](tv-player.md) |
 | [TV/设置](../../design/tv-settings.scenra#L1) | light | `desktop · 1920 × 1080` | — | [Compared](tv-settings.md) |
 | [设置 · 深色](../../design/tv-settings.scenra#L163) | dark | `desktop · 1920 × 1080` | — | [Compared](tv-settings.md) |
-| [主窗口/电影库](../../design/views/desktop-library.scenra#L1) | light | `desktop-main#light/content` | — | Pending |
-| [电影库 · 深色](../../design/views/desktop-library.scenra#L137) | dark | `desktop-main#dark/content` | — | Pending |
+| [主窗口/电影库](../../design/views/desktop-library.scenra#L1) | light | `desktop-main#light/content` | — | [Compared](desktop-library.md) |
+| [电影库 · 深色](../../design/views/desktop-library.scenra#L137) | dark | `desktop-main#dark/content` | — | [Compared](desktop-library.md) |
 | [主窗口/电影详情](../../design/views/desktop-movie.scenra#L1) | light | `desktop-main#light/content` | — | Pending |
 | [电影详情 · 深色](../../design/views/desktop-movie.scenra#L236) | dark | `desktop-main#dark/content` | — | Pending |
 | [设置窗口/弹幕](../../design/views/desktop-settings-danmaku.scenra#L1) | light | `desktop-settings#light/page` | — | Pending |

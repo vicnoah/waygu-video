@@ -567,3 +567,23 @@ desktopOnlineCount: "{count} online"
 desktopNotices: Media source notices
 desktopNoNotices: No media source notices
 desktopFromSource: "From {source}"
+desktopSmartCollections: Smart collections
+desktopCollectionName: Collection name
+desktopSaveCollection: Save as smart collection
+desktopDeleteCollection: Delete smart collection
+desktopShuffle: Shuffle play
+desktopGridView: Grid view
+desktopPosterWall: Poster wall
+desktopFilterLabel: Filters
+desktopFilterCount: "Filters · {count}"
+desktopHDR: HDR / Dolby Vision
+desktopResolutionValue: "Resolution: {resolution}"
+desktopLibrarySource: Source
+desktopLibraryReleaseDate: Release date
+desktopLibraryDuration: Runtime
+desktopLibraryFileSize: File size
+desktopLibraryLastPlayed: Recently played
+desktopLibraryTotalSize: "{summary} · {size} total"
+desktopLibraryKnownSize: "{summary} · {size} known"
+desktopClearAll: Clear all
+desktopMovieCount: "{count} movies · {sources} sources"

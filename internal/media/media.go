@@ -106,6 +106,8 @@ type Item struct {
 	ExternalIDs       map[string]string
 	SeriesExternalIDs map[string]string
 	Duration          time.Duration
+	FileSize          int64
+	ReleasedAt        time.Time
 	Position          time.Duration
 	AddedAt           time.Time
 	LastPlayed        time.Time

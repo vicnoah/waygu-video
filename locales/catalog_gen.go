@@ -128,6 +128,11 @@ var Parameters = map[string][]string{
 	"TvPairCode":                     {"code"},
 	"DesktopOnlineCount":             {"count"},
 	"DesktopFromSource":              {"source"},
+	"DesktopFilterCount":             {"count"},
+	"DesktopResolutionValue":         {"resolution"},
+	"DesktopLibraryTotalSize":        {"summary", "size"},
+	"DesktopLibraryKnownSize":        {"summary", "size"},
+	"DesktopMovieCount":              {"count", "sources"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -221,6 +226,11 @@ type Translation struct {
 	TvPairCode                     func(code string) string
 	DesktopOnlineCount             func(count string) string
 	DesktopFromSource              func(source string) string
+	DesktopFilterCount             func(count string) string
+	DesktopResolutionValue         func(resolution string) string
+	DesktopLibraryTotalSize        func(summary string, size string) string
+	DesktopLibraryKnownSize        func(summary string, size string) string
+	DesktopMovieCount              func(count string, sources string) string
 }
 
 var supplied = map[string]Translation{}
@@ -711,6 +721,21 @@ const (
 	textTvPairPhoneSend
 	textDesktopNotices
 	textDesktopNoNotices
+	textDesktopSmartCollections
+	textDesktopCollectionName
+	textDesktopSaveCollection
+	textDesktopDeleteCollection
+	textDesktopShuffle
+	textDesktopGridView
+	textDesktopPosterWall
+	textDesktopFilterLabel
+	textDesktopHDR
+	textDesktopLibrarySource
+	textDesktopLibraryReleaseDate
+	textDesktopLibraryDuration
+	textDesktopLibraryFileSize
+	textDesktopLibraryLastPlayed
+	textDesktopClearAll
 	numTexts
 )
 
@@ -1201,6 +1226,21 @@ var keyOfText = [numTexts]string{
 	"tvPairPhoneSend",
 	"desktopNotices",
 	"desktopNoNotices",
+	"desktopSmartCollections",
+	"desktopCollectionName",
+	"desktopSaveCollection",
+	"desktopDeleteCollection",
+	"desktopShuffle",
+	"desktopGridView",
+	"desktopPosterWall",
+	"desktopFilterLabel",
+	"desktopHDR",
+	"desktopLibrarySource",
+	"desktopLibraryReleaseDate",
+	"desktopLibraryDuration",
+	"desktopLibraryFileSize",
+	"desktopLibraryLastPlayed",
+	"desktopClearAll",
 }
 
 // textsEn are the messages without arguments in en.
@@ -1688,7 +1728,22 @@ var textsEn = i18n.NewTexts(""+
 	"The TV could not save these sign-in details."+
 	"Send to TV"+
 	"Media source notices"+
-	"No media source notices",
+	"No media source notices"+
+	"Smart collections"+
+	"Collection name"+
+	"Save as smart collection"+
+	"Delete smart collection"+
+	"Shuffle play"+
+	"Grid view"+
+	"Poster wall"+
+	"Filters"+
+	"HDR / Dolby Vision"+
+	"Source"+
+	"Release date"+
+	"Runtime"+
+	"File size"+
+	"Recently played"+
+	"Clear all",
 	[]uint16{
 		11,
 		47,
@@ -2174,6 +2229,21 @@ var textsEn = i18n.NewTexts(""+
 		10,
 		20,
 		23,
+		17,
+		15,
+		24,
+		23,
+		12,
+		9,
+		11,
+		7,
+		18,
+		6,
+		12,
+		7,
+		9,
+		15,
+		9,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -2661,7 +2731,22 @@ var textsZhHans = i18n.NewTexts(""+
 	"电视无法保存这组登录信息。"+
 	"发送到电视"+
 	"媒体源通知"+
-	"暂无媒体源通知",
+	"暂无媒体源通知"+
+	"智能合集"+
+	"合集名称"+
+	"保存为智能合集"+
+	"删除智能合集"+
+	"随机播放"+
+	"网格视图"+
+	"海报墙"+
+	"筛选"+
+	"HDR / 杜比视界"+
+	"来源"+
+	"上映日期"+
+	"时长"+
+	"文件大小"+
+	"最近播放"+
+	"清除全部",
 	[]uint16{
 		12,
 		45,
@@ -3147,6 +3232,21 @@ var textsZhHans = i18n.NewTexts(""+
 		15,
 		15,
 		21,
+		12,
+		12,
+		21,
+		18,
+		12,
+		12,
+		9,
+		6,
+		18,
+		6,
+		12,
+		6,
+		12,
+		12,
+		12,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -3457,6 +3557,21 @@ func Supply(lang string, t Translation) {
 	}
 	if t.DesktopFromSource != nil {
 		s.DesktopFromSource = t.DesktopFromSource
+	}
+	if t.DesktopFilterCount != nil {
+		s.DesktopFilterCount = t.DesktopFilterCount
+	}
+	if t.DesktopResolutionValue != nil {
+		s.DesktopResolutionValue = t.DesktopResolutionValue
+	}
+	if t.DesktopLibraryTotalSize != nil {
+		s.DesktopLibraryTotalSize = t.DesktopLibraryTotalSize
+	}
+	if t.DesktopLibraryKnownSize != nil {
+		s.DesktopLibraryKnownSize = t.DesktopLibraryKnownSize
+	}
+	if t.DesktopMovieCount != nil {
+		s.DesktopMovieCount = t.DesktopMovieCount
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -8935,6 +9050,235 @@ func (msgs Messages) DesktopFromSource(source string) string {
 			return "From " + msgs.arg(source)
 		case "zh-Hans":
 			return "来自" + source
+		}
+	}
+}
+
+// DesktopSmartCollections says "Smart collections"
+// in the language the app shows under cx.
+func DesktopSmartCollections(cx *core.Scope) string { return For(cx).DesktopSmartCollections() }
+
+// DesktopSmartCollections is the package's DesktopSmartCollections in the language of msgs.
+func (msgs Messages) DesktopSmartCollections() string { return msgs.text(textDesktopSmartCollections) }
+
+// DesktopCollectionName says "Collection name"
+// in the language the app shows under cx.
+func DesktopCollectionName(cx *core.Scope) string { return For(cx).DesktopCollectionName() }
+
+// DesktopCollectionName is the package's DesktopCollectionName in the language of msgs.
+func (msgs Messages) DesktopCollectionName() string { return msgs.text(textDesktopCollectionName) }
+
+// DesktopSaveCollection says "Save as smart collection"
+// in the language the app shows under cx.
+func DesktopSaveCollection(cx *core.Scope) string { return For(cx).DesktopSaveCollection() }
+
+// DesktopSaveCollection is the package's DesktopSaveCollection in the language of msgs.
+func (msgs Messages) DesktopSaveCollection() string { return msgs.text(textDesktopSaveCollection) }
+
+// DesktopDeleteCollection says "Delete smart collection"
+// in the language the app shows under cx.
+func DesktopDeleteCollection(cx *core.Scope) string { return For(cx).DesktopDeleteCollection() }
+
+// DesktopDeleteCollection is the package's DesktopDeleteCollection in the language of msgs.
+func (msgs Messages) DesktopDeleteCollection() string { return msgs.text(textDesktopDeleteCollection) }
+
+// DesktopShuffle says "Shuffle play"
+// in the language the app shows under cx.
+func DesktopShuffle(cx *core.Scope) string { return For(cx).DesktopShuffle() }
+
+// DesktopShuffle is the package's DesktopShuffle in the language of msgs.
+func (msgs Messages) DesktopShuffle() string { return msgs.text(textDesktopShuffle) }
+
+// DesktopGridView says "Grid view"
+// in the language the app shows under cx.
+func DesktopGridView(cx *core.Scope) string { return For(cx).DesktopGridView() }
+
+// DesktopGridView is the package's DesktopGridView in the language of msgs.
+func (msgs Messages) DesktopGridView() string { return msgs.text(textDesktopGridView) }
+
+// DesktopPosterWall says "Poster wall"
+// in the language the app shows under cx.
+func DesktopPosterWall(cx *core.Scope) string { return For(cx).DesktopPosterWall() }
+
+// DesktopPosterWall is the package's DesktopPosterWall in the language of msgs.
+func (msgs Messages) DesktopPosterWall() string { return msgs.text(textDesktopPosterWall) }
+
+// DesktopFilterLabel says "Filters"
+// in the language the app shows under cx.
+func DesktopFilterLabel(cx *core.Scope) string { return For(cx).DesktopFilterLabel() }
+
+// DesktopFilterLabel is the package's DesktopFilterLabel in the language of msgs.
+func (msgs Messages) DesktopFilterLabel() string { return msgs.text(textDesktopFilterLabel) }
+
+// DesktopFilterCount says "Filters · {count}"
+// in the language the app shows under cx.
+func DesktopFilterCount(cx *core.Scope, count string) string {
+	return For(cx).DesktopFilterCount(count)
+}
+
+// DesktopFilterCount is the package's DesktopFilterCount in the language of msgs.
+func (msgs Messages) DesktopFilterCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopFilterCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopFilterCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return "Filters · " + msgs.arg(count)
+		case "zh-Hans":
+			return "筛选 · " + count
+		}
+	}
+}
+
+// DesktopHDR says "HDR / Dolby Vision"
+// in the language the app shows under cx.
+func DesktopHDR(cx *core.Scope) string { return For(cx).DesktopHDR() }
+
+// DesktopHDR is the package's DesktopHDR in the language of msgs.
+func (msgs Messages) DesktopHDR() string { return msgs.text(textDesktopHDR) }
+
+// DesktopResolutionValue says "Resolution: {resolution}"
+// in the language the app shows under cx.
+func DesktopResolutionValue(cx *core.Scope, resolution string) string {
+	return For(cx).DesktopResolutionValue(resolution)
+}
+
+// DesktopResolutionValue is the package's DesktopResolutionValue in the language of msgs.
+func (msgs Messages) DesktopResolutionValue(resolution string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopResolutionValue(resolution))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopResolutionValue; f != nil {
+			return f(resolution)
+		}
+		switch lang {
+		case "", "en":
+			return "Resolution: " + msgs.arg(resolution)
+		case "zh-Hans":
+			return "分辨率：" + resolution
+		}
+	}
+}
+
+// DesktopLibrarySource says "Source"
+// in the language the app shows under cx.
+func DesktopLibrarySource(cx *core.Scope) string { return For(cx).DesktopLibrarySource() }
+
+// DesktopLibrarySource is the package's DesktopLibrarySource in the language of msgs.
+func (msgs Messages) DesktopLibrarySource() string { return msgs.text(textDesktopLibrarySource) }
+
+// DesktopLibraryReleaseDate says "Release date"
+// in the language the app shows under cx.
+func DesktopLibraryReleaseDate(cx *core.Scope) string { return For(cx).DesktopLibraryReleaseDate() }
+
+// DesktopLibraryReleaseDate is the package's DesktopLibraryReleaseDate in the language of msgs.
+func (msgs Messages) DesktopLibraryReleaseDate() string {
+	return msgs.text(textDesktopLibraryReleaseDate)
+}
+
+// DesktopLibraryDuration says "Runtime"
+// in the language the app shows under cx.
+func DesktopLibraryDuration(cx *core.Scope) string { return For(cx).DesktopLibraryDuration() }
+
+// DesktopLibraryDuration is the package's DesktopLibraryDuration in the language of msgs.
+func (msgs Messages) DesktopLibraryDuration() string { return msgs.text(textDesktopLibraryDuration) }
+
+// DesktopLibraryFileSize says "File size"
+// in the language the app shows under cx.
+func DesktopLibraryFileSize(cx *core.Scope) string { return For(cx).DesktopLibraryFileSize() }
+
+// DesktopLibraryFileSize is the package's DesktopLibraryFileSize in the language of msgs.
+func (msgs Messages) DesktopLibraryFileSize() string { return msgs.text(textDesktopLibraryFileSize) }
+
+// DesktopLibraryLastPlayed says "Recently played"
+// in the language the app shows under cx.
+func DesktopLibraryLastPlayed(cx *core.Scope) string { return For(cx).DesktopLibraryLastPlayed() }
+
+// DesktopLibraryLastPlayed is the package's DesktopLibraryLastPlayed in the language of msgs.
+func (msgs Messages) DesktopLibraryLastPlayed() string {
+	return msgs.text(textDesktopLibraryLastPlayed)
+}
+
+// DesktopLibraryTotalSize says "{summary} · {size} total"
+// in the language the app shows under cx.
+func DesktopLibraryTotalSize(cx *core.Scope, summary string, size string) string {
+	return For(cx).DesktopLibraryTotalSize(summary, size)
+}
+
+// DesktopLibraryTotalSize is the package's DesktopLibraryTotalSize in the language of msgs.
+func (msgs Messages) DesktopLibraryTotalSize(summary string, size string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopLibraryTotalSize(summary, size))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopLibraryTotalSize; f != nil {
+			return f(summary, size)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(summary) + " · " + msgs.arg(size) + " total"
+		case "zh-Hans":
+			return summary + " · 共 " + size
+		}
+	}
+}
+
+// DesktopLibraryKnownSize says "{summary} · {size} known"
+// in the language the app shows under cx.
+func DesktopLibraryKnownSize(cx *core.Scope, summary string, size string) string {
+	return For(cx).DesktopLibraryKnownSize(summary, size)
+}
+
+// DesktopLibraryKnownSize is the package's DesktopLibraryKnownSize in the language of msgs.
+func (msgs Messages) DesktopLibraryKnownSize(summary string, size string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopLibraryKnownSize(summary, size))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopLibraryKnownSize; f != nil {
+			return f(summary, size)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(summary) + " · " + msgs.arg(size) + " known"
+		case "zh-Hans":
+			return summary + " · 已知 " + size
+		}
+	}
+}
+
+// DesktopClearAll says "Clear all"
+// in the language the app shows under cx.
+func DesktopClearAll(cx *core.Scope) string { return For(cx).DesktopClearAll() }
+
+// DesktopClearAll is the package's DesktopClearAll in the language of msgs.
+func (msgs Messages) DesktopClearAll() string { return msgs.text(textDesktopClearAll) }
+
+// DesktopMovieCount says "{count} movies · {sources} sources"
+// in the language the app shows under cx.
+func DesktopMovieCount(cx *core.Scope, count string, sources string) string {
+	return For(cx).DesktopMovieCount(count, sources)
+}
+
+// DesktopMovieCount is the package's DesktopMovieCount in the language of msgs.
+func (msgs Messages) DesktopMovieCount(count string, sources string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopMovieCount(count, sources))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopMovieCount; f != nil {
+			return f(count, sources)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " movies · " + msgs.arg(sources) + " sources"
+		case "zh-Hans":
+			return count + " 部 · 来自 " + sources + " 个媒体源"
 		}
 	}
 }

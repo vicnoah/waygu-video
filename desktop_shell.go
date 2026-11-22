@@ -8,7 +8,7 @@ import (
 )
 
 func (a *application) desktopShell(cx *core.Scope) core.Node {
-	category := core.NewSignal(cx, libraryCategory(""))
+	category := a.desktopCategory
 	collapsed := core.NewSignal(cx, false)
 	openSearch := func() {
 		cx.Batch(func() {
@@ -34,7 +34,7 @@ func (a *application) desktopShell(cx *core.Scope) core.Node {
 					case 1:
 						page := a.libraryView.Get()
 						if page == screenLibrary {
-							return a.browse(cx, page, core.IdiomDesktop, category)
+							return a.desktopLibrary(cx, category.Get, collapsed.Get)
 						}
 						return a.browse(cx, page, core.IdiomDesktop, nil)
 					case 2:

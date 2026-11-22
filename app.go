@@ -85,35 +85,38 @@ func (s source) credentialKey() string {
 type mediaFactory func(media.Provider, string, media.Device, media.Session) (media.Client, error)
 
 type application struct {
-	scope          *core.Scope
-	device         media.Device
-	storage        core.Storage
-	secrets        core.Secrets
-	newMedia       mediaFactory
-	newDandan      danmakuFactory
-	sources        *core.Signal[[]source]
-	routes         *core.Signal[[]route]
-	tab            *core.Signal[int]
-	libraryView    *core.Signal[screen]
-	libraryChanges *core.Signal[uint64]
-	phoneLibrary   *core.Signal[phoneLibraryState]
-	phoneSearch    phoneSearchState
-	sourceFilter   *core.Signal[string]
-	sourceStatus   *core.Signal[map[string]homeSourceStatus]
-	sourceChecks   *core.Signal[map[string]sourceCheck]
-	sourceTimeout  *core.Signal[int]
-	mergeTitles    *core.Signal[bool]
-	mpvPreferred   *core.Signal[bool]
-	appearance     *core.Signal[string]
-	bitrateLimit   *core.Signal[int]
-	versionPolicy  *core.Signal[media.VersionPolicy]
-	autoNext       *core.Signal[bool]
-	playbackPrefs  *core.Signal[playbackPreferences]
-	subtitlePrefs  *core.Signal[subtitlePreferences]
-	danmakuPrefs   *core.Signal[danmakuPreferences]
-	progress       *progressOutbox
-	downloads      *downloadQueue
-	tokens         sync.Map
+	scope               *core.Scope
+	device              media.Device
+	storage             core.Storage
+	secrets             core.Secrets
+	newMedia            mediaFactory
+	newDandan           danmakuFactory
+	sources             *core.Signal[[]source]
+	routes              *core.Signal[[]route]
+	tab                 *core.Signal[int]
+	libraryView         *core.Signal[screen]
+	libraryChanges      *core.Signal[uint64]
+	phoneLibrary        *core.Signal[phoneLibraryState]
+	desktopCategory     *core.Signal[libraryCategory]
+	desktopLibraryState *core.Signal[desktopLibraryState]
+	desktopCollections  *core.Signal[[]desktopCollection]
+	phoneSearch         phoneSearchState
+	sourceFilter        *core.Signal[string]
+	sourceStatus        *core.Signal[map[string]homeSourceStatus]
+	sourceChecks        *core.Signal[map[string]sourceCheck]
+	sourceTimeout       *core.Signal[int]
+	mergeTitles         *core.Signal[bool]
+	mpvPreferred        *core.Signal[bool]
+	appearance          *core.Signal[string]
+	bitrateLimit        *core.Signal[int]
+	versionPolicy       *core.Signal[media.VersionPolicy]
+	autoNext            *core.Signal[bool]
+	playbackPrefs       *core.Signal[playbackPreferences]
+	subtitlePrefs       *core.Signal[subtitlePreferences]
+	danmakuPrefs        *core.Signal[danmakuPreferences]
+	progress            *progressOutbox
+	downloads           *downloadQueue
+	tokens              sync.Map
 }
 
 const (
@@ -185,6 +188,9 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 	a.sourceChecks = core.NewSignalFunc(cx, map[string]sourceCheck{}, nil)
 	a.sourceTimeout = core.NewSignal(cx, readSourceTimeout(sourceTimeout))
 	a.phoneLibrary = core.NewSignal(cx, phoneLibraryState{})
+	a.desktopCategory = core.NewSignal(cx, libraryCategory(""))
+	a.desktopLibraryState = core.NewSignal(cx, desktopLibraryState{mode: desktopGrid})
+	a.desktopCollections = core.NewSignalFunc(cx, readDesktopCollections(storage), nil)
 	a.phoneSearch = newPhoneSearchState(cx)
 	a.scheduleProgressReplay(time.Second)
 	a.downloads = core.Untracked(cx, func() *downloadQueue { return newDownloadQueue(cx, a) })

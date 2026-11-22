@@ -85,6 +85,8 @@ func downloadErrorText(cx *core.Scope, code string) string {
 
 func mediaBytes(bytes int64) string {
 	switch {
+	case bytes >= 1<<40:
+		return fmt.Sprintf("%.1f TB", float64(bytes)/(1<<40))
 	case bytes >= 1<<30:
 		return fmt.Sprintf("%.1f GB", float64(bytes)/(1<<30))
 	case bytes >= 1<<20:

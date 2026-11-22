@@ -35,7 +35,7 @@ const (
 
 var phoneLibraryCategories = []libraryCategory{libraryMovies, librarySeries, libraryAnime, libraryDocumentaries}
 
-type phoneLibraryPage struct {
+type libraryPage struct {
 	query  *catalogRequest
 	result catalogResult
 }
@@ -88,25 +88,45 @@ func scanCatalogPages(ctx context.Context, list func(context.Context, media.Quer
 	}
 }
 
-func (a *application) phoneLibraryPages(cx *core.Scope, request func() *catalogRequest) (*core.Resource[phoneLibraryPage], *core.Resource[phoneLibraryPage]) {
+func (a *application) libraryPages(cx *core.Scope, request func() *catalogRequest) (*core.Resource[libraryPage], *core.Resource[libraryPage]) {
 	preview := core.NewResource(cx, func() (*catalogRequest, bool) {
 		q := request()
 		return q, len(q.sources) != 0
-	}, func(ctx context.Context, q *catalogRequest, _ core.ResourceInfo) (phoneLibraryPage, error) {
-		return phoneLibraryPage{q, a.loadCatalog(ctx, *q)}, nil
+	}, func(ctx context.Context, q *catalogRequest, _ core.ResourceInfo) (libraryPage, error) {
+		return libraryPage{q, a.loadCatalog(ctx, *q)}, nil
 	})
 	full := core.NewResource(cx, func() (*catalogRequest, bool) {
 		q := request()
 		page, ready := preview.Get()
 		return q, ready && !preview.Loading() && page.query == q && page.result.hasMore
-	}, func(ctx context.Context, q *catalogRequest, _ core.ResourceInfo) (phoneLibraryPage, error) {
+	}, func(ctx context.Context, q *catalogRequest, _ core.ResourceInfo) (libraryPage, error) {
 		ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 		defer cancel()
 		all := *q
 		all.scan = true
-		return phoneLibraryPage{q, a.loadCatalog(ctx, all)}, nil
+		return libraryPage{q, a.loadCatalog(ctx, all)}, nil
 	})
 	return preview, full
+}
+
+func currentLibraryPage(cx *core.Scope, request func() *catalogRequest, preview, full *core.Resource[libraryPage]) *core.Memo[catalogResult] {
+	return core.NewMemoFunc(cx, func() catalogResult {
+		q := request()
+		initial, _ := preview.Get()
+		all, ready := full.Get()
+		if ready && all.query == q {
+			result := all.result
+			result.resume = initial.result.resume
+			if !result.connected && result.failure != nil {
+				result.items = initial.result.items
+			}
+			return result
+		}
+		if initial.query == q {
+			return initial.result
+		}
+		return catalogResult{}
+	}, nil)
 }
 
 type libraryFacets struct {

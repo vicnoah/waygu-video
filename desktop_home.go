@@ -18,14 +18,11 @@ import (
 	"waygu-video/locales"
 )
 
-func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalogResult], limit *core.Signal[int], category *core.Signal[libraryCategory]) core.Node {
+func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalogResult], limit *core.Signal[int]) core.Node {
 	notices := core.NewSignal(cx, false)
 	openSearch := func() { a.tab.Set(2) }
 	openLibrary := func(filter string, next libraryCategory) {
-		category.Set(next)
-		a.sourceFilter.Set(filter)
-		a.libraryView.Set(screenLibrary)
-		a.tab.Set(1)
+		a.openDesktopLibrary(next, filter)
 	}
 	toolbar := core.View{Class: "h-16 shrink-0 flex-row items-center gap-3 px-8 pt-2", TestID: "desktop-home-toolbar", Children: []core.Node{
 		a.homeSourceSelect(cx, results, func(id string) { limit.Set(36); a.sourceFilter.Set(id) }, true),
