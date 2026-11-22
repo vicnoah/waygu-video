@@ -28,6 +28,18 @@ On the Android 15 Pixel 7 emulator, the test scrolled to Controls, tapped the sw
 
 The switch defaults to on. Turning it off prevents future playback sessions from saving or sending new progress and from changing an existing resume point for a download. Existing resume points and manual watched actions remain available. Enabling it again restores progress recording and honors the source's writeback setting. [Docker progress evidence](../../integration/servers/TESTING.md#remember-playback-progress) · [Per-source writeback](phone-sync-accounts.md)
 
+### Playback gestures
+
+The Gestures row uses the design's hand badge, right chevron and default summary, “亮度 · 音量 · 进度”. The design shows the entry. The app opens its standard dialog or touch sheet to set the three swipes individually. The summary lists the enabled swipes. The screenshots show the dialog in GTK light and dark appearance. [Scenra playback settings](../../design/settings-playback.scenra#L46) · [NSGo dialog](https://nsgo.dev/docs/ui/dialog/)
+
+![GTK gesture settings dialog in its light and dark appearances](images/phone-settings-playback-gestures-panel.png)
+
+![Gesture settings sheet from the installed Android APK](images/phone-settings-playback-gestures-android.png)
+
+The Pixel 7 Android 15 system screenshot records the bottom sheet. Disabling volume and closing the sheet changes the summary to “亮度 · 进度”.
+
+The player uses the saved options from the start of each session. Tap controls, double tap, hold for 2× and timeline dragging remain available, and screen lock continues to block surface gestures. [Player gesture evidence](phone-player.md)
+
 ## Subtitles
 
 ![Subtitle settings in light appearance](images/phone-settings-subtitles-light.png)
@@ -42,7 +54,7 @@ The switch defaults to on. Turning it off prevents future playback sessions from
 | --- | --- |
 | Header and groups | Both app pages use the 44 pt back row, 30 pt title, 16 pt group margin, 28 pt badges and 51 × 31 pt switches. GTK lacks the design's mobile status bar and rounded device frame. App content starts about 44 pt higher. |
 | Playback quality and version | The player picks the network profile when opening a streamed title. Its presets cap the resolution and bitrate on Emby, Jellyfin and Plex. The app retains a playback version section below the designed groups. The reference frame clips the end of the background and network group. |
-| Playback controls | The two network quality values, direct play preference, cellular warning, auto-next, skipping intros and credits, progress recording, speed, rewind and forward intervals, and picture mode save immediately. Decoder and HDR settings, passthrough, volume boost, night mode, gestures, background audio, and buffer controls still need implementation. |
+| Playback controls | The two network quality values, direct play preference, cellular warning, auto-next, skipping intros and credits, progress recording, screen swipes, speed, rewind and forward intervals, and picture mode save immediately. Decoder and HDR settings, passthrough, volume boost, night mode, background audio, and buffer controls still need implementation. |
 | Intro and credit detection | The episode group has the violet badge and the 51 × 31 pt switch shown in both appearances. The detection row displays the design’s server-marker and audio-fingerprint label. The player uses typed markers and named chapters first. A missing range can be inferred from recurring audio in two other episodes from the same season. [Playback evidence](phone-player.md#intro-and-credit-skips) |
 | Picture in Picture | Automatic entry is wired to the iOS video backend. The GTK capture shows the unavailable switch. iPhone and iPad behavior remains to be checked. |
 | Subtitle languages and style | The first language with a matching text track wins. The app previews the chosen size, color, background and position, uses the system font and provides a custom color picker. The Scenra preview has an unresolved image and both captures show its placeholder. Font selection, outline customization, Simplified and Traditional conversion, bilingual display, ASS switches, online subtitle services and sidecar matching remain pending. Plain-text preferences apply to the app's caption overlay. |

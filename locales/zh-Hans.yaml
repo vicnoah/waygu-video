@@ -453,6 +453,13 @@ settingsSeekForward: 快进步长
 settingsSeconds: "{seconds} 秒"
 settingsDefaultRate: 默认倍速
 settingsPlaybackGestures: 手势
+settingsGestureBrightness: 亮度
+settingsGestureVolume: 音量
+settingsGestureSeek: 进度
+settingsGestureLeftSwipe: 在画面左侧上下滑动
+settingsGestureRightSwipe: 在画面右侧上下滑动
+settingsGestureHorizontalSwipe: 在画面上左右滑动
+settingsGesturesOff: 关闭
 settingsBackgroundNetwork: 后台与网络
 settingsAutoPiP: 自动画中画
 settingsBackgroundAudio: 后台继续播放音频

@@ -709,6 +709,13 @@ const (
 	textSettingsSeekForward
 	textSettingsDefaultRate
 	textSettingsPlaybackGestures
+	textSettingsGestureBrightness
+	textSettingsGestureVolume
+	textSettingsGestureSeek
+	textSettingsGestureLeftSwipe
+	textSettingsGestureRightSwipe
+	textSettingsGestureHorizontalSwipe
+	textSettingsGesturesOff
 	textSettingsBackgroundNetwork
 	textSettingsAutoPiP
 	textSettingsBackgroundAudio
@@ -1589,6 +1596,13 @@ var keyOfText = [numTexts]string{
 	"settingsSeekForward",
 	"settingsDefaultRate",
 	"settingsPlaybackGestures",
+	"settingsGestureBrightness",
+	"settingsGestureVolume",
+	"settingsGestureSeek",
+	"settingsGestureLeftSwipe",
+	"settingsGestureRightSwipe",
+	"settingsGestureHorizontalSwipe",
+	"settingsGesturesOff",
 	"settingsBackgroundNetwork",
 	"settingsAutoPiP",
 	"settingsBackgroundAudio",
@@ -2467,6 +2481,13 @@ var textsEn = i18n.NewTexts(""+
 	"Forward interval"+
 	"Default speed"+
 	"Gestures"+
+	"Brightness"+
+	"Volume"+
+	"Seek"+
+	"Swipe vertically on the left"+
+	"Swipe vertically on the right"+
+	"Swipe left or right"+
+	"Off"+
 	"Background and network"+
 	"Automatic picture in picture"+
 	"Continue playing audio in background"+
@@ -3342,6 +3363,13 @@ var textsEn = i18n.NewTexts(""+
 		16,
 		13,
 		8,
+		10,
+		6,
+		4,
+		28,
+		29,
+		19,
+		3,
 		22,
 		28,
 		36,
@@ -4220,6 +4248,13 @@ var textsZhHans = i18n.NewTexts(""+
 	"快进步长"+
 	"默认倍速"+
 	"手势"+
+	"亮度"+
+	"音量"+
+	"进度"+
+	"在画面左侧上下滑动"+
+	"在画面右侧上下滑动"+
+	"在画面上左右滑动"+
+	"关闭"+
 	"后台与网络"+
 	"自动画中画"+
 	"后台继续播放音频"+
@@ -5094,6 +5129,13 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		12,
 		12,
+		6,
+		6,
+		6,
+		6,
+		27,
+		27,
+		24,
 		6,
 		15,
 		15,
@@ -10345,6 +10387,65 @@ func SettingsPlaybackGestures(cx *core.Scope) string { return For(cx).SettingsPl
 func (msgs Messages) SettingsPlaybackGestures() string {
 	return msgs.text(textSettingsPlaybackGestures)
 }
+
+// SettingsGestureBrightness says "Brightness"
+// in the language the app shows under cx.
+func SettingsGestureBrightness(cx *core.Scope) string { return For(cx).SettingsGestureBrightness() }
+
+// SettingsGestureBrightness is the package's SettingsGestureBrightness in the language of msgs.
+func (msgs Messages) SettingsGestureBrightness() string {
+	return msgs.text(textSettingsGestureBrightness)
+}
+
+// SettingsGestureVolume says "Volume"
+// in the language the app shows under cx.
+func SettingsGestureVolume(cx *core.Scope) string { return For(cx).SettingsGestureVolume() }
+
+// SettingsGestureVolume is the package's SettingsGestureVolume in the language of msgs.
+func (msgs Messages) SettingsGestureVolume() string { return msgs.text(textSettingsGestureVolume) }
+
+// SettingsGestureSeek says "Seek"
+// in the language the app shows under cx.
+func SettingsGestureSeek(cx *core.Scope) string { return For(cx).SettingsGestureSeek() }
+
+// SettingsGestureSeek is the package's SettingsGestureSeek in the language of msgs.
+func (msgs Messages) SettingsGestureSeek() string { return msgs.text(textSettingsGestureSeek) }
+
+// SettingsGestureLeftSwipe says "Swipe vertically on the left"
+// in the language the app shows under cx.
+func SettingsGestureLeftSwipe(cx *core.Scope) string { return For(cx).SettingsGestureLeftSwipe() }
+
+// SettingsGestureLeftSwipe is the package's SettingsGestureLeftSwipe in the language of msgs.
+func (msgs Messages) SettingsGestureLeftSwipe() string {
+	return msgs.text(textSettingsGestureLeftSwipe)
+}
+
+// SettingsGestureRightSwipe says "Swipe vertically on the right"
+// in the language the app shows under cx.
+func SettingsGestureRightSwipe(cx *core.Scope) string { return For(cx).SettingsGestureRightSwipe() }
+
+// SettingsGestureRightSwipe is the package's SettingsGestureRightSwipe in the language of msgs.
+func (msgs Messages) SettingsGestureRightSwipe() string {
+	return msgs.text(textSettingsGestureRightSwipe)
+}
+
+// SettingsGestureHorizontalSwipe says "Swipe left or right"
+// in the language the app shows under cx.
+func SettingsGestureHorizontalSwipe(cx *core.Scope) string {
+	return For(cx).SettingsGestureHorizontalSwipe()
+}
+
+// SettingsGestureHorizontalSwipe is the package's SettingsGestureHorizontalSwipe in the language of msgs.
+func (msgs Messages) SettingsGestureHorizontalSwipe() string {
+	return msgs.text(textSettingsGestureHorizontalSwipe)
+}
+
+// SettingsGesturesOff says "Off"
+// in the language the app shows under cx.
+func SettingsGesturesOff(cx *core.Scope) string { return For(cx).SettingsGesturesOff() }
+
+// SettingsGesturesOff is the package's SettingsGesturesOff in the language of msgs.
+func (msgs Messages) SettingsGesturesOff() string { return msgs.text(textSettingsGesturesOff) }
 
 // SettingsBackgroundNetwork says "Background and network"
 // in the language the app shows under cx.

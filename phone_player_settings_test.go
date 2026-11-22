@@ -37,6 +37,7 @@ func TestPhonePlaybackAndSubtitleSettingsReview(t *testing.T) {
 			app.WaitFor("id:phone-playback-settings", time.Second)
 			app.WaitFor("id:phone-streaming-quality >> text:原画", time.Second)
 			app.WaitFor("id:phone-cellular-quality >> text:4 Mbps", time.Second)
+			app.WaitFor("id:phone-playback-gestures >> text:亮度 · 音量 · 进度", time.Second)
 			capture("settings-playback")
 			if !app.Find("id:phone-remember-progress").Props.Checked {
 				t.Fatal("legacy settings should remember playback progress")
@@ -94,6 +95,19 @@ func TestPhonePlaybackAndSubtitleSettingsReview(t *testing.T) {
 			if readPlaybackPreferences(app.Storage()).DisableDirectPlay {
 				t.Fatal("turning direct play back on was not saved")
 			}
+			app.Press("id:phone-playback-gestures")
+			app.WaitFor("id:phone-playback-gestures-dialog", time.Second)
+			capture("settings-playback-gestures")
+			for _, id := range []string{"brightness", "volume", "seek"} {
+				app.Press("id:phone-gesture-" + id)
+			}
+			if got := readPlaybackPreferences(app.Storage()).Gestures; got != (phoneGesturePreferences{true, true, true}) {
+				t.Fatalf("saved gesture settings = %+v", got)
+			}
+			app.Press("id:phone-gestures-done")
+			app.Advance(350 * time.Millisecond)
+			app.WaitForGone("id:phone-playback-gestures-dialog", 3*time.Second)
+			app.WaitFor("id:phone-playback-gestures >> text:关闭", time.Second)
 			app.Press("id:back")
 			app.Press("id:open-phone-subtitle-settings")
 			app.WaitFor("id:phone-subtitle-settings", time.Second)

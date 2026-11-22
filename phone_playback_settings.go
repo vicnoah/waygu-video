@@ -62,6 +62,7 @@ func (a *application) phonePlaybackSettings(cx *core.Scope) core.Node {
 			failure.Set(storeSettingValue(a.storage, mpvKey, a.mpvPreferred, enabled, strconv.FormatBool(enabled)))
 		}))
 	}
+	gestures, gestureDialog := a.phoneGestureSettings(cx, failure, save)
 
 	return phoneSettingsPage(cx, locales.PlaybackSettings(cx), a.back, "phone-playback-settings",
 		setupGroup(locales.PlayerQuality(cx), locales.SettingsDirectPlayHint(cx),
@@ -120,7 +121,7 @@ func (a *application) phonePlaybackSettings(cx *core.Scope) core.Node {
 			phoneSettingChoice(cx, phoneSetting{locales.SettingsDefaultRate(cx), "", "bg-blue-500", lucide.Gauge},
 				"phone-default-rate", rates, func() float32 { return a.playbackPrefs.Get().Rate },
 				func(value float32) { save(func(p *playbackPreferences) { p.Rate = value }) }),
-			unavailable(locales.SettingsPlaybackGestures(cx), "", "bg-blue-500", lucide.Hand),
+			gestures,
 		),
 		setupGroup(locales.SettingsBackgroundNetwork(cx), "",
 			pipControl,
@@ -129,6 +130,7 @@ func (a *application) phonePlaybackSettings(cx *core.Scope) core.Node {
 		),
 		setupGroup(locales.PlaybackVersion(cx), "", versionControls...),
 		settingsFailure(cx, failure),
+		gestureDialog,
 	)
 }
 

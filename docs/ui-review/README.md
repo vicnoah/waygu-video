@@ -29,7 +29,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Desktop movie detail · light and dark | [Hero, metadata and playback comparisons](desktop-movie.md) | Compared on GTK. Trailer playback, watch state and selecting a different server copy were checked against Docker media servers. |
 | Desktop player · all three sidebar tabs | [Playback and sidebar comparisons](desktop-player.md) | Compared at 1440 × 810 pt on GTK with Emby using the system player and libmpv. |
 | Phone settings and source management · light and dark | [Comparison and server checks](phone-source-settings.md) | Compared on GTK with three Docker media servers. Source reordering, sync and removal are tested. Phone device captures remain pending. |
-| Phone landscape player · all seven panel tabs | [Playback and panel comparisons](phone-player.md) | Compared at 844 × 390 pt on GTK with an Emby video and subtitle fixture. Phone rotation and system gestures remain pending. |
+| Phone landscape player · all seven panel tabs | [Playback and panel comparisons](phone-player.md) | Compared at 844 × 390 pt on GTK with an Emby video and subtitle fixture. Android emulator coverage includes rotation, saved swipe settings and timeline dragging. |
 | DLNA device picker · empty, list and connected | [Flow comparison and receiver checks](casting.md) | Captured on GTK. Linux GStreamer verifies multicast discovery and remote playback. Mobile and physical TV checks remain pending. |
 | Phone playback and subtitle settings · light and dark | [Settings comparison and playback checks](phone-player-settings.md) | Compared on GTK. Audio and caption preferences were verified against Emby and Jellyfin. Device captures and several controls remain pending. |
 | Storage and downloads · light and dark | [Design comparison and offline playback checks](storage-downloads.md) | Original-file downloads compared and tested on GTK. Transcoded downloads and platform background handling remain pending. |
@@ -243,6 +243,13 @@ go tool nsgo test -target android -device <serial> -run '^TestAndroidRememberPla
 ```
 
 The comparison uses the installed APK on a Pixel 7 emulator. Capture both states from the emulator display with `adb -s <serial> exec-out screencap -p` to include Android's status bar and hardware clipping.
+
+Verify the gesture settings, landscape rotation, right-side volume swipe and timeline dragging on an Android phone emulator.
+
+```sh
+go tool nsgo test -target android -device <serial> -run '^TestPhoneGesturePreferencesAffectPlayback$' \
+  -screenshots .nsgo/ui-review/android-gestures
+```
 
 Capture the desktop Settings window, overview, and the General, Playback, Danmaku and Media Sources pages in both appearances. The media source test uses the local Docker fixtures.
 

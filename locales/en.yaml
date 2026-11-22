@@ -453,6 +453,13 @@ settingsSeekForward: Forward interval
 settingsSeconds: "{seconds} s"
 settingsDefaultRate: Default speed
 settingsPlaybackGestures: Gestures
+settingsGestureBrightness: Brightness
+settingsGestureVolume: Volume
+settingsGestureSeek: Seek
+settingsGestureLeftSwipe: Swipe vertically on the left
+settingsGestureRightSwipe: Swipe vertically on the right
+settingsGestureHorizontalSwipe: Swipe left or right
+settingsGesturesOff: "Off"
 settingsBackgroundNetwork: Background and network
 settingsAutoPiP: Automatic picture in picture
 settingsBackgroundAudio: Continue playing audio in background

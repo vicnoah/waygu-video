@@ -34,6 +34,7 @@ func (p phonePlayerControls) gestureSurface(cx *core.Scope, controls *core.Signa
 	var mode phonePlayerGesture
 	var panStart time.Duration
 	var initialLevel float32
+	gestures := p.prefs.Gestures
 
 	cancelHold := func() {
 		if stopHoldTimer != nil {
@@ -132,16 +133,19 @@ func (p phonePlayerControls) gestureSurface(cx *core.Scope, controls *core.Signa
 			}
 			switch mode {
 			case phoneGestureSeek:
-				if length := p.duration.GetUntracked(); length > 0 {
+				if length := p.duration.GetUntracked(); !gestures.DisableSeek && length > 0 {
 					offset := time.Duration(float64(dx) * float64(time.Second/4))
 					preview.Set(min(length, max(0, panStart+offset)))
 				}
 			case phoneGestureBrightness:
-				if !p.cast.active() {
+				if !gestures.DisableBrightness && !p.cast.active() {
 					p.brightness.Set(max(.15, min(1, initialLevel-float32(dy/max(1, height)))))
 					hud.Set(mode)
 				}
 			case phoneGestureVolume:
+				if gestures.DisableVolume {
+					break
+				}
 				level := max(0, min(1, initialLevel-float32(dy/max(1, height))))
 				if !p.cast.active() {
 					p.volume.Set(level)

@@ -24,6 +24,13 @@ type playbackPreferences struct {
 	DisableAutoPiP           bool
 	DisableProgressRecording bool
 	KeepIntroCredits         bool
+	Gestures                 phoneGesturePreferences
+}
+
+type phoneGesturePreferences struct {
+	DisableBrightness bool
+	DisableVolume     bool
+	DisableSeek       bool
 }
 
 func readPlaybackPreferences(storage core.Storage) playbackPreferences {
@@ -36,6 +43,7 @@ func readPlaybackPreferences(storage core.Storage) playbackPreferences {
 			prefs.DisableProgressRecording = saved.DisableProgressRecording
 			prefs.KeepIntroCredits = saved.KeepIntroCredits
 			prefs.WarnOnCellular = saved.WarnOnCellular
+			prefs.Gestures = saved.Gestures
 			if slices.Contains(playbackBitrates, saved.CellularBitrate) {
 				prefs.CellularBitrate = saved.CellularBitrate
 			}
