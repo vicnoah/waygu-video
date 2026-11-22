@@ -129,3 +129,19 @@ func TestAndroidDefaultPlaybackNetwork(t *testing.T) {
 	})
 	app.WaitFor("text:"+want, 4*time.Second)
 }
+
+func TestAppleTVPlaybackUsesDefaultNetwork(t *testing.T) {
+	if nsgotest.Target() != "" {
+		t.Skip("requires a simulated Apple TV network")
+	}
+	probe := nativeCellularPlayback
+	t.Cleanup(func() { nativeCellularPlayback = probe })
+	nativeCellularPlayback = func(context.Context) bool { return true }
+	app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
+		if playbackNetwork(cx, false).GetUntracked() == transportDefault {
+			return core.Text{Content: "Default network"}
+		}
+		return core.Text{Content: "Checking the network"}
+	}, nsgotest.Idiom(core.IdiomTV), nsgotest.Environment(core.Environment{OS: core.OSIOS}))
+	app.Find("text:Default network")
+}

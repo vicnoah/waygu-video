@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -28,11 +29,20 @@ func TestTVNavigation(t *testing.T) {
 	}
 	for _, locale := range languages {
 		t.Run(locale, func(t *testing.T) {
+			appleTV := nsgotest.Target() == "tvos_simulator"
+			var defaultNetwork atomic.Bool
 			app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
 				shellIdiom.Provide(cx, core.IdiomTV)
+				if appleTV {
+					network := playbackNetwork(cx, false)
+					defaultNetwork.Store(network.GetUntracked() == transportDefault)
+				}
 				return core.View{Class: "flex-1", TestID: "tv-navigation-host", Children: []core.Node{Root(cx)}}
 			}, nsgotest.Idiom(core.IdiomTV), nsgotest.Size(960, 540),
 				nsgotest.Environment(core.Environment{Locale: locale}))
+			if appleTV && !defaultNetwork.Load() {
+				t.Fatal("Apple TV should use the default network profile")
+			}
 			height := app.Find("id:tv-navigation-host").Bounds().Size.Height
 			for _, id := range []string{"add-source", "onboarding-later"} {
 				bounds := app.Find("id:" + id).Bounds()

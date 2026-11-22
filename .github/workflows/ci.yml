@@ -127,13 +127,15 @@ jobs:
               continue
             fi
             target=ios_simulator
-            navigation=TestSkipOnboarding
+            tests='TestChineseAppName|TestNativeVideoDecodes'
             if [[ "$kind" == Apple-TV ]]; then
               target=tvos_simulator
-              navigation=TestTVNavigation
+              tests+='|TestTVNavigation'
+            else
+              tests+='|TestSkipOnboarding|TestApplePlaybackNetworkMonitor'
             fi
             echo "::group::$kind simulator tests"
-            run_simulator -target "$target" -device "$simulator" -run "^(TestChineseAppName|$navigation|TestNativeVideoDecodes|TestApplePlaybackNetworkMonitor)$" -timeout 2m . || failed=1
+            run_simulator -target "$target" -device "$simulator" -run "^($tests)$" -timeout 2m . || failed=1
             xcrun simctl shutdown "$simulator" || failed=1
             echo "::endgroup::"
           done

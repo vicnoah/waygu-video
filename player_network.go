@@ -35,19 +35,22 @@ func playbackNetwork(cx *core.Scope, local bool) *core.Signal[playbackTransport]
 		}
 	}
 	const timeout = 1500 * time.Millisecond
+	env := cx.Env()
+	appleTV := env.OS() == core.OSIOS && env.Idiom() == core.IdiomTV
+	probe := nativeCellularPlayback
 	switch {
-	case local:
+	case local || appleTV:
 		finish(false)
-	case nativeCellularPlayback != nil:
+	case probe != nil:
 		cx.AfterFunc(timeout, func() { finish(false) })
 		lifetime := cx.Context()
 		go func() {
 			ctx, cancel := context.WithTimeout(lifetime, timeout)
 			defer cancel()
-			cellular := nativeCellularPlayback(ctx)
+			cellular := probe(ctx)
 			cx.Post(func() { finish(cellular) })
 		}()
-	case cx.Env().OS() == core.OSAndroid:
+	case env.OS() == core.OSAndroid:
 		cx.CallHostTimeout(androidCellularHostCall, nil, timeout, func(result any, err error) {
 			cellular, _ := result.(bool)
 			finish(err == nil && cellular)
