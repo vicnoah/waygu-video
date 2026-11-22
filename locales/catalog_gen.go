@@ -160,6 +160,8 @@ var Parameters = map[string][]string{
 	"PhoneDanmakuPreviewArea":         {"fraction"},
 	"AboutVersionBuild":               {"version", "build"},
 	"AboutLinkFailed":                 {"address"},
+	"MetadataLibraryCount":            {"count"},
+	"MetadataRefreshEvery":            {"minutes"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -285,6 +287,8 @@ type Translation struct {
 	PhoneDanmakuPreviewArea         func(fraction string) string
 	AboutVersionBuild               func(version string, build string) string
 	AboutLinkFailed                 func(address string) string
+	MetadataLibraryCount            func(count string) string
+	MetadataRefreshEvery            func(minutes string) string
 }
 
 var supplied = map[string]Translation{}
@@ -1042,6 +1046,42 @@ const (
 	textAboutPrivacyLocation
 	textAboutOverlayBitrate
 	textAboutOverlayBuffering
+	textMetadataSection
+	textMetadataSectionHint
+	textMetadataServerFirst
+	textMetadataServerHint
+	textMetadataMoviesSeries
+	textMetadataServer
+	textMetadataRatings
+	textMetadataSeriesExtras
+	textMetadataAnime
+	textMetadataLanguage
+	textMetadataIdentification
+	textMetadataFileScrape
+	textMetadataFilenameRules
+	textMetadataCollections
+	textMetadataBangumiGrouping
+	textMetadataBangumiHint
+	textMetadataProgressSync
+	textMetadataHiddenLibraries
+	textMetadataShowLibrary
+	textMetadataNoHidden
+	textMetadataAutoRefresh
+	textMetadataRescan
+	textMetadataRescanConfirm
+	textMetadataRescanFinished
+	textMetadataListRefreshed
+	textMetadataScanRequested
+	textMetadataScanRejected
+	textMetadataClear
+	textMetadataClearConfirm
+	textMetadataCleared
+	textMetadataTMDBToken
+	textMetadataTMDBHelp
+	textMetadataTMDBSave
+	textMetadataTMDBRemove
+	textAboutTMDBCredit
+	textAboutTMDBPrivacy
 	numTexts
 )
 
@@ -1799,6 +1839,42 @@ var keyOfText = [numTexts]string{
 	"aboutPrivacyLocation",
 	"aboutOverlayBitrate",
 	"aboutOverlayBuffering",
+	"metadataSection",
+	"metadataSectionHint",
+	"metadataServerFirst",
+	"metadataServerHint",
+	"metadataMoviesSeries",
+	"metadataServer",
+	"metadataRatings",
+	"metadataSeriesExtras",
+	"metadataAnime",
+	"metadataLanguage",
+	"metadataIdentification",
+	"metadataFileScrape",
+	"metadataFilenameRules",
+	"metadataCollections",
+	"metadataBangumiGrouping",
+	"metadataBangumiHint",
+	"metadataProgressSync",
+	"metadataHiddenLibraries",
+	"metadataShowLibrary",
+	"metadataNoHidden",
+	"metadataAutoRefresh",
+	"metadataRescan",
+	"metadataRescanConfirm",
+	"metadataRescanFinished",
+	"metadataListRefreshed",
+	"metadataScanRequested",
+	"metadataScanRejected",
+	"metadataClear",
+	"metadataClearConfirm",
+	"metadataCleared",
+	"metadataTMDBToken",
+	"metadataTMDBHelp",
+	"metadataTMDBSave",
+	"metadataTMDBRemove",
+	"aboutTMDBCredit",
+	"aboutTMDBPrivacy",
 }
 
 // textsEn are the messages without arguments in en.
@@ -2553,7 +2629,43 @@ var textsEn = i18n.NewTexts(""+
 	"You can turn network logging on under Debugging. It records the provider, HTTP method, status, time and duration on this device. Export saves an archive to the location you choose."+
 	"If you enable sunset-based dark mode, the app may request approximate location. The rounded coordinates stay on your device."+
 	"Bitrate"+
-	"Buffering",
+	"Buffering"+
+	"Metadata"+
+	"Import metadata from Emby, Jellyfin, Plex or Flymoo. Optional TMDB lookup runs for titles with a matching provider ID."+
+	"Prefer server metadata"+
+	"Fill missing fields from configured sources"+
+	"Movies and series"+
+	"Media server"+
+	"Ratings and reviews"+
+	"Series supplements"+
+	"Anime"+
+	"Metadata language"+
+	"Identification"+
+	"Identify local and cloud files"+
+	"Filename rules"+
+	"Automatically group collections"+
+	"Identify anime with Bangumi"+
+	"Group anime seasons for danmaku and progress matching"+
+	"Sync viewing progress to the server"+
+	"Hidden libraries"+
+	"Show"+
+	"All imported libraries are visible."+
+	"Automatic refresh"+
+	"Rescan all libraries"+
+	"Refresh the imported libraries. Servers may start a scan if your account has permission."+
+	"Library refresh results"+
+	"Library list refreshed"+
+	"Server scan requested"+
+	"Library list refreshed. Server scan was declined."+
+	"Clear metadata cache"+
+	"Remove saved TMDB lookups from this session."+
+	"Metadata cache cleared."+
+	"TMDB API Read Access Token"+
+	"Enter a TMDB API Read Access Token to complete titles that already have a TMDB or IMDb ID."+
+	"Save token"+
+	"Disconnect TMDB"+
+	"This product uses the TMDB API but is not endorsed or certified by TMDB."+
+	"If you configure TMDB, the app sends TMDB or IMDb title IDs and the selected metadata language to TMDB.",
 	[]uint16{
 		11,
 		47,
@@ -3306,6 +3418,42 @@ var textsEn = i18n.NewTexts(""+
 		124,
 		7,
 		9,
+		8,
+		118,
+		22,
+		43,
+		17,
+		12,
+		19,
+		18,
+		5,
+		17,
+		14,
+		30,
+		14,
+		31,
+		27,
+		53,
+		35,
+		16,
+		4,
+		35,
+		17,
+		20,
+		88,
+		23,
+		22,
+		21,
+		49,
+		20,
+		44,
+		23,
+		26,
+		90,
+		10,
+		15,
+		72,
+		103,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -4060,7 +4208,43 @@ var textsZhHans = i18n.NewTexts(""+
 	"可在「调试」里开启网络日志。它只在设备上记录服务类型、HTTP 方法、状态、时间和耗时。导出的压缩包保存到你选择的位置。"+
 	"打开按日落自动切换深色后，应用可能请求大致位置权限，取整后的位置坐标保存在此设备上。"+
 	"码率"+
-	"正在缓冲",
+	"正在缓冲"+
+	"元数据"+
+	"默认使用 Emby、Jellyfin、Plex 或飞牛影视的元数据。配置 TMDB 后，可按已有的作品 ID 补全详情。"+
+	"服务器元数据优先"+
+	"缺失时再从下方来源补全"+
+	"电影 / 剧集"+
+	"媒体服务器"+
+	"评分与短评"+
+	"剧集补充"+
+	"动漫"+
+	"元数据语言"+
+	"识别"+
+	"刮削本地与网盘文件"+
+	"文件名识别规则"+
+	"合集自动分组"+
+	"动漫按 Bangumi 识别"+
+	"按番剧分季，便于弹幕与进度匹配"+
+	"观看进度同步回服务器"+
+	"隐藏的媒体库"+
+	"恢复显示"+
+	"已导入的媒体库均已显示。"+
+	"自动刷新"+
+	"重新扫描全部媒体库"+
+	"刷新已导入的媒体库。具有权限时也会请求媒体服务器扫描。"+
+	"媒体库刷新结果"+
+	"已刷新媒体库列表"+
+	"已请求服务器扫描"+
+	"已刷新列表，服务器拒绝扫描请求。"+
+	"清除元数据缓存"+
+	"清除本次运行缓存的 TMDB 查询结果。"+
+	"已清除元数据缓存。"+
+	"TMDB API 读取令牌"+
+	"输入 TMDB API 读取令牌，为已带有 TMDB 或 IMDb 作品 ID 的条目补全详情。"+
+	"保存令牌"+
+	"断开 TMDB"+
+	"本产品使用 TMDB API，未获 TMDB 背书或认证。"+
+	"配置 TMDB 后，应用会向 TMDB 发送作品的 TMDB 或 IMDb ID 和选定的元数据语言。",
 	[]uint16{
 		12,
 		45,
@@ -4813,6 +4997,42 @@ var textsZhHans = i18n.NewTexts(""+
 		126,
 		6,
 		12,
+		9,
+		124,
+		24,
+		33,
+		15,
+		15,
+		15,
+		12,
+		6,
+		15,
+		6,
+		27,
+		21,
+		18,
+		24,
+		45,
+		30,
+		18,
+		12,
+		36,
+		12,
+		27,
+		81,
+		21,
+		24,
+		24,
+		48,
+		21,
+		48,
+		27,
+		21,
+		92,
+		12,
+		11,
+		57,
+		99,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -5219,6 +5439,12 @@ func Supply(lang string, t Translation) {
 	}
 	if t.AboutLinkFailed != nil {
 		s.AboutLinkFailed = t.AboutLinkFailed
+	}
+	if t.MetadataLibraryCount != nil {
+		s.MetadataLibraryCount = t.MetadataLibraryCount
+	}
+	if t.MetadataRefreshEvery != nil {
+		s.MetadataRefreshEvery = t.MetadataRefreshEvery
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -13439,3 +13665,303 @@ func AboutOverlayBuffering(cx *core.Scope) string { return For(cx).AboutOverlayB
 
 // AboutOverlayBuffering is the package's AboutOverlayBuffering in the language of msgs.
 func (msgs Messages) AboutOverlayBuffering() string { return msgs.text(textAboutOverlayBuffering) }
+
+// MetadataSection says "Metadata"
+// in the language the app shows under cx.
+func MetadataSection(cx *core.Scope) string { return For(cx).MetadataSection() }
+
+// MetadataSection is the package's MetadataSection in the language of msgs.
+func (msgs Messages) MetadataSection() string { return msgs.text(textMetadataSection) }
+
+// MetadataSectionHint says "Import metadata from Emby, Jellyfin, Plex or Flymoo. Optional TMDB lookup runs for titles with a matching provider ID."
+// in the language the app shows under cx.
+func MetadataSectionHint(cx *core.Scope) string { return For(cx).MetadataSectionHint() }
+
+// MetadataSectionHint is the package's MetadataSectionHint in the language of msgs.
+func (msgs Messages) MetadataSectionHint() string { return msgs.text(textMetadataSectionHint) }
+
+// MetadataServerFirst says "Prefer server metadata"
+// in the language the app shows under cx.
+func MetadataServerFirst(cx *core.Scope) string { return For(cx).MetadataServerFirst() }
+
+// MetadataServerFirst is the package's MetadataServerFirst in the language of msgs.
+func (msgs Messages) MetadataServerFirst() string { return msgs.text(textMetadataServerFirst) }
+
+// MetadataServerHint says "Fill missing fields from configured sources"
+// in the language the app shows under cx.
+func MetadataServerHint(cx *core.Scope) string { return For(cx).MetadataServerHint() }
+
+// MetadataServerHint is the package's MetadataServerHint in the language of msgs.
+func (msgs Messages) MetadataServerHint() string { return msgs.text(textMetadataServerHint) }
+
+// MetadataMoviesSeries says "Movies and series"
+// in the language the app shows under cx.
+func MetadataMoviesSeries(cx *core.Scope) string { return For(cx).MetadataMoviesSeries() }
+
+// MetadataMoviesSeries is the package's MetadataMoviesSeries in the language of msgs.
+func (msgs Messages) MetadataMoviesSeries() string { return msgs.text(textMetadataMoviesSeries) }
+
+// MetadataServer says "Media server"
+// in the language the app shows under cx.
+func MetadataServer(cx *core.Scope) string { return For(cx).MetadataServer() }
+
+// MetadataServer is the package's MetadataServer in the language of msgs.
+func (msgs Messages) MetadataServer() string { return msgs.text(textMetadataServer) }
+
+// MetadataRatings says "Ratings and reviews"
+// in the language the app shows under cx.
+func MetadataRatings(cx *core.Scope) string { return For(cx).MetadataRatings() }
+
+// MetadataRatings is the package's MetadataRatings in the language of msgs.
+func (msgs Messages) MetadataRatings() string { return msgs.text(textMetadataRatings) }
+
+// MetadataSeriesExtras says "Series supplements"
+// in the language the app shows under cx.
+func MetadataSeriesExtras(cx *core.Scope) string { return For(cx).MetadataSeriesExtras() }
+
+// MetadataSeriesExtras is the package's MetadataSeriesExtras in the language of msgs.
+func (msgs Messages) MetadataSeriesExtras() string { return msgs.text(textMetadataSeriesExtras) }
+
+// MetadataAnime says "Anime"
+// in the language the app shows under cx.
+func MetadataAnime(cx *core.Scope) string { return For(cx).MetadataAnime() }
+
+// MetadataAnime is the package's MetadataAnime in the language of msgs.
+func (msgs Messages) MetadataAnime() string { return msgs.text(textMetadataAnime) }
+
+// MetadataLanguage says "Metadata language"
+// in the language the app shows under cx.
+func MetadataLanguage(cx *core.Scope) string { return For(cx).MetadataLanguage() }
+
+// MetadataLanguage is the package's MetadataLanguage in the language of msgs.
+func (msgs Messages) MetadataLanguage() string { return msgs.text(textMetadataLanguage) }
+
+// MetadataIdentification says "Identification"
+// in the language the app shows under cx.
+func MetadataIdentification(cx *core.Scope) string { return For(cx).MetadataIdentification() }
+
+// MetadataIdentification is the package's MetadataIdentification in the language of msgs.
+func (msgs Messages) MetadataIdentification() string { return msgs.text(textMetadataIdentification) }
+
+// MetadataFileScrape says "Identify local and cloud files"
+// in the language the app shows under cx.
+func MetadataFileScrape(cx *core.Scope) string { return For(cx).MetadataFileScrape() }
+
+// MetadataFileScrape is the package's MetadataFileScrape in the language of msgs.
+func (msgs Messages) MetadataFileScrape() string { return msgs.text(textMetadataFileScrape) }
+
+// MetadataFilenameRules says "Filename rules"
+// in the language the app shows under cx.
+func MetadataFilenameRules(cx *core.Scope) string { return For(cx).MetadataFilenameRules() }
+
+// MetadataFilenameRules is the package's MetadataFilenameRules in the language of msgs.
+func (msgs Messages) MetadataFilenameRules() string { return msgs.text(textMetadataFilenameRules) }
+
+// MetadataCollections says "Automatically group collections"
+// in the language the app shows under cx.
+func MetadataCollections(cx *core.Scope) string { return For(cx).MetadataCollections() }
+
+// MetadataCollections is the package's MetadataCollections in the language of msgs.
+func (msgs Messages) MetadataCollections() string { return msgs.text(textMetadataCollections) }
+
+// MetadataBangumiGrouping says "Identify anime with Bangumi"
+// in the language the app shows under cx.
+func MetadataBangumiGrouping(cx *core.Scope) string { return For(cx).MetadataBangumiGrouping() }
+
+// MetadataBangumiGrouping is the package's MetadataBangumiGrouping in the language of msgs.
+func (msgs Messages) MetadataBangumiGrouping() string { return msgs.text(textMetadataBangumiGrouping) }
+
+// MetadataBangumiHint says "Group anime seasons for danmaku and progress matching"
+// in the language the app shows under cx.
+func MetadataBangumiHint(cx *core.Scope) string { return For(cx).MetadataBangumiHint() }
+
+// MetadataBangumiHint is the package's MetadataBangumiHint in the language of msgs.
+func (msgs Messages) MetadataBangumiHint() string { return msgs.text(textMetadataBangumiHint) }
+
+// MetadataProgressSync says "Sync viewing progress to the server"
+// in the language the app shows under cx.
+func MetadataProgressSync(cx *core.Scope) string { return For(cx).MetadataProgressSync() }
+
+// MetadataProgressSync is the package's MetadataProgressSync in the language of msgs.
+func (msgs Messages) MetadataProgressSync() string { return msgs.text(textMetadataProgressSync) }
+
+// MetadataHiddenLibraries says "Hidden libraries"
+// in the language the app shows under cx.
+func MetadataHiddenLibraries(cx *core.Scope) string { return For(cx).MetadataHiddenLibraries() }
+
+// MetadataHiddenLibraries is the package's MetadataHiddenLibraries in the language of msgs.
+func (msgs Messages) MetadataHiddenLibraries() string { return msgs.text(textMetadataHiddenLibraries) }
+
+// MetadataLibraryCount says "{count} libraries"
+// in the language the app shows under cx.
+func MetadataLibraryCount(cx *core.Scope, count string) string {
+	return For(cx).MetadataLibraryCount(count)
+}
+
+// MetadataLibraryCount is the package's MetadataLibraryCount in the language of msgs.
+func (msgs Messages) MetadataLibraryCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MetadataLibraryCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MetadataLibraryCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " libraries"
+		case "zh-Hans":
+			return count + " 个"
+		}
+	}
+}
+
+// MetadataShowLibrary says "Show"
+// in the language the app shows under cx.
+func MetadataShowLibrary(cx *core.Scope) string { return For(cx).MetadataShowLibrary() }
+
+// MetadataShowLibrary is the package's MetadataShowLibrary in the language of msgs.
+func (msgs Messages) MetadataShowLibrary() string { return msgs.text(textMetadataShowLibrary) }
+
+// MetadataNoHidden says "All imported libraries are visible."
+// in the language the app shows under cx.
+func MetadataNoHidden(cx *core.Scope) string { return For(cx).MetadataNoHidden() }
+
+// MetadataNoHidden is the package's MetadataNoHidden in the language of msgs.
+func (msgs Messages) MetadataNoHidden() string { return msgs.text(textMetadataNoHidden) }
+
+// MetadataAutoRefresh says "Automatic refresh"
+// in the language the app shows under cx.
+func MetadataAutoRefresh(cx *core.Scope) string { return For(cx).MetadataAutoRefresh() }
+
+// MetadataAutoRefresh is the package's MetadataAutoRefresh in the language of msgs.
+func (msgs Messages) MetadataAutoRefresh() string { return msgs.text(textMetadataAutoRefresh) }
+
+// MetadataRefreshEvery says "Every {minutes} minutes"
+// in the language the app shows under cx.
+func MetadataRefreshEvery(cx *core.Scope, minutes string) string {
+	return For(cx).MetadataRefreshEvery(minutes)
+}
+
+// MetadataRefreshEvery is the package's MetadataRefreshEvery in the language of msgs.
+func (msgs Messages) MetadataRefreshEvery(minutes string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MetadataRefreshEvery(minutes))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MetadataRefreshEvery; f != nil {
+			return f(minutes)
+		}
+		switch lang {
+		case "", "en":
+			return "Every " + msgs.arg(minutes) + " minutes"
+		case "zh-Hans":
+			return "每 " + minutes + " 分钟"
+		}
+	}
+}
+
+// MetadataRescan says "Rescan all libraries"
+// in the language the app shows under cx.
+func MetadataRescan(cx *core.Scope) string { return For(cx).MetadataRescan() }
+
+// MetadataRescan is the package's MetadataRescan in the language of msgs.
+func (msgs Messages) MetadataRescan() string { return msgs.text(textMetadataRescan) }
+
+// MetadataRescanConfirm says "Refresh the imported libraries. Servers may start a scan if your account has permission."
+// in the language the app shows under cx.
+func MetadataRescanConfirm(cx *core.Scope) string { return For(cx).MetadataRescanConfirm() }
+
+// MetadataRescanConfirm is the package's MetadataRescanConfirm in the language of msgs.
+func (msgs Messages) MetadataRescanConfirm() string { return msgs.text(textMetadataRescanConfirm) }
+
+// MetadataRescanFinished says "Library refresh results"
+// in the language the app shows under cx.
+func MetadataRescanFinished(cx *core.Scope) string { return For(cx).MetadataRescanFinished() }
+
+// MetadataRescanFinished is the package's MetadataRescanFinished in the language of msgs.
+func (msgs Messages) MetadataRescanFinished() string { return msgs.text(textMetadataRescanFinished) }
+
+// MetadataListRefreshed says "Library list refreshed"
+// in the language the app shows under cx.
+func MetadataListRefreshed(cx *core.Scope) string { return For(cx).MetadataListRefreshed() }
+
+// MetadataListRefreshed is the package's MetadataListRefreshed in the language of msgs.
+func (msgs Messages) MetadataListRefreshed() string { return msgs.text(textMetadataListRefreshed) }
+
+// MetadataScanRequested says "Server scan requested"
+// in the language the app shows under cx.
+func MetadataScanRequested(cx *core.Scope) string { return For(cx).MetadataScanRequested() }
+
+// MetadataScanRequested is the package's MetadataScanRequested in the language of msgs.
+func (msgs Messages) MetadataScanRequested() string { return msgs.text(textMetadataScanRequested) }
+
+// MetadataScanRejected says "Library list refreshed. Server scan was declined."
+// in the language the app shows under cx.
+func MetadataScanRejected(cx *core.Scope) string { return For(cx).MetadataScanRejected() }
+
+// MetadataScanRejected is the package's MetadataScanRejected in the language of msgs.
+func (msgs Messages) MetadataScanRejected() string { return msgs.text(textMetadataScanRejected) }
+
+// MetadataClear says "Clear metadata cache"
+// in the language the app shows under cx.
+func MetadataClear(cx *core.Scope) string { return For(cx).MetadataClear() }
+
+// MetadataClear is the package's MetadataClear in the language of msgs.
+func (msgs Messages) MetadataClear() string { return msgs.text(textMetadataClear) }
+
+// MetadataClearConfirm says "Remove saved TMDB lookups from this session."
+// in the language the app shows under cx.
+func MetadataClearConfirm(cx *core.Scope) string { return For(cx).MetadataClearConfirm() }
+
+// MetadataClearConfirm is the package's MetadataClearConfirm in the language of msgs.
+func (msgs Messages) MetadataClearConfirm() string { return msgs.text(textMetadataClearConfirm) }
+
+// MetadataCleared says "Metadata cache cleared."
+// in the language the app shows under cx.
+func MetadataCleared(cx *core.Scope) string { return For(cx).MetadataCleared() }
+
+// MetadataCleared is the package's MetadataCleared in the language of msgs.
+func (msgs Messages) MetadataCleared() string { return msgs.text(textMetadataCleared) }
+
+// MetadataTMDBToken says "TMDB API Read Access Token"
+// in the language the app shows under cx.
+func MetadataTMDBToken(cx *core.Scope) string { return For(cx).MetadataTMDBToken() }
+
+// MetadataTMDBToken is the package's MetadataTMDBToken in the language of msgs.
+func (msgs Messages) MetadataTMDBToken() string { return msgs.text(textMetadataTMDBToken) }
+
+// MetadataTMDBHelp says "Enter a TMDB API Read Access Token to complete titles that already have a TMDB or IMDb ID."
+// in the language the app shows under cx.
+func MetadataTMDBHelp(cx *core.Scope) string { return For(cx).MetadataTMDBHelp() }
+
+// MetadataTMDBHelp is the package's MetadataTMDBHelp in the language of msgs.
+func (msgs Messages) MetadataTMDBHelp() string { return msgs.text(textMetadataTMDBHelp) }
+
+// MetadataTMDBSave says "Save token"
+// in the language the app shows under cx.
+func MetadataTMDBSave(cx *core.Scope) string { return For(cx).MetadataTMDBSave() }
+
+// MetadataTMDBSave is the package's MetadataTMDBSave in the language of msgs.
+func (msgs Messages) MetadataTMDBSave() string { return msgs.text(textMetadataTMDBSave) }
+
+// MetadataTMDBRemove says "Disconnect TMDB"
+// in the language the app shows under cx.
+func MetadataTMDBRemove(cx *core.Scope) string { return For(cx).MetadataTMDBRemove() }
+
+// MetadataTMDBRemove is the package's MetadataTMDBRemove in the language of msgs.
+func (msgs Messages) MetadataTMDBRemove() string { return msgs.text(textMetadataTMDBRemove) }
+
+// AboutTMDBCredit says "This product uses the TMDB API but is not endorsed or certified by TMDB."
+// in the language the app shows under cx.
+func AboutTMDBCredit(cx *core.Scope) string { return For(cx).AboutTMDBCredit() }
+
+// AboutTMDBCredit is the package's AboutTMDBCredit in the language of msgs.
+func (msgs Messages) AboutTMDBCredit() string { return msgs.text(textAboutTMDBCredit) }
+
+// AboutTMDBPrivacy says "If you configure TMDB, the app sends TMDB or IMDb title IDs and the selected metadata language to TMDB."
+// in the language the app shows under cx.
+func AboutTMDBPrivacy(cx *core.Scope) string { return For(cx).AboutTMDBPrivacy() }
+
+// AboutTMDBPrivacy is the package's AboutTMDBPrivacy in the language of msgs.
+func (msgs Messages) AboutTMDBPrivacy() string { return msgs.text(textAboutTMDBPrivacy) }

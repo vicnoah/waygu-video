@@ -32,6 +32,8 @@ type sourceCheck struct {
 	syncing    bool
 	err        error
 	saveError  error
+	scanSent   bool
+	scanError  error
 }
 
 func readSourceTimeout(value string) int {
@@ -53,6 +55,10 @@ func (a *application) watchSourceConnections(cx *core.Scope) {
 // checkSource validates the saved credentials against the library endpoint.
 // An explicit refresh also reconciles the imports with the latest server list.
 func (a *application) checkSource(entry source, refresh bool) {
+	a.checkSourceWithScan(entry, refresh, false)
+}
+
+func (a *application) checkSourceWithScan(entry source, refresh, scan bool) {
 	identity := entry.connection()
 	previous := a.sourceChecks.GetUntracked()[entry.ID]
 	if previous.connection == identity {
@@ -61,6 +67,9 @@ func (a *application) checkSource(entry source, refresh bool) {
 		}
 	}
 	started := sourceCheck{connection: identity, checking: true, syncing: refresh}
+	if previous.connection == identity && !scan {
+		started.scanSent, started.scanError = previous.scanSent, previous.scanError
+	}
 	a.setSourceCheck(entry.ID, started)
 	timeout := time.Duration(a.sourceTimeout.GetUntracked()) * time.Second
 	lifetime := a.lifetime
@@ -69,6 +78,13 @@ func (a *application) checkSource(entry source, refresh bool) {
 		defer cancel()
 		client, err := a.client(entry)
 		var available []media.Library
+		scanSent, scanError := started.scanSent, started.scanError
+		if err == nil && scan {
+			if scanner, ok := client.(media.LibraryScanClient); ok {
+				scanError = scanner.ScanLibraries(ctx)
+				scanSent = scanError == nil
+			}
+		}
 		if err == nil {
 			available, err = client.Libraries(ctx)
 		}
@@ -82,7 +98,8 @@ func (a *application) checkSource(entry source, refresh bool) {
 			if index < 0 || latest.connection != identity || latest.syncing != refresh || !latest.checking {
 				return
 			}
-			finished := sourceCheck{connection: identity, at: a.scope.Now(), err: err}
+			finished := sourceCheck{connection: identity, at: a.scope.Now(), err: err,
+				scanSent: scanSent, scanError: scanError}
 			if refresh && err == nil {
 				updated := slices.Clone(sources)
 				updated[index].Libraries = mergeLibraries(available, updated[index].Libraries, true)
@@ -93,6 +110,16 @@ func (a *application) checkSource(entry source, refresh bool) {
 				}
 			}
 			a.setSourceCheck(entry.ID, finished)
+			if scan && scanSent {
+				a.scope.AfterFunc(15*time.Second, func() {
+					for _, current := range a.sources.GetUntracked() {
+						if current.ID == entry.ID && current.connection() == identity {
+							a.checkSource(current, true)
+							break
+						}
+					}
+				})
+			}
 		})
 	}()
 }

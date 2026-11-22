@@ -155,7 +155,25 @@ func (a *application) detailLayout(cx *core.Scope, current route, idiom core.Idi
 }
 
 func (a *application) detailResource(cx *core.Scope, current route) *core.Resource[detailResult] {
-	return core.NewResource(cx, func() (parentalPolicy, bool) { return a.parentalRules(), true }, func(ctx context.Context, rules parentalPolicy, _ core.ResourceInfo) (detailResult, error) {
+	type detailQuery struct {
+		local                      pendingProgress
+		rules                      parentalPolicy
+		supplement, preferExternal bool
+		language                   string
+	}
+	return core.NewResource(cx, func() (detailQuery, bool) {
+		prefs := a.libraryPrefs.Get()
+		language := prefs.Language
+		if language == "" {
+			language = "en-US"
+			if strings.HasPrefix(cx.Env().Locale(), "zh") {
+				language = "zh-CN"
+			}
+		}
+		return detailQuery{local: a.localCheckpoint(current.source, current.item), rules: a.parentalRules(),
+			supplement: prefs.TMDB, preferExternal: prefs.PreferExternal, language: language}, true
+	}, func(ctx context.Context, query detailQuery, _ core.ResourceInfo) (detailResult, error) {
+		rules := query.rules
 		result := detailResult{item: current.item}
 		client, err := a.client(current.source)
 		if err != nil {
@@ -194,6 +212,15 @@ func (a *application) detailResource(cx *core.Scope, current route) *core.Resour
 				result.children = slices.DeleteFunc(result.children, func(item media.Item) bool {
 					return !rules.visible(current.source.ID, item)
 				})
+			}
+		}
+		if query.local.Revision != "" && !result.item.LastPlayed.After(query.local.Update.At) {
+			result.item = applyProgressCheckpoint(result.item, query.local)
+		}
+		if query.supplement && (!rules.Enabled || rules.visible(current.source.ID, result.item)) &&
+			(result.item.Kind == media.Movie || result.item.Kind == media.Series) {
+			if token, found, err := a.secrets.Get(tmdbSecretKey); err == nil && found {
+				result.item, _ = a.metadata.Enrich(ctx, result.item, token, query.language, query.preferExternal)
 			}
 		}
 		return result, nil

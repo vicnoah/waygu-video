@@ -67,7 +67,8 @@ func (a *application) tvSettingsOptions(cx *core.Scope, l tvLayout, section tvSe
 			_ = storeSettingValue(a.storage, mergeTitlesKey, a.mergeTitles, enabled, strconv.FormatBool(enabled))
 		}
 		rows := []tvOption{{id: "tv-settings-merge-titles", label: locales.MergeIdenticalTitles(cx), checked: a.mergeTitles.Get,
-			action: func() { toggle(!a.mergeTitles.GetUntracked()) }, adjust: func(direction int) { toggle(direction > 0) }}}
+			action: func() { toggle(!a.mergeTitles.GetUntracked()) }, adjust: func(direction int) { toggle(direction > 0) }},
+			link("open-library-settings", locales.SettingsLibraryMetadata(cx), route{screen: screenLibrarySettings})}
 		for _, entry := range sources {
 			row := link("tv-manage-libraries-"+entry.ID, entry.Name, route{screen: screenManageLibraries, source: entry})
 			row.value = func() string { return strconv.Itoa(len(entry.Libraries)) }

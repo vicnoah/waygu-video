@@ -8,7 +8,7 @@ func (a *application) resetPreferences(cx *core.Scope) {
 			appearanceKey, appearancePreferencesKey, playbackPreferencesKey, subtitlePreferencesKey,
 			danmakuPreferencesKey, diagnosticPreferencesKey, desktopPreferencesKey, desktopLastPageKey,
 			mpvKey, bitrateKey, versionPolicyKey, autoNextKey, mergeTitlesKey, sourceTimeoutKey,
-			downloadSlotsKey, downloadQuotaKey,
+			downloadSlotsKey, downloadQuotaKey, libraryPreferencesKey,
 		} {
 			a.storage.RemoveItem(key)
 		}
@@ -31,6 +31,8 @@ func (a *application) resetPreferences(cx *core.Scope) {
 		a.mergeTitles.Set(true)
 		a.sourceFilter.Set("")
 		a.sourceTimeout.Set(readSourceTimeout(""))
+		a.libraryPrefs.Set(readLibraryPreferences(a.storage))
+		a.setProgressSending(true)
 		if a.downloads != nil {
 			a.downloads.slots.Set(2)
 			a.downloads.quota.Set(0)

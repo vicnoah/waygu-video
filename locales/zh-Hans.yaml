@@ -869,3 +869,41 @@ aboutPrivacyDiagnostics: 可在「调试」里开启网络日志。它只在设�
 aboutPrivacyLocation: 打开按日落自动切换深色后，应用可能请求大致位置权限，取整后的位置坐标保存在此设备上。
 aboutOverlayBitrate: 码率
 aboutOverlayBuffering: 正在缓冲
+metadataSection: 元数据
+metadataSectionHint: 默认使用 Emby、Jellyfin、Plex 或飞牛影视的元数据。配置 TMDB 后，可按已有的作品 ID 补全详情。
+metadataServerFirst: 服务器元数据优先
+metadataServerHint: 缺失时再从下方来源补全
+metadataMoviesSeries: 电影 / 剧集
+metadataServer: 媒体服务器
+metadataRatings: 评分与短评
+metadataSeriesExtras: 剧集补充
+metadataAnime: 动漫
+metadataLanguage: 元数据语言
+metadataIdentification: 识别
+metadataFileScrape: 刮削本地与网盘文件
+metadataFilenameRules: 文件名识别规则
+metadataCollections: 合集自动分组
+metadataBangumiGrouping: 动漫按 Bangumi 识别
+metadataBangumiHint: 按番剧分季，便于弹幕与进度匹配
+metadataProgressSync: 观看进度同步回服务器
+metadataHiddenLibraries: 隐藏的媒体库
+metadataLibraryCount: "{count} 个"
+metadataShowLibrary: 恢复显示
+metadataNoHidden: 已导入的媒体库均已显示。
+metadataAutoRefresh: 自动刷新
+metadataRefreshEvery: "每 {minutes} 分钟"
+metadataRescan: 重新扫描全部媒体库
+metadataRescanConfirm: 刷新已导入的媒体库。具有权限时也会请求媒体服务器扫描。
+metadataRescanFinished: 媒体库刷新结果
+metadataListRefreshed: 已刷新媒体库列表
+metadataScanRequested: 已请求服务器扫描
+metadataScanRejected: 已刷新列表，服务器拒绝扫描请求。
+metadataClear: 清除元数据缓存
+metadataClearConfirm: 清除本次运行缓存的 TMDB 查询结果。
+metadataCleared: 已清除元数据缓存。
+metadataTMDBToken: TMDB API 读取令牌
+metadataTMDBHelp: 输入 TMDB API 读取令牌，为已带有 TMDB 或 IMDb 作品 ID 的条目补全详情。
+metadataTMDBSave: 保存令牌
+metadataTMDBRemove: 断开 TMDB
+aboutTMDBCredit: 本产品使用 TMDB API，未获 TMDB 背书或认证。
+aboutTMDBPrivacy: 配置 TMDB 后，应用会向 TMDB 发送作品的 TMDB 或 IMDb ID 和选定的元数据语言。

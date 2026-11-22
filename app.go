@@ -16,6 +16,7 @@ import (
 
 	"waygu-video/internal/danmaku"
 	"waygu-video/internal/media"
+	"waygu-video/internal/metadata"
 	"waygu-video/locales"
 )
 
@@ -45,6 +46,7 @@ const (
 	screenDownloads          screen = "downloads"
 	screenParentalSettings   screen = "settings-parental"
 	screenAboutSettings      screen = "settings-about"
+	screenLibrarySettings    screen = "settings-library-metadata"
 	screenAppearanceSettings screen = "settings-appearance"
 )
 
@@ -124,6 +126,8 @@ type application struct {
 	sourceStatus        *core.Signal[map[string]homeSourceStatus]
 	sourceChecks        *core.Signal[map[string]sourceCheck]
 	sourceTimeout       *core.Signal[int]
+	libraryPrefs        *core.Signal[libraryPreferences]
+	metadata            *metadata.Cache
 	mergeTitles         *core.Signal[bool]
 	mpvPreferred        *core.Signal[bool]
 	appearance          *core.Signal[string]
@@ -223,6 +227,7 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 	a.parentalApprovals = core.NewSignalFunc(cx, map[copyKey]bool{}, nil)
 	a.applyAppearance(cx)
 	a.progress = core.Untracked(cx, func() *progressOutbox { return newProgressOutbox(cx, storage) })
+	a.startLibraryPreferences(cx)
 	a.playbackPrefs = core.NewSignal(cx, core.Untracked(cx, func() playbackPreferences { return readPlaybackPreferences(storage) }))
 	a.subtitlePrefs = core.NewSignalFunc(cx, core.Untracked(cx, func() subtitlePreferences { return readSubtitlePreferences(storage) }), nil)
 	a.sourceChecks = core.NewSignalFunc(cx, map[string]sourceCheck{}, nil)
@@ -288,6 +293,8 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 				return a.phoneSubtitleLanguages(screenScope)
 			case screenAppearanceSettings:
 				return a.phoneAppearanceSettings(screenScope)
+			case screenLibrarySettings:
+				return a.parentalSourceRoute(screenScope, current, a.phoneLibrarySettings)
 			case screenAboutSettings:
 				return a.phoneAboutSettings(screenScope)
 			case screenParentalSettings:
@@ -304,7 +311,7 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 func (a *application) push(next route) {
 	stack := a.routes.GetUntracked()
 	switch next.screen {
-	case screenSources, screenConnect, screenPlexLink, screenSourceSettings, screenManageLibraries, screenTVPairPhone:
+	case screenSources, screenConnect, screenPlexLink, screenSourceSettings, screenManageLibraries, screenTVPairPhone, screenLibrarySettings:
 		next.sourceAdmin = stack[len(stack)-1].sourceAdmin
 	}
 	a.routes.Set(append(slices.Clone(stack), next))

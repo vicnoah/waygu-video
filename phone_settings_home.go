@@ -76,7 +76,7 @@ func (a *application) phoneSettingsHome(cx *core.Scope) core.Node {
 		setupGroup(locales.SettingsInterfaceLibrary(cx), "",
 			(phoneSetting{locales.SettingsAppearance(cx), "", "bg-orange-500", lucide.Palette}).linkValue(cx, "open-appearance-settings",
 				func() string { return appearanceModeLabel(cx, a.appearance.Get()) }, routeTo(screenAppearanceSettings)),
-			(phoneSetting{locales.SettingsLibraryMetadata(cx), "", "bg-indigo-500", lucide.Database}).unavailable(cx),
+			(phoneSetting{locales.SettingsLibraryMetadata(cx), "", "bg-indigo-500", lucide.Database}).link(cx, "open-library-settings", "", routeTo(screenLibrarySettings)),
 		),
 		setupGroup(locales.SettingsAccountsData(cx), "",
 			(phoneSetting{locales.SettingsSyncAccounts(cx), "", "bg-blue-500", lucide.RefreshCw}).linkValue(cx, "open-phone-tv-pair",

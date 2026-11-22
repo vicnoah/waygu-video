@@ -32,8 +32,8 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [外观 · 深色](../../design/settings-appearance.scenra#L197) | dark | `phone · auto × 1700` | — | [Compared](phone-appearance.md) |
 | [设置/弹幕](../../design/settings-danmaku.scenra#L1) | light | `phone · auto × 2080` | — | [Compared](phone-danmaku-settings.md) |
 | [弹幕 · 深色](../../design/settings-danmaku.scenra#L68) | dark | `phone · auto × 2080` | — | [Compared](phone-danmaku-settings.md) |
-| [设置/媒体库与元数据](../../design/settings-library.scenra#L1) | light | `phone · auto × 1400` | — | Pending |
-| [媒体库与元数据 · 深色](../../design/settings-library.scenra#L46) | dark | `phone · auto × 1400` | — | Pending |
+| [设置/媒体库与元数据](../../design/settings-library.scenra#L1) | light | `phone · auto × 1400` | — | [Compared](phone-library-metadata.md) |
+| [媒体库与元数据 · 深色](../../design/settings-library.scenra#L46) | dark | `phone · auto × 1400` | — | [Compared](phone-library-metadata.md) |
 | [设置/家长控制](../../design/settings-parental.scenra#L1) | light | `phone · auto × 1080` | — | [Compared](phone-parental.md) |
 | [家长控制 · 深色](../../design/settings-parental.scenra#L38) | dark | `phone · auto × 1080` | — | [Compared](phone-parental.md) |
 | [设置/播放](../../design/settings-playback.scenra#L1) | light | `phone · auto × 1760` | — | [Compared](phone-player-settings.md) |

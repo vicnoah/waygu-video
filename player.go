@@ -35,6 +35,12 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 		cx.RequestOrientation(core.OrientationLandscape)
 	}
 	offline := current.downloadID != ""
+	if current.resume && !offline && !current.resumeLocal {
+		if entry := a.localCheckpoint(current.source, current.item); entry.Revision != "" {
+			current.item = applyProgressCheckpoint(current.item, entry)
+			current.resumeLocal = true
+		}
+	}
 	var download downloadEntry
 	if offline {
 		download, _ = a.downloads.find(current.downloadID, a.downloads.entries.GetUntracked())
@@ -527,7 +533,7 @@ func playbackReports(client media.Client, watch *progressWatch) (func(media.Play
 				continue
 			}
 			watch.a.progress.transport.Lock()
-			if watch.superseded {
+			if watch.superseded || update.entry.LocalOnly || !watch.a.progress.allowServer.Load() {
 				watch.a.progress.transport.Unlock()
 				continue
 			}
@@ -546,6 +552,9 @@ func playbackReports(client media.Client, watch *progressWatch) (func(media.Play
 	}()
 	return func(value media.PlaybackState) {
 			update := reportUpdate{state: value, entry: watch.capture(value)}
+			if !watch.a.progress.allowServer.Load() {
+				return
+			}
 			mu.Lock()
 			last := len(updates) - 1
 			if last >= 0 && updates[last].state.Event == media.Progress && value.Event == media.Progress {
@@ -558,7 +567,10 @@ func playbackReports(client media.Client, watch *progressWatch) (func(media.Play
 		}, func(final *media.PlaybackState) {
 			mu.Lock()
 			if final != nil {
-				updates = append(updates, reportUpdate{state: *final, entry: watch.capture(*final)})
+				entry := watch.capture(*final)
+				if watch.a.progress.allowServer.Load() {
+					updates = append(updates, reportUpdate{state: *final, entry: entry})
+				}
 			}
 			closed = true
 			mu.Unlock()

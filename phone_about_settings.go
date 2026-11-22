@@ -179,7 +179,7 @@ func aboutDetail(cx *core.Scope, panel string, close func()) core.Node {
 	switch panel {
 	case "help":
 		title = locales.AboutHelp(cx)
-		body = []core.Node{hint(locales.AboutHelpSources(cx)), hint(locales.AboutHelpPlayback(cx)), hint(locales.AboutHelpSupport(cx)),
+		body = []core.Node{hint(locales.AboutHelpSources(cx)), hint(locales.AboutHelpPlayback(cx)), hint(locales.AboutHelpSupport(cx)), hint(locales.AboutTMDBCredit(cx)),
 			ui.Button{Text: "弹弹play开放弹幕网络", Variant: ui.ButtonGhost, OnPress: func() { cx.OpenURL("https://www.dandanplay.com/", nil) }}}
 	case "formats":
 		title = locales.AboutFormats(cx)
@@ -187,7 +187,7 @@ func aboutDetail(cx *core.Scope, panel string, close func()) core.Node {
 	case "privacy":
 		title = locales.AboutPrivacy(cx)
 		body = []core.Node{hint(locales.AboutPrivacyServers(cx)), hint(locales.AboutPrivacyPlayback(cx)),
-			hint(locales.AboutPrivacyDiagnostics(cx)), hint(locales.AboutPrivacyLocation(cx))}
+			hint(locales.AboutPrivacyDiagnostics(cx)), hint(locales.AboutPrivacyLocation(cx)), hint(locales.AboutTMDBPrivacy(cx))}
 	case "licenses":
 		title = locales.AboutLicenses(cx)
 		body = []core.Node{core.Text{Content: "NSGo\n\n" + nsgoLicense + "\n\n" + thirdPartyLicenses,

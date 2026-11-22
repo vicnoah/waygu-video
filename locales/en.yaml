@@ -869,3 +869,41 @@ aboutPrivacyDiagnostics: You can turn network logging on under Debugging. It rec
 aboutPrivacyLocation: If you enable sunset-based dark mode, the app may request approximate location. The rounded coordinates stay on your device.
 aboutOverlayBitrate: Bitrate
 aboutOverlayBuffering: Buffering
+metadataSection: Metadata
+metadataSectionHint: Import metadata from Emby, Jellyfin, Plex or Flymoo. Optional TMDB lookup runs for titles with a matching provider ID.
+metadataServerFirst: Prefer server metadata
+metadataServerHint: Fill missing fields from configured sources
+metadataMoviesSeries: Movies and series
+metadataServer: Media server
+metadataRatings: Ratings and reviews
+metadataSeriesExtras: Series supplements
+metadataAnime: Anime
+metadataLanguage: Metadata language
+metadataIdentification: Identification
+metadataFileScrape: Identify local and cloud files
+metadataFilenameRules: Filename rules
+metadataCollections: Automatically group collections
+metadataBangumiGrouping: Identify anime with Bangumi
+metadataBangumiHint: Group anime seasons for danmaku and progress matching
+metadataProgressSync: Sync viewing progress to the server
+metadataHiddenLibraries: Hidden libraries
+metadataLibraryCount: "{count} libraries"
+metadataShowLibrary: Show
+metadataNoHidden: All imported libraries are visible.
+metadataAutoRefresh: Automatic refresh
+metadataRefreshEvery: "Every {minutes} minutes"
+metadataRescan: Rescan all libraries
+metadataRescanConfirm: Refresh the imported libraries. Servers may start a scan if your account has permission.
+metadataRescanFinished: Library refresh results
+metadataListRefreshed: Library list refreshed
+metadataScanRequested: Server scan requested
+metadataScanRejected: Library list refreshed. Server scan was declined.
+metadataClear: Clear metadata cache
+metadataClearConfirm: Remove saved TMDB lookups from this session.
+metadataCleared: Metadata cache cleared.
+metadataTMDBToken: TMDB API Read Access Token
+metadataTMDBHelp: Enter a TMDB API Read Access Token to complete titles that already have a TMDB or IMDb ID.
+metadataTMDBSave: Save token
+metadataTMDBRemove: Disconnect TMDB
+aboutTMDBCredit: This product uses the TMDB API but is not endorsed or certified by TMDB.
+aboutTMDBPrivacy: If you configure TMDB, the app sends TMDB or IMDb title IDs and the selected metadata language to TMDB.

@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/nsgo-dev/nsgo/core"
@@ -20,10 +21,11 @@ import (
 const progressKeyPrefix = "pending-playback-v1:"
 
 type pendingProgress struct {
-	Account  string
-	Revision string
-	Item     media.Item
-	Update   media.OfflineProgress
+	Account   string
+	Revision  string
+	LocalOnly bool `json:",omitempty"`
+	Item      media.Item
+	Update    media.OfflineProgress
 }
 
 func (p pendingProgress) key() string {
@@ -39,11 +41,13 @@ type progressOutbox struct {
 	replay  context.CancelFunc
 	timer   func() bool
 	// Live reports and offline recovery never write to a server concurrently.
-	transport sync.Mutex
+	transport   sync.Mutex
+	allowServer atomic.Bool
 }
 
 func newProgressOutbox(cx *core.Scope, storage core.Storage) *progressOutbox {
 	outbox := &progressOutbox{entries: make(map[string]pendingProgress), live: make(map[*progressWatch]struct{}), changed: core.NewSignal(cx, uint64(0)), synced: core.NewSignal(cx, uint64(0))}
+	outbox.allowServer.Store(true)
 	for _, key := range storage.Keys() {
 		if !strings.HasPrefix(key, progressKeyPrefix) {
 			continue
@@ -77,6 +81,26 @@ func (a *application) dropPendingProgress(entry pendingProgress) bool {
 	return true
 }
 
+func (a *application) localCheckpoint(source source, item media.Item) pendingProgress {
+	key := (pendingProgress{Account: mediaAccountKey(source), Update: media.OfflineProgress{ItemID: item.ID}}).key()
+	entry := a.progress.entries[key]
+	if entry.LocalOnly && (item.LastPlayed.IsZero() || !item.LastPlayed.After(entry.Update.At)) {
+		return entry
+	}
+	return pendingProgress{}
+}
+
+func applyProgressCheckpoint(item media.Item, entry pendingProgress) media.Item {
+	item.Position, item.LastPlayed = entry.Update.Position, entry.Update.At
+	if entry.Update.Duration > 0 {
+		item.Duration = entry.Update.Duration
+	}
+	if entry.Update.Completed {
+		item.Position, item.Watched = 0, true
+	}
+	return item
+}
+
 func (a *application) progressResumeShelf(remote []catalogItem, sources []source, q catalogRequest) []catalogItem {
 	a.progress.changed.Get()
 	if len(a.progress.entries) == 0 {
@@ -107,18 +131,11 @@ func (a *application) progressResumeShelf(remote []catalogItem, sources []source
 			})
 			if index >= 0 {
 				item = shelf[index].item
-				if entry.Update.SupersededBy(item) {
+				if (!entry.LocalOnly && entry.Update.SupersededBy(item)) || (entry.LocalOnly && item.LastPlayed.After(entry.Update.At)) {
 					continue
 				}
 			}
-			item.Position, item.LastPlayed = entry.Update.Position, entry.Update.At
-			if entry.Update.Duration > 0 {
-				item.Duration = entry.Update.Duration
-			}
-			if entry.Update.Completed {
-				item.Position, item.Watched = 0, true
-			}
-			row := catalogItem{source: source, item: item, pending: true}
+			row := catalogItem{source: source, item: applyProgressCheckpoint(item, entry), pending: true}
 			if index >= 0 {
 				shelf[index] = row
 			} else {
@@ -141,9 +158,27 @@ func (a *application) removeSourceProgress(source source) {
 	}
 }
 
+func (a *application) setProgressSending(enabled bool) {
+	p := a.progress
+	if p.allowServer.Swap(enabled) == enabled {
+		return
+	}
+	if enabled {
+		a.scheduleProgressReplay(time.Second)
+		return
+	}
+	if p.timer != nil {
+		p.timer()
+		p.timer = nil
+	}
+	if p.replay != nil {
+		p.replay()
+	}
+}
+
 func (a *application) scheduleProgressReplay(delay time.Duration) {
 	p := a.progress
-	if p.active != 0 || p.replay != nil || p.timer != nil || len(p.entries) == 0 {
+	if !p.allowServer.Load() || p.active != 0 || p.replay != nil || p.timer != nil || len(p.entries) == 0 {
 		return
 	}
 	a.scope.Run(func() {
@@ -156,7 +191,7 @@ func (a *application) scheduleProgressReplay(delay time.Duration) {
 
 func (a *application) replayProgress() {
 	p := a.progress
-	if p.active != 0 || p.replay != nil {
+	if !p.allowServer.Load() || p.active != 0 || p.replay != nil {
 		return
 	}
 	sources := a.sources.GetUntracked()
@@ -166,7 +201,7 @@ func (a *application) replayProgress() {
 		accounts[mediaAccountKey(source)] = source
 	}
 	for _, entry := range p.entries {
-		if _, found := accounts[entry.Account]; found {
+		if _, found := accounts[entry.Account]; found && !entry.LocalOnly {
 			pending = append(pending, entry)
 		}
 	}
@@ -194,6 +229,10 @@ func (a *application) replayProgress() {
 				continue
 			}
 			p.transport.Lock()
+			if ctx.Err() != nil || !p.allowServer.Load() {
+				p.transport.Unlock()
+				break
+			}
 			request, stop := context.WithTimeout(ctx, 10*time.Second)
 			err := client.SyncOfflineProgress(request, entry.Update)
 			stop()
@@ -257,12 +296,13 @@ func (a *application) beginProgressWatch(current route, initial playerMedia) *pr
 }
 
 func (watch *progressWatch) capture(state media.PlaybackState) pendingProgress {
-	if !watch.enabled || state.Event == media.Started || state.Stream.ItemID == "" {
+	local := !watch.a.progress.allowServer.Load()
+	if (!watch.enabled && !local) || state.Event == media.Started || state.Stream.ItemID == "" {
 		return pendingProgress{}
 	}
 	item := offlineItem(watch.item)
 	item.ID = state.Stream.ItemID
-	entry := pendingProgress{Account: watch.account, Revision: rand.Text(), Item: item, Update: media.OfflineProgress{
+	entry := pendingProgress{Account: watch.account, Revision: rand.Text(), Item: item, LocalOnly: local, Update: media.OfflineProgress{
 		ItemID: state.Stream.ItemID, MediaID: state.Stream.SourceID, Position: state.Position,
 		Duration: state.Stream.Duration, At: time.Now().UTC(), Previous: watch.position, PreviousWatched: watch.watched,
 		Completed: state.Stream.Duration > 0 && state.Position >= state.Stream.Duration,
@@ -286,7 +326,7 @@ func (watch *progressWatch) confirmed(state media.PlaybackState, entry pendingPr
 	}
 	// A report may finish after a newer checkpoint was saved. Advance the
 	// expected remote position without acknowledging the newer checkpoint.
-	if latest := watch.a.progress.entries[watch.last.key()]; latest.Revision != "" && latest.Revision == watch.last.Revision {
+	if latest := watch.a.progress.entries[watch.last.key()]; latest.Revision != "" && latest.Revision == watch.last.Revision && !latest.LocalOnly {
 		latest.Update.Previous, latest.Update.PreviousWatched = watch.position, watch.watched
 		watch.a.savePendingProgress(latest)
 	}

@@ -25,6 +25,8 @@ func (a *application) desktopSettingsSupplement(cx *core.Scope, link desktopSett
 			})),
 			desktopFormRow(locales.DesktopSourceVisibleLibraries(cx), desktopSettingsAction(cx, "desktop-library-settings", locales.MediaSources(cx), setupAccent,
 				func() { a.desktopSettingsTab.Set(desktopSettingsSources) })),
+			desktopFormRow(locales.SettingsLibraryMetadata(cx), desktopSettingsAction(cx, "open-library-settings", locales.SettingsEdit(cx), setupAccent,
+				func() { a.openDesktopSettingsFlow(route{screen: screenLibrarySettings}) })),
 		)
 	case "sync":
 		content = desktopFormGroup(locales.MediaSources(cx), desktopFormRow(locales.DesktopSourceSyncProgress(cx), desktopSettingsAction(cx,
