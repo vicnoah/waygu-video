@@ -63,9 +63,10 @@ func (s source) artworkAccess(address string) artworkAccess {
 }
 
 type sourceArtwork struct {
-	mu     sync.Mutex
-	active map[artworkAccess]bool
-	routes map[artworkAccess]playback.ArtworkProxy
+	mu       sync.Mutex
+	active   map[artworkAccess]bool
+	routes   map[artworkAccess]playback.ArtworkProxy
+	fnRoutes map[sourceConnection]*fnRouteRefresh
 }
 
 func (a *application) artworkSources(entries []source) {
@@ -81,20 +82,47 @@ func (a *application) artworkSources(entries []source) {
 	art := &a.sourceArtwork
 	art.mu.Lock()
 	defer art.mu.Unlock()
+	fnRoutes := make(map[sourceConnection]*fnRouteRefresh)
+	for _, entry := range entries {
+		if a.routesEnabled.Load() && entry.canRefreshFN() {
+			key := entry.connection()
+			state := art.fnRoutes[key]
+			if state == nil {
+				state = new(fnRouteRefresh)
+			}
+			fnRoutes[key] = state
+		}
+	}
+	art.active, art.fnRoutes = active, fnRoutes
+	art.retireArtwork()
+}
+
+func (art *sourceArtwork) allows(access artworkAccess) bool {
+	if art.active[access] {
+		return true
+	}
+	for _, state := range art.fnRoutes {
+		if state.artwork.origin != "" && state.artwork == access {
+			return true
+		}
+	}
+	return false
+}
+
+func (art *sourceArtwork) retireArtwork() {
 	for access, route := range art.routes {
-		if !active[access] {
+		if !art.allows(access) {
 			route.Close()
 			delete(art.routes, access)
 		}
 	}
-	art.active = active
 }
 
 func (a *application) proxyArtwork(access artworkAccess, headers http.Header, authorize mediahttp.Authorize) func(string) string {
 	art := &a.sourceArtwork
 	art.mu.Lock()
 	defer art.mu.Unlock()
-	if !art.active[access] {
+	if !art.allows(access) {
 		return nil
 	}
 	if route, ok := art.routes[access]; ok {

@@ -32,3 +32,13 @@
 
 
 The failover review adds an Emby backup address, checks the remote-online state after the local gateway is unavailable, then restores the local gateway and confirms that a new request uses it. [Connection review](source-login.md#backup-address) · [Router checks](../../integration/servers/TESTING.md#media-source-routes)
+
+### FN Connect route recovery
+
+The left panel is the Scenra media sources page. The right is the 390 × 1357 pt GTK capture after the saved Flymoo route stopped serving video, the player opened the replacement route and the source card was refreshed. The card shows the replacement address and the existing green online indicator with `在线 · 外网`. Its sync, library and edit buttons stay in the design's action row.
+
+![Light comparison for the refreshed Flymoo route](images/phone-source-fn-recovery-light.png)
+
+![Dark comparison for the refreshed Flymoo route](images/phone-source-fn-recovery-dark.png)
+
+The fixture has one saved source, so the Add button and connection settings sit higher than in the three-source design. GTK omits the phone status bar and frame, which moves the navigation row and title up. The design uses a fixed demo clock and relative sync time. The app shows the fixture's latest sync time. The native pass covers signed video playback and the settings refresh in both appearances. The headless pass also checks that an interruption at 7 seconds resumes there. A physical phone and NAS still need verification. [Fixture and capture commands](../../integration/servers/TESTING.md#saved-fn-id-route-recovery)

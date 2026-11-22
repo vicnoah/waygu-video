@@ -79,6 +79,7 @@ type source struct {
 	Provider          media.Provider
 	Address           string
 	RemoteAddress     string `json:",omitempty"`
+	FNID              string `json:",omitempty"`
 	RemoteDisabled    bool   `json:",omitempty"`
 	RemoteBitrate     int    `json:",omitempty"`
 	Name              string
@@ -141,6 +142,7 @@ type application struct {
 	sourceTimeout       *core.Signal[int]
 	sourceFailover      *core.Signal[bool]
 	routesEnabled       atomic.Bool
+	refreshFNConnect    refreshFNConnect
 	sourceCheckSerial   uint64
 	sourceArtwork       sourceArtwork
 	sourceHeaders       sync.Map
@@ -244,6 +246,8 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 		diagnostics:   diagnostics, diagnosticPrefs: core.NewSignal(cx, prefs),
 		danmakuPrefs: core.NewSignal(cx, core.Untracked(cx, func() danmakuPreferences { return readDanmakuPreferences(storage) })),
 	}
+	a.refreshFNConnect = fnConnectRefresher.Use(cx)
+	a.routesEnabled.Store(routeFailover != "false")
 	a.artworkSources(sources)
 	cx.Cleanup(func() { a.artworkSources(nil) })
 	a.parental = core.NewSignalFunc(cx, core.Untracked(cx, func() parentalPolicy { return readParentalPolicy(storage) }), nil)
@@ -266,7 +270,6 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 	a.sourceChecks = core.NewSignalFunc(cx, map[string]sourceCheck{}, nil)
 	a.sourceTimeout = core.NewSignal(cx, readSourceTimeout(sourceTimeout))
 	a.sourceFailover = core.NewSignal(cx, routeFailover != "false")
-	a.routesEnabled.Store(routeFailover != "false")
 	a.phoneLibrary = core.NewSignal(cx, phoneLibraryState{})
 	a.desktopCategory = core.NewSignal(cx, libraryCategory(""))
 	a.desktopCollapsed = core.NewSignal(cx, false)

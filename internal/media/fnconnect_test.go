@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -92,6 +93,43 @@ func TestFNConnectVerifiesRelayBackupIdentity(t *testing.T) {
 		if err != nil || result.Address != wantAddress || result.BackupAddress != wantBackup {
 			t.Fatalf("routes for %q = %+v, %v", id, result, err)
 		}
+	}
+}
+
+func TestFNConnectRefreshRequiresSavedIdentity(t *testing.T) {
+	const response = `{"code":0,"data":{"ipv4":["192.168.2.30","192.168.2.31","192.168.2.32"],"fn":["relay.example.test"],"port":{"httpsPort":5667}}}`
+	const old = "https://192.168.2.30:5667/v"
+	const other = "https://192.168.2.31:5667/v"
+	const local = "https://192.168.2.32:5667/v"
+	const relay = "https://relay.example.test/v"
+	for _, want := range []FNConnectRoute{{Address: local}, {Address: relay, Remote: true}} {
+		t.Run(want.Address, func(t *testing.T) {
+			client := FNConnectClient{Transport: fnTestTransport(func(r *http.Request) (*http.Response, error) {
+				assertFNConnectLookup(t, r)
+				return fnTestReply(r, 200, response), nil
+			})}
+			allowed := func(address string) bool { return address != old && !strings.HasPrefix(address, "http:") }
+			probe := func(_ context.Context, address string) (ServerInfo, error) {
+				switch address {
+				case other:
+					return ServerInfo{ID: "another-nas"}, nil
+				case local:
+					if !want.Remote {
+						return ServerInfo{ID: "saved-nas"}, nil
+					}
+					return ServerInfo{}, ErrResponse
+				case relay:
+					return ServerInfo{ID: "saved-nas"}, nil
+				default:
+					t.Errorf("refresher probed excluded route %s", address)
+					return ServerInfo{}, ErrResponse
+				}
+			}
+			got, err := client.Refresh(t.Context(), "living-room7", "saved-nas", allowed, probe)
+			if err != nil || got != want {
+				t.Fatalf("Refresh = %+v, %v, want %+v", got, err, want)
+			}
+		})
 	}
 }
 

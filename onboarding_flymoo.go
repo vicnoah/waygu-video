@@ -76,8 +76,8 @@ func flymooConnectionIntro(cx *core.Scope, ref *core.Ref, disabled func() bool, 
 	}
 }
 
-func flymooFNConnectDialog(cx *core.Scope, back func(), apply func(media.FNConnectResult)) core.Node {
-	id := core.NewSignal(cx, "")
+func flymooFNConnectDialog(cx *core.Scope, savedID string, back func(), apply func(string, media.FNConnectResult)) core.Node {
+	id := core.NewSignal(cx, savedID)
 	code := core.NewSignal(cx, "")
 	failure := core.NewSignal[error](cx, nil)
 	resolving := core.NewSignal(cx, false)
@@ -114,7 +114,7 @@ func flymooFNConnectDialog(cx *core.Scope, back func(), apply func(media.FNConne
 					return
 				}
 				code.Set("")
-				apply(resolved)
+				apply(key, resolved)
 				back()
 			})
 		}()
@@ -125,7 +125,7 @@ func flymooFNConnectDialog(cx *core.Scope, back func(), apply func(media.FNConne
 			failure.Set(media.ErrFNConnectID)
 			return
 		}
-		apply(media.FNConnectResult{Address: address})
+		apply(media.FNConnectID(id.GetUntracked()), media.FNConnectResult{Address: address})
 		back()
 	}
 	return ui.Dialog{TestID: "flymoo-fn-dialog", Title: locales.FlymooFNTitle(cx), Open: func() bool { return true },

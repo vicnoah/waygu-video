@@ -249,7 +249,20 @@ func fnDNSMediaURL(raw, port string) string {
 }
 
 func (f FNConnectClient) selectRoute(ctx context.Context, group []string, protected bool, known FNConnectResult) (FNConnectResult, bool) {
-	if len(group) == 0 {
+	return selectFNRoute(ctx, group, func(address string) bool {
+		return address != known.Address && (!protected || strings.HasPrefix(address, "https://"))
+	}, func(ctx context.Context, address string) (FNConnectResult, bool) {
+		if protected {
+			return FNConnectResult{Address: address}, f.gatewayAvailable(ctx, address)
+		}
+		info, err := f.probeMedia(ctx, address, "")
+		return FNConnectResult{Address: address, Name: info.Name, ServerID: info.ID},
+			err == nil && (known.ServerID == "" || info.ID == known.ServerID)
+	})
+}
+
+func selectFNRoute(ctx context.Context, group []string, allowed func(string) bool, probe func(context.Context, string) (FNConnectResult, bool)) (FNConnectResult, bool) {
+	if len(group) == 0 || ctx.Err() != nil {
 		return FNConnectResult{}, false
 	}
 	ctx, cancel := context.WithTimeout(ctx, 1900*time.Millisecond)
@@ -260,21 +273,16 @@ func (f FNConnectClient) selectRoute(ctx context.Context, group []string, protec
 		if len(seen) == cap(outcomes) {
 			break
 		}
-		if seen[address] || address == known.Address || protected && !strings.HasPrefix(address, "https://") {
+		if seen[address] || !allowed(address) {
 			continue
 		}
 		seen[address] = true
 		go func() {
-			if protected {
-				if f.gatewayAvailable(ctx, address) {
-					outcomes <- FNConnectResult{Address: address}
-					return
-				}
-			} else if info, err := f.probeMedia(ctx, address, ""); err == nil && (known.ServerID == "" || info.ID == known.ServerID) {
-				outcomes <- FNConnectResult{Address: address, Name: info.Name, ServerID: info.ID}
-				return
+			if result, ok := probe(ctx, address); ok {
+				outcomes <- result
+			} else {
+				outcomes <- FNConnectResult{}
 			}
-			outcomes <- FNConnectResult{}
 		}()
 	}
 	for range len(seen) {
@@ -288,6 +296,54 @@ func (f FNConnectClient) selectRoute(ctx context.Context, group []string, protec
 		}
 	}
 	return FNConnectResult{}, false
+}
+
+// FNConnectRoute describes a media endpoint verified by the caller's public probe.
+type FNConnectRoute struct {
+	Address string
+	Remote  bool
+}
+
+// Refresh asks the portal for updated addresses and races probes within each
+// priority. Every accepted endpoint must report the previously saved NAS ID.
+func (f FNConnectClient) Refresh(ctx context.Context, id, expected string, allowed func(string) bool, probe func(context.Context, string) (ServerInfo, error)) (FNConnectRoute, error) {
+	id = FNConnectID(id)
+	if id == "" {
+		return FNConnectRoute{}, ErrFNConnectID
+	}
+	if expected == "" {
+		return FNConnectRoute{}, ErrFNConnectRoute
+	}
+	data, err := f.lookup(ctx, id)
+	if err != nil {
+		return FNConnectRoute{}, err
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	groups := data.candidates()
+	verified := make([]chan FNConnectResult, len(groups))
+	for rank, group := range groups {
+		verified[rank] = make(chan FNConnectResult, 1)
+		go func(ch chan<- FNConnectResult) {
+			result, _ := selectFNRoute(ctx, group, allowed, func(ctx context.Context, address string) (FNConnectResult, bool) {
+				info, err := probe(ctx, address)
+				return FNConnectResult{Address: address}, err == nil && info.ID == expected
+			})
+			ch <- result
+		}(verified[rank])
+	}
+	for rank, candidates := range verified {
+		select {
+		case <-ctx.Done():
+			return FNConnectRoute{}, ctx.Err()
+		case result := <-candidates:
+			if result.Address != "" {
+				// The first two groups contain the LAN addresses.
+				return FNConnectRoute{Address: result.Address, Remote: rank >= 2}, nil
+			}
+		}
+	}
+	return FNConnectRoute{}, ErrFNConnectRoute
 }
 
 func (f FNConnectClient) probeMedia(ctx context.Context, address, cookie string) (ServerInfo, error) {

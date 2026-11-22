@@ -166,7 +166,7 @@ func (a *application) desktopSourceDetails(cx *core.Scope, entry source, failure
 	}
 	automatic, progress := locales.DesktopSourceAutoRoute(cx), locales.DesktopSourceSyncProgress(cx)
 	var setAutomatic func(bool)
-	if entry.RemoteAddress != "" && entry.ServerID != "" {
+	if entry.ServerID != "" && (entry.RemoteAddress != "" || entry.Provider == media.Flymoo && entry.FNID != "") {
 		setAutomatic = func(value bool) {
 			failure.Set(a.updateSourceRouting(entry, func(saved *source) { saved.RemoteDisabled = !value }))
 		}

@@ -108,6 +108,10 @@ func (a *application) phoneSourceSettings(cx *core.Scope) core.Node {
 					}},
 					core.Text{ContentFunc: func() string {
 						entry := entry()
+						check := status()
+						if address := check.endpoint.address; check.err == nil && address != "" && address != entry.Address && address != entry.RemoteAddress {
+							return strings.TrimSuffix(address, "/")
+						}
 						if entry.RemoteAddress != "" {
 							return locales.SourceAddresses(cx, entry.Address, entry.RemoteAddress)
 						}

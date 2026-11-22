@@ -189,3 +189,16 @@ go tool nsgo test ./... -run '^(TestFNConnect|TestFlymooFNConnectAccessReview)' 
 go tool nsgo test -target linux -run '^TestFlymooFNConnectAccessReview$' \
   -screenshots .nsgo/ui-review/fn-connect
 ```
+
+### Saved FN ID route recovery
+
+`TestFNConnectRefreshRequiresSavedIdentity` tests candidate filtering, identity matching and LAN priority with a synthetic portal response. `TestFlymooFNRouteRefreshSharesLookup` drives simultaneous library requests against a failed primary and confirms that they share one lookup. It verifies that the old gateway cookie stays at its original origin, the unrelated candidate gets a public probe, and switching off automatic routing clears the refreshed endpoint. `TestFlymooFNRouteRecoveryReview` plays a local Flymoo fixture through the replacement route and shows its active address in phone settings. The headless player reports an interruption at 7 seconds and checks that the replacement resumes at 7 seconds. The GTK test rejects the old media URL and checks that the replacement delivers the generated video and advances playback.
+
+Select the FN ID in the connection editor and save to enable route recovery for sources configured before FN IDs were saved. If a new gateway prompts for an access code, enter it again in the FN Connect dialog. [App and design comparison](../../docs/ui-review/phone-source-settings.md#fn-connect-route-recovery)
+
+```sh
+go tool nsgo test ./... -run '^(TestFNConnectRefresh|TestFlymooFNRoute)' -count=1
+go tool nsgo test -target linux -run '^TestFlymooFNRouteRecoveryReview$' \
+  -env "WAYGU_TEST_FLYMOO_CLIP=$PWD/integration/servers/media/Movies/Waygu Track Test (2025)/Waygu Track Test (2025).mp4" \
+  -screenshots .nsgo/ui-review/fn-route
+```

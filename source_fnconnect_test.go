@@ -104,7 +104,7 @@ func TestFlymooFNConnectAccessReview(t *testing.T) {
 			var saved []source
 			if !found || strings.Contains(raw, grant) || strings.Contains(raw, "123456") ||
 				json.Unmarshal([]byte(raw), &saved) != nil || len(saved) != 1 ||
-				saved[0].Address != gateway.URL+"/v" || saved[0].HeaderSecret == "" {
+				saved[0].Address != gateway.URL+"/v" || saved[0].HeaderSecret == "" || saved[0].FNID != "living-room7" {
 				t.Fatal("FN Connect did not save the scoped source and reference")
 			}
 			value, found, err := secure.Get(saved[0].HeaderSecret)

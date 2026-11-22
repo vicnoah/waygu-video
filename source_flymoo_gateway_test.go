@@ -30,6 +30,7 @@ type flymooGatewayFixture struct {
 	video        atomic.Int64
 	images       atomic.Int64
 	offline      atomic.Bool
+	denyVideo    atomic.Bool
 	offlineReads atomic.Int64
 }
 
@@ -56,6 +57,11 @@ func newFlymooGatewayFixture(t *testing.T, tls bool, prefix string, clip, poster
 		}
 		switch route {
 		case "media/range/media-1", "media/cache/fixture.mp4", "sys/img/fixture.jpg":
+			if route != "sys/img/fixture.jpg" && gateway.denyVideo.Load() {
+				gateway.offlineReads.Add(1)
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
 			if r.Header.Get("Authorization") != reviewFlymooToken || r.Header.Get("authx") == "" {
 				t.Error("Flymoo media read lacks the token or request signature")
 				w.WriteHeader(http.StatusForbidden)

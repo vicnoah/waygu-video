@@ -20,12 +20,17 @@ var sourceTimeouts = []int{5, 10, 20, 30, 60}
 type sourceConnection struct {
 	localTrust, remoteTrust                               mediatls.Trust
 	address, remote, server, account, credential, headers string
+	fnID                                                  string
 	remoteDisabled                                        bool
 	provider                                              media.Provider
 }
 
 func (s source) connection() sourceConnection {
-	return sourceConnection{s.certificateFor(s.Address), s.certificateFor(s.RemoteAddress), s.Address, s.RemoteAddress, s.ServerID, s.AccountID, s.credentialKey(), s.HeaderSecret, s.RemoteDisabled, s.Provider}
+	return sourceConnection{
+		localTrust: s.certificateFor(s.Address), remoteTrust: s.certificateFor(s.RemoteAddress),
+		address: s.Address, remote: s.RemoteAddress, server: s.ServerID, account: s.AccountID,
+		credential: s.credentialKey(), headers: s.HeaderSecret, fnID: s.FNID, remoteDisabled: s.RemoteDisabled, provider: s.Provider,
+	}
 }
 
 type sourceCheck struct {
@@ -71,6 +76,9 @@ func (a *application) checkSourceWithScan(entry source, refresh, scan bool) {
 		if previous.syncing || (!refresh && (previous.checking || (!previous.at.IsZero() && a.scope.Now().Sub(previous.at) < time.Minute))) {
 			return
 		}
+	}
+	if refresh && entry.canRefreshFN() {
+		a.retryFNRoute(entry)
 	}
 	a.sourceCheckSerial++
 	started := sourceCheck{connection: identity, request: a.sourceCheckSerial, checking: true, syncing: refresh}

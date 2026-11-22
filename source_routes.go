@@ -20,7 +20,8 @@ type sourceEndpoint struct {
 }
 
 func (s source) automaticRoute() bool {
-	return s.RemoteAddress != "" && s.RemoteAddress != s.Address && s.ServerID != "" && !s.RemoteDisabled
+	return s.ServerID != "" && !s.RemoteDisabled &&
+		(s.canRefreshFN() || s.RemoteAddress != "" && s.RemoteAddress != s.Address)
 }
 
 func (s source) capBitrate(endpoint sourceEndpoint, bitrate int) int {
@@ -81,12 +82,34 @@ func (a *application) resolveSource(ctx context.Context, entry source, skip stri
 	if ctx.Err() != nil {
 		return sourceEndpoint{}, ctx.Err()
 	}
-	if skip != entry.RemoteAddress {
-		if _, err := a.verifySourceAddress(ctx, entry, entry.RemoteAddress, entry.ServerID, 3*time.Second); err == nil {
+	if entry.RemoteAddress != "" && skip != entry.RemoteAddress {
+		timeout := 3 * time.Second
+		if entry.canRefreshFN() {
+			timeout = 1500 * time.Millisecond
+		}
+		if _, err := a.verifySourceAddress(ctx, entry, entry.RemoteAddress, entry.ServerID, timeout); err == nil {
 			return sourceEndpoint{address: entry.RemoteAddress, remote: true}, nil
 		} else {
-			return sourceEndpoint{}, errors.Join(localError, err)
+			localError = errors.Join(localError, err)
 		}
+	}
+	if entry.canRefreshFN() && ctx.Err() == nil {
+		excluded := []string{skip, entry.Address, entry.RemoteAddress}
+		cached := a.cachedFNRoute(entry)
+		if fnRouteAllowed(entry, excluded, cached.address) {
+			if _, err := a.verifySourceAddress(ctx, entry, cached.address, entry.ServerID, 1500*time.Millisecond); err == nil {
+				return cached, nil
+			}
+			excluded = append(excluded, cached.address)
+		}
+		if endpoint, err := a.refreshSourceRoute(ctx, entry, excluded...); err == nil {
+			return endpoint, nil
+		} else {
+			localError = errors.Join(localError, err)
+		}
+	}
+	if localError == nil {
+		localError = media.ErrNoStream
 	}
 	return sourceEndpoint{}, localError
 }
@@ -128,6 +151,7 @@ func (a *application) setSourceFailover(enabled bool) error {
 		return err
 	}
 	a.routesEnabled.Store(enabled)
+	a.artworkSources(a.sources.GetUntracked())
 	a.sourceChecks.Set(map[string]sourceCheck{})
 	a.sourceFailover.Set(enabled)
 	a.libraryChanges.Update(func(revision uint64) uint64 { return revision + 1 })

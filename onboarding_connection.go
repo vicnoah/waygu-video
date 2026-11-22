@@ -109,7 +109,8 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 	busy := core.NewSignal(cx, false)
 	failure := core.NewSignal[error](cx, nil)
 	preview := core.NewSignal[*candidateSource](cx, nil)
-	resolvedFN := core.NewSignal(cx, media.FNConnectResult{})
+	type fnSelection struct{ id, address, server string }
+	resolvedFN := core.NewSignal(cx, fnSelection{})
 	quickCode := core.NewSignal(cx, "")
 	approved := core.NewSignalFunc(cx, slices.Clone(current.Certificates), slices.Equal)
 	type certificateOffer struct {
@@ -203,10 +204,16 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			form = pending.source
 			form.Certificates = approvedForForm(form.Address, form.RemoteAddress)
 		}
-		if form.Address == current.Address && current.ServerID != "" {
-			form.ServerID = current.ServerID
-		} else if resolved := resolvedFN.GetUntracked(); form.Address == resolved.Address && resolved.ServerID != "" {
-			form.ServerID = resolved.ServerID
+		if form.Address == current.Address {
+			form.ServerID, form.FNID = current.ServerID, current.FNID
+		}
+		if resolved := resolvedFN.GetUntracked(); form.Address == resolved.address {
+			form.FNID = resolved.id
+			if resolved.id == current.FNID && current.ServerID != "" {
+				form.ServerID = current.ServerID
+			} else if form.ServerID == "" {
+				form.ServerID = resolved.server
+			}
 		}
 		input := media.Credentials{Username: form.Username, Password: password.GetUntracked()}
 		if plex {
@@ -606,11 +613,13 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 		intro = core.Group{
 			flymooConnectionIntro(cx, trigger, disabled, func() { fnConnect.Set(true) }),
 			core.Show{When: fnConnect.Get, Then: func(cx *core.Scope) core.Node {
-				return flymooFNConnectDialog(cx, closeFNConnect, func(result media.FNConnectResult) {
+				id := resolvedFN.GetUntracked().id
+				if id == "" {
+					id = current.FNID
+				}
+				return flymooFNConnectDialog(cx, id, closeFNConnect, func(id string, result media.FNConnectResult) {
 					setEndpoint(result.Address)
-					// Keep the endpoint and NAS identity without retaining
-					// the grant in the route draft.
-					resolvedFN.Set(media.FNConnectResult{Address: result.Address, ServerID: result.ServerID})
+					resolvedFN.Set(fnSelection{id, result.Address, result.ServerID})
 					if result.BackupAddress != "" && remote.GetUntracked() == "" {
 						remote.Set(result.BackupAddress)
 					}
