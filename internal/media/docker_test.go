@@ -103,7 +103,61 @@ func TestDockerServers(t *testing.T) {
 			verifyDockerResume(t, ctx, client, movieLibrary, showLibrary)
 			verifyDockerTracks(t, ctx, client, movieLibrary, server.kind)
 			verifyDockerVersions(t, ctx, client, movieLibrary)
+			verifyDockerPersonal(t, ctx, client, Library{ID: movieLibrary, Kind: "movie"}, movie)
 		})
+	}
+}
+
+func verifyDockerPersonal(t *testing.T, ctx context.Context, client Client, library Library, movie Item) {
+	t.Helper()
+	query := Query{LibraryID: library.ID, Limit: 24}
+	contains := func(page Page, id string) bool {
+		return slices.ContainsFunc(page.Items, func(item Item) bool { return item.ID == id })
+	}
+	if favorites, ok := client.(FavoriteClient); ok {
+		t.Cleanup(func() {
+			restore, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := favorites.SetFavorite(restore, movie, movie.Favorite); err != nil {
+				t.Error("restore favorite fixture:", err)
+			}
+		})
+		for _, value := range []bool{true, false} {
+			if err := favorites.SetFavorite(ctx, movie, value); err != nil {
+				t.Fatal("set favorite:", err)
+			}
+			detail, err := client.Detail(ctx, movie)
+			if err != nil || detail.Favorite != value {
+				t.Fatalf("favorite in item detail = %v, want %v: %v", detail.Favorite, value, err)
+			}
+			list, err := favorites.Favorites(ctx, query)
+			if err != nil || contains(list, movie.ID) != value {
+				t.Fatalf("favorite list membership should be %v: %v", value, err)
+			}
+		}
+	}
+	watch := client.(WatchedClient)
+	t.Cleanup(func() {
+		restore, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := watch.SetWatched(restore, movie, movie.Watched); err != nil {
+			t.Error("restore watched fixture:", err)
+		}
+	})
+	for _, value := range []bool{true, false} {
+		if err := watch.SetWatched(ctx, movie, value); err != nil {
+			t.Fatal("set watched:", err)
+		}
+		detail, err := client.Detail(ctx, movie)
+		if err != nil || detail.Watched != value || detail.Position != 0 {
+			t.Fatalf("read watched flag = %v, position = %s, want %v and 0: %v", detail.Watched, detail.Position, value, err)
+		}
+		if value {
+			history, err := client.(HistoryClient).History(ctx, library, query)
+			if err != nil || !contains(history, movie.ID) {
+				t.Fatalf("marked title missing from watch history: %v", err)
+			}
+		}
 	}
 }
 

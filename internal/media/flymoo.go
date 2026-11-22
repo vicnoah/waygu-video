@@ -179,6 +179,11 @@ func (f *flymooClient) Catalog(ctx context.Context, q Query) (Page, error) {
 		start := min(offset, len(items))
 		return Page{Items: items[start:min(start+limit, len(items))], Total: len(items)}, nil
 	}
+	return f.itemPage(ctx, q, "item/list", nil)
+}
+
+func (f *flymooClient) itemPage(ctx context.Context, q Query, route string, tags map[string]string) (Page, error) {
+	offset, limit := q.bounds()
 	page := offset/limit + 1
 	inPage := offset % limit
 	items := make([]Item, 0, limit)
@@ -188,7 +193,10 @@ func (f *flymooClient) Catalog(ctx context.Context, q Query) (Page, error) {
 		if q.LibraryID != "" {
 			body["ancestor_guid"] = q.LibraryID
 		}
-		data, err := f.call(ctx, http.MethodPost, "item/list", nil, body, f.session.Token)
+		if len(tags) != 0 {
+			body["tags"] = tags
+		}
+		data, err := f.call(ctx, http.MethodPost, route, nil, body, f.session.Token)
 		if err != nil {
 			return Page{}, err
 		}

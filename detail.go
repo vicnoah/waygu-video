@@ -18,6 +18,8 @@ type detailResult struct {
 	item        media.Item
 	children    []media.Item
 	hasVersions bool
+	canFavorite bool
+	canWatch    bool
 	failure     error
 }
 
@@ -127,6 +129,8 @@ func (a *application) detailResource(cx *core.Scope, current route) *core.Resour
 			return result, nil
 		}
 		_, result.hasVersions = client.(media.VersionClient)
+		_, result.canFavorite = client.(media.FavoriteClient)
+		_, result.canWatch = client.(media.WatchedClient)
 		item, err := client.Detail(ctx, current.item)
 		if err == nil {
 			if item.LibraryID == "" {
@@ -154,6 +158,7 @@ func (a *application) detailResource(cx *core.Scope, current route) *core.Resour
 
 func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 	loaded := a.detailResource(cx, current)
+	personal := a.detailPersonal(cx, current, loaded)
 	versionID := core.NewSignal(cx, "")
 	versions := a.versionPicker(cx, current, versionID)
 	return core.Dynamic(func(cx *core.Scope) core.Node {
@@ -194,6 +199,10 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 			rows = append(rows, core.View{Class: "flex-row flex-wrap gap-3", Children: actions})
 			rows = append(rows, versions)
 		}
+		if buttons := personal.buttons(cx, result, false); len(buttons) != 0 {
+			rows = append(rows, core.View{Class: "flex-row flex-wrap gap-3", Children: buttons})
+		}
+		rows = append(rows, personal.error)
 		if item.Overview != "" {
 			rows = append(rows, core.Text{Content: item.Overview, Class: "text-base leading-relaxed"})
 		} else if ready && playable(item) {

@@ -258,3 +258,13 @@ fileInfo: 文件信息
 fileSource: "来源 · {source}"
 fileSubtitleCount: "字幕 {count} 条"
 metadataUnavailable: 暂无信息
+myLibrary: 我的
+favorites: 收藏
+favorite: 收藏
+removeFavorite: 取消收藏
+markWatched: 标记已看
+markUnwatched: 标记未看
+watchHistory: 观看记录
+emptyFavorites: 所选媒体库暂无收藏。
+emptyWatchHistory: 所选媒体库暂无观看记录。
+allTitles: 全部影片

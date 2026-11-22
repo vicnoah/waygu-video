@@ -32,6 +32,7 @@ type catalogRequest struct {
 	search       string
 	limit        int
 	home         bool
+	personal     screen
 	category     libraryCategory
 	merge        bool
 	cachedResume map[string][]media.Item
@@ -79,15 +80,30 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 		if pages[index] == screenSettings {
 			return a.settings(cx)
 		}
+		if pages[index] == screenLibrary {
+			return core.Dynamic(func(cx *core.Scope) core.Node {
+				return a.browse(cx, a.libraryView.Get(), idiom, nil)
+			})
+		}
 		return a.browse(cx, pages[index], idiom, nil)
+	}
+	selectTab := func(index int) {
+		if index == 1 {
+			a.libraryView.Set(screenLibrary)
+		}
+		a.tab.Set(index)
 	}
 	if idiom == core.IdiomDesktop || idiom == core.IdiomTV {
 		content := core.Dynamic(func(cx *core.Scope) core.Node { return page(cx, a.tab.Get()) })
 		if idiom == core.IdiomTV {
 			items := []core.Node{brand(locales.Brand(cx))}
 			for i := range titles {
+				if pages[i] == screenSettings {
+					items = append(items, ui.Button{Text: locales.Favorites(cx), Icon: lucide.Heart, Variant: ui.ButtonGhost,
+						Size: ui.SizeLarge, TestID: "tv-tab-favorites", OnPress: func() { a.openPersonalLibrary(screenFavorites) }})
+				}
 				items = append(items, ui.Button{Text: titles[i], Icon: icons[i], Variant: ui.ButtonGhost,
-					Size: ui.SizeLarge, TestID: "tv-tab-" + string(pages[i]), OnPress: func() { a.tab.Set(i) }})
+					Size: ui.SizeLarge, TestID: "tv-tab-" + string(pages[i]), OnPress: func() { selectTab(i) }})
 			}
 			return pageFrame(core.View{Class: "flex-row items-center gap-4 px-8 py-4", Children: items}, content)
 		}
@@ -95,10 +111,22 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 		for i, title := range titles {
 			items = append(items, ui.SidebarItem{ID: string(pages[i]), Text: title, Icon: icons[i], TestID: "tab-" + string(pages[i])})
 		}
-		sidebar := ui.Sidebar{Sections: []ui.SidebarSection{{Items: items}},
-			Selected: func() string { return string(pages[a.tab.Get()]) }, OnSelect: func(id string) {
-				if index := slices.Index(pages, screen(id)); index >= 0 {
-					a.tab.Set(index)
+		personal := []ui.SidebarItem{
+			{ID: string(screenFavorites), Text: locales.Favorites(cx), Icon: lucide.Heart, TestID: "tab-favorites"},
+			{ID: string(screenHistory), Text: locales.WatchHistory(cx), Icon: lucide.Clock, TestID: "tab-history"},
+		}
+		sidebar := ui.Sidebar{Sections: []ui.SidebarSection{{Items: items}, {Title: locales.MyLibrary(cx), Items: personal}},
+			Selected: func() string {
+				if a.tab.Get() == 1 {
+					return string(a.libraryView.Get())
+				}
+				return string(pages[a.tab.Get()])
+			}, OnSelect: func(id string) {
+				view := screen(id)
+				if view == screenFavorites || view == screenHistory {
+					a.openPersonalLibrary(view)
+				} else if index := slices.Index(pages, view); index >= 0 {
+					selectTab(index)
 				}
 			}}
 		return ui.SidebarShell{DefaultWidth: 210, Fixed: true,
@@ -115,7 +143,7 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 		tabs[1].Icon = lucide.Clapperboard
 		return a.phoneShell(cx, tabs)
 	}
-	return ui.TabShell{Tabs: tabs, Selected: a.tab.Get, OnChange: a.tab.Set}
+	return ui.TabShell{Tabs: tabs, Selected: a.tab.Get, OnChange: selectTab}
 }
 
 func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, category *core.Signal[libraryCategory]) core.Node {
@@ -133,11 +161,15 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 			limit.Set(36)
 		})
 	}
+	personal := screen("")
+	if page == screenFavorites || page == screenHistory {
+		personal = page
+	}
 	results := core.NewResource(cx, func() (catalogRequest, bool) {
 		sources := a.sources.Get()
 		term := query.Get()
 		request := catalogRequest{sources: sources, filter: a.sourceFilter.Get(), library: library.Get(), search: term,
-			limit: limit.Get(), home: page == screenHome, category: category.Get(), merge: a.mergeTitles.Get()}
+			limit: limit.Get(), home: page == screenHome, personal: personal, category: category.Get(), merge: a.mergeTitles.Get()}
 		if request.home {
 			request.cachedResume = core.Untracked(cx, func() map[string][]media.Item { return a.readResumeCache(sources) })
 		}
@@ -145,7 +177,14 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 	}, func(ctx context.Context, request catalogRequest, _ core.ResourceInfo) (catalogResult, error) {
 		return a.loadCatalog(ctx, request), nil
 	})
-	if page == screenHome {
+	lastEdit := a.libraryChanges.GetUntracked()
+	cx.Effect(func() {
+		if changes := a.libraryChanges.Get(); changes != lastEdit {
+			lastEdit = changes
+			results.Refetch()
+		}
+	})
+	if page == screenHome || page == screenHistory {
 		lastSync := a.progress.synced.GetUntracked()
 		cx.Effect(func() {
 			if count := a.progress.synced.Get(); count != lastSync {
@@ -153,6 +192,8 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 				results.Refetch()
 			}
 		})
+	}
+	if page == screenHome {
 		cx.Effect(func() {
 			if result, ready := results.Get(); ready && !results.Loading() {
 				if idiom == core.IdiomTablet {
@@ -174,11 +215,16 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 			return a.home(cx, results, limit, idiom == core.IdiomTablet)
 		}
 	}
-	title := locales.Home(cx)
-	if page == screenLibrary {
+	title, empty := locales.Home(cx), locales.EmptyLibrary(cx)
+	switch page {
+	case screenLibrary:
 		title = locales.Library(cx)
-	} else if page == screenSearch {
+	case screenSearch:
 		title = locales.Search(cx)
+	case screenFavorites:
+		title, empty = locales.Favorites(cx), locales.EmptyFavorites(cx)
+	case screenHistory:
+		title, empty = locales.WatchHistory(cx), locales.EmptyWatchHistory(cx)
 	}
 	controls := []core.Node{
 		core.View{Class: "flex-row flex-wrap items-center justify-between gap-3", Children: []core.Node{
@@ -190,12 +236,18 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 				}
 				choices := []ui.Option[string]{{Label: locales.AllSources(cx)}}
 				for _, source := range sources {
+					if page == screenFavorites && source.Provider == media.Plex {
+						continue
+					}
 					choices = append(choices, ui.Option[string]{Label: source.Name, Value: source.ID})
 				}
 				return ui.Select[string]{Label: locales.MediaSources(cx), Options: choices, Value: a.sourceFilter.Get,
 					OnChange: func(id string) { a.sourceFilter.Set(id); library.Set(""); limit.Set(36) }}
 			}),
 		}},
+	}
+	if (idiom == core.IdiomPhone || idiom == core.IdiomTV) && (page == screenLibrary || personal != "") {
+		controls = append(controls, a.personalLibrarySwitch(cx, page))
 	}
 	if page == screenLibrary {
 		options := libraryCategories(cx, locales.AllCategories(cx))
@@ -286,7 +338,7 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 		} else if loading {
 			children = append(children, hint(locales.Loading(cx)))
 		} else if result.failure == nil && len(result.resume) == 0 {
-			children = append(children, notice(locales.EmptyLibrary(cx)))
+			children = append(children, notice(empty))
 		}
 		if result.hasMore && limit.Get() < 200 {
 			children = append(children, ui.Button{Text: locales.NextPage(cx), Variant: ui.ButtonOutline,
@@ -314,6 +366,9 @@ func (a *application) loadCatalog(ctx context.Context, q catalogRequest) catalog
 	groups := make([]catalogResult, len(q.sources))
 	var workers sync.WaitGroup
 	for i, source := range q.sources {
+		if q.personal == screenFavorites && source.Provider == media.Plex {
+			continue
+		}
 		if q.filter == "" || q.filter == source.ID {
 			workers.Go(func() { groups[i] = a.loadServerCatalog(ctx, source, q) })
 		}
@@ -332,6 +387,10 @@ func (a *application) loadCatalog(ctx context.Context, q catalogRequest) catalog
 		if q.home && (q.filter == "" || q.filter == q.sources[index].ID) {
 			all.sources[q.sources[index].ID] = homeSourceStatus{total: group.total, connected: group.connected, failed: group.failure != nil}
 		}
+	}
+	if q.personal == screenHistory {
+		sortRecent(all.items)
+		return all
 	}
 	merge := q.merge && len(q.sources) > 1 && q.filter == "" && q.library == ""
 	if q.home && merge {
@@ -369,10 +428,29 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 		}
 		return result
 	}
+	list := func(ctx context.Context, _ media.Library, query media.Query) (media.Page, error) {
+		return client.Catalog(ctx, query)
+	}
+	switch q.personal {
+	case screenFavorites:
+		favorites, ok := client.(media.FavoriteClient)
+		if !ok {
+			return catalogResult{}
+		}
+		list = func(ctx context.Context, _ media.Library, query media.Query) (media.Page, error) {
+			return favorites.Favorites(ctx, query)
+		}
+	case screenHistory:
+		history, ok := client.(media.HistoryClient)
+		if !ok {
+			return catalogResult{}
+		}
+		list = history.History
+	}
 	var result catalogResult
 	seen := make(map[string]bool)
 	for _, library := range libraries {
-		page, err := client.Catalog(ctx, media.Query{LibraryID: library.ID, Limit: q.limit, Search: q.search})
+		page, err := list(ctx, library.Library, media.Query{LibraryID: library.ID, Limit: q.limit, Search: q.search})
 		globalSearch := err != nil && source.Provider == media.Flymoo && q.search != "" && q.library == ""
 		if globalSearch {
 			// Older FnOS servers omit the library ID on global search results.
@@ -385,6 +463,9 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 		result.connected = true
 		result.total += max(page.Total, len(page.Items))
 		for _, item := range page.Items {
+			if q.personal != "" && item.LibraryID != "" && item.LibraryID != library.ID {
+				continue
+			}
 			if globalSearch && (len(libraries) < len(source.Libraries) || q.category != "") && item.LibraryID != library.ID {
 				continue
 			}

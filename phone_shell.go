@@ -40,7 +40,12 @@ func (a *application) phoneShell(cx *core.Scope, definitions []ui.ShellTab) core
 		}}})
 		tabs = append(tabs, base.Tab{Label: tab.Text, TestID: tab.TestID, Selected: selected,
 			Class: "group h-12 flex-1 items-center justify-center gap-0.5 rounded-full selected:bg-violet-500/12",
-			Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)}, OnPress: func(core.PressEvent) { a.tab.Set(index) },
+			Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)}, OnPress: func(core.PressEvent) {
+				if index == 1 && a.tab.GetUntracked() != 1 {
+					a.libraryView.Set(screenLibrary)
+				}
+				a.tab.Set(index)
+			},
 			Children: []core.Node{
 				core.Icon{SVG: tab.Icon(), Class: "size-[22px] " + phoneTabTint},
 				core.Text{Content: tab.Text, Class: "text-[10px] font-medium " + phoneTabTint, MaxLines: 1},

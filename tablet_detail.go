@@ -21,6 +21,7 @@ type detailTrackChoice struct {
 
 func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies func() []ui.Option[copyKey], selectCopy func(copyKey)) core.Node {
 	loaded := a.detailResource(cx, current)
+	personal := a.detailPersonal(cx, current, loaded)
 	available := a.versionResource(cx, current)
 	initial, _ := a.automaticPlaybackOptions(current)
 	key := versionSelectionKey(current)
@@ -63,13 +64,14 @@ func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies fu
 	poster := func(compact bool) core.Node {
 		return core.Dynamic(func(cx *core.Scope) core.Node {
 			dot := "bg-zinc-400"
-			if result, ready := loaded.Get(); ready {
+			result, ready := loaded.Get()
+			if ready {
 				dot = "bg-emerald-400"
 				if result.failure != nil {
 					dot = "bg-amber-400"
 				}
 			}
-			return a.tabletDetailPoster(cx, current, item(), compact, dot, copies, selectCopy, play)
+			return a.tabletDetailPoster(cx, current, item(), compact, dot, copies, selectCopy, play, personal.buttons(cx, result, true))
 		})
 	}
 	body := core.Dynamic(func(cx *core.Scope) core.Node {
@@ -106,6 +108,7 @@ func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies fu
 			tabletDetailTrack(cx, version, choice, "audio", tracks.Set),
 			tabletDetailTrack(cx, version, choice, "subtitle", tracks.Set),
 		}})
+		sections = append(sections, personal.error)
 		if err := available.Err(); err != nil {
 			sections = append(sections, ui.Button{Text: locales.ReloadPlaybackVersions(cx), Variant: ui.ButtonOutline, OnPress: available.Refetch})
 		}
@@ -153,7 +156,7 @@ func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies fu
 }
 
 func (a *application) tabletDetailPoster(cx *core.Scope, current route, item media.Item, compact bool, sourceStatus string,
-	copies func() []ui.Option[copyKey], selectCopy func(copyKey), play func(bool)) core.Node {
+	copies func() []ui.Option[copyKey], selectCopy func(copyKey), play func(bool), personal []core.Node) core.Node {
 	shape := "w-[420px] shrink-0"
 	if compact {
 		shape = "h-[520px] shrink-0"
@@ -180,14 +183,11 @@ func (a *application) tabletDetailPoster(cx *core.Scope, current route, item med
 					TrackClass: "h-1 bg-white/25", IndicatorClass: "h-1 bg-violet-400"},
 			}})
 		}
-		actions = append(actions, core.View{Class: "flex-row gap-3", Children: []core.Node{
-			base.Button{Label: locales.FromStart(cx), TestID: "detail-from-start", Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
-				Class:   "h-14 w-[82px] items-center justify-center gap-1 rounded-xl bg-white/15",
-				OnPress: func(core.PressEvent) { play(false) }, Children: []core.Node{
-					core.Icon{SVG: lucide.RotateCcw(), Class: "size-4 text-white"},
-					core.Text{Content: locales.FromStart(cx), Class: "text-[11px] text-white/80"},
-				}},
-		}})
+		personal = append([]core.Node{detailPosterAction(cx, "detail-from-start", locales.FromStart(cx), lucide.RotateCcw(),
+			false, nil, func() { play(false) })}, personal...)
+	}
+	if len(personal) != 0 {
+		actions = append(actions, core.View{Class: "flex-row gap-3", Children: personal})
 	}
 	return core.View{Class: "relative overflow-hidden rounded-3xl shadow-2xl shadow-black/30 " + shape, TestID: "tablet-detail-poster",
 		Children: []core.Node{

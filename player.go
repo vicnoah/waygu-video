@@ -389,6 +389,10 @@ func playbackReports(client media.Client, watch *progressWatch) (func(media.Play
 				continue
 			}
 			watch.a.progress.transport.Lock()
+			if watch.superseded {
+				watch.a.progress.transport.Unlock()
+				continue
+			}
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			err := client.Report(ctx, update.state)
 			cancel()

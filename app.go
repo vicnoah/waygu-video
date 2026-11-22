@@ -28,6 +28,8 @@ const (
 	screenHome            screen = "home"
 	screenLibrary         screen = "library"
 	screenSearch          screen = "search"
+	screenFavorites       screen = "favorites"
+	screenHistory         screen = "history"
 	screenSettings        screen = "settings"
 	screenManageLibraries screen = "manage-libraries"
 	screenDetail          screen = "detail"
@@ -71,25 +73,27 @@ func (s source) credentialKey() string {
 type mediaFactory func(media.Provider, string, media.Device, media.Session) (media.Client, error)
 
 type application struct {
-	scope         *core.Scope
-	device        media.Device
-	storage       core.Storage
-	secrets       core.Secrets
-	newMedia      mediaFactory
-	newDandan     danmakuFactory
-	sources       *core.Signal[[]source]
-	routes        *core.Signal[[]route]
-	tab           *core.Signal[int]
-	sourceFilter  *core.Signal[string]
-	sourceStatus  *core.Signal[map[string]homeSourceStatus]
-	mergeTitles   *core.Signal[bool]
-	mpvPreferred  *core.Signal[bool]
-	bitrateLimit  *core.Signal[int]
-	versionPolicy *core.Signal[media.VersionPolicy]
-	autoNext      *core.Signal[bool]
-	danmakuPrefs  *core.Signal[danmakuPreferences]
-	progress      *progressOutbox
-	tokens        sync.Map
+	scope          *core.Scope
+	device         media.Device
+	storage        core.Storage
+	secrets        core.Secrets
+	newMedia       mediaFactory
+	newDandan      danmakuFactory
+	sources        *core.Signal[[]source]
+	routes         *core.Signal[[]route]
+	tab            *core.Signal[int]
+	libraryView    *core.Signal[screen]
+	libraryChanges *core.Signal[uint64]
+	sourceFilter   *core.Signal[string]
+	sourceStatus   *core.Signal[map[string]homeSourceStatus]
+	mergeTitles    *core.Signal[bool]
+	mpvPreferred   *core.Signal[bool]
+	bitrateLimit   *core.Signal[int]
+	versionPolicy  *core.Signal[media.VersionPolicy]
+	autoNext       *core.Signal[bool]
+	danmakuPrefs   *core.Signal[danmakuPreferences]
+	progress       *progressOutbox
+	tokens         sync.Map
 }
 
 const (
@@ -143,7 +147,8 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 		scope:  cx,
 		device: media.Device{ID: deviceID, Name: "Waygu Video"}, storage: storage, secrets: cx.Secrets(), newMedia: factory, newDandan: dandan,
 		sources: core.NewSignalFunc(cx, sources, nil), routes: core.NewSignalFunc(cx, []route{{screen: first}}, nil),
-		tab: core.NewSignal(cx, 0), sourceFilter: core.NewSignal(cx, ""),
+		tab: core.NewSignal(cx, 0), libraryView: core.NewSignal(cx, screenLibrary), libraryChanges: core.NewSignal(cx, uint64(0)),
+		sourceFilter:  core.NewSignal(cx, ""),
 		sourceStatus:  core.NewSignalFunc[map[string]homeSourceStatus](cx, nil, maps.Equal),
 		mergeTitles:   core.NewSignal(cx, mergeTitles != "false"),
 		mpvPreferred:  core.NewSignal(cx, mpvPreference == "true"),

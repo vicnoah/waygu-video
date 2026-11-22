@@ -12,7 +12,7 @@
 
 ## Saved progress
 
-The separate fixture has a saved position and displays the remaining part of the playback controls.
+The separate fixture has a saved position and displays the resume bar and poster actions.
 
 ![Tablet movie detail with saved progress](images/tablet-detail-resume-light.png)
 
@@ -21,7 +21,7 @@ The separate fixture has a saved position and displays the remaining part of the
 | Area | Revised capture and remaining differences |
 | --- | --- |
 | Shell | A 420 pt poster panel and a scrollable metadata column replace the centered detail column. The Scenra mock status row uses 24 pt. The app reads platform safe-area insets and GTK has no matching system row inside the client. Tablet devices still need safe-area and rotation checks. |
-| Poster and actions | The rounded poster panel has an image scrim, a 40 pt back button, a source capsule, and a 48 pt gradient playback action. Saved progress adds the violet track and a separate play-from-beginning action. The fixture supplies no poster. Favorite, mark as watched, and download actions remain pending. |
+| Poster and actions | The rounded poster panel has an image scrim, a 40 pt back button, a source capsule, and a 48 pt gradient playback action. Saved progress adds the violet track and a separate play-from-beginning action. The fixture supplies no poster. Favorite and mark as watched read and update the active source account. Download remains pending. [Personal library checks](personal-library.md) |
 | Title and metadata | The original title, year, genre, duration, certification, and resolution come from the server. The app shows provider-neutral scoring when the server supplies a score. The design's named rating sources and additional audio and subtitle badges remain pending. |
 | Versions and tracks | The three equal-width controls use the selected file's metadata. The version choice persists. Chosen audio is negotiated by the media server and the selected supported text subtitle loads in the player. The test clip has AAC and text subtitles. Decoder-only subtitle formats still use the player track controls. |
 | Synopsis and cast | The overview and horizontal cast strip use the fixture's indexed NFO fields. The placeholder portraits reflect the supplied data. Emby, Jellyfin, and Plex can supply credits. Flymoo credits still need a provider mapping. |

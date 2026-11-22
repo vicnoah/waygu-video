@@ -44,26 +44,47 @@ func offlineProgressReadError(err error) error {
 	return err
 }
 
-func (m *mediaBrowser) SyncOfflineProgress(ctx context.Context, update OfflineProgress) error {
-	id := url.PathEscape(update.ItemID)
+func (m *mediaBrowser) readUserItemData(ctx context.Context, itemID string) (map[string]json.RawMessage, string, url.Values, error) {
+	id := url.PathEscape(itemID)
 	route := "UserItems/" + id + "/UserData"
 	query := m.userQuery()
 	var data map[string]json.RawMessage
 	if m.kind == Emby {
-		// The Emby update DTO replaces flags and play count, so keep the
-		// rest of the authenticated item's user data when updating progress.
+		// The Emby update DTO replaces flags and play count, so keep
+		// the rest of the user's data when updating one field.
 		itemRoute := m.userRoute() + "/Items/" + id
 		query.Set("Fields", m.itemFields())
 		var item struct{ UserData map[string]json.RawMessage }
 		if err := m.get(ctx, itemRoute, query, &item); err != nil {
-			return offlineProgressReadError(err)
+			return nil, "", nil, err
 		}
 		data, route, query = item.UserData, itemRoute+"/UserData", nil
 	} else if err := m.get(ctx, route, query, &data); err != nil {
-		return offlineProgressReadError(err)
+		return nil, "", nil, err
 	}
 	if data == nil {
-		return ErrResponse
+		return nil, "", nil, ErrResponse
+	}
+	return data, route, query, nil
+}
+
+func (m *mediaBrowser) clearWatchedPosition(ctx context.Context, itemID string) error {
+	if m.kind == Jellyfin {
+		return m.post(ctx, "UserItems/"+url.PathEscape(itemID)+"/UserData", m.userQuery(),
+			map[string]int{"PlaybackPositionTicks": 0}, nil)
+	}
+	data, route, query, err := m.readUserItemData(ctx, itemID)
+	if err != nil {
+		return err
+	}
+	data["PlaybackPositionTicks"] = json.RawMessage("0")
+	return m.post(ctx, route, query, data, nil)
+}
+
+func (m *mediaBrowser) SyncOfflineProgress(ctx context.Context, update OfflineProgress) error {
+	data, route, query, err := m.readUserItemData(ctx, update.ItemID)
+	if err != nil {
+		return offlineProgressReadError(err)
 	}
 	var ticks int64
 	var watched bool

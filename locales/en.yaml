@@ -258,3 +258,13 @@ fileInfo: File information
 fileSource: "Source · {source}"
 fileSubtitleCount: "{count} subtitles"
 metadataUnavailable: Unavailable
+myLibrary: My library
+favorites: Favorites
+favorite: Favorite
+removeFavorite: Remove favorite
+markWatched: Mark watched
+markUnwatched: Mark unwatched
+watchHistory: Watch history
+emptyFavorites: No favorites in the selected libraries.
+emptyWatchHistory: No viewed titles in the selected libraries.
+allTitles: All titles

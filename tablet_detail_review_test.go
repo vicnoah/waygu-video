@@ -14,7 +14,7 @@ import (
 	"waygu-video/internal/media"
 )
 
-func reviewFixtureTitle(t *testing.T, config, secrets map[string]string, sourceID, title string) string {
+func reviewFixtureItem(t *testing.T, config, secrets map[string]string, sourceID, title string) (media.Client, media.Item) {
 	t.Helper()
 	var sources []source
 	if err := json.Unmarshal([]byte(config[sourcesKey]), &sources); err != nil {
@@ -39,11 +39,17 @@ func reviewFixtureTitle(t *testing.T, config, secrets map[string]string, sourceI
 			if err != nil || len(result.Items) != 1 {
 				t.Fatalf("read detail fixture %q: %v, %d items", title, err, len(result.Items))
 			}
-			return result.Items[0].ID
+			return client, result.Items[0]
 		}
 	}
 	t.Fatalf("fixture source %q does not contain the movie library", sourceID)
-	return ""
+	return nil, media.Item{}
+}
+
+func reviewFixtureTitle(t *testing.T, config, secrets map[string]string, sourceID, title string) string {
+	t.Helper()
+	_, item := reviewFixtureItem(t, config, secrets, sourceID, title)
+	return item.ID
 }
 
 func TestDockerTabletDetailReview(t *testing.T) {

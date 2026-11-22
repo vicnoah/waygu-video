@@ -62,6 +62,10 @@ func (a *application) tabletShell(cx *core.Scope) core.Node {
 				core.Dynamic(func(cx *core.Scope) core.Node {
 					switch a.tab.Get() {
 					case 1:
+						view := a.libraryView.Get()
+						if view != screenLibrary {
+							return a.browse(cx, view, core.IdiomTablet, nil)
+						}
 						return a.browse(cx, screenLibrary, core.IdiomTablet, category)
 					case 2:
 						return a.browse(cx, screenSearch, core.IdiomTablet, nil)
@@ -121,6 +125,9 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 		cx.Batch(func() {
 			a.sourceFilter.Set("")
 			category.Set(kind)
+			if tab == 1 {
+				a.libraryView.Set(screenLibrary)
+			}
 			a.tab.Set(tab)
 			afterSelect()
 		})
@@ -145,13 +152,24 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 	icons := []func() *core.SVG{lucide.Film, lucide.Tv, lucide.Sparkles, lucide.Globe}
 	for i, option := range libraryCategories(cx, "")[1:] {
 		browsing = append(browsing, tabletSidebarLink(cx, "tablet-library-"+string(option.Value), option.Label, icons[i],
-			func() bool { return a.tab.Get() == 1 && category.Get() == option.Value }, func() { open(1, option.Value) }))
+			func() bool {
+				return a.tab.Get() == 1 && a.libraryView.Get() == screenLibrary && category.Get() == option.Value
+			}, func() { open(1, option.Value) }))
 	}
 	return core.View{Class: "w-56 shrink-0 border-r border-zinc-900/8 bg-[#e9e9f0]/40 dark:border-white/8 dark:bg-[#1a1b25]/40", TestID: "tablet-sidebar",
 		Children: []core.Node{
 			core.Scroll{Class: "flex-1", Children: []core.Node{
 				core.View{Class: "gap-5 px-3 pt-3", Children: []core.Node{
 					header, search, core.View{Class: "gap-0.5", Children: browsing},
+					core.View{Class: "gap-0.5", Children: []core.Node{
+						tabletSidebarHeading(locales.MyLibrary(cx)),
+						tabletSidebarLink(cx, "tab-favorites", locales.Favorites(cx), lucide.Heart,
+							func() bool { return a.tab.Get() == 1 && a.libraryView.Get() == screenFavorites },
+							func() { a.openPersonalLibrary(screenFavorites); afterSelect() }),
+						tabletSidebarLink(cx, "tab-history", locales.WatchHistory(cx), lucide.Clock,
+							func() bool { return a.tab.Get() == 1 && a.libraryView.Get() == screenHistory },
+							func() { a.openPersonalLibrary(screenHistory); afterSelect() }),
+					}},
 					a.tabletSidebarSources(cx, afterSelect),
 				}},
 			}},

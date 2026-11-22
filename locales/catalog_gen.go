@@ -353,6 +353,16 @@ const (
 	textCastAndCrew
 	textFileInfo
 	textMetadataUnavailable
+	textMyLibrary
+	textFavorites
+	textFavorite
+	textRemoveFavorite
+	textMarkWatched
+	textMarkUnwatched
+	textWatchHistory
+	textEmptyFavorites
+	textEmptyWatchHistory
+	textAllTitles
 	numTexts
 )
 
@@ -583,6 +593,16 @@ var keyOfText = [numTexts]string{
 	"castAndCrew",
 	"fileInfo",
 	"metadataUnavailable",
+	"myLibrary",
+	"favorites",
+	"favorite",
+	"removeFavorite",
+	"markWatched",
+	"markUnwatched",
+	"watchHistory",
+	"emptyFavorites",
+	"emptyWatchHistory",
+	"allTitles",
 }
 
 // textsEn are the messages without arguments in en.
@@ -810,7 +830,17 @@ var textsEn = i18n.NewTexts(""+
 	"Director"+
 	"Cast and crew"+
 	"File information"+
-	"Unavailable",
+	"Unavailable"+
+	"My library"+
+	"Favorites"+
+	"Favorite"+
+	"Remove favorite"+
+	"Mark watched"+
+	"Mark unwatched"+
+	"Watch history"+
+	"No favorites in the selected libraries."+
+	"No viewed titles in the selected libraries."+
+	"All titles",
 	[]uint16{
 		11,
 		47,
@@ -1036,6 +1066,16 @@ var textsEn = i18n.NewTexts(""+
 		13,
 		16,
 		11,
+		10,
+		9,
+		8,
+		15,
+		12,
+		14,
+		13,
+		39,
+		43,
+		10,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -1263,7 +1303,17 @@ var textsZhHans = i18n.NewTexts(""+
 	"导演"+
 	"演职人员"+
 	"文件信息"+
-	"暂无信息",
+	"暂无信息"+
+	"我的"+
+	"收藏"+
+	"收藏"+
+	"取消收藏"+
+	"标记已看"+
+	"标记未看"+
+	"观看记录"+
+	"所选媒体库暂无收藏。"+
+	"所选媒体库暂无观看记录。"+
+	"全部影片",
 	[]uint16{
 		12,
 		45,
@@ -1488,6 +1538,16 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		12,
 		12,
+		12,
+		6,
+		6,
+		6,
+		12,
+		12,
+		12,
+		12,
+		30,
+		36,
 		12,
 	})
 
@@ -4075,3 +4135,73 @@ func MetadataUnavailable(cx *core.Scope) string { return For(cx).MetadataUnavail
 
 // MetadataUnavailable is the package's MetadataUnavailable in the language of msgs.
 func (msgs Messages) MetadataUnavailable() string { return msgs.text(textMetadataUnavailable) }
+
+// MyLibrary says "My library"
+// in the language the app shows under cx.
+func MyLibrary(cx *core.Scope) string { return For(cx).MyLibrary() }
+
+// MyLibrary is the package's MyLibrary in the language of msgs.
+func (msgs Messages) MyLibrary() string { return msgs.text(textMyLibrary) }
+
+// Favorites says "Favorites"
+// in the language the app shows under cx.
+func Favorites(cx *core.Scope) string { return For(cx).Favorites() }
+
+// Favorites is the package's Favorites in the language of msgs.
+func (msgs Messages) Favorites() string { return msgs.text(textFavorites) }
+
+// Favorite says "Favorite"
+// in the language the app shows under cx.
+func Favorite(cx *core.Scope) string { return For(cx).Favorite() }
+
+// Favorite is the package's Favorite in the language of msgs.
+func (msgs Messages) Favorite() string { return msgs.text(textFavorite) }
+
+// RemoveFavorite says "Remove favorite"
+// in the language the app shows under cx.
+func RemoveFavorite(cx *core.Scope) string { return For(cx).RemoveFavorite() }
+
+// RemoveFavorite is the package's RemoveFavorite in the language of msgs.
+func (msgs Messages) RemoveFavorite() string { return msgs.text(textRemoveFavorite) }
+
+// MarkWatched says "Mark watched"
+// in the language the app shows under cx.
+func MarkWatched(cx *core.Scope) string { return For(cx).MarkWatched() }
+
+// MarkWatched is the package's MarkWatched in the language of msgs.
+func (msgs Messages) MarkWatched() string { return msgs.text(textMarkWatched) }
+
+// MarkUnwatched says "Mark unwatched"
+// in the language the app shows under cx.
+func MarkUnwatched(cx *core.Scope) string { return For(cx).MarkUnwatched() }
+
+// MarkUnwatched is the package's MarkUnwatched in the language of msgs.
+func (msgs Messages) MarkUnwatched() string { return msgs.text(textMarkUnwatched) }
+
+// WatchHistory says "Watch history"
+// in the language the app shows under cx.
+func WatchHistory(cx *core.Scope) string { return For(cx).WatchHistory() }
+
+// WatchHistory is the package's WatchHistory in the language of msgs.
+func (msgs Messages) WatchHistory() string { return msgs.text(textWatchHistory) }
+
+// EmptyFavorites says "No favorites in the selected libraries."
+// in the language the app shows under cx.
+func EmptyFavorites(cx *core.Scope) string { return For(cx).EmptyFavorites() }
+
+// EmptyFavorites is the package's EmptyFavorites in the language of msgs.
+func (msgs Messages) EmptyFavorites() string { return msgs.text(textEmptyFavorites) }
+
+// EmptyWatchHistory says "No viewed titles in the selected libraries."
+// in the language the app shows under cx.
+func EmptyWatchHistory(cx *core.Scope) string { return For(cx).EmptyWatchHistory() }
+
+// EmptyWatchHistory is the package's EmptyWatchHistory in the language of msgs.
+func (msgs Messages) EmptyWatchHistory() string { return msgs.text(textEmptyWatchHistory) }
+
+// AllTitles says "All titles"
+// in the language the app shows under cx.
+func AllTitles(cx *core.Scope) string { return For(cx).AllTitles() }
+
+// AllTitles is the package's AllTitles in the language of msgs.
+func (msgs Messages) AllTitles() string { return msgs.text(textAllTitles) }

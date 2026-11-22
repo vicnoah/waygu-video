@@ -32,6 +32,7 @@ func (p pendingProgress) key() string {
 
 type progressOutbox struct {
 	entries map[string]pendingProgress
+	live    map[*progressWatch]struct{}
 	changed *core.Signal[uint64]
 	synced  *core.Signal[uint64]
 	active  int
@@ -42,7 +43,7 @@ type progressOutbox struct {
 }
 
 func newProgressOutbox(cx *core.Scope, storage core.Storage) *progressOutbox {
-	outbox := &progressOutbox{entries: make(map[string]pendingProgress), changed: core.NewSignal(cx, uint64(0)), synced: core.NewSignal(cx, uint64(0))}
+	outbox := &progressOutbox{entries: make(map[string]pendingProgress), live: make(map[*progressWatch]struct{}), changed: core.NewSignal(cx, uint64(0)), synced: core.NewSignal(cx, uint64(0))}
 	for _, key := range storage.Keys() {
 		if !strings.HasPrefix(key, progressKeyPrefix) {
 			continue
@@ -219,16 +220,18 @@ func (a *application) replayProgress() {
 }
 
 type progressWatch struct {
-	a        *application
-	account  string
-	item     media.Item
-	position time.Duration
-	watched  bool
-	last     pendingProgress
-	enabled  bool
+	a            *application
+	account      string
+	item         media.Item
+	position     time.Duration
+	watched      bool
+	last         pendingProgress
+	enabled      bool
+	resumeReplay func()
+	superseded   bool // guarded by progress.transport
 }
 
-func (a *application) beginProgressWatch(current route, initial playerMedia) *progressWatch {
+func (a *application) pauseProgressReplay() (resume func()) {
 	p := a.progress
 	p.active++
 	if p.replay != nil {
@@ -238,9 +241,19 @@ func (a *application) beginProgressWatch(current route, initial playerMedia) *pr
 		p.timer()
 		p.timer = nil
 	}
+	return func() {
+		p.active--
+		a.scheduleProgressReplay(time.Second)
+	}
+}
+
+func (a *application) beginProgressWatch(current route, initial playerMedia) *progressWatch {
+	resume := a.pauseProgressReplay()
 	_, supported := initial.client.(media.OfflineProgressClient)
-	return &progressWatch{a: a, account: mediaAccountKey(current.source), item: current.item, position: initial.stream.Position,
-		watched: current.item.Watched, enabled: supported}
+	watch := &progressWatch{a: a, account: mediaAccountKey(current.source), item: current.item, position: initial.stream.Position,
+		watched: current.item.Watched, enabled: supported, resumeReplay: resume}
+	a.progress.live[watch] = struct{}{}
+	return watch
 }
 
 func (watch *progressWatch) capture(state media.PlaybackState) pendingProgress {
@@ -280,6 +293,6 @@ func (watch *progressWatch) confirmed(state media.PlaybackState, entry pendingPr
 }
 
 func (watch *progressWatch) close() {
-	watch.a.progress.active--
-	watch.a.scheduleProgressReplay(time.Second)
+	delete(watch.a.progress.live, watch)
+	watch.resumeReplay()
 }
