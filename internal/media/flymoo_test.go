@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -31,6 +32,7 @@ func TestFlymooReferenceSignature(t *testing.T) {
 // This fixture follows fnmovie server_test.go at de2b3dd, with the same
 // request bodies and representative envelopes for the shared operations.
 func TestFlymooReferenceProtocol(t *testing.T) {
+	var progressWrites atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("X-Trim-Client") != "web" || r.Header.Get("X-Trim-Client-Version") != "631" || r.Header.Get("authx") == "" {
 			t.Error("missing fnOS media client headers")
@@ -90,6 +92,7 @@ func TestFlymooReferenceProtocol(t *testing.T) {
 			}
 			response = `{"video_stream":{"duration":125.5},"direct_link_qualities":[{"url":"/play/720.m3u8","bitrate":1000},{"url":"/play/1080.m3u8","bitrate":4000}]}`
 		case "play/record":
+			progressWrites.Add(1)
 			if body["item_guid"] != "item-1" || body["media_guid"] != "media-1" || body["ts"] != float64(15) || len(body) != 3 {
 				t.Errorf("unexpected progress parameters: %+v", body)
 			}
@@ -156,6 +159,19 @@ func TestFlymooReferenceProtocol(t *testing.T) {
 	}
 	if err := client.Report(ctx, PlaybackState{Event: Progress, Stream: stream, Position: 15750 * time.Millisecond}); err != nil {
 		t.Fatalf("report: %v", err)
+	}
+	update := OfflineProgress{ItemID: item.ID, MediaID: stream.SourceID, Previous: stream.Position, Position: 15750 * time.Millisecond}
+	syncer := client.(OfflineProgressClient)
+	if err := syncer.SyncOfflineProgress(ctx, update); err != nil || progressWrites.Load() != 2 {
+		t.Fatalf("replay did not use the reference progress request: writes=%d, %v", progressWrites.Load(), err)
+	}
+	update.Previous = time.Second
+	if err := syncer.SyncOfflineProgress(ctx, update); err != nil || progressWrites.Load() != 2 {
+		t.Fatalf("stale replay disturbed a different server record: writes=%d, %v", progressWrites.Load(), err)
+	}
+	update.Previous, update.MediaID = stream.Position, "replaced-media"
+	if err := syncer.SyncOfflineProgress(ctx, update); err != nil || progressWrites.Load() != 2 {
+		t.Fatalf("replay overwrote progress for a different file: writes=%d, %v", progressWrites.Load(), err)
 	}
 }
 

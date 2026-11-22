@@ -88,6 +88,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	position := core.NewSignal(cx, time.Duration(0))
 	if current.resume {
 		position.Set(initial.stream.Position)
+		if current.resumeLocal {
+			position.Set(current.item.Position)
+		}
 	}
 	duration := core.NewSignal(cx, initial.stream.Duration)
 	ended := core.NewSignal(cx, false)
@@ -106,7 +109,8 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	var danmakuTrack *danmaku.Track
 	loaded := false
 	var lastReport time.Time
-	enqueue, finish := playbackReports(initial.client)
+	watch := a.beginProgressWatch(current, initial)
+	enqueue, finish := playbackReports(initial.client, watch)
 	snapshot := func(event media.PlaybackEvent) media.PlaybackState {
 		stream := medium.GetUntracked().stream
 		stream.Duration = duration.GetUntracked()
@@ -347,9 +351,13 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	}}
 }
 
-func playbackReports(client media.Client) (func(media.PlaybackState), func(*media.PlaybackState)) {
+func playbackReports(client media.Client, watch *progressWatch) (func(media.PlaybackState), func(*media.PlaybackState)) {
+	type reportUpdate struct {
+		state media.PlaybackState
+		entry pendingProgress
+	}
 	var mu sync.Mutex
-	var updates []media.PlaybackState
+	var updates []reportUpdate
 	closed := false
 	wake := make(chan struct{}, 1)
 	notify := func() {
@@ -359,6 +367,8 @@ func playbackReports(client media.Client) (func(media.PlaybackState), func(*medi
 		}
 	}
 	go func() {
+		defer watch.a.scope.Post(watch.close)
+		needsRecovery := false
 		for {
 			mu.Lock()
 			if len(updates) == 0 {
@@ -370,29 +380,42 @@ func playbackReports(client media.Client) (func(media.PlaybackState), func(*medi
 				<-wake
 				continue
 			}
-			state := updates[0]
-			updates[0] = media.PlaybackState{}
+			update := updates[0]
+			updates[0] = reportUpdate{}
 			updates = updates[1:]
 			mu.Unlock()
+			if needsRecovery {
+				continue
+			}
+			watch.a.progress.transport.Lock()
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			_ = client.Report(ctx, state)
+			err := client.Report(ctx, update.state)
 			cancel()
+			watch.a.progress.transport.Unlock()
+			if err == nil {
+				watch.a.scope.Post(func() { watch.confirmed(update.state, update.entry) })
+			} else if watch.enabled {
+				// Recover via a fresh read of the server checkpoint. An older
+				// queued live event could otherwise write over newer progress.
+				needsRecovery = true
+			}
 		}
 	}()
 	return func(value media.PlaybackState) {
+			update := reportUpdate{state: value, entry: watch.capture(value)}
 			mu.Lock()
 			last := len(updates) - 1
-			if last >= 0 && updates[last].Event == media.Progress && value.Event == media.Progress {
-				updates[last] = value
+			if last >= 0 && updates[last].state.Event == media.Progress && value.Event == media.Progress {
+				updates[last] = update
 			} else {
-				updates = append(updates, value)
+				updates = append(updates, update)
 			}
 			mu.Unlock()
 			notify()
 		}, func(final *media.PlaybackState) {
 			mu.Lock()
 			if final != nil {
-				updates = append(updates, *final)
+				updates = append(updates, reportUpdate{state: *final, entry: watch.capture(*final)})
 			}
 			closed = true
 			mu.Unlock()

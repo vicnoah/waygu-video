@@ -16,6 +16,7 @@ const continueWatchingLimit = 24
 func continueWatching(resume, catalog []catalogItem, merge bool) []catalogItem {
 	entries := slices.Clone(resume)
 	if !merge {
+		entries = slices.DeleteFunc(entries, func(entry catalogItem) bool { return !canResume(entry.item) })
 		sortRecent(entries)
 		return entries[:min(len(entries), continueWatchingLimit)]
 	}

@@ -17,8 +17,12 @@ type resumeCacheUpdate struct {
 }
 
 func resumeCacheKey(source source) string {
+	return "continue-watching-v1:" + mediaAccountKey(source)
+}
+
+func mediaAccountKey(source source) string {
 	identity, _ := json.Marshal([]string{source.ID, string(source.Provider), source.ServerID, source.Address, source.AccountID})
-	return fmt.Sprintf("continue-watching-v1:%x", sha256.Sum256(identity))
+	return fmt.Sprintf("%x", sha256.Sum256(identity))
 }
 
 func (a *application) readResumeCache(sources []source) map[string][]media.Item {

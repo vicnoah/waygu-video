@@ -483,6 +483,10 @@ func (p *plexClient) Report(ctx context.Context, event PlaybackState) error {
 		"duration": {strconv.FormatInt(event.Stream.Duration.Milliseconds(), 10)}}
 	headers := p.auth()
 	headers.Set("X-Plex-Session-Identifier", event.Stream.SessionID)
+	return p.reportTimeline(ctx, params, headers)
+}
+
+func (p *plexClient) reportTimeline(ctx context.Context, params url.Values, headers http.Header) error {
 	err := p.request(ctx, http.MethodPost, "/:/timeline", params, headers, nil, nil)
 	if errors.Is(err, StatusError(http.StatusMethodNotAllowed)) {
 		return p.request(ctx, http.MethodGet, "/:/timeline", params, headers, nil, nil)

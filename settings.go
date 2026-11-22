@@ -99,6 +99,7 @@ func (a *application) settings(cx *core.Scope) core.Node {
 								}
 								key := selected.credentialKey()
 								a.storage.RemoveItem(resumeCacheKey(selected))
+								a.removeSourceProgress(selected)
 								a.tokens.Delete(key)
 								if a.sourceFilter.GetUntracked() == selected.ID {
 									a.sourceFilter.Set("")

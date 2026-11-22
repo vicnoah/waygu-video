@@ -103,6 +103,9 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 		_, result.hasVersions = client.(media.VersionClient)
 		item, err := client.Detail(ctx, current.item)
 		if err == nil {
+			if item.LibraryID == "" {
+				item.LibraryID = current.item.LibraryID
+			}
 			result.item = item
 		} else {
 			result.failure = err
@@ -112,6 +115,11 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 			result.children, err = client.Children(ctx, current.item)
 			if err != nil {
 				result.failure = err
+			}
+			for i := range result.children {
+				if result.children[i].LibraryID == "" {
+					result.children[i].LibraryID = result.item.LibraryID
+				}
 			}
 		}
 		return result, nil

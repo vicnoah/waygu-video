@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/nsgo-dev/nsgo"
 	"github.com/nsgo-dev/nsgo/core"
@@ -32,13 +33,14 @@ const (
 )
 
 type route struct {
-	screen    screen
-	provider  media.Provider
-	source    source
-	item      media.Item
-	resume    bool
-	versionID string
-	match     *catalogMatch
+	screen      screen
+	provider    media.Provider
+	source      source
+	item        media.Item
+	resume      bool
+	resumeLocal bool
+	versionID   string
+	match       *catalogMatch
 }
 
 type source struct {
@@ -79,6 +81,7 @@ type application struct {
 	bitrateLimit  *core.Signal[int]
 	versionPolicy *core.Signal[media.VersionPolicy]
 	autoNext      *core.Signal[bool]
+	progress      *progressOutbox
 	tokens        sync.Map
 }
 
@@ -134,6 +137,8 @@ func appRoot(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer) c
 		versionPolicy: core.NewSignal(cx, playbackVersionPolicy(policy)),
 		autoNext:      core.NewSignal(cx, autoNext != "false"),
 	}
+	a.progress = core.Untracked(cx, func() *progressOutbox { return newProgressOutbox(cx, storage) })
+	a.scheduleProgressReplay(time.Second)
 	cx.OnBackPress(func() bool {
 		if len(a.routes.GetUntracked()) <= 1 {
 			return false
@@ -198,6 +203,7 @@ func (a *application) saveSources(sources []source) error {
 		return err
 	}
 	a.sources.Set(sources)
+	a.scheduleProgressReplay(time.Second)
 	return nil
 }
 

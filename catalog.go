@@ -18,9 +18,10 @@ import (
 )
 
 type catalogItem struct {
-	source source
-	item   media.Item
-	match  *catalogMatch
+	source  source
+	item    media.Item
+	match   *catalogMatch
+	pending bool
 }
 
 type catalogRequest struct {
@@ -36,11 +37,13 @@ type catalogRequest struct {
 }
 
 type catalogResult struct {
-	items       []catalogItem
-	resume      []catalogItem
-	hasMore     bool
-	failure     error
-	resumeCache []resumeCacheUpdate
+	items         []catalogItem
+	resume        []catalogItem
+	hasMore       bool
+	failure       error
+	resumeCache   []resumeCacheUpdate
+	resumeCatalog []catalogItem
+	mergeResume   bool
 }
 
 func (a *application) shell(cx *core.Scope) core.Node {
@@ -106,6 +109,13 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 		return a.loadCatalog(ctx, request), nil
 	})
 	if page == screenHome {
+		lastSync := a.progress.synced.GetUntracked()
+		cx.Effect(func() {
+			if count := a.progress.synced.Get(); count != lastSync {
+				lastSync = count
+				results.Refetch()
+			}
+		})
 		cx.Effect(func() {
 			if result, ready := results.Get(); ready {
 				for _, update := range result.resumeCache {
@@ -193,12 +203,16 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 		if page == screenSearch && query.Get() == "" {
 			return nil
 		}
-		if results.Loading() {
+		loading := results.Loading()
+		if loading && page != screenHome {
 			return hint(locales.Loading(cx))
 		}
 		result, ok := results.Get()
-		if !ok {
+		if !ok && !loading {
 			return nil
+		}
+		if loading {
+			result = catalogResult{}
 		}
 		var children []core.Node
 		if result.failure != nil {
@@ -206,6 +220,11 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 				Variant: ui.ButtonOutline, OnPress: results.Refetch})
 		}
 		if page == screenHome {
+			request := catalogRequest{filter: a.sourceFilter.Get(), home: true}
+			sources := a.sources.Get()
+			merge := result.mergeResume || loading && len(sources) > 1 && request.filter == "" && a.mergeTitles.Get()
+			resume := a.progressResumeShelf(result.resume, sources, request)
+			result.resume = continueWatching(resume, result.resumeCatalog, merge)
 			if len(result.items) > 0 {
 				children = append(children, a.hero(cx, result.items[0]))
 			}
@@ -222,6 +241,8 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 				cards = append(cards, a.posterCard(cx, entry))
 			}
 			children = append(children, core.View{Class: "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6", Children: cards})
+		} else if loading {
+			children = append(children, hint(locales.Loading(cx)))
 		} else if result.failure == nil && len(result.resume) == 0 {
 			children = append(children, notice(locales.EmptyLibrary(cx)))
 		}
@@ -257,8 +278,8 @@ func (a *application) loadCatalog(ctx context.Context, q catalogRequest) catalog
 		all.failure = errors.Join(all.failure, group.failure)
 	}
 	merge := q.merge && len(q.sources) > 1 && q.filter == "" && q.library == ""
-	if q.home {
-		all.resume = continueWatching(all.resume, all.items, merge)
+	if q.home && merge {
+		all.resumeCatalog, all.mergeResume = all.items, true
 	}
 	if merge {
 		all.items = mergeCatalogItems(all.items, q.home, q.category)
@@ -310,6 +331,9 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 				continue
 			}
 			if !seen[item.ID] && library.matchesCategory(q.category, item) {
+				if item.LibraryID == "" && !globalSearch {
+					item.LibraryID = library.ID
+				}
 				result.items = append(result.items, catalogItem{source: source, item: item})
 				seen[item.ID] = true
 			}

@@ -54,7 +54,7 @@ func (a *application) resumeShelfView(cx *core.Scope, items []catalogItem) core.
 		cards = append(cards, base.Button{Label: locales.ResumeCardLabel(cx, item.Title), TestID: id,
 			Style: core.Style{Width: width, FlexShrink: 0, CornerRadius: 12, FocusVisible: ui.FocusRing(cx, 3)},
 			OnPress: func(core.PressEvent) {
-				a.push(route{screen: screenPlayer, source: entry.source, item: item, resume: true})
+				a.push(route{screen: screenPlayer, source: entry.source, item: item, resume: true, resumeLocal: entry.pending})
 			},
 			Children: []core.Node{core.View{Class: "w-full gap-1", Children: []core.Node{mediaBox,
 				core.Text{Content: item.Title, Class: "line-clamp-1 text-sm font-semibold"},

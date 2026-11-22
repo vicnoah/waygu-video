@@ -329,6 +329,7 @@ func verifyDockerResume(t *testing.T, ctx context.Context, client Client, movieL
 				} else if item.LibraryID != movieLibrary {
 					t.Fatalf("Plex resume library ID is %q, want %q", item.LibraryID, movieLibrary)
 				}
+				verifyDockerOfflineProgress(t, ctx, client, item, stream)
 				return
 			}
 		}
@@ -339,6 +340,42 @@ func verifyDockerResume(t *testing.T, ctx context.Context, client Client, movieL
 		case <-ctx.Done():
 			t.Fatal(ctx.Err())
 		}
+	}
+}
+
+func verifyDockerOfflineProgress(t *testing.T, ctx context.Context, client Client, item Item, stream Stream) {
+	t.Helper()
+	syncer := client.(OfflineProgressClient)
+	update := OfflineProgress{ItemID: item.ID, MediaID: stream.SourceID, Duration: stream.Duration,
+		Previous: item.Position, Position: 89 * time.Second, At: item.LastPlayed.Add(2 * time.Second)}
+	if err := syncer.SyncOfflineProgress(ctx, update); err != nil {
+		t.Fatal("restore offline progress:", err)
+	}
+	read := func() Item {
+		t.Helper()
+		items, err := client.Resume(ctx)
+		if err != nil {
+			t.Fatal("continue watching after recovery:", err)
+		}
+		for _, row := range items {
+			if row.ID == item.ID {
+				return row
+			}
+		}
+		t.Fatal("the restored item disappeared from continue watching")
+		return Item{}
+	}
+	restored := read()
+	if restored.Position != update.Position || restored.LastPlayed.Before(item.LastPlayed) {
+		t.Fatalf("offline progress = %v at %v, previously %v at %v, want %v",
+			restored.Position, restored.LastPlayed, item.Position, item.LastPlayed, update.Position)
+	}
+	update.Position, update.Previous, update.At = 121*time.Second, restored.Position, item.LastPlayed.Add(-time.Second)
+	if err := syncer.SyncOfflineProgress(ctx, update); err != nil {
+		t.Fatal("compare stale offline progress:", err)
+	}
+	if current := read(); current.Position != restored.Position {
+		t.Fatalf("a delayed checkpoint replaced the newer server position: got %v, want %v", current.Position, restored.Position)
 	}
 }
 
