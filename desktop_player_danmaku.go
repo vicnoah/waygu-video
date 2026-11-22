@@ -81,7 +81,11 @@ func (a *application) desktopPlayerDanmakuPanel(cx *core.Scope, p desktopPlayerC
 	}}
 	more := base.Button{Label: locales.DesktopDanmakuMore(cx), TestID: "desktop-danmaku-settings",
 		Class: "flex-row items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2",
-		Style: core.Style{FocusVisible: ui.FocusRing(cx, 1)}, OnPress: func(core.PressEvent) { p.comments.openPanel() },
+		Style: core.Style{FocusVisible: ui.FocusRing(cx, 1)}, OnPress: func(core.PressEvent) {
+			if !a.showDesktopSettingsWindow(cx, desktopSettingsDanmaku) {
+				p.comments.openPanel()
+			}
+		},
 		Children: []core.Node{
 			core.Text{Content: locales.DesktopDanmakuMore(cx), Class: "text-sm text-white"},
 			core.Icon{SVG: lucide.ChevronRight(), Class: "size-4 text-zinc-500"},

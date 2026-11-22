@@ -152,7 +152,7 @@ func desktopToolbarAction(cx *core.Scope, id, label string, icon *core.SVG, acti
 func (a *application) desktopProfile(cx *core.Scope) core.Node {
 	return base.Button{Label: locales.Settings(cx), TestID: "desktop-home-profile",
 		Class: "size-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500",
-		Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, OnPress: func(core.PressEvent) { a.tab.Set(3) },
+		Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, OnPress: func(core.PressEvent) { a.openDesktopSettings(cx, desktopSettingsOverview) },
 		Children: []core.Node{core.Dynamic(func(*core.Scope) core.Node {
 			for _, src := range a.sources.Get() {
 				if letter, _ := utf8.DecodeRuneInString(strings.TrimSpace(src.Username)); letter != utf8.RuneError {

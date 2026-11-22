@@ -39,7 +39,11 @@ func (a *application) nextEpisodeCard(cx *core.Scope, current route, client medi
 			countdown.Set(0)
 			return
 		}
-		deadline := cx.Now().Add(10 * time.Second)
+		seconds := 10
+		if appLayoutIdiom(cx) == core.IdiomDesktop {
+			seconds = a.desktopPrefs.Get().Countdown
+		}
+		deadline := cx.Now().Add(time.Duration(seconds) * time.Second)
 		var stop func() bool
 		var tick func()
 		tick = func() {

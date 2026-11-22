@@ -18,9 +18,13 @@ func (a *application) applyAppearance(cx *core.Scope) {
 		stored = "system"
 	}
 	a.appearance = core.NewSignal(cx, stored)
+	observeAppearance(cx, a.appearance.Get)
+}
+
+func observeAppearance(cx *core.Scope, appearance func() string) {
 	forced := false
 	cx.Effect(func() {
-		switch a.appearance.Get() {
+		switch appearance() {
 		case "light":
 			cx.SetSubtreeAppearance(core.AppearanceLight)
 			forced = true

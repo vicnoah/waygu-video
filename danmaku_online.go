@@ -136,7 +136,7 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 	resource := core.NewResource(cx, func() (danmakuQuery, bool) {
 		request := query.Get()
 		value, _ := credentials.Get()
-		active := request.action != danmakuIdle && value.AppID != "" && value.Secret != ""
+		active := request.action != danmakuIdle && value.AppID != "" && value.Secret != "" && !a.danmakuPrefs.Get().DisableDandan
 		if request.action == danmakuIdentify && saved.ID <= 0 {
 			active = active && autoMatch.Get()
 		}

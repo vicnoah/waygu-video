@@ -218,6 +218,15 @@ go tool nsgo test -target linux -run '^TestPhonePlaybackAndSubtitleSettingsRevie
 
 Use `WAYGU_REVIEW_DESIGN=settings-playback.scenra` or `settings-subtitles.scenra` with the reference exporter. Run `TestDockerPhonePlayerUsesSettings` with the local Docker fixtures to verify the saved settings through the player.
 
+Capture the desktop Settings window, overview, and the General, Playback, Danmaku and Media Sources pages in both appearances. The media source test uses the local Docker fixtures.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerDesktopSettingsReview$' -screenshots .nsgo/ui-review/desktop-settings
+```
+
+Capture `desktop-settings.scenra` and the four `views/desktop-settings-*.scenra` designs with the reference exporter. [Desktop Settings comparisons](desktop-settings.md)
+
 The reference uses the Scenra version pinned in this project and renders the original design files and components. Run it in its own module.
 
 ```sh

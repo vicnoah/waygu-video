@@ -79,10 +79,10 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 	enableRemote := core.NewSignal(cx, true)
 	track := core.NewResource(cx, func() (input, bool) {
 		sources := input{prefs: a.danmakuPrefs.Get(), offset: offset.Get(), authored: authored.Get()}
-		if enableLocal.Get() {
+		if enableLocal.Get() && !sources.prefs.DisableLocal {
 			sources.local = local.Get()
 		}
-		if enableRemote.Get() {
+		if enableRemote.Get() && !sources.prefs.DisableDandan {
 			sources.remote = remote.Get()
 		}
 		return sources, true
@@ -112,6 +112,10 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 		return &scheduled, ctx.Err()
 	})
 	open := core.NewSignal(cx, a.danmakuPrefs.GetUntracked().Enabled)
+	if idiom == core.IdiomDesktop {
+		defaultEnabled := core.NewMemo(cx, func() bool { return a.danmakuPrefs.Get().Enabled })
+		cx.Effect(func() { open.Set(defaultEnabled.Get()) })
+	}
 	panel := core.NewSignal(cx, false)
 	tab := core.NewSignal(cx, 0)
 	invalid := core.NewSignal(cx, false)

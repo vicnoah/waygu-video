@@ -21,6 +21,7 @@ type danmakuPreferences struct {
 	Opacity, FontScale, Speed, Density, Area, Outline       int
 	Enabled, AutoMatch, Bold, ReserveSubtitles, Deduplicate bool
 	Scrolling, Top, Bottom, Colored                         bool
+	DisableDandan, DisableLocal                             bool
 	Keywords, Patterns                                      string
 }
 

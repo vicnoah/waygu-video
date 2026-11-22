@@ -22,6 +22,7 @@ func (a *application) desktopShell(cx *core.Scope, detail func(*core.Scope) core
 			afterSelect()
 		})
 	}
+	cx.OnKey("mod+,", func() { a.openDesktopSettings(cx, desktopSettingsOverview) })
 	cx.OnKeyWith("mod+k", core.KeyOptions{Title: func() string { return locales.Search(cx) }}, openSearch)
 	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", TestID: "desktop-shell", Children: []core.Node{
 		homeAmbient(false, true), homeAmbient(true, true),
@@ -49,7 +50,7 @@ func (a *application) desktopShell(cx *core.Scope, detail func(*core.Scope) core
 					case 2:
 						return a.browse(cx, screenSearch, core.IdiomDesktop, nil)
 					case 3:
-						return a.settings(cx)
+						return a.desktopSettings(cx, func() { a.tab.Set(0) })
 					default:
 						return a.browse(cx, screenHome, core.IdiomDesktop, category)
 					}

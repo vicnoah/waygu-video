@@ -43,106 +43,113 @@ func For(cx *core.Scope) Messages {
 // its method, for the TSX declarations of the messages
 // (tsx.RegisterMessages).
 var Parameters = map[string][]string{
-	"WelcomeMediaSourcesDetail":      {"flymoo"},
-	"AddDiscoveredSource":            {"name"},
-	"Connected":                      {"name"},
-	"SignedInAs":                     {"name"},
-	"SourcesOnline":                  {"count"},
-	"HomeSummary":                    {"sources", "count"},
-	"HomeItemCount":                  {"count"},
-	"HomeDuration":                   {"minutes"},
-	"HomeEpisode":                    {"season", "episode"},
-	"LibraryLoadedCount":             {"count"},
-	"LibraryTitleCount":              {"count", "sources"},
-	"LibraryMovieCount":              {"count", "sources"},
-	"LibrarySeriesCount":             {"count"},
-	"LibrarySeriesUnplayed":          {"count"},
-	"LibraryEpisodePosition":         {"season", "episode"},
-	"LibraryEpisodeCount":            {"count"},
-	"LibraryUnplayedEpisodes":        {"count"},
-	"MoveSourceUp":                   {"name"},
-	"MoveSourceDown":                 {"name"},
-	"ShowNamedLibrary":               {"name"},
-	"ShowNamedLibraryOnHome":         {"name"},
-	"MoveLibraryUp":                  {"name"},
-	"MoveLibraryDown":                {"name"},
-	"SearchGroupCount":               {"group", "count"},
-	"SearchCreditCount":              {"role", "count"},
-	"ResumeCardLabel":                {"title"},
-	"ResumePercent":                  {"number"},
-	"ResumeRemaining":                {"time_"},
-	"SubtitleDelay":                  {"seconds"},
-	"TrackNumber":                    {"number"},
-	"NumberedPlaybackVersion":        {"number"},
-	"EpisodeDetails":                 {"episode"},
-	"SeriesSeasonCount":              {"count"},
-	"SeriesResumeEpisode":            {"season", "episode"},
-	"SeriesWatchedTime":              {"episode", "time_"},
-	"SeriesEpisodesLeft":             {"count"},
-	"SeriesDanmakuCount":             {"count"},
-	"DanmakuBoundEpisode":            {"episode"},
-	"DanmakuDecrease":                {"control"},
-	"DanmakuIncrease":                {"control"},
-	"DanmakuOffset":                  {"seconds"},
-	"DanmakuPercent":                 {"value"},
-	"DanmakuInvalidPattern":          {"pattern"},
-	"BitrateMegabits":                {"bitrate"},
-	"NextEpisodeCountdown":           {"seconds"},
-	"EpisodeLabel":                   {"number"},
-	"SeasonLabel":                    {"number"},
-	"QuickConnectInstruction":        {"code"},
-	"PhoneMovieResumeAt":             {"time_"},
-	"MovieDirectorLine":              {"name"},
-	"MovieCastLine":                  {"names"},
-	"MovieViewAll":                   {"count"},
-	"DetailResumeAt":                 {"time_"},
-	"FileSource":                     {"source"},
-	"FileSubtitleCount":              {"count"},
-	"DownloadPercent":                {"percent"},
-	"DownloadStorageUsed":            {"size"},
-	"DownloadStorageAvailable":       {"size"},
-	"DownloadUsage":                  {"size"},
-	"DownloadPlay":                   {"title"},
-	"SettingsSeconds":                {"seconds"},
-	"SettingsSubtitleDistance":       {"distance"},
-	"SettingsRemoveSubtitleLanguage": {"name"},
-	"SettingsRaiseSubtitleLanguage":  {"name"},
-	"SettingsLowerSubtitleLanguage":  {"name"},
-	"SettingsFooter":                 {"version"},
-	"SettingsSourceSyncedAt":         {"time_"},
-	"SettingsSourceLibraries":        {"count"},
-	"SettingsSourceRemoveConfirm":    {"name"},
-	"SettingsSourceUser":             {"name"},
-	"PhonePlayerSource":              {"name"},
-	"PhonePlayerDanmakuLoaded":       {"count"},
-	"PhonePlayerDanmakuRegex":        {"rule"},
-	"PhonePlayerRemoveRule":          {"rule"},
-	"TvAllTitles":                    {"count"},
-	"TvFromSource":                   {"source"},
-	"TvResumeAt":                     {"position"},
-	"TvDetailProgress":               {"position", "remaining"},
-	"TvDetailVersion":                {"resolution"},
-	"TvStarring":                     {"names"},
-	"TvPlayerDanmakuCount":           {"count"},
-	"TvDanmakuRuleCount":             {"count"},
-	"TvPairCode":                     {"code"},
-	"DesktopOnlineCount":             {"count"},
-	"DesktopFromSource":              {"source"},
-	"DesktopFilterCount":             {"count"},
-	"DesktopResolutionValue":         {"resolution"},
-	"DesktopLibraryTotalSize":        {"summary", "size"},
-	"DesktopLibraryKnownSize":        {"summary", "size"},
-	"DesktopMovieCount":              {"count", "sources"},
-	"DesktopMovieRuntime":            {"hours", "minutes"},
-	"DesktopMovieMoreTracks":         {"count"},
-	"DesktopMovieEmbeddedSubtitles":  {"count"},
-	"DesktopMovieExternalSubtitles":  {"count"},
-	"DesktopPlayerEpisode":           {"season", "episode"},
-	"DesktopPlayerEngine":            {"name"},
-	"DesktopDanmakuLoaded":           {"count"},
-	"DesktopDanmakuLocalCount":       {"count"},
-	"DesktopDanmakuRemoteCount":      {"count"},
-	"DesktopPlayerEpisodeCount":      {"count"},
+	"WelcomeMediaSourcesDetail":       {"flymoo"},
+	"AddDiscoveredSource":             {"name"},
+	"Connected":                       {"name"},
+	"SignedInAs":                      {"name"},
+	"SourcesOnline":                   {"count"},
+	"HomeSummary":                     {"sources", "count"},
+	"HomeItemCount":                   {"count"},
+	"HomeDuration":                    {"minutes"},
+	"HomeEpisode":                     {"season", "episode"},
+	"LibraryLoadedCount":              {"count"},
+	"LibraryTitleCount":               {"count", "sources"},
+	"LibraryMovieCount":               {"count", "sources"},
+	"LibrarySeriesCount":              {"count"},
+	"LibrarySeriesUnplayed":           {"count"},
+	"LibraryEpisodePosition":          {"season", "episode"},
+	"LibraryEpisodeCount":             {"count"},
+	"LibraryUnplayedEpisodes":         {"count"},
+	"MoveSourceUp":                    {"name"},
+	"MoveSourceDown":                  {"name"},
+	"ShowNamedLibrary":                {"name"},
+	"ShowNamedLibraryOnHome":          {"name"},
+	"MoveLibraryUp":                   {"name"},
+	"MoveLibraryDown":                 {"name"},
+	"SearchGroupCount":                {"group", "count"},
+	"SearchCreditCount":               {"role", "count"},
+	"ResumeCardLabel":                 {"title"},
+	"ResumePercent":                   {"number"},
+	"ResumeRemaining":                 {"time_"},
+	"SubtitleDelay":                   {"seconds"},
+	"TrackNumber":                     {"number"},
+	"NumberedPlaybackVersion":         {"number"},
+	"EpisodeDetails":                  {"episode"},
+	"SeriesSeasonCount":               {"count"},
+	"SeriesResumeEpisode":             {"season", "episode"},
+	"SeriesWatchedTime":               {"episode", "time_"},
+	"SeriesEpisodesLeft":              {"count"},
+	"SeriesDanmakuCount":              {"count"},
+	"DanmakuBoundEpisode":             {"episode"},
+	"DanmakuDecrease":                 {"control"},
+	"DanmakuIncrease":                 {"control"},
+	"DanmakuOffset":                   {"seconds"},
+	"DanmakuPercent":                  {"value"},
+	"DanmakuInvalidPattern":           {"pattern"},
+	"BitrateMegabits":                 {"bitrate"},
+	"NextEpisodeCountdown":            {"seconds"},
+	"EpisodeLabel":                    {"number"},
+	"SeasonLabel":                     {"number"},
+	"QuickConnectInstruction":         {"code"},
+	"PhoneMovieResumeAt":              {"time_"},
+	"MovieDirectorLine":               {"name"},
+	"MovieCastLine":                   {"names"},
+	"MovieViewAll":                    {"count"},
+	"DetailResumeAt":                  {"time_"},
+	"FileSource":                      {"source"},
+	"FileSubtitleCount":               {"count"},
+	"DownloadPercent":                 {"percent"},
+	"DownloadStorageUsed":             {"size"},
+	"DownloadStorageAvailable":        {"size"},
+	"DownloadUsage":                   {"size"},
+	"DownloadPlay":                    {"title"},
+	"SettingsSeconds":                 {"seconds"},
+	"SettingsSubtitleDistance":        {"distance"},
+	"SettingsRemoveSubtitleLanguage":  {"name"},
+	"SettingsRaiseSubtitleLanguage":   {"name"},
+	"SettingsLowerSubtitleLanguage":   {"name"},
+	"SettingsFooter":                  {"version"},
+	"SettingsSourceSyncedAt":          {"time_"},
+	"SettingsSourceLibraries":         {"count"},
+	"SettingsSourceRemoveConfirm":     {"name"},
+	"SettingsSourceUser":              {"name"},
+	"PhonePlayerSource":               {"name"},
+	"PhonePlayerDanmakuLoaded":        {"count"},
+	"PhonePlayerDanmakuRegex":         {"rule"},
+	"PhonePlayerRemoveRule":           {"rule"},
+	"TvAllTitles":                     {"count"},
+	"TvFromSource":                    {"source"},
+	"TvResumeAt":                      {"position"},
+	"TvDetailProgress":                {"position", "remaining"},
+	"TvDetailVersion":                 {"resolution"},
+	"TvStarring":                      {"names"},
+	"TvPlayerDanmakuCount":            {"count"},
+	"TvDanmakuRuleCount":              {"count"},
+	"TvPairCode":                      {"code"},
+	"DesktopOnlineCount":              {"count"},
+	"DesktopFromSource":               {"source"},
+	"DesktopFilterCount":              {"count"},
+	"DesktopResolutionValue":          {"resolution"},
+	"DesktopLibraryTotalSize":         {"summary", "size"},
+	"DesktopLibraryKnownSize":         {"summary", "size"},
+	"DesktopMovieCount":               {"count", "sources"},
+	"DesktopMovieRuntime":             {"hours", "minutes"},
+	"DesktopMovieMoreTracks":          {"count"},
+	"DesktopMovieEmbeddedSubtitles":   {"count"},
+	"DesktopMovieExternalSubtitles":   {"count"},
+	"DesktopPlayerEpisode":            {"season", "episode"},
+	"DesktopPlayerEngine":             {"name"},
+	"DesktopDanmakuLoaded":            {"count"},
+	"DesktopDanmakuLocalCount":        {"count"},
+	"DesktopDanmakuRemoteCount":       {"count"},
+	"DesktopPlayerEpisodeCount":       {"count"},
+	"DesktopDanmakuFilters":           {"count"},
+	"DesktopSeekPair":                 {"back", "forward"},
+	"DesktopSettingsPublishedRelease": {"version"},
+	"DesktopSettingsSourceCounts":     {"total", "online"},
+	"DesktopSettingsVersion":          {"version"},
+	"DesktopSourceConnection":         {"source"},
+	"DesktopSourceRemoveHint":         {"source"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -150,107 +157,114 @@ var Parameters = map[string][]string{
 // of the others; a key or a field left out leaves the message to the
 // catalog.
 type Translation struct {
-	Texts                          map[string]string
-	WelcomeMediaSourcesDetail      func(flymoo string) string
-	AddDiscoveredSource            func(name string) string
-	Connected                      func(name string) string
-	SignedInAs                     func(name string) string
-	SourcesOnline                  func(count string) string
-	HomeSummary                    func(sources string, count string) string
-	HomeItemCount                  func(count string) string
-	HomeDuration                   func(minutes string) string
-	HomeEpisode                    func(season string, episode string) string
-	LibraryLoadedCount             func(count string) string
-	LibraryTitleCount              func(count string, sources string) string
-	LibraryMovieCount              func(count string, sources string) string
-	LibrarySeriesCount             func(count string) string
-	LibrarySeriesUnplayed          func(count string) string
-	LibraryEpisodePosition         func(season string, episode string) string
-	LibraryEpisodeCount            func(count string) string
-	LibraryUnplayedEpisodes        func(count string) string
-	MoveSourceUp                   func(name string) string
-	MoveSourceDown                 func(name string) string
-	ShowNamedLibrary               func(name string) string
-	ShowNamedLibraryOnHome         func(name string) string
-	MoveLibraryUp                  func(name string) string
-	MoveLibraryDown                func(name string) string
-	SearchGroupCount               func(group string, count string) string
-	SearchCreditCount              func(role string, count string) string
-	ResumeCardLabel                func(title string) string
-	ResumePercent                  func(number string) string
-	ResumeRemaining                func(time_ string) string
-	SubtitleDelay                  func(seconds string) string
-	TrackNumber                    func(number string) string
-	NumberedPlaybackVersion        func(number string) string
-	EpisodeDetails                 func(episode string) string
-	SeriesSeasonCount              func(count string) string
-	SeriesResumeEpisode            func(season string, episode string) string
-	SeriesWatchedTime              func(episode string, time_ string) string
-	SeriesEpisodesLeft             func(count string) string
-	SeriesDanmakuCount             func(count string) string
-	DanmakuBoundEpisode            func(episode string) string
-	DanmakuDecrease                func(control string) string
-	DanmakuIncrease                func(control string) string
-	DanmakuOffset                  func(seconds string) string
-	DanmakuPercent                 func(value string) string
-	DanmakuInvalidPattern          func(pattern string) string
-	BitrateMegabits                func(bitrate string) string
-	NextEpisodeCountdown           func(seconds string) string
-	EpisodeLabel                   func(number string) string
-	SeasonLabel                    func(number string) string
-	QuickConnectInstruction        func(code string) string
-	PhoneMovieResumeAt             func(time_ string) string
-	MovieDirectorLine              func(name string) string
-	MovieCastLine                  func(names string) string
-	MovieViewAll                   func(count string) string
-	DetailResumeAt                 func(time_ string) string
-	FileSource                     func(source string) string
-	FileSubtitleCount              func(count string) string
-	DownloadPercent                func(percent string) string
-	DownloadStorageUsed            func(size string) string
-	DownloadStorageAvailable       func(size string) string
-	DownloadUsage                  func(size string) string
-	DownloadPlay                   func(title string) string
-	SettingsSeconds                func(seconds string) string
-	SettingsSubtitleDistance       func(distance string) string
-	SettingsRemoveSubtitleLanguage func(name string) string
-	SettingsRaiseSubtitleLanguage  func(name string) string
-	SettingsLowerSubtitleLanguage  func(name string) string
-	SettingsFooter                 func(version string) string
-	SettingsSourceSyncedAt         func(time_ string) string
-	SettingsSourceLibraries        func(count string) string
-	SettingsSourceRemoveConfirm    func(name string) string
-	SettingsSourceUser             func(name string) string
-	PhonePlayerSource              func(name string) string
-	PhonePlayerDanmakuLoaded       func(count string) string
-	PhonePlayerDanmakuRegex        func(rule string) string
-	PhonePlayerRemoveRule          func(rule string) string
-	TvAllTitles                    func(count string) string
-	TvFromSource                   func(source string) string
-	TvResumeAt                     func(position string) string
-	TvDetailProgress               func(position string, remaining string) string
-	TvDetailVersion                func(resolution string) string
-	TvStarring                     func(names string) string
-	TvPlayerDanmakuCount           func(count string) string
-	TvDanmakuRuleCount             func(count string) string
-	TvPairCode                     func(code string) string
-	DesktopOnlineCount             func(count string) string
-	DesktopFromSource              func(source string) string
-	DesktopFilterCount             func(count string) string
-	DesktopResolutionValue         func(resolution string) string
-	DesktopLibraryTotalSize        func(summary string, size string) string
-	DesktopLibraryKnownSize        func(summary string, size string) string
-	DesktopMovieCount              func(count string, sources string) string
-	DesktopMovieRuntime            func(hours string, minutes string) string
-	DesktopMovieMoreTracks         func(count string) string
-	DesktopMovieEmbeddedSubtitles  func(count string) string
-	DesktopMovieExternalSubtitles  func(count string) string
-	DesktopPlayerEpisode           func(season string, episode string) string
-	DesktopPlayerEngine            func(name string) string
-	DesktopDanmakuLoaded           func(count string) string
-	DesktopDanmakuLocalCount       func(count string) string
-	DesktopDanmakuRemoteCount      func(count string) string
-	DesktopPlayerEpisodeCount      func(count string) string
+	Texts                           map[string]string
+	WelcomeMediaSourcesDetail       func(flymoo string) string
+	AddDiscoveredSource             func(name string) string
+	Connected                       func(name string) string
+	SignedInAs                      func(name string) string
+	SourcesOnline                   func(count string) string
+	HomeSummary                     func(sources string, count string) string
+	HomeItemCount                   func(count string) string
+	HomeDuration                    func(minutes string) string
+	HomeEpisode                     func(season string, episode string) string
+	LibraryLoadedCount              func(count string) string
+	LibraryTitleCount               func(count string, sources string) string
+	LibraryMovieCount               func(count string, sources string) string
+	LibrarySeriesCount              func(count string) string
+	LibrarySeriesUnplayed           func(count string) string
+	LibraryEpisodePosition          func(season string, episode string) string
+	LibraryEpisodeCount             func(count string) string
+	LibraryUnplayedEpisodes         func(count string) string
+	MoveSourceUp                    func(name string) string
+	MoveSourceDown                  func(name string) string
+	ShowNamedLibrary                func(name string) string
+	ShowNamedLibraryOnHome          func(name string) string
+	MoveLibraryUp                   func(name string) string
+	MoveLibraryDown                 func(name string) string
+	SearchGroupCount                func(group string, count string) string
+	SearchCreditCount               func(role string, count string) string
+	ResumeCardLabel                 func(title string) string
+	ResumePercent                   func(number string) string
+	ResumeRemaining                 func(time_ string) string
+	SubtitleDelay                   func(seconds string) string
+	TrackNumber                     func(number string) string
+	NumberedPlaybackVersion         func(number string) string
+	EpisodeDetails                  func(episode string) string
+	SeriesSeasonCount               func(count string) string
+	SeriesResumeEpisode             func(season string, episode string) string
+	SeriesWatchedTime               func(episode string, time_ string) string
+	SeriesEpisodesLeft              func(count string) string
+	SeriesDanmakuCount              func(count string) string
+	DanmakuBoundEpisode             func(episode string) string
+	DanmakuDecrease                 func(control string) string
+	DanmakuIncrease                 func(control string) string
+	DanmakuOffset                   func(seconds string) string
+	DanmakuPercent                  func(value string) string
+	DanmakuInvalidPattern           func(pattern string) string
+	BitrateMegabits                 func(bitrate string) string
+	NextEpisodeCountdown            func(seconds string) string
+	EpisodeLabel                    func(number string) string
+	SeasonLabel                     func(number string) string
+	QuickConnectInstruction         func(code string) string
+	PhoneMovieResumeAt              func(time_ string) string
+	MovieDirectorLine               func(name string) string
+	MovieCastLine                   func(names string) string
+	MovieViewAll                    func(count string) string
+	DetailResumeAt                  func(time_ string) string
+	FileSource                      func(source string) string
+	FileSubtitleCount               func(count string) string
+	DownloadPercent                 func(percent string) string
+	DownloadStorageUsed             func(size string) string
+	DownloadStorageAvailable        func(size string) string
+	DownloadUsage                   func(size string) string
+	DownloadPlay                    func(title string) string
+	SettingsSeconds                 func(seconds string) string
+	SettingsSubtitleDistance        func(distance string) string
+	SettingsRemoveSubtitleLanguage  func(name string) string
+	SettingsRaiseSubtitleLanguage   func(name string) string
+	SettingsLowerSubtitleLanguage   func(name string) string
+	SettingsFooter                  func(version string) string
+	SettingsSourceSyncedAt          func(time_ string) string
+	SettingsSourceLibraries         func(count string) string
+	SettingsSourceRemoveConfirm     func(name string) string
+	SettingsSourceUser              func(name string) string
+	PhonePlayerSource               func(name string) string
+	PhonePlayerDanmakuLoaded        func(count string) string
+	PhonePlayerDanmakuRegex         func(rule string) string
+	PhonePlayerRemoveRule           func(rule string) string
+	TvAllTitles                     func(count string) string
+	TvFromSource                    func(source string) string
+	TvResumeAt                      func(position string) string
+	TvDetailProgress                func(position string, remaining string) string
+	TvDetailVersion                 func(resolution string) string
+	TvStarring                      func(names string) string
+	TvPlayerDanmakuCount            func(count string) string
+	TvDanmakuRuleCount              func(count string) string
+	TvPairCode                      func(code string) string
+	DesktopOnlineCount              func(count string) string
+	DesktopFromSource               func(source string) string
+	DesktopFilterCount              func(count string) string
+	DesktopResolutionValue          func(resolution string) string
+	DesktopLibraryTotalSize         func(summary string, size string) string
+	DesktopLibraryKnownSize         func(summary string, size string) string
+	DesktopMovieCount               func(count string, sources string) string
+	DesktopMovieRuntime             func(hours string, minutes string) string
+	DesktopMovieMoreTracks          func(count string) string
+	DesktopMovieEmbeddedSubtitles   func(count string) string
+	DesktopMovieExternalSubtitles   func(count string) string
+	DesktopPlayerEpisode            func(season string, episode string) string
+	DesktopPlayerEngine             func(name string) string
+	DesktopDanmakuLoaded            func(count string) string
+	DesktopDanmakuLocalCount        func(count string) string
+	DesktopDanmakuRemoteCount       func(count string) string
+	DesktopPlayerEpisodeCount       func(count string) string
+	DesktopDanmakuFilters           func(count string) string
+	DesktopSeekPair                 func(back string, forward string) string
+	DesktopSettingsPublishedRelease func(version string) string
+	DesktopSettingsSourceCounts     func(total string, online string) string
+	DesktopSettingsVersion          func(version string) string
+	DesktopSourceConnection         func(source string) string
+	DesktopSourceRemoveHint         func(source string) string
 }
 
 var supplied = map[string]Translation{}
@@ -799,6 +813,80 @@ const (
 	textDesktopDanmakuMore
 	textDesktopDanmakuList
 	textDesktopPlayerInfo
+	textDesktopSettingsCancel
+	textDesktopBuiltinMPV
+	textDesktopDanmakuAddFilter
+	textDesktopDanmakuAutoMatch
+	textDesktopDanmakuBahamut
+	textDesktopDanmakuBilibili
+	textDesktopDanmakuCache
+	textDesktopDanmakuConfigure
+	textDesktopDanmakuConfigured
+	textDesktopDanmakuDisplay
+	textDesktopDanmakuFull
+	textDesktopDanmakuHalf
+	textDesktopDanmakuHint
+	textDesktopDanmakuLocalFiles
+	textDesktopDanmakuManualMatch
+	textDesktopDanmakuPreview
+	textDesktopDanmakuSampleActing
+	textDesktopDanmakuSampleDetails
+	textDesktopDanmakuSampleLaugh
+	textDesktopDanmakuSampleScene
+	textDesktopDanmakuSampleScore
+	textDesktopDanmakuStrategy
+	textDesktopDefaultQuality
+	textDesktopRememberTracks
+	textDesktopSearchSettings
+	textDesktopSeekStep
+	textDesktopSettingsAudioOutput
+	textDesktopSettingsAutoUpdate
+	textDesktopSettingsBasics
+	textDesktopSettingsCheckUpdate
+	textDesktopSettingsCommon
+	textDesktopSettingsCurrentRelease
+	textDesktopSettingsDefaultSource
+	textDesktopSettingsDefaultSourceHint
+	textDesktopSettingsGeneral
+	textDesktopSettingsGeneralHint
+	textDesktopSettingsLanguage
+	textDesktopSettingsLastPage
+	textDesktopSettingsLibrary
+	textDesktopSettingsLogin
+	textDesktopSettingsMaximize
+	textDesktopSettingsMinimize
+	textDesktopSettingsNoRelease
+	textDesktopSettingsNoResults
+	textDesktopSettingsOff
+	textDesktopSettingsOpenOnLaunch
+	textDesktopSettingsParental
+	textDesktopSettingsPlaybackBehavior
+	textDesktopSettingsPlaybackHint
+	textDesktopSettingsReleasePage
+	textDesktopSettingsShortcuts
+	textDesktopSettingsSourcesHint
+	textDesktopSettingsStartup
+	textDesktopSettingsSync
+	textDesktopSettingsTheme
+	textDesktopSettingsTray
+	textDesktopSettingsTrayHint
+	textDesktopSettingsUpdate
+	textDesktopSettingsUpdateError
+	textDesktopSourceAutoRoute
+	textDesktopSourceChangeUser
+	textDesktopSourceRemote
+	textDesktopSourceRemoteBitrate
+	textDesktopSourceStatus
+	textDesktopSourceSyncProgress
+	textDesktopSourceType
+	textDesktopSourceUser
+	textDesktopSourceVisibleLibraries
+	textDesktopSettingsClose
+	textDesktopSettingsMetadata
+	textDesktopSourceLocal
+	textDesktopDanmakuEnabled
+	textDesktopDanmakuClearCache
+	textDesktopDanmakuClearCacheHint
 	numTexts
 )
 
@@ -1347,6 +1435,80 @@ var keyOfText = [numTexts]string{
 	"desktopDanmakuMore",
 	"desktopDanmakuList",
 	"desktopPlayerInfo",
+	"desktopSettingsCancel",
+	"desktopBuiltinMPV",
+	"desktopDanmakuAddFilter",
+	"desktopDanmakuAutoMatch",
+	"desktopDanmakuBahamut",
+	"desktopDanmakuBilibili",
+	"desktopDanmakuCache",
+	"desktopDanmakuConfigure",
+	"desktopDanmakuConfigured",
+	"desktopDanmakuDisplay",
+	"desktopDanmakuFull",
+	"desktopDanmakuHalf",
+	"desktopDanmakuHint",
+	"desktopDanmakuLocalFiles",
+	"desktopDanmakuManualMatch",
+	"desktopDanmakuPreview",
+	"desktopDanmakuSampleActing",
+	"desktopDanmakuSampleDetails",
+	"desktopDanmakuSampleLaugh",
+	"desktopDanmakuSampleScene",
+	"desktopDanmakuSampleScore",
+	"desktopDanmakuStrategy",
+	"desktopDefaultQuality",
+	"desktopRememberTracks",
+	"desktopSearchSettings",
+	"desktopSeekStep",
+	"desktopSettingsAudioOutput",
+	"desktopSettingsAutoUpdate",
+	"desktopSettingsBasics",
+	"desktopSettingsCheckUpdate",
+	"desktopSettingsCommon",
+	"desktopSettingsCurrentRelease",
+	"desktopSettingsDefaultSource",
+	"desktopSettingsDefaultSourceHint",
+	"desktopSettingsGeneral",
+	"desktopSettingsGeneralHint",
+	"desktopSettingsLanguage",
+	"desktopSettingsLastPage",
+	"desktopSettingsLibrary",
+	"desktopSettingsLogin",
+	"desktopSettingsMaximize",
+	"desktopSettingsMinimize",
+	"desktopSettingsNoRelease",
+	"desktopSettingsNoResults",
+	"desktopSettingsOff",
+	"desktopSettingsOpenOnLaunch",
+	"desktopSettingsParental",
+	"desktopSettingsPlaybackBehavior",
+	"desktopSettingsPlaybackHint",
+	"desktopSettingsReleasePage",
+	"desktopSettingsShortcuts",
+	"desktopSettingsSourcesHint",
+	"desktopSettingsStartup",
+	"desktopSettingsSync",
+	"desktopSettingsTheme",
+	"desktopSettingsTray",
+	"desktopSettingsTrayHint",
+	"desktopSettingsUpdate",
+	"desktopSettingsUpdateError",
+	"desktopSourceAutoRoute",
+	"desktopSourceChangeUser",
+	"desktopSourceRemote",
+	"desktopSourceRemoteBitrate",
+	"desktopSourceStatus",
+	"desktopSourceSyncProgress",
+	"desktopSourceType",
+	"desktopSourceUser",
+	"desktopSourceVisibleLibraries",
+	"desktopSettingsClose",
+	"desktopSettingsMetadata",
+	"desktopSourceLocal",
+	"desktopDanmakuEnabled",
+	"desktopDanmakuClearCache",
+	"desktopDanmakuClearCacheHint",
 }
 
 // textsEn are the messages without arguments in en.
@@ -1892,7 +2054,81 @@ var textsEn = i18n.NewTexts(""+
 	"Match again"+
 	"More danmaku settings"+
 	"Comment list"+
-	"Info",
+	"Info"+
+	"Cancel"+
+	"Built-in mpv"+
+	"+ Add (supports regex)"+
+	"Hash → title → manual"+
+	"Bahamut Anime Crazy"+
+	"Bilibili"+
+	"Danmaku cache · 128 MB · 24 hr retention"+
+	"Configure"+
+	"Configured"+
+	"Display"+
+	"Full"+
+	"Half"+
+	"Display style, comment sources and filters"+
+	"Local XML / JSON files"+
+	"Manual matching"+
+	"Preview"+
+	"Brilliant acting"+
+	"So much detail on a rewatch"+
+	"Hahaha"+
+	"Here it comes"+
+	"The score is incredible here"+
+	"Matching strategy"+
+	"Default quality"+
+	"Remember tracks per title"+
+	"Search settings"+
+	"Seek interval"+
+	"Output device"+
+	"Download updates automatically"+
+	"Basics"+
+	"Check for updates"+
+	"Frequently used"+
+	"You have the current release."+
+	"Default media source"+
+	"The default source for Home and the library"+
+	"General"+
+	"Language, appearance, startup and updates"+
+	"Interface language"+
+	"Last page"+
+	"Library"+
+	"Open at login"+
+	"Maximize"+
+	"Minimize"+
+	"There are no published releases yet."+
+	"No matching settings"+
+	"Off"+
+	"Page on launch"+
+	"Parental controls"+
+	"Playback behavior"+
+	"Video, audio and playback behavior"+
+	"View releases"+
+	"Keyboard shortcuts"+
+	"Connect Emby, Jellyfin, Flymoo or Plex servers"+
+	"Startup"+
+	"Sync"+
+	"Theme"+
+	"Keep in the menu bar"+
+	"Keep the app running after closing its window"+
+	"Updates"+
+	"Couldn't check for updates. Try again."+
+	"Switch routes automatically"+
+	"Switch user"+
+	"Remote address"+
+	"Remote bitrate limit"+
+	"Status"+
+	"Sync playback progress"+
+	"Type"+
+	"User"+
+	"Visible libraries"+
+	"Close settings"+
+	"Library and metadata"+
+	"Local address"+
+	"Enable danmaku"+
+	"Clear cache"+
+	"Clear downloaded DandanPlay comments from this device?",
 	[]uint16{
 		11,
 		47,
@@ -2436,6 +2672,80 @@ var textsEn = i18n.NewTexts(""+
 		21,
 		12,
 		4,
+		6,
+		12,
+		22,
+		25,
+		19,
+		8,
+		42,
+		9,
+		10,
+		7,
+		4,
+		4,
+		42,
+		22,
+		15,
+		7,
+		16,
+		27,
+		6,
+		13,
+		28,
+		17,
+		15,
+		25,
+		15,
+		13,
+		13,
+		30,
+		6,
+		17,
+		15,
+		29,
+		20,
+		43,
+		7,
+		41,
+		18,
+		9,
+		7,
+		13,
+		8,
+		8,
+		36,
+		20,
+		3,
+		14,
+		17,
+		17,
+		34,
+		13,
+		18,
+		46,
+		7,
+		4,
+		5,
+		20,
+		45,
+		7,
+		38,
+		27,
+		11,
+		14,
+		20,
+		6,
+		22,
+		4,
+		4,
+		17,
+		14,
+		20,
+		13,
+		14,
+		11,
+		54,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -2981,7 +3291,81 @@ var textsZhHans = i18n.NewTexts(""+
 	"重新匹配"+
 	"更多弹幕设置"+
 	"弹幕列表"+
-	"信息",
+	"信息"+
+	"取消"+
+	"内置 mpv"+
+	"+ 添加（支持正则）"+
+	"哈希 → 标题 → 手动"+
+	"巴哈姆特动画疯"+
+	"哔哩哔哩"+
+	"弹幕缓存上限 128 MB · 保留 24 小时"+
+	"配置"+
+	"已配置"+
+	"显示"+
+	"全屏"+
+	"半屏"+
+	"弹幕显示样式、弹幕源与屏蔽规则"+
+	"本地 XML / JSON 文件"+
+	"手动匹配"+
+	"预览"+
+	"演技太好了"+
+	"二刷了，细节全在这里"+
+	"哈哈哈哈"+
+	"前方高能"+
+	"这一段的配乐绝了"+
+	"匹配策略"+
+	"默认画质"+
+	"记住每部影片的音轨与字幕"+
+	"搜索设置"+
+	"快退 / 快进步长"+
+	"输出设备"+
+	"自动检查并下载更新"+
+	"基本"+
+	"检查更新"+
+	"常用设置"+
+	"已是最新版本。"+
+	"默认媒体源"+
+	"首页与媒体库默认显示的内容来源"+
+	"通用"+
+	"语言、外观、启动行为与更新"+
+	"界面语言"+
+	"上次位置"+
+	"媒体库"+
+	"登录时自动启动"+
+	"最大化"+
+	"最小化"+
+	"暂时没有已发布的版本。"+
+	"没有匹配的设置"+
+	"关闭"+
+	"启动时打开"+
+	"家长控制"+
+	"播放行为"+
+	"播放器内核、解码、画质与音频输出"+
+	"查看版本"+
+	"快捷键"+
+	"连接 Emby、Jellyfin、飞牛影视或 Plex 服务器"+
+	"启动"+
+	"同步与账户"+
+	"主题"+
+	"在菜单栏显示图标"+
+	"关闭主窗口后可从菜单栏继续播放、查看下载进度"+
+	"更新"+
+	"检查更新失败，请重试。"+
+	"自动切换线路"+
+	"切换用户"+
+	"外网地址"+
+	"外网最大码率"+
+	"状态"+
+	"同步观看进度"+
+	"类型"+
+	"用户"+
+	"显示的媒体库"+
+	"关闭设置"+
+	"媒体库与元数据"+
+	"内网地址"+
+	"启用弹幕"+
+	"清除"+
+	"清除这台设备已下载的弹弹play弹幕？",
 	[]uint16{
 		12,
 		45,
@@ -3525,6 +3909,80 @@ var textsZhHans = i18n.NewTexts(""+
 		18,
 		12,
 		6,
+		6,
+		10,
+		26,
+		28,
+		21,
+		12,
+		45,
+		6,
+		9,
+		6,
+		6,
+		6,
+		45,
+		24,
+		12,
+		6,
+		15,
+		30,
+		12,
+		12,
+		24,
+		12,
+		12,
+		36,
+		12,
+		21,
+		12,
+		27,
+		6,
+		12,
+		12,
+		21,
+		15,
+		45,
+		6,
+		39,
+		12,
+		12,
+		9,
+		21,
+		9,
+		9,
+		33,
+		21,
+		6,
+		15,
+		12,
+		12,
+		48,
+		12,
+		9,
+		55,
+		6,
+		15,
+		6,
+		24,
+		66,
+		6,
+		33,
+		18,
+		12,
+		12,
+		18,
+		6,
+		18,
+		6,
+		6,
+		18,
+		12,
+		21,
+		12,
+		12,
+		6,
+		49,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -3880,6 +4338,27 @@ func Supply(lang string, t Translation) {
 	}
 	if t.DesktopPlayerEpisodeCount != nil {
 		s.DesktopPlayerEpisodeCount = t.DesktopPlayerEpisodeCount
+	}
+	if t.DesktopDanmakuFilters != nil {
+		s.DesktopDanmakuFilters = t.DesktopDanmakuFilters
+	}
+	if t.DesktopSeekPair != nil {
+		s.DesktopSeekPair = t.DesktopSeekPair
+	}
+	if t.DesktopSettingsPublishedRelease != nil {
+		s.DesktopSettingsPublishedRelease = t.DesktopSettingsPublishedRelease
+	}
+	if t.DesktopSettingsSourceCounts != nil {
+		s.DesktopSettingsSourceCounts = t.DesktopSettingsSourceCounts
+	}
+	if t.DesktopSettingsVersion != nil {
+		s.DesktopSettingsVersion = t.DesktopSettingsVersion
+	}
+	if t.DesktopSourceConnection != nil {
+		s.DesktopSourceConnection = t.DesktopSourceConnection
+	}
+	if t.DesktopSourceRemoveHint != nil {
+		s.DesktopSourceRemoveHint = t.DesktopSourceRemoveHint
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -10146,4 +10625,760 @@ func (msgs Messages) DesktopPlayerEpisodeCount(count string) string {
 			return "共 " + count + " 集"
 		}
 	}
+}
+
+// DesktopSettingsCancel says "Cancel"
+// in the language the app shows under cx.
+func DesktopSettingsCancel(cx *core.Scope) string { return For(cx).DesktopSettingsCancel() }
+
+// DesktopSettingsCancel is the package's DesktopSettingsCancel in the language of msgs.
+func (msgs Messages) DesktopSettingsCancel() string { return msgs.text(textDesktopSettingsCancel) }
+
+// DesktopBuiltinMPV says "Built-in mpv"
+// in the language the app shows under cx.
+func DesktopBuiltinMPV(cx *core.Scope) string { return For(cx).DesktopBuiltinMPV() }
+
+// DesktopBuiltinMPV is the package's DesktopBuiltinMPV in the language of msgs.
+func (msgs Messages) DesktopBuiltinMPV() string { return msgs.text(textDesktopBuiltinMPV) }
+
+// DesktopDanmakuAddFilter says "+ Add (supports regex)"
+// in the language the app shows under cx.
+func DesktopDanmakuAddFilter(cx *core.Scope) string { return For(cx).DesktopDanmakuAddFilter() }
+
+// DesktopDanmakuAddFilter is the package's DesktopDanmakuAddFilter in the language of msgs.
+func (msgs Messages) DesktopDanmakuAddFilter() string { return msgs.text(textDesktopDanmakuAddFilter) }
+
+// DesktopDanmakuAutoMatch says "Hash → title → manual"
+// in the language the app shows under cx.
+func DesktopDanmakuAutoMatch(cx *core.Scope) string { return For(cx).DesktopDanmakuAutoMatch() }
+
+// DesktopDanmakuAutoMatch is the package's DesktopDanmakuAutoMatch in the language of msgs.
+func (msgs Messages) DesktopDanmakuAutoMatch() string { return msgs.text(textDesktopDanmakuAutoMatch) }
+
+// DesktopDanmakuBahamut says "Bahamut Anime Crazy"
+// in the language the app shows under cx.
+func DesktopDanmakuBahamut(cx *core.Scope) string { return For(cx).DesktopDanmakuBahamut() }
+
+// DesktopDanmakuBahamut is the package's DesktopDanmakuBahamut in the language of msgs.
+func (msgs Messages) DesktopDanmakuBahamut() string { return msgs.text(textDesktopDanmakuBahamut) }
+
+// DesktopDanmakuBilibili says "Bilibili"
+// in the language the app shows under cx.
+func DesktopDanmakuBilibili(cx *core.Scope) string { return For(cx).DesktopDanmakuBilibili() }
+
+// DesktopDanmakuBilibili is the package's DesktopDanmakuBilibili in the language of msgs.
+func (msgs Messages) DesktopDanmakuBilibili() string { return msgs.text(textDesktopDanmakuBilibili) }
+
+// DesktopDanmakuCache says "Danmaku cache · 128 MB · 24 hr retention"
+// in the language the app shows under cx.
+func DesktopDanmakuCache(cx *core.Scope) string { return For(cx).DesktopDanmakuCache() }
+
+// DesktopDanmakuCache is the package's DesktopDanmakuCache in the language of msgs.
+func (msgs Messages) DesktopDanmakuCache() string { return msgs.text(textDesktopDanmakuCache) }
+
+// DesktopDanmakuConfigure says "Configure"
+// in the language the app shows under cx.
+func DesktopDanmakuConfigure(cx *core.Scope) string { return For(cx).DesktopDanmakuConfigure() }
+
+// DesktopDanmakuConfigure is the package's DesktopDanmakuConfigure in the language of msgs.
+func (msgs Messages) DesktopDanmakuConfigure() string { return msgs.text(textDesktopDanmakuConfigure) }
+
+// DesktopDanmakuConfigured says "Configured"
+// in the language the app shows under cx.
+func DesktopDanmakuConfigured(cx *core.Scope) string { return For(cx).DesktopDanmakuConfigured() }
+
+// DesktopDanmakuConfigured is the package's DesktopDanmakuConfigured in the language of msgs.
+func (msgs Messages) DesktopDanmakuConfigured() string {
+	return msgs.text(textDesktopDanmakuConfigured)
+}
+
+// DesktopDanmakuDisplay says "Display"
+// in the language the app shows under cx.
+func DesktopDanmakuDisplay(cx *core.Scope) string { return For(cx).DesktopDanmakuDisplay() }
+
+// DesktopDanmakuDisplay is the package's DesktopDanmakuDisplay in the language of msgs.
+func (msgs Messages) DesktopDanmakuDisplay() string { return msgs.text(textDesktopDanmakuDisplay) }
+
+// DesktopDanmakuFilters says "Block rules · {count}"
+// in the language the app shows under cx.
+func DesktopDanmakuFilters(cx *core.Scope, count string) string {
+	return For(cx).DesktopDanmakuFilters(count)
+}
+
+// DesktopDanmakuFilters is the package's DesktopDanmakuFilters in the language of msgs.
+func (msgs Messages) DesktopDanmakuFilters(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopDanmakuFilters(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopDanmakuFilters; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return "Block rules · " + msgs.arg(count)
+		case "zh-Hans":
+			return "屏蔽词 · " + count
+		}
+	}
+}
+
+// DesktopDanmakuFull says "Full"
+// in the language the app shows under cx.
+func DesktopDanmakuFull(cx *core.Scope) string { return For(cx).DesktopDanmakuFull() }
+
+// DesktopDanmakuFull is the package's DesktopDanmakuFull in the language of msgs.
+func (msgs Messages) DesktopDanmakuFull() string { return msgs.text(textDesktopDanmakuFull) }
+
+// DesktopDanmakuHalf says "Half"
+// in the language the app shows under cx.
+func DesktopDanmakuHalf(cx *core.Scope) string { return For(cx).DesktopDanmakuHalf() }
+
+// DesktopDanmakuHalf is the package's DesktopDanmakuHalf in the language of msgs.
+func (msgs Messages) DesktopDanmakuHalf() string { return msgs.text(textDesktopDanmakuHalf) }
+
+// DesktopDanmakuHint says "Display style, comment sources and filters"
+// in the language the app shows under cx.
+func DesktopDanmakuHint(cx *core.Scope) string { return For(cx).DesktopDanmakuHint() }
+
+// DesktopDanmakuHint is the package's DesktopDanmakuHint in the language of msgs.
+func (msgs Messages) DesktopDanmakuHint() string { return msgs.text(textDesktopDanmakuHint) }
+
+// DesktopDanmakuLocalFiles says "Local XML / JSON files"
+// in the language the app shows under cx.
+func DesktopDanmakuLocalFiles(cx *core.Scope) string { return For(cx).DesktopDanmakuLocalFiles() }
+
+// DesktopDanmakuLocalFiles is the package's DesktopDanmakuLocalFiles in the language of msgs.
+func (msgs Messages) DesktopDanmakuLocalFiles() string {
+	return msgs.text(textDesktopDanmakuLocalFiles)
+}
+
+// DesktopDanmakuManualMatch says "Manual matching"
+// in the language the app shows under cx.
+func DesktopDanmakuManualMatch(cx *core.Scope) string { return For(cx).DesktopDanmakuManualMatch() }
+
+// DesktopDanmakuManualMatch is the package's DesktopDanmakuManualMatch in the language of msgs.
+func (msgs Messages) DesktopDanmakuManualMatch() string {
+	return msgs.text(textDesktopDanmakuManualMatch)
+}
+
+// DesktopDanmakuPreview says "Preview"
+// in the language the app shows under cx.
+func DesktopDanmakuPreview(cx *core.Scope) string { return For(cx).DesktopDanmakuPreview() }
+
+// DesktopDanmakuPreview is the package's DesktopDanmakuPreview in the language of msgs.
+func (msgs Messages) DesktopDanmakuPreview() string { return msgs.text(textDesktopDanmakuPreview) }
+
+// DesktopDanmakuSampleActing says "Brilliant acting"
+// in the language the app shows under cx.
+func DesktopDanmakuSampleActing(cx *core.Scope) string { return For(cx).DesktopDanmakuSampleActing() }
+
+// DesktopDanmakuSampleActing is the package's DesktopDanmakuSampleActing in the language of msgs.
+func (msgs Messages) DesktopDanmakuSampleActing() string {
+	return msgs.text(textDesktopDanmakuSampleActing)
+}
+
+// DesktopDanmakuSampleDetails says "So much detail on a rewatch"
+// in the language the app shows under cx.
+func DesktopDanmakuSampleDetails(cx *core.Scope) string { return For(cx).DesktopDanmakuSampleDetails() }
+
+// DesktopDanmakuSampleDetails is the package's DesktopDanmakuSampleDetails in the language of msgs.
+func (msgs Messages) DesktopDanmakuSampleDetails() string {
+	return msgs.text(textDesktopDanmakuSampleDetails)
+}
+
+// DesktopDanmakuSampleLaugh says "Hahaha"
+// in the language the app shows under cx.
+func DesktopDanmakuSampleLaugh(cx *core.Scope) string { return For(cx).DesktopDanmakuSampleLaugh() }
+
+// DesktopDanmakuSampleLaugh is the package's DesktopDanmakuSampleLaugh in the language of msgs.
+func (msgs Messages) DesktopDanmakuSampleLaugh() string {
+	return msgs.text(textDesktopDanmakuSampleLaugh)
+}
+
+// DesktopDanmakuSampleScene says "Here it comes"
+// in the language the app shows under cx.
+func DesktopDanmakuSampleScene(cx *core.Scope) string { return For(cx).DesktopDanmakuSampleScene() }
+
+// DesktopDanmakuSampleScene is the package's DesktopDanmakuSampleScene in the language of msgs.
+func (msgs Messages) DesktopDanmakuSampleScene() string {
+	return msgs.text(textDesktopDanmakuSampleScene)
+}
+
+// DesktopDanmakuSampleScore says "The score is incredible here"
+// in the language the app shows under cx.
+func DesktopDanmakuSampleScore(cx *core.Scope) string { return For(cx).DesktopDanmakuSampleScore() }
+
+// DesktopDanmakuSampleScore is the package's DesktopDanmakuSampleScore in the language of msgs.
+func (msgs Messages) DesktopDanmakuSampleScore() string {
+	return msgs.text(textDesktopDanmakuSampleScore)
+}
+
+// DesktopDanmakuStrategy says "Matching strategy"
+// in the language the app shows under cx.
+func DesktopDanmakuStrategy(cx *core.Scope) string { return For(cx).DesktopDanmakuStrategy() }
+
+// DesktopDanmakuStrategy is the package's DesktopDanmakuStrategy in the language of msgs.
+func (msgs Messages) DesktopDanmakuStrategy() string { return msgs.text(textDesktopDanmakuStrategy) }
+
+// DesktopDefaultQuality says "Default quality"
+// in the language the app shows under cx.
+func DesktopDefaultQuality(cx *core.Scope) string { return For(cx).DesktopDefaultQuality() }
+
+// DesktopDefaultQuality is the package's DesktopDefaultQuality in the language of msgs.
+func (msgs Messages) DesktopDefaultQuality() string { return msgs.text(textDesktopDefaultQuality) }
+
+// DesktopRememberTracks says "Remember tracks per title"
+// in the language the app shows under cx.
+func DesktopRememberTracks(cx *core.Scope) string { return For(cx).DesktopRememberTracks() }
+
+// DesktopRememberTracks is the package's DesktopRememberTracks in the language of msgs.
+func (msgs Messages) DesktopRememberTracks() string { return msgs.text(textDesktopRememberTracks) }
+
+// DesktopSearchSettings says "Search settings"
+// in the language the app shows under cx.
+func DesktopSearchSettings(cx *core.Scope) string { return For(cx).DesktopSearchSettings() }
+
+// DesktopSearchSettings is the package's DesktopSearchSettings in the language of msgs.
+func (msgs Messages) DesktopSearchSettings() string { return msgs.text(textDesktopSearchSettings) }
+
+// DesktopSeekPair says "Back {back}s / forward {forward}s"
+// in the language the app shows under cx.
+func DesktopSeekPair(cx *core.Scope, back string, forward string) string {
+	return For(cx).DesktopSeekPair(back, forward)
+}
+
+// DesktopSeekPair is the package's DesktopSeekPair in the language of msgs.
+func (msgs Messages) DesktopSeekPair(back string, forward string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopSeekPair(back, forward))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopSeekPair; f != nil {
+			return f(back, forward)
+		}
+		switch lang {
+		case "", "en":
+			return "Back " + msgs.arg(back) + "s / forward " + msgs.arg(forward) + "s"
+		case "zh-Hans":
+			return back + " 秒 / " + forward + " 秒"
+		}
+	}
+}
+
+// DesktopSeekStep says "Seek interval"
+// in the language the app shows under cx.
+func DesktopSeekStep(cx *core.Scope) string { return For(cx).DesktopSeekStep() }
+
+// DesktopSeekStep is the package's DesktopSeekStep in the language of msgs.
+func (msgs Messages) DesktopSeekStep() string { return msgs.text(textDesktopSeekStep) }
+
+// DesktopSettingsAudioOutput says "Output device"
+// in the language the app shows under cx.
+func DesktopSettingsAudioOutput(cx *core.Scope) string { return For(cx).DesktopSettingsAudioOutput() }
+
+// DesktopSettingsAudioOutput is the package's DesktopSettingsAudioOutput in the language of msgs.
+func (msgs Messages) DesktopSettingsAudioOutput() string {
+	return msgs.text(textDesktopSettingsAudioOutput)
+}
+
+// DesktopSettingsAutoUpdate says "Download updates automatically"
+// in the language the app shows under cx.
+func DesktopSettingsAutoUpdate(cx *core.Scope) string { return For(cx).DesktopSettingsAutoUpdate() }
+
+// DesktopSettingsAutoUpdate is the package's DesktopSettingsAutoUpdate in the language of msgs.
+func (msgs Messages) DesktopSettingsAutoUpdate() string {
+	return msgs.text(textDesktopSettingsAutoUpdate)
+}
+
+// DesktopSettingsBasics says "Basics"
+// in the language the app shows under cx.
+func DesktopSettingsBasics(cx *core.Scope) string { return For(cx).DesktopSettingsBasics() }
+
+// DesktopSettingsBasics is the package's DesktopSettingsBasics in the language of msgs.
+func (msgs Messages) DesktopSettingsBasics() string { return msgs.text(textDesktopSettingsBasics) }
+
+// DesktopSettingsCheckUpdate says "Check for updates"
+// in the language the app shows under cx.
+func DesktopSettingsCheckUpdate(cx *core.Scope) string { return For(cx).DesktopSettingsCheckUpdate() }
+
+// DesktopSettingsCheckUpdate is the package's DesktopSettingsCheckUpdate in the language of msgs.
+func (msgs Messages) DesktopSettingsCheckUpdate() string {
+	return msgs.text(textDesktopSettingsCheckUpdate)
+}
+
+// DesktopSettingsCommon says "Frequently used"
+// in the language the app shows under cx.
+func DesktopSettingsCommon(cx *core.Scope) string { return For(cx).DesktopSettingsCommon() }
+
+// DesktopSettingsCommon is the package's DesktopSettingsCommon in the language of msgs.
+func (msgs Messages) DesktopSettingsCommon() string { return msgs.text(textDesktopSettingsCommon) }
+
+// DesktopSettingsCurrentRelease says "You have the current release."
+// in the language the app shows under cx.
+func DesktopSettingsCurrentRelease(cx *core.Scope) string {
+	return For(cx).DesktopSettingsCurrentRelease()
+}
+
+// DesktopSettingsCurrentRelease is the package's DesktopSettingsCurrentRelease in the language of msgs.
+func (msgs Messages) DesktopSettingsCurrentRelease() string {
+	return msgs.text(textDesktopSettingsCurrentRelease)
+}
+
+// DesktopSettingsDefaultSource says "Default media source"
+// in the language the app shows under cx.
+func DesktopSettingsDefaultSource(cx *core.Scope) string {
+	return For(cx).DesktopSettingsDefaultSource()
+}
+
+// DesktopSettingsDefaultSource is the package's DesktopSettingsDefaultSource in the language of msgs.
+func (msgs Messages) DesktopSettingsDefaultSource() string {
+	return msgs.text(textDesktopSettingsDefaultSource)
+}
+
+// DesktopSettingsDefaultSourceHint says "The default source for Home and the library"
+// in the language the app shows under cx.
+func DesktopSettingsDefaultSourceHint(cx *core.Scope) string {
+	return For(cx).DesktopSettingsDefaultSourceHint()
+}
+
+// DesktopSettingsDefaultSourceHint is the package's DesktopSettingsDefaultSourceHint in the language of msgs.
+func (msgs Messages) DesktopSettingsDefaultSourceHint() string {
+	return msgs.text(textDesktopSettingsDefaultSourceHint)
+}
+
+// DesktopSettingsGeneral says "General"
+// in the language the app shows under cx.
+func DesktopSettingsGeneral(cx *core.Scope) string { return For(cx).DesktopSettingsGeneral() }
+
+// DesktopSettingsGeneral is the package's DesktopSettingsGeneral in the language of msgs.
+func (msgs Messages) DesktopSettingsGeneral() string { return msgs.text(textDesktopSettingsGeneral) }
+
+// DesktopSettingsGeneralHint says "Language, appearance, startup and updates"
+// in the language the app shows under cx.
+func DesktopSettingsGeneralHint(cx *core.Scope) string { return For(cx).DesktopSettingsGeneralHint() }
+
+// DesktopSettingsGeneralHint is the package's DesktopSettingsGeneralHint in the language of msgs.
+func (msgs Messages) DesktopSettingsGeneralHint() string {
+	return msgs.text(textDesktopSettingsGeneralHint)
+}
+
+// DesktopSettingsLanguage says "Interface language"
+// in the language the app shows under cx.
+func DesktopSettingsLanguage(cx *core.Scope) string { return For(cx).DesktopSettingsLanguage() }
+
+// DesktopSettingsLanguage is the package's DesktopSettingsLanguage in the language of msgs.
+func (msgs Messages) DesktopSettingsLanguage() string { return msgs.text(textDesktopSettingsLanguage) }
+
+// DesktopSettingsLastPage says "Last page"
+// in the language the app shows under cx.
+func DesktopSettingsLastPage(cx *core.Scope) string { return For(cx).DesktopSettingsLastPage() }
+
+// DesktopSettingsLastPage is the package's DesktopSettingsLastPage in the language of msgs.
+func (msgs Messages) DesktopSettingsLastPage() string { return msgs.text(textDesktopSettingsLastPage) }
+
+// DesktopSettingsLibrary says "Library"
+// in the language the app shows under cx.
+func DesktopSettingsLibrary(cx *core.Scope) string { return For(cx).DesktopSettingsLibrary() }
+
+// DesktopSettingsLibrary is the package's DesktopSettingsLibrary in the language of msgs.
+func (msgs Messages) DesktopSettingsLibrary() string { return msgs.text(textDesktopSettingsLibrary) }
+
+// DesktopSettingsLogin says "Open at login"
+// in the language the app shows under cx.
+func DesktopSettingsLogin(cx *core.Scope) string { return For(cx).DesktopSettingsLogin() }
+
+// DesktopSettingsLogin is the package's DesktopSettingsLogin in the language of msgs.
+func (msgs Messages) DesktopSettingsLogin() string { return msgs.text(textDesktopSettingsLogin) }
+
+// DesktopSettingsMaximize says "Maximize"
+// in the language the app shows under cx.
+func DesktopSettingsMaximize(cx *core.Scope) string { return For(cx).DesktopSettingsMaximize() }
+
+// DesktopSettingsMaximize is the package's DesktopSettingsMaximize in the language of msgs.
+func (msgs Messages) DesktopSettingsMaximize() string { return msgs.text(textDesktopSettingsMaximize) }
+
+// DesktopSettingsMinimize says "Minimize"
+// in the language the app shows under cx.
+func DesktopSettingsMinimize(cx *core.Scope) string { return For(cx).DesktopSettingsMinimize() }
+
+// DesktopSettingsMinimize is the package's DesktopSettingsMinimize in the language of msgs.
+func (msgs Messages) DesktopSettingsMinimize() string { return msgs.text(textDesktopSettingsMinimize) }
+
+// DesktopSettingsNoRelease says "There are no published releases yet."
+// in the language the app shows under cx.
+func DesktopSettingsNoRelease(cx *core.Scope) string { return For(cx).DesktopSettingsNoRelease() }
+
+// DesktopSettingsNoRelease is the package's DesktopSettingsNoRelease in the language of msgs.
+func (msgs Messages) DesktopSettingsNoRelease() string {
+	return msgs.text(textDesktopSettingsNoRelease)
+}
+
+// DesktopSettingsNoResults says "No matching settings"
+// in the language the app shows under cx.
+func DesktopSettingsNoResults(cx *core.Scope) string { return For(cx).DesktopSettingsNoResults() }
+
+// DesktopSettingsNoResults is the package's DesktopSettingsNoResults in the language of msgs.
+func (msgs Messages) DesktopSettingsNoResults() string {
+	return msgs.text(textDesktopSettingsNoResults)
+}
+
+// DesktopSettingsOff says "Off"
+// in the language the app shows under cx.
+func DesktopSettingsOff(cx *core.Scope) string { return For(cx).DesktopSettingsOff() }
+
+// DesktopSettingsOff is the package's DesktopSettingsOff in the language of msgs.
+func (msgs Messages) DesktopSettingsOff() string { return msgs.text(textDesktopSettingsOff) }
+
+// DesktopSettingsOpenOnLaunch says "Page on launch"
+// in the language the app shows under cx.
+func DesktopSettingsOpenOnLaunch(cx *core.Scope) string { return For(cx).DesktopSettingsOpenOnLaunch() }
+
+// DesktopSettingsOpenOnLaunch is the package's DesktopSettingsOpenOnLaunch in the language of msgs.
+func (msgs Messages) DesktopSettingsOpenOnLaunch() string {
+	return msgs.text(textDesktopSettingsOpenOnLaunch)
+}
+
+// DesktopSettingsParental says "Parental controls"
+// in the language the app shows under cx.
+func DesktopSettingsParental(cx *core.Scope) string { return For(cx).DesktopSettingsParental() }
+
+// DesktopSettingsParental is the package's DesktopSettingsParental in the language of msgs.
+func (msgs Messages) DesktopSettingsParental() string { return msgs.text(textDesktopSettingsParental) }
+
+// DesktopSettingsPlaybackBehavior says "Playback behavior"
+// in the language the app shows under cx.
+func DesktopSettingsPlaybackBehavior(cx *core.Scope) string {
+	return For(cx).DesktopSettingsPlaybackBehavior()
+}
+
+// DesktopSettingsPlaybackBehavior is the package's DesktopSettingsPlaybackBehavior in the language of msgs.
+func (msgs Messages) DesktopSettingsPlaybackBehavior() string {
+	return msgs.text(textDesktopSettingsPlaybackBehavior)
+}
+
+// DesktopSettingsPlaybackHint says "Video, audio and playback behavior"
+// in the language the app shows under cx.
+func DesktopSettingsPlaybackHint(cx *core.Scope) string { return For(cx).DesktopSettingsPlaybackHint() }
+
+// DesktopSettingsPlaybackHint is the package's DesktopSettingsPlaybackHint in the language of msgs.
+func (msgs Messages) DesktopSettingsPlaybackHint() string {
+	return msgs.text(textDesktopSettingsPlaybackHint)
+}
+
+// DesktopSettingsPublishedRelease says "Published release {version}"
+// in the language the app shows under cx.
+func DesktopSettingsPublishedRelease(cx *core.Scope, version string) string {
+	return For(cx).DesktopSettingsPublishedRelease(version)
+}
+
+// DesktopSettingsPublishedRelease is the package's DesktopSettingsPublishedRelease in the language of msgs.
+func (msgs Messages) DesktopSettingsPublishedRelease(version string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopSettingsPublishedRelease(version))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopSettingsPublishedRelease; f != nil {
+			return f(version)
+		}
+		switch lang {
+		case "", "en":
+			return "Published release " + msgs.arg(version)
+		case "zh-Hans":
+			return "已发布版本 " + version
+		}
+	}
+}
+
+// DesktopSettingsReleasePage says "View releases"
+// in the language the app shows under cx.
+func DesktopSettingsReleasePage(cx *core.Scope) string { return For(cx).DesktopSettingsReleasePage() }
+
+// DesktopSettingsReleasePage is the package's DesktopSettingsReleasePage in the language of msgs.
+func (msgs Messages) DesktopSettingsReleasePage() string {
+	return msgs.text(textDesktopSettingsReleasePage)
+}
+
+// DesktopSettingsShortcuts says "Keyboard shortcuts"
+// in the language the app shows under cx.
+func DesktopSettingsShortcuts(cx *core.Scope) string { return For(cx).DesktopSettingsShortcuts() }
+
+// DesktopSettingsShortcuts is the package's DesktopSettingsShortcuts in the language of msgs.
+func (msgs Messages) DesktopSettingsShortcuts() string {
+	return msgs.text(textDesktopSettingsShortcuts)
+}
+
+// DesktopSettingsSourceCounts says "{total} sources · {online} online"
+// in the language the app shows under cx.
+func DesktopSettingsSourceCounts(cx *core.Scope, total string, online string) string {
+	return For(cx).DesktopSettingsSourceCounts(total, online)
+}
+
+// DesktopSettingsSourceCounts is the package's DesktopSettingsSourceCounts in the language of msgs.
+func (msgs Messages) DesktopSettingsSourceCounts(total string, online string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopSettingsSourceCounts(total, online))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopSettingsSourceCounts; f != nil {
+			return f(total, online)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(total) + " sources · " + msgs.arg(online) + " online"
+		case "zh-Hans":
+			return total + " 个媒体源 · " + online + " 在线"
+		}
+	}
+}
+
+// DesktopSettingsSourcesHint says "Connect Emby, Jellyfin, Flymoo or Plex servers"
+// in the language the app shows under cx.
+func DesktopSettingsSourcesHint(cx *core.Scope) string { return For(cx).DesktopSettingsSourcesHint() }
+
+// DesktopSettingsSourcesHint is the package's DesktopSettingsSourcesHint in the language of msgs.
+func (msgs Messages) DesktopSettingsSourcesHint() string {
+	return msgs.text(textDesktopSettingsSourcesHint)
+}
+
+// DesktopSettingsStartup says "Startup"
+// in the language the app shows under cx.
+func DesktopSettingsStartup(cx *core.Scope) string { return For(cx).DesktopSettingsStartup() }
+
+// DesktopSettingsStartup is the package's DesktopSettingsStartup in the language of msgs.
+func (msgs Messages) DesktopSettingsStartup() string { return msgs.text(textDesktopSettingsStartup) }
+
+// DesktopSettingsSync says "Sync"
+// in the language the app shows under cx.
+func DesktopSettingsSync(cx *core.Scope) string { return For(cx).DesktopSettingsSync() }
+
+// DesktopSettingsSync is the package's DesktopSettingsSync in the language of msgs.
+func (msgs Messages) DesktopSettingsSync() string { return msgs.text(textDesktopSettingsSync) }
+
+// DesktopSettingsTheme says "Theme"
+// in the language the app shows under cx.
+func DesktopSettingsTheme(cx *core.Scope) string { return For(cx).DesktopSettingsTheme() }
+
+// DesktopSettingsTheme is the package's DesktopSettingsTheme in the language of msgs.
+func (msgs Messages) DesktopSettingsTheme() string { return msgs.text(textDesktopSettingsTheme) }
+
+// DesktopSettingsTray says "Keep in the menu bar"
+// in the language the app shows under cx.
+func DesktopSettingsTray(cx *core.Scope) string { return For(cx).DesktopSettingsTray() }
+
+// DesktopSettingsTray is the package's DesktopSettingsTray in the language of msgs.
+func (msgs Messages) DesktopSettingsTray() string { return msgs.text(textDesktopSettingsTray) }
+
+// DesktopSettingsTrayHint says "Keep the app running after closing its window"
+// in the language the app shows under cx.
+func DesktopSettingsTrayHint(cx *core.Scope) string { return For(cx).DesktopSettingsTrayHint() }
+
+// DesktopSettingsTrayHint is the package's DesktopSettingsTrayHint in the language of msgs.
+func (msgs Messages) DesktopSettingsTrayHint() string { return msgs.text(textDesktopSettingsTrayHint) }
+
+// DesktopSettingsUpdate says "Updates"
+// in the language the app shows under cx.
+func DesktopSettingsUpdate(cx *core.Scope) string { return For(cx).DesktopSettingsUpdate() }
+
+// DesktopSettingsUpdate is the package's DesktopSettingsUpdate in the language of msgs.
+func (msgs Messages) DesktopSettingsUpdate() string { return msgs.text(textDesktopSettingsUpdate) }
+
+// DesktopSettingsUpdateError says "Couldn't check for updates. Try again."
+// in the language the app shows under cx.
+func DesktopSettingsUpdateError(cx *core.Scope) string { return For(cx).DesktopSettingsUpdateError() }
+
+// DesktopSettingsUpdateError is the package's DesktopSettingsUpdateError in the language of msgs.
+func (msgs Messages) DesktopSettingsUpdateError() string {
+	return msgs.text(textDesktopSettingsUpdateError)
+}
+
+// DesktopSettingsVersion says "Current version {version}"
+// in the language the app shows under cx.
+func DesktopSettingsVersion(cx *core.Scope, version string) string {
+	return For(cx).DesktopSettingsVersion(version)
+}
+
+// DesktopSettingsVersion is the package's DesktopSettingsVersion in the language of msgs.
+func (msgs Messages) DesktopSettingsVersion(version string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopSettingsVersion(version))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopSettingsVersion; f != nil {
+			return f(version)
+		}
+		switch lang {
+		case "", "en":
+			return "Current version " + msgs.arg(version)
+		case "zh-Hans":
+			return "当前版本 " + version
+		}
+	}
+}
+
+// DesktopSourceAutoRoute says "Switch routes automatically"
+// in the language the app shows under cx.
+func DesktopSourceAutoRoute(cx *core.Scope) string { return For(cx).DesktopSourceAutoRoute() }
+
+// DesktopSourceAutoRoute is the package's DesktopSourceAutoRoute in the language of msgs.
+func (msgs Messages) DesktopSourceAutoRoute() string { return msgs.text(textDesktopSourceAutoRoute) }
+
+// DesktopSourceChangeUser says "Switch user"
+// in the language the app shows under cx.
+func DesktopSourceChangeUser(cx *core.Scope) string { return For(cx).DesktopSourceChangeUser() }
+
+// DesktopSourceChangeUser is the package's DesktopSourceChangeUser in the language of msgs.
+func (msgs Messages) DesktopSourceChangeUser() string { return msgs.text(textDesktopSourceChangeUser) }
+
+// DesktopSourceConnection says "{source} · Connection and sync"
+// in the language the app shows under cx.
+func DesktopSourceConnection(cx *core.Scope, source string) string {
+	return For(cx).DesktopSourceConnection(source)
+}
+
+// DesktopSourceConnection is the package's DesktopSourceConnection in the language of msgs.
+func (msgs Messages) DesktopSourceConnection(source string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopSourceConnection(source))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopSourceConnection; f != nil {
+			return f(source)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(source) + " · Connection and sync"
+		case "zh-Hans":
+			return source + " · 连接与同步"
+		}
+	}
+}
+
+// DesktopSourceRemote says "Remote address"
+// in the language the app shows under cx.
+func DesktopSourceRemote(cx *core.Scope) string { return For(cx).DesktopSourceRemote() }
+
+// DesktopSourceRemote is the package's DesktopSourceRemote in the language of msgs.
+func (msgs Messages) DesktopSourceRemote() string { return msgs.text(textDesktopSourceRemote) }
+
+// DesktopSourceRemoteBitrate says "Remote bitrate limit"
+// in the language the app shows under cx.
+func DesktopSourceRemoteBitrate(cx *core.Scope) string { return For(cx).DesktopSourceRemoteBitrate() }
+
+// DesktopSourceRemoteBitrate is the package's DesktopSourceRemoteBitrate in the language of msgs.
+func (msgs Messages) DesktopSourceRemoteBitrate() string {
+	return msgs.text(textDesktopSourceRemoteBitrate)
+}
+
+// DesktopSourceRemoveHint says "Remove {source} and its saved sign-in from this device?"
+// in the language the app shows under cx.
+func DesktopSourceRemoveHint(cx *core.Scope, source string) string {
+	return For(cx).DesktopSourceRemoveHint(source)
+}
+
+// DesktopSourceRemoveHint is the package's DesktopSourceRemoveHint in the language of msgs.
+func (msgs Messages) DesktopSourceRemoveHint(source string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopSourceRemoveHint(source))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopSourceRemoveHint; f != nil {
+			return f(source)
+		}
+		switch lang {
+		case "", "en":
+			return "Remove " + msgs.arg(source) + " and its saved sign-in from this device?"
+		case "zh-Hans":
+			return "从此设备移除 " + source + " 及其登录信息？"
+		}
+	}
+}
+
+// DesktopSourceStatus says "Status"
+// in the language the app shows under cx.
+func DesktopSourceStatus(cx *core.Scope) string { return For(cx).DesktopSourceStatus() }
+
+// DesktopSourceStatus is the package's DesktopSourceStatus in the language of msgs.
+func (msgs Messages) DesktopSourceStatus() string { return msgs.text(textDesktopSourceStatus) }
+
+// DesktopSourceSyncProgress says "Sync playback progress"
+// in the language the app shows under cx.
+func DesktopSourceSyncProgress(cx *core.Scope) string { return For(cx).DesktopSourceSyncProgress() }
+
+// DesktopSourceSyncProgress is the package's DesktopSourceSyncProgress in the language of msgs.
+func (msgs Messages) DesktopSourceSyncProgress() string {
+	return msgs.text(textDesktopSourceSyncProgress)
+}
+
+// DesktopSourceType says "Type"
+// in the language the app shows under cx.
+func DesktopSourceType(cx *core.Scope) string { return For(cx).DesktopSourceType() }
+
+// DesktopSourceType is the package's DesktopSourceType in the language of msgs.
+func (msgs Messages) DesktopSourceType() string { return msgs.text(textDesktopSourceType) }
+
+// DesktopSourceUser says "User"
+// in the language the app shows under cx.
+func DesktopSourceUser(cx *core.Scope) string { return For(cx).DesktopSourceUser() }
+
+// DesktopSourceUser is the package's DesktopSourceUser in the language of msgs.
+func (msgs Messages) DesktopSourceUser() string { return msgs.text(textDesktopSourceUser) }
+
+// DesktopSourceVisibleLibraries says "Visible libraries"
+// in the language the app shows under cx.
+func DesktopSourceVisibleLibraries(cx *core.Scope) string {
+	return For(cx).DesktopSourceVisibleLibraries()
+}
+
+// DesktopSourceVisibleLibraries is the package's DesktopSourceVisibleLibraries in the language of msgs.
+func (msgs Messages) DesktopSourceVisibleLibraries() string {
+	return msgs.text(textDesktopSourceVisibleLibraries)
+}
+
+// DesktopSettingsClose says "Close settings"
+// in the language the app shows under cx.
+func DesktopSettingsClose(cx *core.Scope) string { return For(cx).DesktopSettingsClose() }
+
+// DesktopSettingsClose is the package's DesktopSettingsClose in the language of msgs.
+func (msgs Messages) DesktopSettingsClose() string { return msgs.text(textDesktopSettingsClose) }
+
+// DesktopSettingsMetadata says "Library and metadata"
+// in the language the app shows under cx.
+func DesktopSettingsMetadata(cx *core.Scope) string { return For(cx).DesktopSettingsMetadata() }
+
+// DesktopSettingsMetadata is the package's DesktopSettingsMetadata in the language of msgs.
+func (msgs Messages) DesktopSettingsMetadata() string { return msgs.text(textDesktopSettingsMetadata) }
+
+// DesktopSourceLocal says "Local address"
+// in the language the app shows under cx.
+func DesktopSourceLocal(cx *core.Scope) string { return For(cx).DesktopSourceLocal() }
+
+// DesktopSourceLocal is the package's DesktopSourceLocal in the language of msgs.
+func (msgs Messages) DesktopSourceLocal() string { return msgs.text(textDesktopSourceLocal) }
+
+// DesktopDanmakuEnabled says "Enable danmaku"
+// in the language the app shows under cx.
+func DesktopDanmakuEnabled(cx *core.Scope) string { return For(cx).DesktopDanmakuEnabled() }
+
+// DesktopDanmakuEnabled is the package's DesktopDanmakuEnabled in the language of msgs.
+func (msgs Messages) DesktopDanmakuEnabled() string { return msgs.text(textDesktopDanmakuEnabled) }
+
+// DesktopDanmakuClearCache says "Clear cache"
+// in the language the app shows under cx.
+func DesktopDanmakuClearCache(cx *core.Scope) string { return For(cx).DesktopDanmakuClearCache() }
+
+// DesktopDanmakuClearCache is the package's DesktopDanmakuClearCache in the language of msgs.
+func (msgs Messages) DesktopDanmakuClearCache() string {
+	return msgs.text(textDesktopDanmakuClearCache)
+}
+
+// DesktopDanmakuClearCacheHint says "Clear downloaded DandanPlay comments from this device?"
+// in the language the app shows under cx.
+func DesktopDanmakuClearCacheHint(cx *core.Scope) string {
+	return For(cx).DesktopDanmakuClearCacheHint()
+}
+
+// DesktopDanmakuClearCacheHint is the package's DesktopDanmakuClearCacheHint in the language of msgs.
+func (msgs Messages) DesktopDanmakuClearCacheHint() string {
+	return msgs.text(textDesktopDanmakuClearCacheHint)
 }

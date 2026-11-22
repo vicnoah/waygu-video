@@ -1,0 +1,35 @@
+# Desktop Settings review
+
+Scenra is on the left and the Linux GTK app is on the right. Light appears above dark. Each pair uses the same 1100 × 760 pt viewport. The application opens Settings as a separate window with the three title bar controls wired to the window. It uses a 224 pt sidebar and the selected section stays highlighted.
+
+## Overview
+
+The profile card and source count come from the signed-in Docker fixtures. The three common settings cards open the corresponding sections. The app displays its own version and saved playback and danmaku preferences. The design's Waygu account and device count depend on account sync, which is still pending. [Scenra overview](../../design/desktop-settings.scenra)
+
+![Desktop Settings overview in light and dark, Scenra and the GTK app](images/desktop-settings-overview.png)
+
+## General
+
+The basic, startup and update groups match the order and spacing of the design. Language and theme apply immediately. The app saves the default media source and can restore the last main page. Login startup uses the desktop platform API. Update checks look up the latest published GitHub release. The menu bar and automatic update controls are disabled. [Scenra General](../../design/views/desktop-settings-general.scenra)
+
+![Desktop General settings in light and dark, Scenra and the GTK app](images/desktop-settings-general.png)
+
+## Playback
+
+The page matches the video column and the stacked audio and behavior groups. Engine, default bitrate, picture scaling, seek steps and next-episode countdown are saved. Hardware decoding, refresh rate, HDR and tone mapping, image enhancement, audio output and processing, intro and credits handling, and per-title track memory still need their platform or player implementations. The picture scaling control currently occupies the image enhancement row. [Scenra Playback](../../design/views/desktop-settings-playback.scenra)
+
+![Desktop Playback settings in light and dark, Scenra and the GTK app](images/desktop-settings-playback.png)
+
+## Danmaku
+
+The preview shows a sampled instant from the app's danmaku scheduler over a placeholder. The four sliders, area selector and enable switch update the saved preferences and preview. DandanPlay credentials use the platform secret store and the connection label indicates when credentials are configured. Local XML and JSON comments are supported. Filter chips use the actual keywords and regular expressions, and cache clearing removes downloaded DandanPlay comment files. The current cache retains files for 24 hours with a 128 MB limit. Bilibili, Bahamut and ASS imports remain pending. [Scenra Danmaku](../../design/views/desktop-settings-danmaku.scenra)
+
+![Desktop Danmaku settings in light and dark, Scenra and the GTK app](images/desktop-settings-danmaku.png)
+
+## Media Sources
+
+The fixture rows are actual Emby, Jellyfin and Plex connections. The selected row switches the connection details and the visible-library checklist. Add and edit open the existing server setup flow and return to the Settings window. The library sync action refreshes the server's list and preserves existing visibility preferences. Remote address failover and remote bitrate controls are disabled. Playback progress continues to synchronize with the configured sources by default. [Scenra Media Sources](../../design/views/desktop-settings-sources.scenra)
+
+![Desktop Media Sources settings in light and dark, Scenra and the GTK app](images/desktop-settings-sources.png)
+
+`TestDesktopSettingsWindow` checks opening, closing and reopening the window, search, danmaku filters, saved appearance, language, seek and countdown choices, and returning from the media-source wizard. `TestDesktopSettingsRestore` checks startup and last-page persistence. `TestDockerDesktopSettingsReview` produces all ten captures, verifies the three online sources, and changes and refreshes a Jellyfin library's visibility. Native macOS and Windows window behavior, app account sync and parental controls have separate verification outstanding. [Reproduction commands](README.md)

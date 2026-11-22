@@ -11,8 +11,8 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [桌面/主窗口](../../design/desktop-main.scenra#L1) | light | `desktop · 1440 × 1500` | — | [Compared](desktop-home.md) |
 | [主窗口 · 深色](../../design/desktop-main.scenra#L134) | dark | `desktop · 1440 × 1500` | — | [Compared](desktop-home.md) |
 | [桌面/播放器](../../design/desktop-player.scenra#L1) | default | `desktop · 1440 × 810` | danmaku, episodes, info | [Compared](desktop-player.md) |
-| [桌面/设置窗口](../../design/desktop-settings.scenra#L1) | light | `desktop · 1100 × 760` | — | Pending |
-| [设置窗口 · 深色](../../design/desktop-settings.scenra#L135) | dark | `desktop · 1100 × 760` | — | Pending |
+| [桌面/设置窗口](../../design/desktop-settings.scenra#L1) | light | `desktop · 1100 × 760` | — | [Compared](desktop-settings.md) |
+| [设置窗口 · 深色](../../design/desktop-settings.scenra#L135) | dark | `desktop · 1100 × 760` | — | [Compared](desktop-settings.md) |
 | [手机/首页](../../design/home.scenra#L1) | light | `phone · auto × 1480` | — | [Compared](home.md) |
 | [首页 · 深色](../../design/home.scenra#L143) | dark | `phone · auto × 1480` | — | [Compared](home.md) |
 | [手机/媒体库](../../design/library.scenra#L1) | light | `phone · auto × 1100` | anime, docs, movies, shows | [Compared](phone-library.md) |
@@ -65,13 +65,13 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [电影库 · 深色](../../design/views/desktop-library.scenra#L137) | dark | `desktop-main#dark/content` | — | [Compared](desktop-library.md) |
 | [主窗口/电影详情](../../design/views/desktop-movie.scenra#L1) | light | `desktop-main#light/content` | — | [Compared](desktop-movie.md) |
 | [电影详情 · 深色](../../design/views/desktop-movie.scenra#L236) | dark | `desktop-main#dark/content` | — | [Compared](desktop-movie.md) |
-| [设置窗口/弹幕](../../design/views/desktop-settings-danmaku.scenra#L1) | light | `desktop-settings#light/page` | — | Pending |
-| [弹幕 · 深色](../../design/views/desktop-settings-danmaku.scenra#L104) | dark | `desktop-settings#dark/page` | — | Pending |
-| [设置窗口/通用](../../design/views/desktop-settings-general.scenra#L1) | light | `desktop-settings#light/page` | — | Pending |
-| [通用 · 深色](../../design/views/desktop-settings-general.scenra#L85) | dark | `desktop-settings#dark/page` | — | Pending |
-| [设置窗口/播放](../../design/views/desktop-settings-playback.scenra#L1) | light | `desktop-settings#light/page` | — | Pending |
-| [播放 · 深色](../../design/views/desktop-settings-playback.scenra#L85) | dark | `desktop-settings#dark/page` | — | Pending |
-| [设置窗口/媒体源](../../design/views/desktop-settings-sources.scenra#L1) | light | `desktop-settings#light/page` | — | Pending |
-| [媒体源 · 深色](../../design/views/desktop-settings-sources.scenra#L181) | dark | `desktop-settings#dark/page` | — | Pending |
+| [设置窗口/弹幕](../../design/views/desktop-settings-danmaku.scenra#L1) | light | `desktop-settings#light/page` | — | [Compared](desktop-settings.md) |
+| [弹幕 · 深色](../../design/views/desktop-settings-danmaku.scenra#L104) | dark | `desktop-settings#dark/page` | — | [Compared](desktop-settings.md) |
+| [设置窗口/通用](../../design/views/desktop-settings-general.scenra#L1) | light | `desktop-settings#light/page` | — | [Compared](desktop-settings.md) |
+| [通用 · 深色](../../design/views/desktop-settings-general.scenra#L85) | dark | `desktop-settings#dark/page` | — | [Compared](desktop-settings.md) |
+| [设置窗口/播放](../../design/views/desktop-settings-playback.scenra#L1) | light | `desktop-settings#light/page` | — | [Compared](desktop-settings.md) |
+| [播放 · 深色](../../design/views/desktop-settings-playback.scenra#L85) | dark | `desktop-settings#dark/page` | — | [Compared](desktop-settings.md) |
+| [设置窗口/媒体源](../../design/views/desktop-settings-sources.scenra#L1) | light | `desktop-settings#light/page` | — | [Compared](desktop-settings.md) |
+| [媒体源 · 深色](../../design/views/desktop-settings-sources.scenra#L181) | dark | `desktop-settings#dark/page` | — | [Compared](desktop-settings.md) |
 | [引导/欢迎](../../design/welcome.scenra#L1) | light | `phone` | — | [Compared](welcome.md) |
 | [欢迎 · 深色](../../design/welcome.scenra#L81) | dark | `phone` | — | [Compared](welcome.md) |

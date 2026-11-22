@@ -351,11 +351,16 @@ func sourceCardStyle(provider media.Provider) sourceCardAppearance {
 func (a *application) returnToSourceSettings() bool {
 	stack := a.routes.GetUntracked()
 	index := slices.IndexFunc(stack, func(entry route) bool {
-		return entry.screen == screenSourceSettings || entry.screen == screenTVSettings
+		return entry.screen == screenSourceSettings || entry.screen == screenTVSettings || entry.settingsFlow
 	})
 	if index < 0 {
 		return false
 	}
-	a.routes.Set(stack[:index+1])
+	if stack[index].settingsFlow {
+		a.routes.Set(stack[:index])
+		a.restoreDesktopSettings()
+	} else {
+		a.routes.Set(stack[:index+1])
+	}
 	return true
 }

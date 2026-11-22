@@ -430,6 +430,8 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			current: current, client: initial.client, stream: activeStream,
 			position: position, duration: duration, paused: paused, picture: picture,
 			rate: rate, volume: a.desktopPlayerVolume, canRate: canChangeRate.Get, seek: seek, toggle: toggle,
+			backStep: func() time.Duration { return time.Duration(a.desktopPrefs.GetUntracked().Back) * time.Second },
+			nextStep: func() time.Duration { return time.Duration(a.desktopPrefs.GetUntracked().Forward) * time.Second },
 			comments: comments, tracks: tracks, next: nextEpisode, qualityAvailable: quality != nil,
 			stats: func() (mpv.Stats, bool) {
 				decoder := desktop.Get()

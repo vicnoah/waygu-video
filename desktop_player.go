@@ -16,23 +16,24 @@ import (
 )
 
 type desktopPlayerControls struct {
-	current          route
-	client           media.Client
-	stream           func() media.Stream
-	position         *core.Signal[time.Duration]
-	duration         *core.Signal[time.Duration]
-	paused           *core.Signal[bool]
-	picture          *core.Signal[core.Size]
-	rate, volume     *core.Signal[float32]
-	canRate          func() bool
-	seek             func(time.Duration)
-	toggle           func()
-	comments         danmakuControls
-	tracks           trackControls
-	next             nextEpisodeControls
-	qualityAvailable bool
-	stats            func() (mpv.Stats, bool)
-	buffering        func() bool
+	current            route
+	client             media.Client
+	stream             func() media.Stream
+	position           *core.Signal[time.Duration]
+	duration           *core.Signal[time.Duration]
+	paused             *core.Signal[bool]
+	picture            *core.Signal[core.Size]
+	rate, volume       *core.Signal[float32]
+	canRate            func() bool
+	seek               func(time.Duration)
+	backStep, nextStep func() time.Duration
+	toggle             func()
+	comments           danmakuControls
+	tracks             trackControls
+	next               nextEpisodeControls
+	qualityAvailable   bool
+	stats              func() (mpv.Stats, bool)
+	buffering          func() bool
 }
 
 type desktopPlayerTab string
@@ -67,8 +68,8 @@ func (a *application) desktopPlayer(cx *core.Scope, p desktopPlayerControls, sce
 		a.back()
 	}
 	cx.OnKeyWith("space", keys, p.toggle)
-	cx.OnKeyWith("left", repeat, func() { p.seek(p.position.GetUntracked() - desktopPlayerSeekStep) })
-	cx.OnKeyWith("right", repeat, func() { p.seek(p.position.GetUntracked() + desktopPlayerSeekStep) })
+	cx.OnKeyWith("left", repeat, func() { p.seek(p.position.GetUntracked() - p.backStep()) })
+	cx.OnKeyWith("right", repeat, func() { p.seek(p.position.GetUntracked() + p.nextStep()) })
 	cx.OnKeyWith("up", repeat, func() { changeVolume(.05) })
 	cx.OnKeyWith("down", repeat, func() { changeVolume(-.05) })
 	cx.OnKeyWith("d", keys, p.comments.toggle)
@@ -107,8 +108,6 @@ func (a *application) desktopPlayer(cx *core.Scope, p desktopPlayerControls, sce
 	return core.View{Class: "relative flex-1 flex-row bg-zinc-950", TestID: "desktop-player",
 		Children: []core.Node{viewport, sidebar, p.tracks.dialog, p.comments.dialog}}
 }
-
-const desktopPlayerSeekStep = 10 * time.Second
 
 const desktopPlayerTopButton = "size-10 rounded-full border border-white/10 bg-white/15"
 
@@ -197,9 +196,9 @@ func (p desktopPlayerControls) transport(cx *core.Scope, showDanmaku func()) cor
 		core.View{Class: "shrink-0 flex-row items-center gap-4", Children: []core.Node{
 			play,
 			desktopPlayerButton(cx, "player-seek-back", locales.SeekBack(cx), lucide.RotateCcw(), "size-6", "size-5", nil,
-				func() { p.seek(p.position.GetUntracked() - desktopPlayerSeekStep) }),
+				func() { p.seek(p.position.GetUntracked() - p.backStep()) }),
 			desktopPlayerButton(cx, "player-seek-forward", locales.SeekForward(cx), lucide.RotateCw(), "size-6", "size-5", nil,
-				func() { p.seek(p.position.GetUntracked() + desktopPlayerSeekStep) }),
+				func() { p.seek(p.position.GetUntracked() + p.nextStep()) }),
 			desktopPlayerButton(cx, "desktop-player-next", locales.NextEpisode(cx), lucide.SkipForward(), "size-6", "size-5", p.next.unavailable, next),
 			core.View{Class: "flex-row items-center gap-2", Children: []core.Node{volume, volumeRail}},
 			core.View{Class: "flex-row items-center gap-1", Children: []core.Node{

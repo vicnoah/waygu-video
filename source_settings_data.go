@@ -63,7 +63,7 @@ func (a *application) checkSource(entry source, refresh bool) {
 	started := sourceCheck{connection: identity, checking: true, syncing: refresh}
 	a.setSourceCheck(entry.ID, started)
 	timeout := time.Duration(a.sourceTimeout.GetUntracked()) * time.Second
-	lifetime := a.scope.Context()
+	lifetime := a.lifetime
 	go func() {
 		ctx, cancel := context.WithTimeout(lifetime, timeout)
 		defer cancel()

@@ -4,8 +4,11 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
@@ -96,4 +99,45 @@ func pruneCommentCache(dir string) {
 			used += file.Size()
 		}
 	}
+}
+
+// ClearCachedComments removes files written by CachedComments.
+func ClearCachedComments(cacheDir string) error {
+	if cacheDir == "" {
+		return nil
+	}
+	dir := filepath.Join(cacheDir, "dandanplay")
+	info, err := os.Lstat(dir)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() {
+		return fs.ErrInvalid
+	}
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		return err
+	}
+	defer root.Close()
+	entries, err := fs.ReadDir(root.FS(), ".")
+	if err != nil {
+		return err
+	}
+	var failures []error
+	for _, entry := range entries {
+		hash, ok := strings.CutSuffix(entry.Name(), ".json.gz")
+		if !ok || len(hash) != 2*sha256.Size || !entry.Type().IsRegular() {
+			continue
+		}
+		if _, err := hex.DecodeString(hash); err != nil {
+			continue
+		}
+		if err := root.Remove(entry.Name()); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			failures = append(failures, err)
+		}
+	}
+	return errors.Join(failures...)
 }

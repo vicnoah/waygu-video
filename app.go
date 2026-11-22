@@ -59,6 +59,7 @@ type route struct {
 	match         *catalogMatch
 	seriesView    seriesViewState
 	pairLink      string
+	settingsFlow  bool
 }
 
 type source struct {
@@ -102,6 +103,9 @@ type application struct {
 	desktopCategory     *core.Signal[libraryCategory]
 	desktopCollapsed    *core.Signal[bool]
 	desktopPlayerVolume *core.Signal[float32]
+	desktopPrefs        *core.Signal[desktopPreferences]
+	desktopSettingsTab  *core.Signal[desktopSettingsPage]
+	desktopSettingsWin  *core.Window
 	desktopLibraryState *core.Signal[desktopLibraryState]
 	desktopCollections  *core.Signal[[]desktopCollection]
 	phoneSearch         phoneSearchState
@@ -196,6 +200,7 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 	a.desktopCollapsed = core.NewSignal(cx, false)
 	a.desktopPlayerVolume = core.NewSignal(cx, float32(0.75))
 	a.desktopLibraryState = core.NewSignal(cx, desktopLibraryState{mode: desktopGrid})
+	a.initDesktopPreferences(cx, first)
 	a.desktopCollections = core.NewSignalFunc(cx, readDesktopCollections(storage), nil)
 	a.phoneSearch = newPhoneSearchState(cx)
 	a.scheduleProgressReplay(time.Second)
@@ -268,6 +273,9 @@ func (a *application) back() {
 	stack := a.routes.GetUntracked()
 	if len(stack) > 1 {
 		a.routes.Set(stack[:len(stack)-1])
+		if stack[len(stack)-1].settingsFlow {
+			a.restoreDesktopSettings()
+		}
 	}
 }
 
@@ -341,4 +349,6 @@ func providerName(cx *core.Scope, provider media.Provider) string {
 	}
 }
 
-func main() { nsgo.Run(Root, nsgo.WindowSize(1440, 900)) }
+func runApplication(cx *core.Scope) { nsgo.SetMainView(cx, Root) }
+
+func main() { nsgo.Run(runApplication, nsgo.WindowSize(1440, 900)) }

@@ -128,12 +128,16 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 	}
 	open := func(tab int, kind libraryCategory) {
 		if wide && tab == 1 {
-			a.openDesktopLibrary(kind, "")
+			a.openDesktopLibrary(kind, a.desktopDefaultSource())
 			afterSelect()
 			return
 		}
 		cx.Batch(func() {
-			a.sourceFilter.Set("")
+			filter := ""
+			if wide && tab == 0 {
+				filter = a.desktopDefaultSource()
+			}
+			a.sourceFilter.Set(filter)
 			category.Set(kind)
 			if tab == 1 {
 				a.libraryView.Set(screenLibrary)
@@ -141,6 +145,14 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 			a.tab.Set(tab)
 			afterSelect()
 		})
+	}
+	openSettings := func() {
+		if wide {
+			a.openDesktopSettings(cx, desktopSettingsOverview)
+			return
+		}
+		a.tab.Set(3)
+		afterSelect()
 	}
 	var downloads core.Node
 	if a.downloads.available() {
@@ -200,8 +212,8 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 			}},
 			core.View{Class: "mx-3 gap-0.5 border-t border-zinc-900/8 pb-4 pt-3 dark:border-white/8", Children: []core.Node{
 				tabletSidebarLink(cx, "tab-settings", locales.Settings(cx), lucide.Settings, func() bool { return a.tab.Get() == 3 },
-					func() { a.tab.Set(3); afterSelect() }),
-				a.tabletSidebarProfile(cx, func() { a.tab.Set(3); afterSelect() }),
+					openSettings),
+				a.tabletSidebarProfile(cx, openSettings),
 			}},
 		},
 	}
