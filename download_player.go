@@ -24,7 +24,7 @@ func (a *application) downloadedMedia(entry downloadEntry, current source, platf
 	if current.ID != "" {
 		// Obtaining a configured client needs only local credentials. The
 		// completed file opens even if those credentials were removed.
-		client, _ = a.client(current)
+		client, _ = a.clientAt(current, current.Address)
 	}
 	address := path
 	if platform == core.OSAndroid {

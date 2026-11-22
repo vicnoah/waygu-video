@@ -87,7 +87,7 @@ func (a *application) detailPersonal(cx *core.Scope, current route, loaded *core
 			var client media.Client
 			var err error
 			if !local {
-				client, err = a.client(current.source)
+				client, err = a.client(ctx, current.source)
 			}
 			if !local && watch && !p.sendsFor(current.source.ID, account) {
 				local, err = true, nil

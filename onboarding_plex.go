@@ -121,6 +121,11 @@ func (a *application) plexServerImport(cx *core.Scope, current source, account p
 		if current.Name != "" {
 			form.Name = current.Name
 		}
+		if current.ServerID == link.Info.ID && current.RemoteAddress != form.Address {
+			form.RemoteAddress = current.RemoteAddress
+			form.RemoteDisabled = current.RemoteDisabled
+			form.RemoteBitrate = current.RemoteBitrate
+		}
 		return candidateSource{source: form, info: link.Info, session: link.Session, libraries: link.Libraries}, nil
 	})
 	return core.Dynamic(func(cx *core.Scope) core.Node {

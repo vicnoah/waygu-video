@@ -33,6 +33,16 @@ loginGroup: 登录
 useHTTPS: 使用 HTTPS
 scanServerAddress: 扫描服务器地址
 sourceName: 显示名称
+
+sourceAdvanced: 高级
+backupServerAddress: 备用外网地址
+backupAddressUnset: 未设置
+saveBackupAddress: 保存备用地址
+sourceDifferentServer: 两个地址必须指向同一台媒体服务器。
+sourceRemoteRoute: 外网
+sourceOnlineLocal: 在线 · 局域网
+sourceOnlineRemote: 在线 · 外网
+sourceAddresses: "{local} · 外网 {remote}"
 sourceNameShort: 名称
 username: 用户名
 password: 密码

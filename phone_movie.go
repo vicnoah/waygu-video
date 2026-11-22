@@ -169,7 +169,7 @@ func (a *application) movieFeatures(cx *core.Scope, current route, recommendatio
 		if current.downloadID != "" {
 			return nil, nil
 		}
-		client, err := a.client(current.source)
+		client, err := a.client(ctx, current.source)
 		if err != nil {
 			return nil, err
 		}

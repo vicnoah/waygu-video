@@ -89,7 +89,7 @@ func (a *application) loadSearchCredits(ctx context.Context, request catalogRequ
 }
 
 func (a *application) searchSourceCredits(ctx context.Context, source source, request catalogRequest) catalogResult {
-	client, err := a.client(source)
+	client, err := a.client(ctx, source)
 	if err != nil {
 		return catalogResult{failure: err}
 	}

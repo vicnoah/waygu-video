@@ -119,7 +119,7 @@ func (a *application) versionPicker(cx *core.Scope, current route, selected *cor
 
 func (a *application) versionResource(cx *core.Scope, current route) *core.Resource[[]media.Version] {
 	return core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) ([]media.Version, error) {
-		client, err := a.client(current.source)
+		client, err := a.client(ctx, current.source)
 		if err != nil {
 			return nil, err
 		}

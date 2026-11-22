@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/nsgo-dev/nsgo"
@@ -63,6 +64,7 @@ type route struct {
 	subtitleTrack string
 	downloadID    string
 	castOnOpen    bool
+	recovery      *playerRecovery
 	match         *catalogMatch
 	seriesView    seriesViewState
 	pairLink      string
@@ -74,6 +76,9 @@ type source struct {
 	ID                string
 	Provider          media.Provider
 	Address           string
+	RemoteAddress     string `json:",omitempty"`
+	RemoteDisabled    bool   `json:",omitempty"`
+	RemoteBitrate     int    `json:",omitempty"`
 	Name              string
 	ServerID          string
 	AccountID         string
@@ -129,6 +134,9 @@ type application struct {
 	sourceStatus        *core.Signal[map[string]homeSourceStatus]
 	sourceChecks        *core.Signal[map[string]sourceCheck]
 	sourceTimeout       *core.Signal[int]
+	sourceFailover      *core.Signal[bool]
+	routesEnabled       atomic.Bool
+	sourceCheckSerial   uint64
 	libraryPrefs        *core.Signal[libraryPreferences]
 	metadata            *metadata.Cache
 	pairedDevices       *core.Signal[[]pairedDevice]
@@ -206,6 +214,7 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 	autoNext, _ := storage.GetItem(autoNextKey)
 	mergeTitles, _ := storage.GetItem(mergeTitlesKey)
 	sourceTimeout, _ := storage.GetItem(sourceTimeoutKey)
+	routeFailover, _ := storage.GetItem(sourceFailoverKey)
 	bitrate, _ := strconv.Atoi(bitrateSetting)
 	if !slices.Contains(playbackBitrates, bitrate) {
 		bitrate = 0
@@ -247,6 +256,8 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 	a.subtitlePrefs = core.NewSignalFunc(cx, core.Untracked(cx, func() subtitlePreferences { return readSubtitlePreferences(storage) }), nil)
 	a.sourceChecks = core.NewSignalFunc(cx, map[string]sourceCheck{}, nil)
 	a.sourceTimeout = core.NewSignal(cx, readSourceTimeout(sourceTimeout))
+	a.sourceFailover = core.NewSignal(cx, routeFailover != "false")
+	a.routesEnabled.Store(routeFailover != "false")
 	a.phoneLibrary = core.NewSignal(cx, phoneLibraryState{})
 	a.desktopCategory = core.NewSignal(cx, libraryCategory(""))
 	a.desktopCollapsed = core.NewSignal(cx, false)
@@ -364,7 +375,7 @@ func (a *application) saveSources(sources []source) error {
 	return nil
 }
 
-func (a *application) client(s source) (media.Client, error) {
+func (a *application) clientAt(s source, address string) (media.Client, error) {
 	key := s.credentialKey()
 	value, exists := a.tokens.Load(key)
 	if !exists {
@@ -378,11 +389,13 @@ func (a *application) client(s source) (media.Client, error) {
 		value = token
 		a.tokens.Store(key, token)
 	}
-	return a.newMedia(s.Provider, s.Address, a.device, media.Session{UserID: s.AccountID, Token: value.(string)})
+	return a.newMedia(s.Provider, address, a.device, media.Session{UserID: s.AccountID, Token: value.(string)})
 }
 
 func errorText(cx *core.Scope, err error) string {
 	switch {
+	case errors.Is(err, errDifferentServer):
+		return locales.SourceDifferentServer(cx)
 	case errors.Is(err, media.ErrInvalidAddress):
 		return locales.InvalidAddress(cx)
 	case errors.Is(err, media.ErrAuthentication):

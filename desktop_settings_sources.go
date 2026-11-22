@@ -63,6 +63,8 @@ func (a *application) desktopSettingsSources(cx *core.Scope) core.Node {
 				return locales.SettingsSourceNeedsLogin(cx), "bg-amber-500", "text-amber-600 dark:text-amber-400"
 			case check.err != nil:
 				return locales.SettingsSourceOffline(cx), "bg-zinc-400", setupMuted
+			case check.endpoint.remote:
+				return locales.SourceRemoteRoute(cx), "bg-amber-500", "text-amber-600 dark:text-amber-400"
 			default:
 				return locales.SettingsSourceOnline(cx), "bg-emerald-500", "text-emerald-600 dark:text-emerald-400"
 			}
@@ -163,14 +165,23 @@ func (a *application) desktopSourceDetails(cx *core.Scope, entry source, failure
 		}}
 	}
 	automatic, progress := locales.DesktopSourceAutoRoute(cx), locales.DesktopSourceSyncProgress(cx)
+	var setAutomatic func(bool)
+	if entry.RemoteAddress != "" && entry.ServerID != "" {
+		setAutomatic = func(value bool) {
+			failure.Set(a.updateSourceRouting(entry, func(saved *source) { saved.RemoteDisabled = !value }))
+		}
+	}
 	connections := core.View{Class: "min-w-0 flex-1 gap-px overflow-hidden rounded-xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5 dark:border-white/8 dark:bg-white/7", Children: []core.Node{
 		inline(locales.DesktopSourceLocal(cx), strings.TrimSuffix(entry.Address, "/"), nil),
-		inline(locales.DesktopSourceRemote(cx), locales.MetadataUnavailable(cx), nil),
-		desktopFormRowHeight(automatic, "h-10", desktopFormToggle(cx, "", automatic, func() bool { return false }, nil)),
+		inline(locales.DesktopSourceRemote(cx), cmp.Or(entry.RemoteAddress, locales.MetadataUnavailable(cx)), nil),
+		desktopFormRowHeight(automatic, "h-10", desktopFormToggle(cx, "desktop-source-auto-route", automatic, entry.automaticRoute, setAutomatic)),
 		inline(locales.DesktopSourceUser(cx), cmp.Or(entry.Username, locales.MetadataUnavailable(cx)),
 			desktopSettingsAction(cx, "desktop-source-user", locales.DesktopSourceChangeUser(cx), setupAccent, changeUser)),
 		desktopFormRowHeight(progress, "h-10", desktopFormToggle(cx, "", progress, func() bool { return true }, nil)),
-		desktopUnavailableChoice(cx, locales.DesktopSourceRemoteBitrate(cx)),
+		desktopFormRow(locales.DesktopSourceRemoteBitrate(cx), desktopFormSelect(cx, "desktop-source-remote-bitrate",
+			locales.DesktopSourceRemoteBitrate(cx), desktopBitrates(cx), func() int { return entry.RemoteBitrate }, func(value int) {
+				failure.Set(a.updateSourceRouting(entry, func(saved *source) { saved.RemoteBitrate = value }))
+			})),
 		core.Show{When: func() bool { return a.sourceChecks.Get()[entry.ID].saveError != nil }, Then: func(cx *core.Scope) core.Node {
 			return core.Text{Content: locales.LibrarySaveError(cx), Class: "px-4 py-2 text-xs text-rose-500"}
 		}},

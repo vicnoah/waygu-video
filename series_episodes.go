@@ -14,7 +14,7 @@ func (a *application) loadSeriesEpisodes(ctx context.Context, current route, tab
 	page := seriesEpisodePage{tab: tab}
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
-	client, err := a.client(current.source)
+	client, err := a.client(ctx, current.source)
 	if err != nil {
 		page.failure = err
 		return page
@@ -95,7 +95,7 @@ type seriesVersion struct {
 
 func (a *application) seriesVersion(ctx context.Context, source source, item media.Item, options media.PlaybackOptions) (seriesVersion, error) {
 	result := seriesVersion{itemID: item.ID}
-	client, err := a.client(source)
+	client, err := a.client(ctx, source)
 	if err != nil {
 		return result, err
 	}

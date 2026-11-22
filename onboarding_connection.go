@@ -62,6 +62,7 @@ func (a *application) connect(cx *core.Scope, current route) core.Node {
 func (a *application) connectionForm(cx *core.Scope, provider media.Provider, current source) core.Node {
 	host, servicePort, useHTTPS := splitServerAddress(current.Address)
 	address := core.NewSignal(cx, host)
+	remote := core.NewSignal(cx, current.RemoteAddress)
 	port := core.NewSignal(cx, servicePort)
 	https := core.NewSignal(cx, useHTTPS)
 	name := core.NewSignal(cx, current.Name)
@@ -89,8 +90,17 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			failure.Set(err)
 			return
 		}
-		form := source{ID: current.ID, Address: base.String(), Provider: provider,
+		alternate, err := backupAddress(remote.GetUntracked(), base.String())
+		if err != nil {
+			failure.Set(err)
+			return
+		}
+		form := source{ID: current.ID, Address: base.String(), Provider: provider, RemoteAddress: alternate,
+			RemoteDisabled: current.RemoteDisabled, RemoteBitrate: current.RemoteBitrate,
 			Name: strings.TrimSpace(name.GetUntracked()), Username: strings.TrimSpace(user.GetUntracked())}
+		if form.Address == current.Address {
+			form.ServerID = current.ServerID
+		}
 		input := media.Credentials{Username: form.Username, Password: password.GetUntracked()}
 		if plex {
 			input.Token, input.Password = input.Password, ""
@@ -236,9 +246,55 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			a.push(route{screen: screenPlexLink, source: current})
 		}))
 	}
+	remoteEntry := entry("server-remote-address", locales.BackupServerAddress(cx), locales.BackupAddressUnset(cx),
+		remote, core.KeyboardURL, 0)
+	remoteEntry.Class += " text-right"
+	remoteEntry.OnChange = func(value string) { remote.Set(value); clearResult() }
+	advancedRows := []core.Node{core.View{Class: setupRow, Children: []core.Node{
+		core.Text{Content: locales.BackupServerAddress(cx), Class: "w-32 shrink-0 text-[15px] " + setupTitle}, remoteEntry,
+	}}}
+	if current.ID != "" {
+		saveRemote := func() {
+			alternate, err := backupAddress(remote.GetUntracked(), current.Address)
+			if err != nil {
+				failure.Set(err)
+				return
+			}
+			clearResult()
+			if alternate == "" {
+				if err := a.updateSourceRouting(current, func(saved *source) { saved.RemoteAddress = "" }); err != nil {
+					failure.Set(err)
+				} else {
+					a.back()
+				}
+				return
+			}
+			busy.Set(true)
+			go func() {
+				_, err := a.verifySourceAddress(viewContext, current.Provider, alternate, current.ServerID, 4*time.Second)
+				cx.Post(func() {
+					busy.Set(false)
+					if err != nil {
+						failure.Set(err)
+						return
+					}
+					if err := a.updateSourceRouting(current, func(saved *source) { saved.RemoteAddress = alternate }); err != nil {
+						failure.Set(err)
+						return
+					}
+					a.back()
+				})
+			}()
+		}
+		advancedRows = append(advancedRows, core.View{Class: setupRow, Children: []core.Node{
+			ui.Button{Text: locales.SaveBackupAddress(cx), Variant: ui.ButtonGhost, TestID: "save-backup-address",
+				Disabled: func() bool { return disabled() || strings.TrimSpace(remote.Get()) == current.RemoteAddress }, OnPress: saveRemote},
+		}})
+	}
 	return core.View{Class: "gap-6", Children: []core.Node{
 		server,
 		setupGroup(locales.LoginGroup(cx), footer, loginRows...),
+		setupGroup(locales.SourceAdvanced(cx), "", advancedRows...),
 		core.Dynamic(func(cx *core.Scope) core.Node {
 			if err := failure.Get(); err != nil {
 				return core.View{Class: "mx-4", Children: []core.Node{notice(errorText(cx, err))}}

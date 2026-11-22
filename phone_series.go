@@ -49,7 +49,7 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 		return children
 	}, nil)
 	bookmarks := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) ([]media.Item, error) {
-		client, err := a.client(current.source)
+		client, err := a.client(ctx, current.source)
 		if err != nil {
 			return nil, err
 		}

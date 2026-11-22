@@ -177,7 +177,7 @@ func (a *application) detailResource(cx *core.Scope, current route) *core.Resour
 	}, func(ctx context.Context, query detailQuery, _ core.ResourceInfo) (detailResult, error) {
 		rules := query.rules
 		result := detailResult{item: current.item, canWatch: query.localOnly}
-		client, err := a.client(current.source)
+		client, err := a.client(ctx, current.source)
 		if err != nil {
 			result.failure = err
 			return result, nil

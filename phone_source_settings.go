@@ -106,7 +106,13 @@ func (a *application) phoneSourceSettings(cx *core.Scope) core.Node {
 						core.Text{ContentFunc: name, MaxLines: 1, Class: "min-w-0 shrink text-base font-semibold " + setupTitle},
 						core.Text{Content: variant.title(cx), Class: "shrink-0 rounded px-1.5 py-0.5 text-[10px] " + variant.tag},
 					}},
-					core.Text{ContentFunc: func() string { return strings.TrimSuffix(entry().Address, "/") },
+					core.Text{ContentFunc: func() string {
+						entry := entry()
+						if entry.RemoteAddress != "" {
+							return locales.SourceAddresses(cx, entry.Address, entry.RemoteAddress)
+						}
+						return strings.TrimSuffix(entry.Address, "/")
+					},
 						MaxLines: 1, Class: "text-xs " + setupMuted},
 				}},
 				grip,
@@ -120,6 +126,10 @@ func (a *application) phoneSourceSettings(cx *core.Scope) core.Node {
 					return locales.SettingsSourceNeedsLogin(cx)
 				case s.err != nil:
 					return locales.SettingsSourceOffline(cx)
+				case s.endpoint.remote:
+					return locales.SourceOnlineRemote(cx)
+				case entry().automaticRoute() && a.sourceFailover.Get():
+					return locales.SourceOnlineLocal(cx)
 				default:
 					return locales.SettingsSourceOnline(cx)
 				}
@@ -245,7 +255,7 @@ func (a *application) phoneSourceSettings(cx *core.Scope) core.Node {
 			(phoneSetting{locales.SettingsConnectOnLaunch(cx), "", "bg-emerald-500", lucide.Power}).
 				toggle(cx, "", func() bool { return true }, nil),
 			(phoneSetting{locales.SettingsConnectionFailover(cx), locales.SettingsConnectionFailoverDetail(cx), "bg-sky-500", lucide.Network}).
-				toggle(cx, "", func() bool { return false }, nil),
+				toggle(cx, "source-settings-failover", a.sourceFailover.Get, func(enabled bool) { failure.Set(a.setSourceFailover(enabled)) }),
 			phoneSettingChoice(cx, phoneSetting{locales.SettingsConnectionTimeout(cx), "", "bg-zinc-500", lucide.Timer},
 				"source-settings-timeout", timeouts, a.sourceTimeout.Get, func(value int) {
 					failure.Set(storeSettingValue(a.storage, sourceTimeoutKey, a.sourceTimeout, value, strconv.Itoa(value)))

@@ -33,6 +33,16 @@ loginGroup: Login
 useHTTPS: Use HTTPS
 scanServerAddress: Scan server address
 sourceName: Display name
+
+sourceAdvanced: Advanced
+backupServerAddress: Backup address
+backupAddressUnset: Not set
+saveBackupAddress: Save backup address
+sourceDifferentServer: Both addresses must identify the same media server.
+sourceRemoteRoute: Remote
+sourceOnlineLocal: Online · local
+sourceOnlineRemote: Online · remote
+sourceAddresses: "{local} · Remote {remote}"
 sourceNameShort: Name
 username: Username
 password: Password

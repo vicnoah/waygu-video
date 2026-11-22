@@ -23,10 +23,11 @@ import (
 )
 
 type playerMedia struct {
-	client media.Client
-	stream media.Stream
-	url    string
-	close  func()
+	endpoint sourceEndpoint
+	client   media.Client
+	stream   media.Stream
+	url      string
+	close    func()
 }
 
 func (a *application) player(cx *core.Scope, current route) core.Node {
@@ -53,11 +54,8 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	subtitlePrefs := a.subtitlePrefs.GetUntracked()
 	restrictions := core.Untracked(cx, a.parentalRules)
 	approved := a.parentalApprovals.GetUntracked()[copyKey{current.source.ID, current.item.ID}]
-	resource := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (playerMedia, error) {
-		if offline {
-			return a.downloadedMedia(download, current.source, platform)
-		}
-		client, err := a.client(current.source)
+	load := func(ctx context.Context, skip string) (playerMedia, error) {
+		client, endpoint, err := a.selectSourceClient(ctx, current.source, skip)
 		if err != nil {
 			return playerMedia{}, err
 		}
@@ -78,9 +76,11 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 				}
 			}
 		}
+		options := options
+		options.MaxBitrate = current.source.capBitrate(endpoint, options.MaxBitrate)
 		stream, err := openPlaybackVersion(ctx, client, current.item, options, remembered)
 		if err != nil {
-			return playerMedia{}, err
+			return playerMedia{endpoint: endpoint}, err
 		}
 		if options.AudioIndex == nil {
 			if index := preferredAudio(stream.Tracks, subtitlePrefs.Audio); index != nil {
@@ -92,7 +92,22 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 				}
 			}
 		}
-		return prepareVideo(ctx, client, stream, platform == core.OSAndroid)
+		active, err := prepareVideo(ctx, client, stream, platform == core.OSAndroid)
+		active.endpoint = endpoint
+		return active, err
+	}
+	resource := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (playerMedia, error) {
+		if offline {
+			return a.downloadedMedia(download, current.source, platform)
+		}
+		if current.recovery != nil {
+			return load(ctx, current.recovery.from)
+		}
+		active, err := load(ctx, "")
+		if err != nil && active.endpoint.address != "" && a.routesEnabled.Load() && current.source.automaticRoute() && playbackRouteError(err) && ctx.Err() == nil {
+			return load(ctx, active.endpoint.address)
+		}
+		return active, err
 	})
 	return core.View{Class: "flex-1 bg-black", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
 		core.Dynamic(func(cx *core.Scope) core.Node {
@@ -150,6 +165,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			position.Set(current.item.Position)
 		}
 	}
+	if current.recovery != nil {
+		position.Set(current.recovery.position)
+	}
 	duration := core.NewSignal(cx, initial.stream.Duration)
 	ended := core.NewSignal(cx, false)
 	sleepExpired := core.NewSignal(cx, false)
@@ -165,7 +183,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	sample := core.NewSignal(cx, videoSample{})
 	picture := core.NewSignal(cx, core.Size{})
 	status, _ := a.parental.GetUntracked().viewingLimit(cx.WallTime(), a.parentalUsage.GetUntracked())
-	paused := core.NewSignal(cx, status != parentalCanPlay || current.castOnOpen)
+	paused := core.NewSignal(cx, status != parentalCanPlay || current.castOnOpen || (current.recovery != nil && current.recovery.paused))
 	phoneVolume := core.NewSignal(cx, float32(1))
 	phoneBrightness := core.NewSignal(cx, float32(1))
 	prefs := a.playbackPrefs.GetUntracked()
@@ -331,7 +349,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	playerContext := cx.Context()
 	preferMPV := cx.Env().Desktop() && a.mpvPreferred.GetUntracked()
 	android := cx.Env().OS() == core.OSAndroid
-	bitrate := core.NewSignal(cx, a.bitrateLimit.GetUntracked())
+	bitrate := core.NewSignal(cx, current.source.capBitrate(initial.endpoint, a.bitrateLimit.GetUntracked()))
 	noServerSubtitles := -1
 	switchStream := func(options media.PlaybackOptions, failed *core.Signal[bool]) {
 		if switchingPlayback.GetUntracked() || projection.active() {
@@ -339,6 +357,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		}
 		options.SubtitleIndex = &noServerSubtitles
 		previous := medium.GetUntracked()
+		options.MaxBitrate = current.source.capBitrate(previous.endpoint, options.MaxBitrate)
 		switchingPlayback.Set(true)
 		failed.Set(false)
 		go func() {
@@ -348,6 +367,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			var next playerMedia
 			if err == nil {
 				next, err = prepareVideo(playerContext, previous.client, stream, android)
+				next.endpoint = previous.endpoint
 			}
 			cx.Post(func() {
 				switchingPlayback.Set(false)
@@ -483,7 +503,13 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 					buffering.Set(value)
 				}
 			},
-			OnError: func(error) { failure.Set(true) },
+			OnError: func(error) {
+				if !offline && !ended.GetUntracked() && !projection.active() &&
+					a.recoverPlayer(current, active, position.GetUntracked(), paused.GetUntracked()) {
+					return
+				}
+				failure.Set(true)
+			},
 			OnEnd: func() {
 				if projection.active() {
 					return

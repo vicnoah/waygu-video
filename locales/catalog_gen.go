@@ -45,6 +45,7 @@ func For(cx *core.Scope) Messages {
 var Parameters = map[string][]string{
 	"WelcomeMediaSourcesDetail":       {"flymoo"},
 	"AddDiscoveredSource":             {"name"},
+	"SourceAddresses":                 {"local", "remote"},
 	"Connected":                       {"name"},
 	"SignedInAs":                      {"name"},
 	"SourcesOnline":                   {"count"},
@@ -180,6 +181,7 @@ type Translation struct {
 	Texts                           map[string]string
 	WelcomeMediaSourcesDetail       func(flymoo string) string
 	AddDiscoveredSource             func(name string) string
+	SourceAddresses                 func(local string, remote string) string
 	Connected                       func(name string) string
 	SignedInAs                      func(name string) string
 	SourcesOnline                   func(count string) string
@@ -344,6 +346,14 @@ const (
 	textUseHTTPS
 	textScanServerAddress
 	textSourceName
+	textSourceAdvanced
+	textBackupServerAddress
+	textBackupAddressUnset
+	textSaveBackupAddress
+	textSourceDifferentServer
+	textSourceRemoteRoute
+	textSourceOnlineLocal
+	textSourceOnlineRemote
 	textSourceNameShort
 	textUsername
 	textPassword
@@ -1180,6 +1190,14 @@ var keyOfText = [numTexts]string{
 	"useHTTPS",
 	"scanServerAddress",
 	"sourceName",
+	"sourceAdvanced",
+	"backupServerAddress",
+	"backupAddressUnset",
+	"saveBackupAddress",
+	"sourceDifferentServer",
+	"sourceRemoteRoute",
+	"sourceOnlineLocal",
+	"sourceOnlineRemote",
 	"sourceNameShort",
 	"username",
 	"password",
@@ -2014,6 +2032,14 @@ var textsEn = i18n.NewTexts(""+
 	"Use HTTPS"+
 	"Scan server address"+
 	"Display name"+
+	"Advanced"+
+	"Backup address"+
+	"Not set"+
+	"Save backup address"+
+	"Both addresses must identify the same media server."+
+	"Remote"+
+	"Online · local"+
+	"Online · remote"+
 	"Name"+
 	"Username"+
 	"Password"+
@@ -2845,6 +2871,14 @@ var textsEn = i18n.NewTexts(""+
 		9,
 		19,
 		12,
+		8,
+		14,
+		7,
+		19,
+		51,
+		6,
+		15,
+		16,
 		4,
 		8,
 		8,
@@ -3679,6 +3713,14 @@ var textsZhHans = i18n.NewTexts(""+
 	"使用 HTTPS"+
 	"扫描服务器地址"+
 	"显示名称"+
+	"高级"+
+	"备用外网地址"+
+	"未设置"+
+	"保存备用地址"+
+	"两个地址必须指向同一台媒体服务器。"+
+	"外网"+
+	"在线 · 局域网"+
+	"在线 · 外网"+
 	"名称"+
 	"用户名"+
 	"密码"+
@@ -4510,6 +4552,14 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		21,
 		12,
+		6,
+		18,
+		9,
+		18,
+		51,
+		6,
+		19,
+		16,
 		6,
 		9,
 		6,
@@ -5369,6 +5419,9 @@ func Supply(lang string, t Translation) {
 	if t.AddDiscoveredSource != nil {
 		s.AddDiscoveredSource = t.AddDiscoveredSource
 	}
+	if t.SourceAddresses != nil {
+		s.SourceAddresses = t.SourceAddresses
+	}
 	if t.Connected != nil {
 		s.Connected = t.Connected
 	}
@@ -6049,6 +6102,86 @@ func SourceName(cx *core.Scope) string { return For(cx).SourceName() }
 
 // SourceName is the package's SourceName in the language of msgs.
 func (msgs Messages) SourceName() string { return msgs.text(textSourceName) }
+
+// SourceAdvanced says "Advanced"
+// in the language the app shows under cx.
+func SourceAdvanced(cx *core.Scope) string { return For(cx).SourceAdvanced() }
+
+// SourceAdvanced is the package's SourceAdvanced in the language of msgs.
+func (msgs Messages) SourceAdvanced() string { return msgs.text(textSourceAdvanced) }
+
+// BackupServerAddress says "Backup address"
+// in the language the app shows under cx.
+func BackupServerAddress(cx *core.Scope) string { return For(cx).BackupServerAddress() }
+
+// BackupServerAddress is the package's BackupServerAddress in the language of msgs.
+func (msgs Messages) BackupServerAddress() string { return msgs.text(textBackupServerAddress) }
+
+// BackupAddressUnset says "Not set"
+// in the language the app shows under cx.
+func BackupAddressUnset(cx *core.Scope) string { return For(cx).BackupAddressUnset() }
+
+// BackupAddressUnset is the package's BackupAddressUnset in the language of msgs.
+func (msgs Messages) BackupAddressUnset() string { return msgs.text(textBackupAddressUnset) }
+
+// SaveBackupAddress says "Save backup address"
+// in the language the app shows under cx.
+func SaveBackupAddress(cx *core.Scope) string { return For(cx).SaveBackupAddress() }
+
+// SaveBackupAddress is the package's SaveBackupAddress in the language of msgs.
+func (msgs Messages) SaveBackupAddress() string { return msgs.text(textSaveBackupAddress) }
+
+// SourceDifferentServer says "Both addresses must identify the same media server."
+// in the language the app shows under cx.
+func SourceDifferentServer(cx *core.Scope) string { return For(cx).SourceDifferentServer() }
+
+// SourceDifferentServer is the package's SourceDifferentServer in the language of msgs.
+func (msgs Messages) SourceDifferentServer() string { return msgs.text(textSourceDifferentServer) }
+
+// SourceRemoteRoute says "Remote"
+// in the language the app shows under cx.
+func SourceRemoteRoute(cx *core.Scope) string { return For(cx).SourceRemoteRoute() }
+
+// SourceRemoteRoute is the package's SourceRemoteRoute in the language of msgs.
+func (msgs Messages) SourceRemoteRoute() string { return msgs.text(textSourceRemoteRoute) }
+
+// SourceOnlineLocal says "Online · local"
+// in the language the app shows under cx.
+func SourceOnlineLocal(cx *core.Scope) string { return For(cx).SourceOnlineLocal() }
+
+// SourceOnlineLocal is the package's SourceOnlineLocal in the language of msgs.
+func (msgs Messages) SourceOnlineLocal() string { return msgs.text(textSourceOnlineLocal) }
+
+// SourceOnlineRemote says "Online · remote"
+// in the language the app shows under cx.
+func SourceOnlineRemote(cx *core.Scope) string { return For(cx).SourceOnlineRemote() }
+
+// SourceOnlineRemote is the package's SourceOnlineRemote in the language of msgs.
+func (msgs Messages) SourceOnlineRemote() string { return msgs.text(textSourceOnlineRemote) }
+
+// SourceAddresses says "{local} · Remote {remote}"
+// in the language the app shows under cx.
+func SourceAddresses(cx *core.Scope, local string, remote string) string {
+	return For(cx).SourceAddresses(local, remote)
+}
+
+// SourceAddresses is the package's SourceAddresses in the language of msgs.
+func (msgs Messages) SourceAddresses(local string, remote string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SourceAddresses(local, remote))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SourceAddresses; f != nil {
+			return f(local, remote)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(local) + " · Remote " + msgs.arg(remote)
+		case "zh-Hans":
+			return local + " · 外网 " + remote
+		}
+	}
+}
 
 // SourceNameShort says "Name"
 // in the language the app shows under cx.

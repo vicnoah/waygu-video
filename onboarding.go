@@ -143,7 +143,31 @@ func (a *application) connectServer(ctx context.Context, form source, input medi
 	if err != nil {
 		return candidateSource{}, err
 	}
-	info, err := guest.Probe(ctx)
+	address := form.Address
+	probe := ctx
+	stop := func() {}
+	if form.RemoteAddress != "" {
+		probe, stop = context.WithTimeout(ctx, 2*time.Second)
+	}
+	info, err := guest.Probe(probe)
+	stop()
+	if form.RemoteAddress != "" {
+		if err != nil {
+			if form.ServerID == "" || form.RemoteDisabled || !a.routesEnabled.Load() || ctx.Err() != nil {
+				return candidateSource{}, err
+			}
+			address = form.RemoteAddress
+			info, err = a.verifySourceAddress(ctx, form.Provider, address, form.ServerID, 3*time.Second)
+			if err == nil {
+				guest, err = a.newMedia(form.Provider, address, a.device, media.Session{})
+			}
+		} else {
+			_, err = a.verifySourceAddress(ctx, form.Provider, form.RemoteAddress, info.ID, 3*time.Second)
+		}
+		if err != nil {
+			return candidateSource{}, err
+		}
+	}
 	if err != nil && (method == probeConnection || form.Provider != media.Flymoo) {
 		return candidateSource{}, err
 	}
@@ -160,7 +184,7 @@ func (a *application) connectServer(ctx context.Context, form source, input medi
 	if err != nil {
 		return candidateSource{}, err
 	}
-	client, err := a.newMedia(form.Provider, form.Address, a.device, session)
+	client, err := a.newMedia(form.Provider, address, a.device, session)
 	if err != nil {
 		return candidateSource{}, err
 	}

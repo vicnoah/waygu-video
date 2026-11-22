@@ -198,7 +198,7 @@ func (q *downloadQueue) pump() {
 func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, current source, quota int64) {
 	var file downloads.File
 	var err error
-	client, err := q.app.client(current)
+	client, err := q.app.client(ctx, current)
 	if err == nil {
 		negotiation, cancel := context.WithTimeout(ctx, 25*time.Second)
 		stream, openErr := client.Playback(negotiation, entry.Item, entry.Version)

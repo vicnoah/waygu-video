@@ -163,7 +163,7 @@ func (a *application) relatedCopies(ctx context.Context, current route, sources 
 			// A catalog identity made ambiguous by conflicting metadata stays separate.
 			return []catalogCopy{anchor}
 		}
-		if client, err := a.client(anchor.source); err == nil {
+		if client, err := a.client(ctx, anchor.source); err == nil {
 			if item, err := client.Detail(ctx, anchor.item); err == nil {
 				ids = identityOf(item)
 				anchor.item = item
@@ -211,7 +211,7 @@ func (a *application) findCopiesOnSource(ctx context.Context, match *catalogMatc
 	if len(libraries) == 0 {
 		return nil
 	}
-	client, err := a.client(endpoint)
+	client, err := a.client(ctx, endpoint)
 	if err != nil {
 		return nil
 	}

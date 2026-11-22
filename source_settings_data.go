@@ -17,16 +17,19 @@ const sourceTimeoutKey = "source-timeout-v1"
 var sourceTimeouts = []int{5, 10, 20, 30, 60}
 
 type sourceConnection struct {
-	address, account, credential string
-	provider                     media.Provider
+	address, remote, server, account, credential string
+	remoteDisabled                               bool
+	provider                                     media.Provider
 }
 
 func (s source) connection() sourceConnection {
-	return sourceConnection{s.Address, s.AccountID, s.credentialKey(), s.Provider}
+	return sourceConnection{s.Address, s.RemoteAddress, s.ServerID, s.AccountID, s.credentialKey(), s.RemoteDisabled, s.Provider}
 }
 
 type sourceCheck struct {
 	connection sourceConnection
+	endpoint   sourceEndpoint
+	request    uint64
 	at         time.Time
 	checking   bool
 	syncing    bool
@@ -46,6 +49,7 @@ func readSourceTimeout(value string) int {
 
 func (a *application) watchSourceConnections(cx *core.Scope) {
 	cx.Effect(func() {
+		a.sourceFailover.Get()
 		for _, entry := range a.sources.Get() {
 			a.checkSource(entry, false)
 		}
@@ -66,7 +70,8 @@ func (a *application) checkSourceWithScan(entry source, refresh, scan bool) {
 			return
 		}
 	}
-	started := sourceCheck{connection: identity, checking: true, syncing: refresh}
+	a.sourceCheckSerial++
+	started := sourceCheck{connection: identity, request: a.sourceCheckSerial, checking: true, syncing: refresh}
 	if previous.connection == identity && !scan {
 		started.scanSent, started.scanError = previous.scanSent, previous.scanError
 	}
@@ -76,7 +81,7 @@ func (a *application) checkSourceWithScan(entry source, refresh, scan bool) {
 	go func() {
 		ctx, cancel := context.WithTimeout(lifetime, timeout)
 		defer cancel()
-		client, err := a.client(entry)
+		client, endpoint, err := a.selectSourceClient(ctx, entry, "")
 		var available []media.Library
 		scanSent, scanError := started.scanSent, started.scanError
 		if err == nil && scan {
@@ -95,10 +100,10 @@ func (a *application) checkSourceWithScan(entry source, refresh, scan bool) {
 			})
 			// An explicit refresh may supersede a pending background probe.
 			latest := a.sourceChecks.GetUntracked()[entry.ID]
-			if index < 0 || latest.connection != identity || latest.syncing != refresh || !latest.checking {
+			if index < 0 || latest.request != started.request || !latest.checking {
 				return
 			}
-			finished := sourceCheck{connection: identity, at: a.scope.Now(), err: err,
+			finished := sourceCheck{connection: identity, endpoint: endpoint, request: started.request, at: a.scope.Now(), err: err,
 				scanSent: scanSent, scanError: scanError}
 			if refresh && err == nil {
 				updated := slices.Clone(sources)

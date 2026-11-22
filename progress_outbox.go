@@ -304,7 +304,7 @@ func (a *application) replayProgress() {
 			}
 			client, known := clients[origin.ID]
 			if !known {
-				current, _ := a.client(origin)
+				current, _ := a.client(ctx, origin)
 				client, _ = current.(media.OfflineProgressClient)
 				clients[origin.ID] = client
 			}

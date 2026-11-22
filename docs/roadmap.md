@@ -4,9 +4,9 @@ The Scenra files in `design/` define the product. The current app connects to Em
 
 ## Media sources
 
-- Add LAN discovery and Flymoo FN Connect.
+- Emby and Jellyfin support LAN discovery by UDP. Add Flymoo LAN discovery and FN Connect.
 - Imported libraries support category, visibility, home visibility and per-source ordering. The phone source settings refresh the server’s library list. Refreshes keep visibility, categories and ordering for known libraries and hide new libraries until they are enabled.
-- All Sources combines movies and series with matching IMDb or TMDB IDs. Source order supplies the default copy. The media source settings let users reorder sources and turn matching off. Add multi-address failover and account recovery.
+- All Sources combines movies and series with matching IMDb or TMDB IDs. Source order supplies the default copy. The media source settings let users reorder sources and turn matching off. A configured backup address must report the saved server ID before the app uses the account. New requests prefer the local address and can fall back to the verified backup. A failed player can reopen the selected version on the other address at its last position. The desktop settings expose a separate remote bitrate limit. Verify network changes on devices, certificate trust settings, and account recovery. [Connection review](ui-review/source-login.md)
 - Verify Plex account authorization with a real account and a claimed server, including remote and relay connections. Extend Flymoo fixture coverage for artwork, authentication redirects and version-specific payloads.
 
 ## Playback and library

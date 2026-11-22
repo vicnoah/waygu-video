@@ -441,7 +441,7 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 	if len(libraries) == 0 {
 		return catalogResult{}
 	}
-	client, err := a.client(source)
+	client, err := a.client(ctx, source)
 	if err != nil {
 		result := catalogResult{failure: err}
 		if q.home {

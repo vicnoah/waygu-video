@@ -95,3 +95,16 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^(TestPhonePlaybackAndSubtitleSettingsReview|TestDockerPhoneUsesInferredPlaybackMarkers)$' \
   -screenshots .nsgo/ui-review/audio-markers
 ```
+
+
+## Media source routes
+
+Each route test starts two independent loopback gateways for a fixture container. The test reads the server identity and an MP4 byte range through the local gateway, takes that gateway offline, repeats the same requests through the backup, and restores the local route. Emby, Jellyfin and Plex also negotiate a transcode when the remote bitrate limit is lower than the original. [Emby public system info](https://dev.emby.media/reference/pluginapi/MediaBrowser.Model.System.PublicSystemInfo.html) · [Jellyfin public system info](https://typescript-sdk.jellyfin.org/interfaces/generated-client.PublicSystemInfo.html) · [Plex identity](https://developer.plex.tv/pms/)
+
+The mismatched-ID fixture verifies that neither the sign-in token nor an authenticated API request goes to the unrelated address. The headless phone test loads the fixture through the primary route, reports a decoder failure at seven seconds and checks the resumed seek on the backup. In GTK the primary gateway accepts metadata requests and returns HTTP 503 for the video. The native error reopens the clip on the backup and the playback clock advances. The desktop captures show the route and bitrate controls in both appearances.
+
+```sh
+GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 go tool nsgo test . -run 'SourceRoute|SourceFailover|UnverifiedBackup' -count=1
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^(TestDockerPhoneSourceFailover|TestDockerDesktopSourceRouteReview)$' -screenshots .nsgo/ui-review/source-routes
+```

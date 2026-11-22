@@ -218,7 +218,7 @@ func (a *application) manageLibraries(cx *core.Scope, current source) core.Node 
 		go func() {
 			ctx, cancel := context.WithTimeout(viewContext, timeout)
 			defer cancel()
-			client, err := a.client(current)
+			client, err := a.client(ctx, current)
 			var libraries []media.Library
 			if err == nil {
 				libraries, err = client.Libraries(ctx)

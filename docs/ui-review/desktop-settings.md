@@ -28,7 +28,7 @@ The preview shows a sampled instant from the app's danmaku scheduler over a plac
 
 ## Media Sources
 
-The fixture rows are actual Emby, Jellyfin and Plex connections. The selected row switches the connection details and the visible-library checklist. Add and edit open the existing server setup flow and return to the Settings window. The library sync action refreshes the server's list and preserves existing visibility preferences. Remote address failover and remote bitrate controls are disabled. Playback progress continues to synchronize with the configured sources by default. [Scenra Media Sources](../../design/views/desktop-settings-sources.scenra)
+The fixture rows are actual Emby, Jellyfin and Plex connections. The selected row switches the connection details and the visible-library checklist. Add and edit open the existing server setup flow and return to the Settings window. The library sync action refreshes the server's list and preserves existing visibility preferences. The connection card displays the configured local and backup addresses. It saves a per-source route switch and bitrate cap. The captures use Emby through its backup gateway and show the amber remote status. The router gives the local address priority. The desktop design also specifies choosing by measured latency, which remains pending. Playback progress continues to synchronize with the configured sources by default. [Scenra Media Sources](../../design/views/desktop-settings-sources.scenra) · [Router checks](../../integration/servers/TESTING.md#media-source-routes)
 
 ![Desktop Media Sources settings in light and dark, Scenra and the GTK app](images/desktop-settings-sources.png)
 
