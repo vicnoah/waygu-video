@@ -100,6 +100,7 @@ def setup_media_browser(provider, base):
         request(base, "/Library/Refresh", method="POST", headers=headers)
     user_id = user["User"]["Id"]
     wait_for_fixture_identity(base, user_id, headers)
+    wait_for_browser_chapters(base, user_id, headers)
     setup_browser_previews(provider, base, user_id, headers)
     print(f"{provider} {info['Version']}: configured fixture libraries")
 
@@ -177,6 +178,22 @@ def wait_for_fixture_identity(base, user_id, headers):
     wait_until_ready(movies_identified, timeout=120)
 
 
+def wait_for_browser_chapters(base, user_id, headers):
+    def chapters_indexed():
+        catalog = request(base, "/Items", headers=headers, params={
+            "UserId": user_id, "Recursive": "true", "IncludeItemTypes": "Movie",
+            "Fields": "Chapters", "SearchTerm": "Waygu Track Test",
+        })
+        for item in catalog["Items"]:
+            if item["Name"] == "Waygu Track Test" and any(
+                chapter.get("Name") == "Final approach" for chapter in (item.get("Chapters") or [])
+            ):
+                return True
+        return None
+
+    wait_until_ready(chapters_indexed, timeout=120)
+
+
 def scan_jellyfin_fixtures(base, user_id, headers):
     # Each per-library refresh can cancel the global scan during startup.
     # Start one scan after both folders exist and wait for its fixture titles.
@@ -234,18 +251,28 @@ def setup_plex(base):
 
 def setup_plex_previews(base, section_id):
     def fixture_part():
+        sections = request(base, "/library/sections")["MediaContainer"]["Directory"]
+        if any(section["key"] == section_id and section.get("refreshing") for section in sections):
+            return None
         catalog = request(base, f"/library/sections/{section_id}/all")["MediaContainer"]
         for movie in catalog.get("Metadata", []):
             if movie["title"] == "Waygu Track Test":
-                return movie["Media"][0]["Part"][0]["id"]
+                detail = request(base, f"/library/metadata/{movie['ratingKey']}", params={"includeChapters": 1})
+                entry = detail["MediaContainer"]["Metadata"][0]
+                if any(chapter.get("tag") == "Final approach" for chapter in (entry.get("Chapter") or [])):
+                    return movie["Media"][0]["Part"][0]["id"]
         return None
 
-    part = wait_until_ready(fixture_part)
-    address = base + f"/library/parts/{part}/indexes/sd/0"
-    if not indexed_preview(address):
+    part = wait_until_ready(fixture_part, timeout=120)
+    address = base + f"/library/parts/{part}/indexes/sd"
+
+    def previews_ready():
+        return indexed_preview(address + "/0") and indexed_preview(address + "/12000")
+
+    if not previews_ready():
         request(base, "/:/prefs", method="PUT", params={"GenerateBIFBehavior": "scheduled"})
         request(base, "/butler/GenerateMediaIndexFiles", method="POST")
-        wait_until_ready(lambda: indexed_preview(address), timeout=120)
+        wait_until_ready(previews_ready, timeout=120)
 
 
 def group_plex_versions(base, section_id):

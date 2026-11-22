@@ -135,6 +135,12 @@ if [ ! -s "$track_base.mp4" ]; then
         -t 24 -c:v libx264 -preset veryfast -pix_fmt yuv420p \
         -c:a aac -c:s mov_text -movflags +faststart "$track_base.mp4"
 fi
+if [ -z "$(ffprobe -v error -show_entries chapter=id -of csv=p=0 "$track_base.mp4")" ]; then
+    ffmpeg -nostdin -hide_banner -loglevel error -y -i "$track_base.mp4" \
+        -f ffmetadata -i track-chapters.ffmetadata -map 0 -map_chapters 1 \
+        -c copy -movflags +faststart "$track_base.chapters.mp4"
+    mv "$track_base.chapters.mp4" "$track_base.mp4"
+fi
 
 if [ ! -s "$tracks/fanart.jpg" ]; then
     ffmpeg -nostdin -hide_banner -loglevel error -y -ss 3 -i "$track_base.mp4" \

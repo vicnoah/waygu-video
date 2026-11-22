@@ -139,6 +139,7 @@ func prepareVideo(lifetime context.Context, client media.Client, stream media.St
 func (a *application) playerView(cx *core.Scope, current route, initial playerMedia, showTVHints func() bool) core.Node {
 	medium := core.NewSignalFunc(cx, initial, nil)
 	desktopLayout := core.Untracked(cx, func() bool { return appLayoutIdiom(cx) == core.IdiomDesktop })
+	phoneLayout := core.Untracked(cx, func() bool { return appLayoutIdiom(cx) == core.IdiomPhone })
 	ref := &core.Ref{}
 	seekVideo := ref.Seek
 	position := core.NewSignal(cx, time.Duration(0))
@@ -159,6 +160,8 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	picture := core.NewSignal(cx, core.Size{})
 	status, _ := a.parental.GetUntracked().viewingLimit(cx.WallTime(), a.parentalUsage.GetUntracked())
 	paused := core.NewSignal(cx, status != parentalCanPlay)
+	phoneVolume := core.NewSignal(cx, float32(1))
+	phoneBrightness := core.NewSignal(cx, float32(1))
 	prefs := a.playbackPrefs.GetUntracked()
 	fit := core.NewSignal(cx, prefs.resizeMode())
 	pip := core.NewSignal(cx, core.PictureInPictureState{})
@@ -349,6 +352,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		if desktopLayout {
 			video.VolumeFunc = a.desktopPlayerVolume.Get
 			video.MutedFunc = func() bool { return a.desktopPlayerVolume.Get() == 0 }
+		} else if phoneLayout {
+			video.VolumeFunc = phoneVolume.Get
+			video.MutedFunc = func() bool { return phoneVolume.Get() == 0 }
 		}
 		if preferMPV {
 			decoder := mpvVideo(cx, video)
@@ -460,7 +466,8 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			current: current, position: position, duration: duration, paused: paused,
 			canRate: canChangeRate, rate: rate, fit: fit, picture: picture, pip: pip,
 			seek: seek, toggle: toggle, back: a.back, startPiP: ref.StartPictureInPicture,
-			prefs: prefs, stream: activeStream, next: nextEpisode, comments: comments, tracks: tracks,
+			prefs: prefs, stream: activeStream, client: initial.client, next: nextEpisode, comments: comments, tracks: tracks,
+			volume: phoneVolume, brightness: phoneBrightness, playbackBlocked: blocked,
 		}).render(cx)
 	})
 	transportNotice := core.Show{When: func() bool { return buffering.Get() || failure.Get() }, Then: func(cx *core.Scope) core.Node {
@@ -492,8 +499,14 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		}, []core.Node{image, comments.overlay, tracks.captions, transportNotice, diagnostics})
 		return core.View{Class: "relative flex-1", Children: []core.Node{desktopPlayer, parentalOverlay}}
 	}
+	dimming := core.Show{When: func() bool { return phoneLandscape(cx) && phoneBrightness.Get() < 1 }, Then: func(*core.Scope) core.Node {
+		return core.View{TestID: "phone-player-dimming", Class: "absolute inset-0", PointerEvents: core.PointerEventsNone,
+			StyleFunc: func() core.Style {
+				return core.Style{Background: core.RGBA(0, 1-phoneBrightness.Get())}
+			}}
+	}}
 	return core.View{Class: "relative flex-1 overflow-hidden bg-black", Style: core.Style{FlexShrink: 1},
-		Children: []core.Node{image, comments.overlay, tracks.captions, chrome, transportNotice, diagnostics, tracks.dialog, comments.dialog, parentalOverlay}}
+		Children: []core.Node{image, dimming, comments.overlay, tracks.captions, chrome, transportNotice, diagnostics, tracks.dialog, comments.dialog, parentalOverlay}}
 }
 
 func playbackReports(client media.Client, watch *progressWatch) (func(media.PlaybackState), func(*media.PlaybackState)) {

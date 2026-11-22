@@ -114,6 +114,9 @@ var Parameters = map[string][]string{
 	"SettingsSourceRemoveConfirm":     {"name"},
 	"SettingsSourceUser":              {"name"},
 	"PhonePlayerSource":               {"name"},
+	"PhonePlayerChapterNumber":        {"number"},
+	"PhonePlayerBrightness":           {"level"},
+	"PhonePlayerVolume":               {"level"},
 	"PhonePlayerDanmakuLoaded":        {"count"},
 	"PhonePlayerDanmakuRegex":         {"rule"},
 	"PhonePlayerRemoveRule":           {"rule"},
@@ -242,6 +245,9 @@ type Translation struct {
 	SettingsSourceRemoveConfirm     func(name string) string
 	SettingsSourceUser              func(name string) string
 	PhonePlayerSource               func(name string) string
+	PhonePlayerChapterNumber        func(number string) string
+	PhonePlayerBrightness           func(level string) string
+	PhonePlayerVolume               func(level string) string
 	PhonePlayerDanmakuLoaded        func(count string) string
 	PhonePlayerDanmakuRegex         func(rule string) string
 	PhonePlayerRemoveRule           func(rule string) string
@@ -712,6 +718,7 @@ const (
 	textPhonePlayerControls
 	textPhonePlayerCast
 	textPhonePlayerInfo
+	textPhonePlayerChapters
 	textPhonePlayerLock
 	textPhonePlayerUnlock
 	textPhonePlayerDanmakuBadge
@@ -1522,6 +1529,7 @@ var keyOfText = [numTexts]string{
 	"phonePlayerControls",
 	"phonePlayerCast",
 	"phonePlayerInfo",
+	"phonePlayerChapters",
 	"phonePlayerLock",
 	"phonePlayerUnlock",
 	"phonePlayerDanmakuBadge",
@@ -2330,6 +2338,7 @@ var textsEn = i18n.NewTexts(""+
 	"Show or hide player controls"+
 	"Cast"+
 	"Playback information"+
+	"Chapters"+
 	"Lock controls"+
 	"Unlock controls"+
 	"D"+
@@ -3135,6 +3144,7 @@ var textsEn = i18n.NewTexts(""+
 		28,
 		4,
 		20,
+		8,
 		13,
 		15,
 		1,
@@ -3943,6 +3953,7 @@ var textsZhHans = i18n.NewTexts(""+
 	"显示或隐藏播放控件"+
 	"投屏"+
 	"播放信息"+
+	"跳转章节"+
 	"锁定控件"+
 	"解锁控件"+
 	"弹"+
@@ -4750,6 +4761,7 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		12,
 		12,
+		12,
 		3,
 		12,
 		13,
@@ -5405,6 +5417,15 @@ func Supply(lang string, t Translation) {
 	}
 	if t.PhonePlayerSource != nil {
 		s.PhonePlayerSource = t.PhonePlayerSource
+	}
+	if t.PhonePlayerChapterNumber != nil {
+		s.PhonePlayerChapterNumber = t.PhonePlayerChapterNumber
+	}
+	if t.PhonePlayerBrightness != nil {
+		s.PhonePlayerBrightness = t.PhonePlayerBrightness
+	}
+	if t.PhonePlayerVolume != nil {
+		s.PhonePlayerVolume = t.PhonePlayerVolume
 	}
 	if t.PhonePlayerDanmakuLoaded != nil {
 		s.PhonePlayerDanmakuLoaded = t.PhonePlayerDanmakuLoaded
@@ -10214,6 +10235,83 @@ func PhonePlayerInfo(cx *core.Scope) string { return For(cx).PhonePlayerInfo() }
 
 // PhonePlayerInfo is the package's PhonePlayerInfo in the language of msgs.
 func (msgs Messages) PhonePlayerInfo() string { return msgs.text(textPhonePlayerInfo) }
+
+// PhonePlayerChapters says "Chapters"
+// in the language the app shows under cx.
+func PhonePlayerChapters(cx *core.Scope) string { return For(cx).PhonePlayerChapters() }
+
+// PhonePlayerChapters is the package's PhonePlayerChapters in the language of msgs.
+func (msgs Messages) PhonePlayerChapters() string { return msgs.text(textPhonePlayerChapters) }
+
+// PhonePlayerChapterNumber says "Chapter {number}"
+// in the language the app shows under cx.
+func PhonePlayerChapterNumber(cx *core.Scope, number string) string {
+	return For(cx).PhonePlayerChapterNumber(number)
+}
+
+// PhonePlayerChapterNumber is the package's PhonePlayerChapterNumber in the language of msgs.
+func (msgs Messages) PhonePlayerChapterNumber(number string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhonePlayerChapterNumber(number))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhonePlayerChapterNumber; f != nil {
+			return f(number)
+		}
+		switch lang {
+		case "", "en":
+			return "Chapter " + msgs.arg(number)
+		case "zh-Hans":
+			return "第 " + number + " 章"
+		}
+	}
+}
+
+// PhonePlayerBrightness says "Player brightness {level}%"
+// in the language the app shows under cx.
+func PhonePlayerBrightness(cx *core.Scope, level string) string {
+	return For(cx).PhonePlayerBrightness(level)
+}
+
+// PhonePlayerBrightness is the package's PhonePlayerBrightness in the language of msgs.
+func (msgs Messages) PhonePlayerBrightness(level string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhonePlayerBrightness(level))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhonePlayerBrightness; f != nil {
+			return f(level)
+		}
+		switch lang {
+		case "", "en":
+			return "Player brightness " + msgs.arg(level) + "%"
+		case "zh-Hans":
+			return "画面亮度 " + level + "%"
+		}
+	}
+}
+
+// PhonePlayerVolume says "Player volume {level}%"
+// in the language the app shows under cx.
+func PhonePlayerVolume(cx *core.Scope, level string) string { return For(cx).PhonePlayerVolume(level) }
+
+// PhonePlayerVolume is the package's PhonePlayerVolume in the language of msgs.
+func (msgs Messages) PhonePlayerVolume(level string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhonePlayerVolume(level))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhonePlayerVolume; f != nil {
+			return f(level)
+		}
+		switch lang {
+		case "", "en":
+			return "Player volume " + msgs.arg(level) + "%"
+		case "zh-Hans":
+			return "播放音量 " + level + "%"
+		}
+	}
+}
 
 // PhonePlayerLock says "Lock controls"
 // in the language the app shows under cx.

@@ -7,7 +7,9 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -125,6 +127,7 @@ func TestDockerPhonePlayerDesignReview(t *testing.T) {
 		}
 	}
 	app.Press("id:toggle-play")
+	app.WaitFor("id:phone-player-chapter-ticks", 6*time.Second)
 	capture("player")
 	app.Press("id:phone-player-lock")
 	app.WaitForGone("id:player-tracks", time.Second)
@@ -194,9 +197,192 @@ func TestDockerPhonePlayerDesignReview(t *testing.T) {
 	app.WaitForGone("id:danmaku-sources-dialog", time.Second)
 	app.Press("id:phone-player-info")
 	app.WaitFor("id:phone-player-info-panel", time.Second)
-	app.Press("id:phone-player-info-close")
+	app.WaitFor("id:phone-player-chapter-2", time.Second)
+	capture("player-chapters")
+	app.Press("id:phone-player-chapter-2")
+	app.WaitUntil(time.Second, func() bool { return app.Find("id:player-position").Text == "00:00:13" })
 	app.Press("id:player-seek-forward")
 	app.WaitUntil(time.Second, func() bool { return app.Find("id:player-position").Text == "00:00:24" })
 	app.Press("id:close-player")
 	app.WaitFor("id:detail-play", time.Second)
+}
+
+func TestDockerPhonePlayerGesturesAndPreview(t *testing.T) {
+	if os.Getenv("WAYGU_TEST_SERVERS") != "1" {
+		t.Skip("requires the Docker media servers")
+	}
+	target := nsgotest.Target()
+	if target != "" && target != "linux" {
+		t.Skip("held pointer capture uses the Linux test host")
+	}
+	config, secrets := homeReviewSources(t)
+	_, movie := reviewFixtureItem(t, config, secrets, "jellyfin", "Waygu Track Test")
+	initialHeight := core.Points(800)
+	if target == "linux" {
+		initialHeight += 37
+	}
+	app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
+		shellIdiom.Provide(cx, core.IdiomPhone)
+		return Root(cx)
+	}, nsgotest.Size(390, initialHeight), nsgotest.Environment(core.Environment{Locale: "zh-Hans"}),
+		nsgotest.Storage(config), nsgotest.Secrets(secrets))
+	app.Press("id:tab-search")
+	app.Type("id:search-query", "Waygu Track Test")
+	app.Press("id:search-source-jellyfin")
+	app.WaitFor("id:title-jellyfin-"+movie.ID, 10*time.Second)
+	app.Press("id:title-jellyfin-" + movie.ID)
+	app.WaitFor("id:detail-play", 10*time.Second)
+	app.Press("id:detail-play")
+	app.Resize(844, 390)
+	const surface = "id:phone-player-surface"
+	const rail = "id:phone-player-position-rail"
+	const video = "id:video-player"
+	app.WaitFor(surface, 10*time.Second)
+	app.WaitFor(video, 10*time.Second)
+	if target == "" {
+		app.Report(nsgotest.Event{Kind: nsgotest.EventLoad, ID: app.FindMounted(video).ID,
+			Duration: 24 * time.Second, Size: core.Size{Width: 320, Height: 180}, RateChangeable: true})
+	}
+	app.WaitFor("id:phone-player-chapter-ticks", 6*time.Second)
+	if target == "linux" {
+		app.WaitUntil(10*time.Second, func() bool { return app.Find("id:player-position").Text != "00:00:00" })
+	}
+	app.Press("id:toggle-play")
+
+	left, right := core.Point{X: 190, Y: 110}, core.Point{X: 660, Y: 110}
+	down := core.Point{Y: 108}
+	app.DragAt(surface, left, down)
+	app.WaitFor("id:phone-player-brightness", time.Second)
+	app.WaitFor("id:phone-player-dimming", time.Second)
+	app.DragAt(surface, right, down)
+	app.WaitFor("id:phone-player-volume", time.Second)
+	if target == "" {
+		if volume := app.FindMounted(video).Video.Volume; volume < .71 || volume > .74 {
+			t.Fatalf("right drag video volume = %v", volume)
+		}
+	}
+
+	app.Press("id:phone-player-info")
+	app.Press("id:phone-player-chapter-1")
+	app.WaitUntil(time.Second, func() bool { return app.Find("id:player-position").Text == "00:00:04" })
+	app.DragAt(surface, left, core.Point{X: 24})
+	app.WaitUntil(time.Second, func() bool { return app.Find("id:player-position").Text == "00:00:10" })
+
+	timeline := app.Find(rail).Frame.Size.Width
+	start, middle := core.Point{X: timeline / 2, Y: 8}, core.Point{X: timeline * .63, Y: 8}
+	nativePointer := target == "linux" && os.Getenv("WAYGU_REVIEW_X11_POINTER") == "1"
+	switch {
+	case target == "":
+		finger := app.Touch(rail, start)
+		finger.Move(middle)
+		app.WaitFor("id:phone-player-seek-thumbnail", 6*time.Second)
+		app.WaitFor("id:phone-player-seek-time", time.Second)
+		finger.Lift()
+	case nativePointer:
+		phoneReviewPointer(t, app.Find(rail), start, middle, func() {
+			app.WaitFor("id:phone-player-seek-thumbnail", 6*time.Second)
+			app.WaitFor("id:phone-player-seek-time", time.Second)
+			app.Screenshot("player-seek-thumbnail")
+		})
+	default:
+		app.DragAt(rail, start, core.Point{X: middle.X - start.X})
+	}
+	app.WaitForGone("id:phone-player-seek-thumbnail", time.Second)
+	app.WaitUntil(time.Second, func() bool { return app.Find("id:player-position").Text == "00:00:15" })
+	if target == "" {
+		if seeks := app.FindMounted(video).Seeks; !slices.Contains(seeks, 4320*time.Millisecond) || !slices.Contains(seeks, 15*time.Second) {
+			t.Fatalf("decoder did not receive chapter and timeline seeks: %v", seeks)
+		}
+		finger := app.Touch(rail, start)
+		finger.Move(core.Point{X: timeline * .8, Y: 8})
+		app.WaitFor("id:phone-player-seek-time", time.Second)
+		finger.Cancel()
+		app.WaitForGone("id:phone-player-seek-time", time.Second)
+		if app.Find("id:player-position").Text != "00:00:15" {
+			t.Fatal("cancelled preview moved playback")
+		}
+	}
+
+	app.Press("id:phone-player-lock")
+	app.DragAt(surface, right, down)
+	app.WaitForGone("id:phone-player-volume", time.Second)
+	app.Press("id:phone-player-unlock")
+	app.PressAt(surface, left)
+	app.WaitForGone("id:toggle-play", time.Second)
+	app.PressAt(surface, left)
+	app.WaitFor("id:toggle-play", time.Second)
+	if target == "" && app.FindMounted(video).Video.Paused {
+		t.Fatal("double tap did not resume playback")
+	}
+	if rateAvailable := app.Enabled("id:phone-player-rate"); rateAvailable {
+		app.Press("id:phone-player-rate")
+		app.WaitFor("id:phone-player-rate >> text:1.25x", time.Second)
+		if target == "" {
+			finger := app.Touch(surface, left)
+			app.Advance(550 * time.Millisecond)
+			app.WaitFor("id:phone-player-boost", time.Second)
+			if rate := app.FindMounted(video).Video.Rate; rate != 2 {
+				t.Fatalf("held playback rate = %v", rate)
+			}
+			finger.Cancel()
+		} else if nativePointer {
+			phoneReviewPointer(t, app.Find(surface), left, left, func() {
+				app.Advance(550 * time.Millisecond)
+				app.WaitFor("id:phone-player-boost", time.Second)
+				app.Screenshot("player-hold-speed")
+			})
+		} else {
+			app.PressAt(surface, left)
+			app.WaitForGone("id:toggle-play", time.Second)
+			app.LongPress(surface)
+			app.PressAt(surface, left)
+		}
+		app.WaitForGone("id:phone-player-boost", time.Second)
+		app.WaitFor("id:phone-player-rate >> text:1.25x", time.Second)
+		if target == "" {
+			if rate := app.FindMounted(video).Video.Rate; rate != 1.25 {
+				t.Fatalf("restored playback rate = %v", rate)
+			}
+		}
+	} else if target == "" {
+		t.Fatal("fixture reported rate control but the action is disabled")
+	}
+	app.Press("id:close-player")
+	app.WaitFor("id:detail-play", time.Second)
+}
+
+// The GTK test host sends a complete drag at once. X11 input lets the
+// capture observe the running player while its pointer is still down.
+func phoneReviewPointer(t *testing.T, view *nsgotest.View, from, to core.Point, during func()) {
+	t.Helper()
+	xdotool := func(args ...string) string {
+		t.Helper()
+		output, err := exec.CommandContext(t.Context(), "xdotool", args...).CombinedOutput()
+		if err != nil {
+			t.Fatalf("xdotool %v: %v: %s", args, err, output)
+		}
+		return strings.TrimSpace(string(output))
+	}
+	windows := strings.Fields(xdotool("search", "--onlyvisible", "--pid", strconv.Itoa(os.Getpid())))
+	if len(windows) == 0 {
+		t.Fatal("the GTK test window is not visible on X11")
+	}
+	window := windows[len(windows)-1]
+	for node := view; node != nil; node = node.Parent {
+		from.X += node.Frame.Origin.X
+		from.Y += node.Frame.Origin.Y
+		to.X += node.Frame.Origin.X
+		to.Y += node.Frame.Origin.Y
+	}
+	move := func(point core.Point) {
+		xdotool("mousemove", "--window", window, strconv.Itoa(int(point.X)), strconv.Itoa(int(point.Y)))
+	}
+	xdotool("windowfocus", "--sync", window)
+	move(from)
+	xdotool("mousedown", "1")
+	defer xdotool("mouseup", "1")
+	if to != from {
+		move(to)
+	}
+	during()
 }

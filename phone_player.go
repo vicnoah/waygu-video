@@ -25,8 +25,11 @@ type phonePlayerControls struct {
 	pip                    *core.Signal[core.PictureInPictureState]
 	seek                   func(time.Duration)
 	toggle, back, startPiP func()
+	volume, brightness     *core.Signal[float32]
+	playbackBlocked        func() bool
 	prefs                  playbackPreferences
 	stream                 func() media.Stream
+	client                 media.Client
 	next                   nextEpisodeControls
 	comments               danmakuControls
 	tracks                 trackControls
@@ -37,6 +40,17 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 	locked := core.NewSignal(cx, false)
 	info := core.NewSignal(cx, false)
 	preview := core.NewSignal(cx, time.Duration(-1))
+	railDrag := core.NewSignal(cx, false)
+	gesturesDisabled := func() bool {
+		return locked.Get() || info.Get() || p.comments.panelOpen() || p.tracks.panelOpen() || p.playbackBlocked()
+	}
+	frames := playerPreviewFrames(cx, p.current, p.client, p.stream, func() time.Duration {
+		if at := preview.Get(); at >= 0 && !gesturesDisabled() {
+			return at.Truncate(time.Second)
+		}
+		return -1
+	})
+	chapters := p.chapters(cx)
 	quickRates := []float32{1, 1.25, 1.5, 2}
 	rateTap := func() {
 		now := p.rate.GetUntracked()
@@ -46,46 +60,16 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 		}
 		p.rate.Set(quickRates[next])
 	}
-	seekPreview := func(value base.SliderValue) {
+	scrubChanged := func(value base.SliderValue) {
+		railDrag.Set(true)
 		preview.Set(time.Duration(value.End * float64(time.Second)))
 	}
 	seekCommit := func(value base.SliderValue) {
-		seekPreview(value)
-		p.seek(preview.GetUntracked())
+		p.seek(time.Duration(value.End * float64(time.Second)))
+		railDrag.Set(false)
 		preview.Set(-1)
 	}
-	var panOrigin time.Duration
-	gesturePlane := core.View{
-		Class: "absolute inset-0", TestID: "phone-player-surface", Label: locales.PhonePlayerControls(cx), Role: core.RoleButton,
-		Disabled: locked.Get, OnPress: func(event core.PressEvent) {
-			if event.Clicks > 1 {
-				p.toggle()
-				show.Set(true)
-			} else {
-				show.Update(func(before bool) bool { return !before })
-			}
-		},
-		PanActivation: core.PanActivation{ActiveOffsetX: 14, FailOffsetY: 18},
-		OnPan: func(event core.PanEvent) {
-			length := p.duration.GetUntracked()
-			if locked.GetUntracked() || length <= 0 {
-				return
-			}
-			switch event.Phase {
-			case core.GestureBegan:
-				panOrigin = p.position.GetUntracked()
-			case core.GestureChanged:
-				preview.Set(max(0, min(length, panOrigin+time.Duration(event.Translation.X*core.Points(time.Second/4)))))
-			case core.GestureEnded:
-				if at := preview.GetUntracked(); at >= 0 {
-					p.seek(at)
-				}
-				preview.Set(-1)
-			case core.GestureCancelled:
-				preview.Set(-1)
-			}
-		},
-	}
+	gesturePlane, gestureHUD := p.gestureSurface(cx, show, preview, gesturesDisabled)
 	shades := core.View{Class: "absolute inset-0", PointerEvents: core.PointerEventsNone, Children: []core.Node{
 		core.View{Class: "absolute inset-x-0 top-0 h-28 bg-linear-to-b from-black/75 via-black/35 to-transparent"},
 		core.View{Class: "absolute inset-x-0 bottom-0 h-40 bg-linear-to-t from-black/85 via-black/45 to-transparent"},
@@ -140,11 +124,11 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 	}
 	scrubber := core.View{Class: "flex-row items-center gap-3", Children: []core.Node{
 		core.Text{TestID: "player-position", Class: "text-xs font-medium text-white", ContentFunc: func() string { return landscapeClock(visualPosition()) }},
-		playerRail(cx, base.Slider{Label: locales.PlaybackPosition(cx), TestID: "phone-player-position-rail", ThumbTestID: "phone-player-position-thumb",
+		p.timeline(cx, base.Slider{Label: locales.PlaybackPosition(cx), TestID: "phone-player-position-rail", ThumbTestID: "phone-player-position-thumb",
 			Value: func() base.SliderValue { return base.SingleValue(visualPosition().Seconds()) },
 			Max:   func() float64 { return p.duration.Get().Seconds() }, Step: func() float64 { return 1 },
-			Disabled: func() bool { return p.duration.Get() <= 0 }, OnChange: seekPreview, OnChangeEnd: seekCommit, Class: "h-4 flex-1",
-		}, "size-3.5", "h-1"),
+			Disabled: func() bool { return p.duration.Get() <= 0 }, OnChange: scrubChanged, OnChangeEnd: seekCommit,
+		}, chapters, railDrag, preview, frames),
 		core.Text{Class: "text-xs font-medium text-zinc-300", ContentFunc: func() string { return landscapeClock(p.duration.Get()) }},
 	}}
 	danmakuPill := core.View{Class: "h-8 shrink flex-row items-center gap-2 rounded-full border border-white/10 bg-white/15 pr-3 pl-1", Children: []core.Node{
@@ -217,13 +201,14 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 			return core.Group([]core.Node{shades, header, center, lockButton(false), footer})
 		}},
 		core.Show{When: locked.Get, Then: func(*core.Scope) core.Node { return lockButton(true) }},
-		core.Show{When: func() bool { return preview.Get() >= 0 && !locked.Get() }, Then: func(*core.Scope) core.Node {
+		gestureHUD,
+		core.Show{When: func() bool { return preview.Get() >= 0 && !railDrag.Get() && !gesturesDisabled() }, Then: func(*core.Scope) core.Node {
 			return core.View{Class: "absolute inset-0 items-center justify-center", PointerEvents: core.PointerEventsNone, Children: []core.Node{
-				core.Text{ContentFunc: func() string { return landscapeClock(preview.Get()) }, Class: "rounded-xl bg-black/85 px-4 py-2 font-semibold text-white"},
+				phoneSeekPreview(preview.Get, frames),
 			}}
 		}},
 		playerSidePanel(cx, "phone-player-info-panel", "phone-player-info-close", locales.PhonePlayerInfo(cx), info.Get, func() { info.Set(false) },
-			panelHeading(locales.PhonePlayerInfo(cx)), nil, playbackInfo),
+			panelHeading(locales.PhonePlayerInfo(cx)), nil, core.Group([]core.Node{playbackInfo, p.chapterActions(cx, chapters, info)})),
 	}}
 }
 

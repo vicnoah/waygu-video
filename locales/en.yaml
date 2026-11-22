@@ -484,6 +484,10 @@ phonePlayerControls: Show or hide player controls
 phonePlayerSource: "From {name}"
 phonePlayerCast: Cast
 phonePlayerInfo: Playback information
+phonePlayerChapters: Chapters
+phonePlayerChapterNumber: "Chapter {number}"
+phonePlayerBrightness: "Player brightness {level}%"
+phonePlayerVolume: "Player volume {level}%"
 phonePlayerLock: Lock controls
 phonePlayerUnlock: Unlock controls
 phonePlayerDanmakuBadge: D

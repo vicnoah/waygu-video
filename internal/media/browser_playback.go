@@ -39,6 +39,7 @@ type browserSource struct {
 	SupportsDirectStream    bool
 	TranscodingUrl          string
 	MediaStreams            []browserStream
+	Chapters                []browserChapter
 }
 
 type browserPlaybackInfo struct {

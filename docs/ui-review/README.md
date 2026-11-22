@@ -210,8 +210,11 @@ Capture the 844 × 390 pt phone player, the subtitle and audio tabs, and the dan
 
 ```sh
 go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
-  -run '^TestDockerPhonePlayerDesignReview$' -screenshots .nsgo/ui-review/phone-player
+  -env WAYGU_REVIEW_X11_POINTER=1 \
+  -run '^TestDockerPhonePlayer(DesignReview|GesturesAndPreview)$' -screenshots .nsgo/ui-review/phone-player
 ```
+
+The held-gesture captures use `xdotool` in an X11 display. The native test also runs without that capture setting. Jellyfin serves a real seek thumbnail while the pointer holds the slider, and the Emby and Jellyfin fixtures supply chapters.
 
 Export `player.scenra`, the four `player-tracks.scenra` panels and the three `player-danmaku.scenra` panels with the reference exporter below.
 

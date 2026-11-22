@@ -57,6 +57,7 @@ type plexMetadata struct {
 	PrimaryGuid                                 string                `json:"guid"`
 	Guid                                        []struct{ ID string } `json:"Guid"`
 	Media                                       []plexMedia
+	Chapter                                     []plexChapter
 }
 
 type plexMedia struct {
@@ -74,6 +75,7 @@ type plexPart struct {
 	Duration int64
 	Size     int64
 	Stream   []plexTrack
+	Chapter  []plexChapter
 }
 
 type plexTrack struct {

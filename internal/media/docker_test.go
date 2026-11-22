@@ -108,6 +108,19 @@ func TestDockerServers(t *testing.T) {
 			t.Run("seek-preview", func(t *testing.T) {
 				verifyDockerSeekPreview(t, ctx, client, movieLibrary, server.kind)
 			})
+			t.Run("chapters", func(t *testing.T) {
+				movie := findDockerItem(t, ctx, client, Query{LibraryID: movieLibrary}, Movie, "Waygu Track Test")
+				stream, err := client.Playback(ctx, movie, PlaybackOptions{})
+				if err != nil {
+					t.Fatal(err)
+				}
+				chapters, err := client.(ChapterClient).Chapters(ctx, movie, stream.SourceID)
+				want := []Chapter{{"Opening", 0}, {"First signal", 4320 * time.Millisecond},
+					{"Second signal", 13200 * time.Millisecond}, {"Final approach", 19200 * time.Millisecond}}
+				if err != nil || !slices.Equal(chapters, want) {
+					t.Fatalf("chapters from %s: %v, %v, want %v", server.kind, chapters, err, want)
+				}
+			})
 		})
 	}
 }

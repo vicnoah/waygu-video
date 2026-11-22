@@ -1,6 +1,6 @@
 # Media server integration tests
 
-The Compose project starts dedicated loopback-only Jellyfin, Emby and Plex servers. Its generated H.264/AAC clips include a movie with two different audio tones and text subtitles and a second movie with 180p and 360p versions. The tests decode the selected audio and check the resolution of the selected version. The bootstrap script creates and scans two libraries on each server. Plex runs as an unclaimed local server, and the bootstrap merges the two version fixtures if Plex indexes them separately.
+The Compose project starts dedicated loopback-only Jellyfin, Emby and Plex servers. Its generated H.264/AAC clips include a movie with two different audio tones, text subtitles and four chapters, and a second movie with 180p and 360p versions. The tests decode the selected audio and check the resolution of the selected version. The bootstrap script creates and scans two libraries on each server. Plex runs as an unclaimed local server, and the bootstrap merges the two version fixtures if Plex indexes them separately.
 
 ```sh
 sh integration/servers/fixtures.sh
@@ -46,3 +46,5 @@ With the same three fixtures, `TestDockerOfflineDownloadReview` saves an origina
 `TestDockerPhoneSourceSettingsReview` checks authenticated library reads and refreshes on Emby, Jellyfin and Plex. It also checks the saved source order after button and drag reordering, matching preferences, and local removal after a swipe. `TestPhoneSourceSettingsOfflineAndEmpty` uses a loopback HTTP 503 response for the offline card and verifies that adding a source is available after the last source is removed.
 
 `TestDockerPhonePlayerDesignReview` starts the generated track test movie through its Emby detail page. The native run decodes actual video and selects an external subtitle delivered by Emby. Its DandanPlay transport supplies generated comments locally. The headless run imports the corresponding XML fixture and verifies the same controls without a system file picker.
+
+`TestDockerServers` compares the four chapter names and times reported by each service to the embedded chapter metadata. `TestDockerPhonePlayerGesturesAndPreview` plays the Jellyfin copy, jumps to a chapter, and checks slider commits, lock behavior and the thumbnail returned by Jellyfin while the slider is held. The headless case also verifies the temporary speed command and its restoration after cancellation. On an existing Docker setup, run `fixtures.sh` and `bootstrap.py` again to import the chaptered fixture.

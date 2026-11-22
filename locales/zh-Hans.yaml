@@ -484,6 +484,10 @@ phonePlayerControls: 显示或隐藏播放控件
 phonePlayerSource: "来自 {name}"
 phonePlayerCast: 投屏
 phonePlayerInfo: 播放信息
+phonePlayerChapters: 跳转章节
+phonePlayerChapterNumber: "第 {number} 章"
+phonePlayerBrightness: "画面亮度 {level}%"
+phonePlayerVolume: "播放音量 {level}%"
 phonePlayerLock: 锁定控件
 phonePlayerUnlock: 解锁控件
 phonePlayerDanmakuBadge: 弹
