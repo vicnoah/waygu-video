@@ -18,14 +18,18 @@ def adb(*args):
     return result.stdout
 
 
+def nodes_on_screen():
+    adb("shell", "uiautomator", "dump", DUMP)
+    root = ET.fromstring(adb("exec-out", "cat", DUMP))
+    return list(root.iter("node"))
+
+
 def visible(test_id):
     deadline = time.monotonic() + 25
     diagnostic = "no accessibility nodes"
     while time.monotonic() < deadline:
         try:
-            adb("shell", "uiautomator", "dump", DUMP)
-            root = ET.fromstring(adb("exec-out", "cat", DUMP))
-            nodes = list(root.iter("node"))
+            nodes = nodes_on_screen()
             for node in nodes:
                 if node.get("resource-id") == test_id:
                     return node
@@ -34,6 +38,17 @@ def visible(test_id):
             diagnostic = str(error)
         time.sleep(0.5)
     raise RuntimeError(f"{test_id!r} did not appear: {diagnostic}")
+
+
+def skip_onboarding_with_remote():
+    visible("add-source")
+    for _ in range(4):
+        if any(node.get("resource-id") == "onboarding-later" and node.get("focused") == "true"
+               for node in nodes_on_screen()):
+            adb("shell", "input", "keyevent", "KEYCODE_DPAD_CENTER")
+            return
+        adb("shell", "input", "keyevent", "KEYCODE_DPAD_DOWN")
+    raise RuntimeError("D-pad focus did not reach the onboarding skip button")
 
 
 def press(test_id):
@@ -47,7 +62,7 @@ def press(test_id):
 
 
 if __name__ == "__main__":
-    press("onboarding-later")
+    skip_onboarding_with_remote()
     visible("empty-add-source")
     press("tv-tab-settings")
     press("settings-add-source")
