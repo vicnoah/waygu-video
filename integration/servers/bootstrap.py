@@ -88,14 +88,40 @@ def setup_media_browser(provider, base):
         path = "/media/" + name
         if provider == "jellyfin":
             request(base, "/Library/VirtualFolders", method="POST", headers=headers,
-                    params={"name": name, "collectionType": kind, "paths": path, "refreshLibrary": "true"},
+                    params={"name": name, "collectionType": kind, "paths": path, "refreshLibrary": "false"},
                     body={"LibraryOptions": {"PathInfos": [{"Path": path}]}})
         else:
             request(base, "/Library/VirtualFolders", method="POST", headers=headers,
                     body={"Name": name, "CollectionType": kind, "Paths": [path], "RefreshLibrary": True,
                           "LibraryOptions": {"PathInfos": [{"Path": path}]}})
-    request(base, "/Library/Refresh", method="POST", headers=headers)
+    if provider == "jellyfin":
+        scan_jellyfin_fixtures(base, user["User"]["Id"], headers)
+    else:
+        request(base, "/Library/Refresh", method="POST", headers=headers)
     print(f"{provider} {info['Version']}: configured fixture libraries")
+
+
+def scan_jellyfin_fixtures(base, user_id, headers):
+    # Each per-library refresh can cancel the global scan during startup.
+    # Start one scan after both folders exist and wait for its fixture titles.
+    def idle_scan():
+        tasks = request(base, "/ScheduledTasks", headers=headers)
+        return next((task["Id"] for task in tasks if task["Key"] == "RefreshLibrary" and task["State"] == "Idle"), None)
+
+    task_id = wait_until_ready(idle_scan)
+    request(base, f"/ScheduledTasks/Running/{task_id}", method="POST", headers=headers)
+
+    def fixtures_indexed():
+        catalog = request(base, "/Items", headers=headers, params={
+            "UserId": user_id, "Recursive": "true", "IncludeItemTypes": "Movie,Series",
+        })
+        titles = [item["Name"] for item in catalog["Items"]]
+        for title in ("Waygu Test Movie", "Waygu Resume Test", "Waygu Test Series"):
+            if not any(name.startswith(title) for name in titles):
+                raise ValueError(f"Jellyfin scan has not indexed fixture {title!r}")
+        return True
+
+    wait_until_ready(fixtures_indexed, timeout=120)
 
 
 def setup_plex(base):
