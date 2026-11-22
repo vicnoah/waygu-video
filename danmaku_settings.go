@@ -57,7 +57,7 @@ func (a *application) danmakuSettings(cx *core.Scope) core.Node {
 		}()
 	}
 	return core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: []core.Node{
-		heading(locales.Danmaku(cx)),
+		heading(locales.DanmakuSources(cx)),
 		hint(locales.DanmakuCredentialsHelp(cx)),
 		ui.Input{Label: locales.DanmakuAppID(cx), Placeholder: locales.DanmakuAppID(cx), Value: id.Get, OnChange: id.Set,
 			TestID: "dandan-app-id", NoAutoCorrect: true, Disabled: disabled},
@@ -77,5 +77,17 @@ func (a *application) danmakuSettings(cx *core.Scope) core.Node {
 		core.Show{When: func() bool { return failed.Get() || saved.Err() != nil }, Then: func(cx *core.Scope) core.Node {
 			return notice(locales.SecretUnavailable(cx))
 		}},
+	}}
+}
+
+func (a *application) danmakuDefaults(cx *core.Scope) core.Node {
+	editor := a.editDanmaku(cx)
+	return core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: []core.Node{
+		heading(locales.Danmaku(cx)),
+		editor.display(cx, editor.toggle(locales.DanmakuEnabledByDefault(cx), "danmaku-default-enabled",
+			func(p *danmakuPreferences) *bool { return &p.Enabled }), nil),
+		editor.toggle(locales.DanmakuAutoMatch(cx), "danmaku-auto-match", func(p *danmakuPreferences) *bool { return &p.AutoMatch }),
+		editor.filters(cx),
+		editor.warning(),
 	}}
 }

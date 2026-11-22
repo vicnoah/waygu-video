@@ -81,6 +81,8 @@ func TestPlayerBindsDandanPlayAndReusesComments(t *testing.T) {
 	app.Press("id:detail-play")
 	app.WaitFor("id:video-player", time.Second)
 	app.Press("id:danmaku-sources")
+	app.WaitFor("id:danmaku-tab-source", time.Second)
+	app.Press("id:danmaku-tab-source")
 	app.WaitFor("id:danmaku-episode-421", time.Second)
 	app.Press("id:danmaku-search")
 	app.WaitUntil(time.Second, func() bool { return searches.Load() == 2 })
@@ -102,6 +104,8 @@ func TestPlayerBindsDandanPlayAndReusesComments(t *testing.T) {
 		t.Fatalf("reopening the player bypassed the binding or cache: searches=%d, comment fetches=%d", searches.Load(), comments.Load())
 	}
 	app.Press("id:danmaku-sources")
+	app.WaitFor("id:danmaku-tab-source", time.Second)
+	app.Press("id:danmaku-tab-source")
 	app.WaitFor("id:danmaku-unbind", time.Second)
 	closeSources := func() {
 		app.Press("id:close-danmaku-sources")

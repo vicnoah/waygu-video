@@ -58,6 +58,11 @@ var Parameters = map[string][]string{
 	"NumberedPlaybackVersion": {"number"},
 	"EpisodeDetails":          {"episode"},
 	"DanmakuBoundEpisode":     {"episode"},
+	"DanmakuDecrease":         {"control"},
+	"DanmakuIncrease":         {"control"},
+	"DanmakuOffset":           {"seconds"},
+	"DanmakuPercent":          {"value"},
+	"DanmakuInvalidPattern":   {"pattern"},
 	"BitrateMegabits":         {"bitrate"},
 	"NextEpisodeCountdown":    {"seconds"},
 	"EpisodeLabel":            {"number"},
@@ -86,6 +91,11 @@ type Translation struct {
 	NumberedPlaybackVersion func(number string) string
 	EpisodeDetails          func(episode string) string
 	DanmakuBoundEpisode     func(episode string) string
+	DanmakuDecrease         func(control string) string
+	DanmakuIncrease         func(control string) string
+	DanmakuOffset           func(seconds string) string
+	DanmakuPercent          func(value string) string
+	DanmakuInvalidPattern   func(pattern string) string
 	BitrateMegabits         func(bitrate string) string
 	NextEpisodeCountdown    func(seconds string) string
 	EpisodeLabel            func(number string) string
@@ -226,6 +236,37 @@ const (
 	textDanmakuAppSecret
 	textDanmakuConnect
 	textDanmakuDisconnect
+	textDanmakuDisplayTab
+	textDanmakuSourceTab
+	textDanmakuFilterTab
+	textDanmakuEnabledByDefault
+	textDanmakuAutoMatch
+	textDanmakuOpacity
+	textDanmakuFontSize
+	textDanmakuSpeed
+	textDanmakuDensity
+	textDanmakuArea
+	textDanmakuFullArea
+	textDanmakuOutline
+	textDanmakuOutlineNone
+	textDanmakuOutlineRegular
+	textDanmakuOutlineStrong
+	textDanmakuBold
+	textDanmakuReserveSubtitles
+	textDanmakuTypes
+	textDanmakuScrolling
+	textDanmakuTop
+	textDanmakuBottom
+	textDanmakuColored
+	textDanmakuEarlier
+	textDanmakuLater
+	textDanmakuResetOffset
+	textDanmakuKeywords
+	textDanmakuPatterns
+	textDanmakuOneRulePerLine
+	textDanmakuSaveFilters
+	textDanmakuDeduplicate
+	textDanmakuPreferencesError
 	textPlaybackSettings
 	textStreamingQuality
 	textPlayerQuality
@@ -379,6 +420,37 @@ var keyOfText = [numTexts]string{
 	"danmakuAppSecret",
 	"danmakuConnect",
 	"danmakuDisconnect",
+	"danmakuDisplayTab",
+	"danmakuSourceTab",
+	"danmakuFilterTab",
+	"danmakuEnabledByDefault",
+	"danmakuAutoMatch",
+	"danmakuOpacity",
+	"danmakuFontSize",
+	"danmakuSpeed",
+	"danmakuDensity",
+	"danmakuArea",
+	"danmakuFullArea",
+	"danmakuOutline",
+	"danmakuOutlineNone",
+	"danmakuOutlineRegular",
+	"danmakuOutlineStrong",
+	"danmakuBold",
+	"danmakuReserveSubtitles",
+	"danmakuTypes",
+	"danmakuScrolling",
+	"danmakuTop",
+	"danmakuBottom",
+	"danmakuColored",
+	"danmakuEarlier",
+	"danmakuLater",
+	"danmakuResetOffset",
+	"danmakuKeywords",
+	"danmakuPatterns",
+	"danmakuOneRulePerLine",
+	"danmakuSaveFilters",
+	"danmakuDeduplicate",
+	"danmakuPreferencesError",
 	"playbackSettings",
 	"streamingQuality",
 	"playerQuality",
@@ -530,6 +602,37 @@ var textsEn = i18n.NewTexts(""+
 	"DandanPlay app secret"+
 	"Save DandanPlay credentials"+
 	"Remove DandanPlay credentials"+
+	"Display"+
+	"Sources"+
+	"Filters"+
+	"Show danmaku by default"+
+	"Automatically match danmaku"+
+	"Opacity"+
+	"Font size"+
+	"Scrolling speed"+
+	"Maximum on screen"+
+	"Display area"+
+	"Full"+
+	"Text outline"+
+	"None"+
+	"Regular"+
+	"Thick"+
+	"Bold text"+
+	"Keep the subtitle area clear"+
+	"Comment types"+
+	"Scrolling"+
+	"Top"+
+	"Bottom"+
+	"Colored"+
+	"Move danmaku 0.5 seconds earlier"+
+	"Move danmaku 0.5 seconds later"+
+	"Reset offset"+
+	"Blocked keywords"+
+	"Blocked regular expressions"+
+	"One rule per line"+
+	"Save filters"+
+	"Merge repeated comments"+
+	"Could not save danmaku preferences."+
 	"Playback"+
 	"Streaming quality"+
 	"Quality"+
@@ -678,6 +781,37 @@ var textsEn = i18n.NewTexts(""+
 		21,
 		27,
 		29,
+		7,
+		7,
+		7,
+		23,
+		27,
+		7,
+		9,
+		15,
+		17,
+		12,
+		4,
+		12,
+		4,
+		7,
+		5,
+		9,
+		28,
+		13,
+		9,
+		3,
+		6,
+		7,
+		32,
+		30,
+		12,
+		16,
+		27,
+		17,
+		12,
+		23,
+		35,
 		8,
 		17,
 		7,
@@ -829,6 +963,37 @@ var textsZhHans = i18n.NewTexts(""+
 	"弹弹 Play 应用密钥"+
 	"保存弹弹 Play 凭据"+
 	"移除弹弹 Play 凭据"+
+	"显示"+
+	"来源"+
+	"屏蔽"+
+	"默认开启弹幕"+
+	"自动匹配弹幕"+
+	"不透明度"+
+	"字号"+
+	"滚动速度"+
+	"同屏密度上限"+
+	"显示区域"+
+	"全屏"+
+	"描边样式"+
+	"无描边"+
+	"普通描边"+
+	"重描边"+
+	"粗体"+
+	"为字幕留出空间"+
+	"弹幕类型"+
+	"滚动"+
+	"顶部"+
+	"底部"+
+	"彩色"+
+	"提前 0.5 秒"+
+	"延后 0.5 秒"+
+	"重置偏移"+
+	"屏蔽关键词"+
+	"屏蔽正则表达式"+
+	"每行一条规则"+
+	"保存屏蔽规则"+
+	"合并重复弹幕"+
+	"无法保存弹幕偏好。"+
 	"播放"+
 	"在线播放画质"+
 	"画质"+
@@ -978,6 +1143,37 @@ var textsZhHans = i18n.NewTexts(""+
 		24,
 		24,
 		6,
+		6,
+		6,
+		18,
+		18,
+		12,
+		6,
+		12,
+		18,
+		12,
+		6,
+		12,
+		9,
+		12,
+		9,
+		6,
+		21,
+		12,
+		6,
+		6,
+		6,
+		6,
+		14,
+		14,
+		12,
+		15,
+		21,
+		18,
+		18,
+		18,
+		27,
+		6,
 		18,
 		6,
 		27,
@@ -1095,6 +1291,21 @@ func Supply(lang string, t Translation) {
 	}
 	if t.DanmakuBoundEpisode != nil {
 		s.DanmakuBoundEpisode = t.DanmakuBoundEpisode
+	}
+	if t.DanmakuDecrease != nil {
+		s.DanmakuDecrease = t.DanmakuDecrease
+	}
+	if t.DanmakuIncrease != nil {
+		s.DanmakuIncrease = t.DanmakuIncrease
+	}
+	if t.DanmakuOffset != nil {
+		s.DanmakuOffset = t.DanmakuOffset
+	}
+	if t.DanmakuPercent != nil {
+		s.DanmakuPercent = t.DanmakuPercent
+	}
+	if t.DanmakuInvalidPattern != nil {
+		s.DanmakuInvalidPattern = t.DanmakuInvalidPattern
 	}
 	if t.BitrateMegabits != nil {
 		s.BitrateMegabits = t.BitrateMegabits
@@ -2380,6 +2591,335 @@ func DanmakuDisconnect(cx *core.Scope) string { return For(cx).DanmakuDisconnect
 
 // DanmakuDisconnect is the package's DanmakuDisconnect in the language of msgs.
 func (msgs Messages) DanmakuDisconnect() string { return msgs.text(textDanmakuDisconnect) }
+
+// DanmakuDisplayTab says "Display"
+// in the language the app shows under cx.
+func DanmakuDisplayTab(cx *core.Scope) string { return For(cx).DanmakuDisplayTab() }
+
+// DanmakuDisplayTab is the package's DanmakuDisplayTab in the language of msgs.
+func (msgs Messages) DanmakuDisplayTab() string { return msgs.text(textDanmakuDisplayTab) }
+
+// DanmakuSourceTab says "Sources"
+// in the language the app shows under cx.
+func DanmakuSourceTab(cx *core.Scope) string { return For(cx).DanmakuSourceTab() }
+
+// DanmakuSourceTab is the package's DanmakuSourceTab in the language of msgs.
+func (msgs Messages) DanmakuSourceTab() string { return msgs.text(textDanmakuSourceTab) }
+
+// DanmakuFilterTab says "Filters"
+// in the language the app shows under cx.
+func DanmakuFilterTab(cx *core.Scope) string { return For(cx).DanmakuFilterTab() }
+
+// DanmakuFilterTab is the package's DanmakuFilterTab in the language of msgs.
+func (msgs Messages) DanmakuFilterTab() string { return msgs.text(textDanmakuFilterTab) }
+
+// DanmakuEnabledByDefault says "Show danmaku by default"
+// in the language the app shows under cx.
+func DanmakuEnabledByDefault(cx *core.Scope) string { return For(cx).DanmakuEnabledByDefault() }
+
+// DanmakuEnabledByDefault is the package's DanmakuEnabledByDefault in the language of msgs.
+func (msgs Messages) DanmakuEnabledByDefault() string { return msgs.text(textDanmakuEnabledByDefault) }
+
+// DanmakuAutoMatch says "Automatically match danmaku"
+// in the language the app shows under cx.
+func DanmakuAutoMatch(cx *core.Scope) string { return For(cx).DanmakuAutoMatch() }
+
+// DanmakuAutoMatch is the package's DanmakuAutoMatch in the language of msgs.
+func (msgs Messages) DanmakuAutoMatch() string { return msgs.text(textDanmakuAutoMatch) }
+
+// DanmakuOpacity says "Opacity"
+// in the language the app shows under cx.
+func DanmakuOpacity(cx *core.Scope) string { return For(cx).DanmakuOpacity() }
+
+// DanmakuOpacity is the package's DanmakuOpacity in the language of msgs.
+func (msgs Messages) DanmakuOpacity() string { return msgs.text(textDanmakuOpacity) }
+
+// DanmakuFontSize says "Font size"
+// in the language the app shows under cx.
+func DanmakuFontSize(cx *core.Scope) string { return For(cx).DanmakuFontSize() }
+
+// DanmakuFontSize is the package's DanmakuFontSize in the language of msgs.
+func (msgs Messages) DanmakuFontSize() string { return msgs.text(textDanmakuFontSize) }
+
+// DanmakuSpeed says "Scrolling speed"
+// in the language the app shows under cx.
+func DanmakuSpeed(cx *core.Scope) string { return For(cx).DanmakuSpeed() }
+
+// DanmakuSpeed is the package's DanmakuSpeed in the language of msgs.
+func (msgs Messages) DanmakuSpeed() string { return msgs.text(textDanmakuSpeed) }
+
+// DanmakuDensity says "Maximum on screen"
+// in the language the app shows under cx.
+func DanmakuDensity(cx *core.Scope) string { return For(cx).DanmakuDensity() }
+
+// DanmakuDensity is the package's DanmakuDensity in the language of msgs.
+func (msgs Messages) DanmakuDensity() string { return msgs.text(textDanmakuDensity) }
+
+// DanmakuDecrease says "Decrease {control}"
+// in the language the app shows under cx.
+func DanmakuDecrease(cx *core.Scope, control string) string { return For(cx).DanmakuDecrease(control) }
+
+// DanmakuDecrease is the package's DanmakuDecrease in the language of msgs.
+func (msgs Messages) DanmakuDecrease(control string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DanmakuDecrease(control))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DanmakuDecrease; f != nil {
+			return f(control)
+		}
+		switch lang {
+		case "", "en":
+			return "Decrease " + msgs.arg(control)
+		case "zh-Hans":
+			return "降低" + control
+		}
+	}
+}
+
+// DanmakuIncrease says "Increase {control}"
+// in the language the app shows under cx.
+func DanmakuIncrease(cx *core.Scope, control string) string { return For(cx).DanmakuIncrease(control) }
+
+// DanmakuIncrease is the package's DanmakuIncrease in the language of msgs.
+func (msgs Messages) DanmakuIncrease(control string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DanmakuIncrease(control))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DanmakuIncrease; f != nil {
+			return f(control)
+		}
+		switch lang {
+		case "", "en":
+			return "Increase " + msgs.arg(control)
+		case "zh-Hans":
+			return "提高" + control
+		}
+	}
+}
+
+// DanmakuArea says "Display area"
+// in the language the app shows under cx.
+func DanmakuArea(cx *core.Scope) string { return For(cx).DanmakuArea() }
+
+// DanmakuArea is the package's DanmakuArea in the language of msgs.
+func (msgs Messages) DanmakuArea() string { return msgs.text(textDanmakuArea) }
+
+// DanmakuFullArea says "Full"
+// in the language the app shows under cx.
+func DanmakuFullArea(cx *core.Scope) string { return For(cx).DanmakuFullArea() }
+
+// DanmakuFullArea is the package's DanmakuFullArea in the language of msgs.
+func (msgs Messages) DanmakuFullArea() string { return msgs.text(textDanmakuFullArea) }
+
+// DanmakuOutline says "Text outline"
+// in the language the app shows under cx.
+func DanmakuOutline(cx *core.Scope) string { return For(cx).DanmakuOutline() }
+
+// DanmakuOutline is the package's DanmakuOutline in the language of msgs.
+func (msgs Messages) DanmakuOutline() string { return msgs.text(textDanmakuOutline) }
+
+// DanmakuOutlineNone says "None"
+// in the language the app shows under cx.
+func DanmakuOutlineNone(cx *core.Scope) string { return For(cx).DanmakuOutlineNone() }
+
+// DanmakuOutlineNone is the package's DanmakuOutlineNone in the language of msgs.
+func (msgs Messages) DanmakuOutlineNone() string { return msgs.text(textDanmakuOutlineNone) }
+
+// DanmakuOutlineRegular says "Regular"
+// in the language the app shows under cx.
+func DanmakuOutlineRegular(cx *core.Scope) string { return For(cx).DanmakuOutlineRegular() }
+
+// DanmakuOutlineRegular is the package's DanmakuOutlineRegular in the language of msgs.
+func (msgs Messages) DanmakuOutlineRegular() string { return msgs.text(textDanmakuOutlineRegular) }
+
+// DanmakuOutlineStrong says "Thick"
+// in the language the app shows under cx.
+func DanmakuOutlineStrong(cx *core.Scope) string { return For(cx).DanmakuOutlineStrong() }
+
+// DanmakuOutlineStrong is the package's DanmakuOutlineStrong in the language of msgs.
+func (msgs Messages) DanmakuOutlineStrong() string { return msgs.text(textDanmakuOutlineStrong) }
+
+// DanmakuBold says "Bold text"
+// in the language the app shows under cx.
+func DanmakuBold(cx *core.Scope) string { return For(cx).DanmakuBold() }
+
+// DanmakuBold is the package's DanmakuBold in the language of msgs.
+func (msgs Messages) DanmakuBold() string { return msgs.text(textDanmakuBold) }
+
+// DanmakuReserveSubtitles says "Keep the subtitle area clear"
+// in the language the app shows under cx.
+func DanmakuReserveSubtitles(cx *core.Scope) string { return For(cx).DanmakuReserveSubtitles() }
+
+// DanmakuReserveSubtitles is the package's DanmakuReserveSubtitles in the language of msgs.
+func (msgs Messages) DanmakuReserveSubtitles() string { return msgs.text(textDanmakuReserveSubtitles) }
+
+// DanmakuTypes says "Comment types"
+// in the language the app shows under cx.
+func DanmakuTypes(cx *core.Scope) string { return For(cx).DanmakuTypes() }
+
+// DanmakuTypes is the package's DanmakuTypes in the language of msgs.
+func (msgs Messages) DanmakuTypes() string { return msgs.text(textDanmakuTypes) }
+
+// DanmakuScrolling says "Scrolling"
+// in the language the app shows under cx.
+func DanmakuScrolling(cx *core.Scope) string { return For(cx).DanmakuScrolling() }
+
+// DanmakuScrolling is the package's DanmakuScrolling in the language of msgs.
+func (msgs Messages) DanmakuScrolling() string { return msgs.text(textDanmakuScrolling) }
+
+// DanmakuTop says "Top"
+// in the language the app shows under cx.
+func DanmakuTop(cx *core.Scope) string { return For(cx).DanmakuTop() }
+
+// DanmakuTop is the package's DanmakuTop in the language of msgs.
+func (msgs Messages) DanmakuTop() string { return msgs.text(textDanmakuTop) }
+
+// DanmakuBottom says "Bottom"
+// in the language the app shows under cx.
+func DanmakuBottom(cx *core.Scope) string { return For(cx).DanmakuBottom() }
+
+// DanmakuBottom is the package's DanmakuBottom in the language of msgs.
+func (msgs Messages) DanmakuBottom() string { return msgs.text(textDanmakuBottom) }
+
+// DanmakuColored says "Colored"
+// in the language the app shows under cx.
+func DanmakuColored(cx *core.Scope) string { return For(cx).DanmakuColored() }
+
+// DanmakuColored is the package's DanmakuColored in the language of msgs.
+func (msgs Messages) DanmakuColored() string { return msgs.text(textDanmakuColored) }
+
+// DanmakuOffset says "Time offset {seconds} s"
+// in the language the app shows under cx.
+func DanmakuOffset(cx *core.Scope, seconds string) string { return For(cx).DanmakuOffset(seconds) }
+
+// DanmakuOffset is the package's DanmakuOffset in the language of msgs.
+func (msgs Messages) DanmakuOffset(seconds string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DanmakuOffset(seconds))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DanmakuOffset; f != nil {
+			return f(seconds)
+		}
+		switch lang {
+		case "", "en":
+			return "Time offset " + msgs.arg(seconds) + " s"
+		case "zh-Hans":
+			return "时间偏移 " + seconds + " 秒"
+		}
+	}
+}
+
+// DanmakuEarlier says "Move danmaku 0.5 seconds earlier"
+// in the language the app shows under cx.
+func DanmakuEarlier(cx *core.Scope) string { return For(cx).DanmakuEarlier() }
+
+// DanmakuEarlier is the package's DanmakuEarlier in the language of msgs.
+func (msgs Messages) DanmakuEarlier() string { return msgs.text(textDanmakuEarlier) }
+
+// DanmakuLater says "Move danmaku 0.5 seconds later"
+// in the language the app shows under cx.
+func DanmakuLater(cx *core.Scope) string { return For(cx).DanmakuLater() }
+
+// DanmakuLater is the package's DanmakuLater in the language of msgs.
+func (msgs Messages) DanmakuLater() string { return msgs.text(textDanmakuLater) }
+
+// DanmakuResetOffset says "Reset offset"
+// in the language the app shows under cx.
+func DanmakuResetOffset(cx *core.Scope) string { return For(cx).DanmakuResetOffset() }
+
+// DanmakuResetOffset is the package's DanmakuResetOffset in the language of msgs.
+func (msgs Messages) DanmakuResetOffset() string { return msgs.text(textDanmakuResetOffset) }
+
+// DanmakuPercent says "{value}%"
+// in the language the app shows under cx.
+func DanmakuPercent(cx *core.Scope, value string) string { return For(cx).DanmakuPercent(value) }
+
+// DanmakuPercent is the package's DanmakuPercent in the language of msgs.
+func (msgs Messages) DanmakuPercent(value string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DanmakuPercent(value))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DanmakuPercent; f != nil {
+			return f(value)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(value) + "%"
+		case "zh-Hans":
+			return value + "%"
+		}
+	}
+}
+
+// DanmakuKeywords says "Blocked keywords"
+// in the language the app shows under cx.
+func DanmakuKeywords(cx *core.Scope) string { return For(cx).DanmakuKeywords() }
+
+// DanmakuKeywords is the package's DanmakuKeywords in the language of msgs.
+func (msgs Messages) DanmakuKeywords() string { return msgs.text(textDanmakuKeywords) }
+
+// DanmakuPatterns says "Blocked regular expressions"
+// in the language the app shows under cx.
+func DanmakuPatterns(cx *core.Scope) string { return For(cx).DanmakuPatterns() }
+
+// DanmakuPatterns is the package's DanmakuPatterns in the language of msgs.
+func (msgs Messages) DanmakuPatterns() string { return msgs.text(textDanmakuPatterns) }
+
+// DanmakuOneRulePerLine says "One rule per line"
+// in the language the app shows under cx.
+func DanmakuOneRulePerLine(cx *core.Scope) string { return For(cx).DanmakuOneRulePerLine() }
+
+// DanmakuOneRulePerLine is the package's DanmakuOneRulePerLine in the language of msgs.
+func (msgs Messages) DanmakuOneRulePerLine() string { return msgs.text(textDanmakuOneRulePerLine) }
+
+// DanmakuSaveFilters says "Save filters"
+// in the language the app shows under cx.
+func DanmakuSaveFilters(cx *core.Scope) string { return For(cx).DanmakuSaveFilters() }
+
+// DanmakuSaveFilters is the package's DanmakuSaveFilters in the language of msgs.
+func (msgs Messages) DanmakuSaveFilters() string { return msgs.text(textDanmakuSaveFilters) }
+
+// DanmakuInvalidPattern says "Invalid regular expression {pattern}"
+// in the language the app shows under cx.
+func DanmakuInvalidPattern(cx *core.Scope, pattern string) string {
+	return For(cx).DanmakuInvalidPattern(pattern)
+}
+
+// DanmakuInvalidPattern is the package's DanmakuInvalidPattern in the language of msgs.
+func (msgs Messages) DanmakuInvalidPattern(pattern string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DanmakuInvalidPattern(pattern))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DanmakuInvalidPattern; f != nil {
+			return f(pattern)
+		}
+		switch lang {
+		case "", "en":
+			return "Invalid regular expression " + msgs.arg(pattern)
+		case "zh-Hans":
+			return "无效的正则表达式 " + pattern
+		}
+	}
+}
+
+// DanmakuDeduplicate says "Merge repeated comments"
+// in the language the app shows under cx.
+func DanmakuDeduplicate(cx *core.Scope) string { return For(cx).DanmakuDeduplicate() }
+
+// DanmakuDeduplicate is the package's DanmakuDeduplicate in the language of msgs.
+func (msgs Messages) DanmakuDeduplicate() string { return msgs.text(textDanmakuDeduplicate) }
+
+// DanmakuPreferencesError says "Could not save danmaku preferences."
+// in the language the app shows under cx.
+func DanmakuPreferencesError(cx *core.Scope) string { return For(cx).DanmakuPreferencesError() }
+
+// DanmakuPreferencesError is the package's DanmakuPreferencesError in the language of msgs.
+func (msgs Messages) DanmakuPreferencesError() string { return msgs.text(textDanmakuPreferencesError) }
 
 // PlaybackSettings says "Playback"
 // in the language the app shows under cx.

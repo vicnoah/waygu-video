@@ -83,6 +83,7 @@ type application struct {
 	bitrateLimit  *core.Signal[int]
 	versionPolicy *core.Signal[media.VersionPolicy]
 	autoNext      *core.Signal[bool]
+	danmakuPrefs  *core.Signal[danmakuPreferences]
 	progress      *progressOutbox
 	tokens        sync.Map
 }
@@ -144,6 +145,7 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 		bitrateLimit:  core.NewSignal(cx, bitrate),
 		versionPolicy: core.NewSignal(cx, playbackVersionPolicy(policy)),
 		autoNext:      core.NewSignal(cx, autoNext != "false"),
+		danmakuPrefs:  core.NewSignal(cx, core.Untracked(cx, func() danmakuPreferences { return readDanmakuPreferences(storage) })),
 	}
 	a.progress = core.Untracked(cx, func() *progressOutbox { return newProgressOutbox(cx, storage) })
 	a.scheduleProgressReplay(time.Second)

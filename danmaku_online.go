@@ -12,7 +12,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/nsgo-dev/nsgo/base"
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/icons/lucide"
 	"github.com/nsgo-dev/nsgo/ui"
@@ -40,7 +39,11 @@ func (a *application) dandanCredentials() (danmaku.DandanCredentials, error) {
 }
 
 func danmakuBindingKey(current route) string {
-	return "danmaku-binding-v1:" + mediaAccountKey(current.source) + ":" + fmt.Sprintf("%x", sha256.Sum256([]byte(current.item.ID)))
+	return "danmaku-binding-v1:" + danmakuItemKey(current)
+}
+
+func danmakuItemKey(current route) string {
+	return fmt.Sprintf("%s:%x", mediaAccountKey(current.source), sha256.Sum256([]byte(current.item.ID)))
 }
 
 func danmakuSeasonKey(current route) string {
@@ -80,7 +83,7 @@ type danmakuResult struct {
 }
 
 func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.Stream,
-	apply func([]danmaku.Comment, float64)) (core.Node, core.Node) {
+	apply func([]danmaku.Comment, float64), closePanel func()) core.Node {
 	key, seasonKey := danmakuBindingKey(current), danmakuSeasonKey(current)
 	var saved danmaku.DandanEpisode
 	var season danmakuSeason
@@ -104,7 +107,6 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 			episode = strconv.Itoa(current.item.Episode)
 		}
 	}
-	panel := core.NewSignal(cx, false)
 	draft := core.NewSignal(cx, title)
 	query := core.NewSignal(cx, danmakuRequest{action: danmakuIdentify})
 	picked := core.NewSignal(cx, saved)
@@ -117,6 +119,7 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 		value, ok := credentials.Get()
 		return ok && value.AppID != "" && value.Secret != ""
 	}
+	autoMatch := core.NewMemo(cx, func() bool { return a.danmakuPrefs.Get().AutoMatch })
 	type danmakuQuery struct {
 		danmakuRequest
 		credentials danmaku.DandanCredentials
@@ -124,7 +127,11 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 	resource := core.NewResource(cx, func() (danmakuQuery, bool) {
 		request := query.Get()
 		value, _ := credentials.Get()
-		return danmakuQuery{request, value}, request.action != danmakuIdle && value.AppID != "" && value.Secret != ""
+		active := request.action != danmakuIdle && value.AppID != "" && value.Secret != ""
+		if request.action == danmakuIdentify && saved.ID <= 0 {
+			active = active && autoMatch.Get()
+		}
+		return danmakuQuery{request, value}, active
 	}, func(ctx context.Context, request danmakuQuery, _ core.ResourceInfo) (danmakuResult, error) {
 		client := a.newDandan(request.credentials)
 		var result danmakuResult
@@ -174,7 +181,7 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 		}
 		saveError.Set(err != nil)
 		if err == nil && query.GetUntracked().action == danmakuPick {
-			panel.Set(false)
+			closePanel()
 		}
 	})
 	submit := func(request danmakuRequest) {
@@ -190,8 +197,6 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 			submit(danmakuRequest{action: danmakuSearch, title: strings.TrimSpace(draft.GetUntracked())})
 		}
 	}
-	button := ui.Button{Label: locales.DanmakuSources(cx), Icon: lucide.Search, Variant: ui.ButtonSecondary,
-		TestID: "danmaku-sources", OnPress: func() { panel.Set(true) }}
 	state := core.Dynamic(func(cx *core.Scope) core.Node {
 		var rows []core.Node
 		if selected := picked.Get(); selected.ID > 0 {
@@ -226,7 +231,8 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 			rows = append(rows, notice(locales.DanmakuBindingError(cx)))
 		}
 		results := matches.Get()
-		if canSearch() && picked.Get().ID <= 0 && len(results.Episodes) == 0 && query.Get().action != danmakuIdle && resource.Err() == nil {
+		if _, ready := resource.Get(); ready && canSearch() && picked.Get().ID <= 0 && len(results.Episodes) == 0 &&
+			query.Get().action != danmakuIdle && resource.Err() == nil {
 			rows = append(rows, hint(locales.DanmakuNoResults(cx)))
 		}
 		if results.More || len(results.Episodes) > 40 {
@@ -239,10 +245,7 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 		}
 		return core.View{Class: "gap-3", Children: rows}
 	})
-	dialog := ui.Dialog{Open: panel.Get, OnOpenChange: func(open bool, _ base.Reason) { panel.Set(open) },
-		Title: locales.DanmakuSources(cx), TestID: "danmaku-sources-dialog",
-		Trailing: []core.Node{ui.IconButton{Label: locales.TracksDone(cx), Icon: lucide.X, Size: 36,
-			TestID: "close-danmaku-sources", OnPress: func() { panel.Set(false) }}},
+	return core.View{Class: "gap-3",
 		Children: []core.Node{
 			ui.Input{Label: locales.DanmakuSearchTitle(cx), Placeholder: locales.DanmakuSearchTitle(cx), Value: draft.Get,
 				OnChange: draft.Set, TestID: "danmaku-search-title"},
@@ -251,12 +254,9 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 					return !canSearch() || utf8.RuneCountInString(strings.TrimSpace(draft.Get())) < 2
 				},
 				OnPress: edit},
-			core.Scroll{StyleFunc: func() core.Style {
-				return core.Style{MaxHeight: core.Pt(min(320, max(105, cx.Env().Window().Height*0.4))), FlexShrink: 1}
-			}, Children: []core.Node{state}},
+			state,
 		},
 	}
-	return button, dialog
 }
 
 func identifyDanmaku(ctx context.Context, client *danmaku.DandanClient, stream media.Stream, title, episode string) (danmaku.DandanEpisode, danmaku.EpisodeMatches, error) {

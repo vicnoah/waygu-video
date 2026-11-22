@@ -142,6 +142,42 @@ danmakuAppID: DandanPlay app ID
 danmakuAppSecret: DandanPlay app secret
 danmakuConnect: Save DandanPlay credentials
 danmakuDisconnect: Remove DandanPlay credentials
+danmakuDisplayTab: Display
+danmakuSourceTab: Sources
+danmakuFilterTab: Filters
+danmakuEnabledByDefault: Show danmaku by default
+danmakuAutoMatch: Automatically match danmaku
+danmakuOpacity: Opacity
+danmakuFontSize: Font size
+danmakuSpeed: Scrolling speed
+danmakuDensity: Maximum on screen
+danmakuDecrease: "Decrease {control}"
+danmakuIncrease: "Increase {control}"
+danmakuArea: Display area
+danmakuFullArea: Full
+danmakuOutline: Text outline
+danmakuOutlineNone: None
+danmakuOutlineRegular: Regular
+danmakuOutlineStrong: Thick
+danmakuBold: Bold text
+danmakuReserveSubtitles: Keep the subtitle area clear
+danmakuTypes: Comment types
+danmakuScrolling: Scrolling
+danmakuTop: Top
+danmakuBottom: Bottom
+danmakuColored: Colored
+danmakuOffset: "Time offset {seconds} s"
+danmakuEarlier: Move danmaku 0.5 seconds earlier
+danmakuLater: Move danmaku 0.5 seconds later
+danmakuResetOffset: Reset offset
+danmakuPercent: "{value}%"
+danmakuKeywords: Blocked keywords
+danmakuPatterns: Blocked regular expressions
+danmakuOneRulePerLine: One rule per line
+danmakuSaveFilters: Save filters
+danmakuInvalidPattern: "Invalid regular expression {pattern}"
+danmakuDeduplicate: Merge repeated comments
+danmakuPreferencesError: Could not save danmaku preferences.
 playbackSettings: Playback
 streamingQuality: Streaming quality
 playerQuality: Quality

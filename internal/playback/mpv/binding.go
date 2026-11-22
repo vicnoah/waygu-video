@@ -302,7 +302,8 @@ func (p *backend) updateDanmaku() (bool, error) {
 	}
 	var err error
 	if data == "" {
-		err = p.command("osd-overlay", "1", "none")
+		// libmpv still requires the positional data argument when removing the overlay.
+		err = p.command("osd-overlay", "1", "none", "")
 	} else {
 		err = p.command("osd-overlay", "1", "ass-events", data, strconv.Itoa(p.track.Width), strconv.Itoa(p.track.Height))
 	}

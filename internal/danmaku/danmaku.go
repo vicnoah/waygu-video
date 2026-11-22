@@ -3,6 +3,7 @@ package danmaku
 
 import (
 	"cmp"
+	"context"
 	"encoding/xml"
 	"errors"
 	"io"
@@ -113,7 +114,11 @@ type Settings struct {
 	Speed               float64
 	MaxOnScreen         int
 	Offset              time.Duration
+	Outline             float64
+	Bold                bool
+	ReserveSubtitles    bool
 	Deduplicate         bool
+	HideScrolling       bool
 	HideTop, HideBottom bool
 	HideColored         bool
 	Keywords            []string
@@ -122,13 +127,21 @@ type Settings struct {
 
 func DefaultSettings() Settings {
 	return Settings{Width: 1280, Height: 720, FontSize: 28, Opacity: .9, Area: .6,
-		Speed: 1, MaxOnScreen: 32, Deduplicate: true}
+		Speed: 1, MaxOnScreen: 32, Outline: 1.5, Bold: true, ReserveSubtitles: true, Deduplicate: true}
 }
 
 type Event struct {
 	Comment
 	Start, End time.Duration
 	X0, X1, Y  int
+	Copies     int
+}
+
+func (e Event) DisplayText() string {
+	if e.Copies <= 1 {
+		return e.Text
+	}
+	return e.Text + " ×" + strconv.Itoa(e.Copies)
 }
 
 func (e Event) X(at time.Duration) float64 {
@@ -143,6 +156,8 @@ type Track struct {
 	Width, Height int
 	FontSize      int
 	Opacity       float64
+	Outline       float64
+	Bold          bool
 	Events        []Event
 	longest       time.Duration
 }
@@ -164,18 +179,31 @@ func (t Track) Visible(at time.Duration) []Event {
 }
 
 func Schedule(comments []Comment, settings Settings) Track {
+	return ScheduleContext(context.Background(), comments, settings)
+}
+
+// ScheduleContext also stops scheduling when a newer set of preferences replaces this one.
+func ScheduleContext(ctx context.Context, comments []Comment, settings Settings) Track {
 	settings = checkedSettings(settings)
-	track := Track{Width: settings.Width, Height: settings.Height, FontSize: settings.FontSize, Opacity: settings.Opacity}
+	track := Track{Width: settings.Width, Height: settings.Height, FontSize: settings.FontSize, Opacity: settings.Opacity,
+		Outline: settings.Outline, Bold: settings.Bold}
+	if ctx.Err() != nil {
+		return track
+	}
 	comments = slices.Clone(comments)
 	slices.SortStableFunc(comments, func(a, b Comment) int { return cmp.Compare(a.At, b.At) })
 	rowHeight := settings.FontSize + 8
-	rows := (settings.Height * 4 / 5) / rowHeight
+	bottom := settings.Height
+	if settings.ReserveSubtitles {
+		bottom = bottom * 4 / 5
+	}
+	rows := bottom / rowHeight
 	scrollRows := min(rows, int(float64(settings.Height)*settings.Area)/rowHeight)
 	if scrollRows == 0 {
 		return track
 	}
 	busy := make([]time.Duration, rows)
-	lastText := make(map[string]time.Duration)
+	lastText := make(map[string]int)
 	var keywords []string
 	for _, keyword := range settings.Keywords {
 		if keyword = strings.ToLower(strings.TrimSpace(keyword)); keyword != "" {
@@ -183,19 +211,30 @@ func Schedule(comments []Comment, settings Settings) Track {
 		}
 	}
 	for _, comment := range comments {
+		if ctx.Err() != nil {
+			break
+		}
 		if !passes(comment, settings, keywords) {
+			continue
+		}
+		if settings.Offset > 0 && comment.At > time.Duration(math.MaxInt64)-settings.Offset {
 			continue
 		}
 		start := comment.At + settings.Offset
 		if start < 0 {
 			continue
 		}
+		var textKey string
 		if settings.Deduplicate {
-			text := strings.ToLower(strings.Join(strings.Fields(comment.Text), " "))
-			if previous, seen := lastText[text]; seen && start-previous <= 3*time.Second {
+			textKey = strings.ToLower(strings.Join(strings.Fields(comment.Text), " "))
+			if previous, seen := lastText[textKey]; seen && start-track.Events[previous].Start <= 3*time.Second {
+				event := &track.Events[previous]
+				event.Copies++
+				if event.Mode == Scroll {
+					event.X1 = -estimatedWidth(event.DisplayText(), settings.FontSize)
+				}
 				continue
 			}
-			lastText[text] = start
 		}
 		active := 0
 		for _, end := range busy {
@@ -221,10 +260,16 @@ func Schedule(comments []Comment, settings Settings) Track {
 			duration = time.Duration(float64(8*time.Second) / settings.Speed)
 			x0, x1 = settings.Width, -estimatedWidth(comment.Text, settings.FontSize)
 		}
+		if start > time.Duration(math.MaxInt64)-duration {
+			continue
+		}
 		end := start + duration
 		busy[row] = end
 		track.longest = max(track.longest, duration)
-		track.Events = append(track.Events, Event{Comment: comment, Start: start, End: end, X0: x0, X1: x1, Y: y})
+		if settings.Deduplicate {
+			lastText[textKey] = len(track.Events)
+		}
+		track.Events = append(track.Events, Event{Comment: comment, Start: start, End: end, X0: x0, X1: x1, Y: y, Copies: 1})
 	}
 	return track
 }
@@ -240,7 +285,7 @@ func checkedSettings(s Settings) Settings {
 	if !(s.Opacity > 0 && s.Opacity <= 1) {
 		s.Opacity = defaults.Opacity
 	}
-	if !(s.Area > 0 && s.Area <= .75) {
+	if !(s.Area > 0 && s.Area <= 1) {
 		s.Area = defaults.Area
 	}
 	if !(s.Speed >= .25 && s.Speed <= 4) {
@@ -249,12 +294,16 @@ func checkedSettings(s Settings) Settings {
 	if s.MaxOnScreen <= 0 {
 		s.MaxOnScreen = defaults.MaxOnScreen
 	}
+	if !(s.Outline >= 0 && s.Outline <= 4) {
+		s.Outline = defaults.Outline
+	}
 	return s
 }
 
 func passes(c Comment, s Settings, keywords []string) bool {
 	if c.Text == "" || (c.Mode != Scroll && c.Mode != Top && c.Mode != Bottom) ||
-		(c.Mode == Top && s.HideTop) || (c.Mode == Bottom && s.HideBottom) || (c.Color != White && s.HideColored) {
+		(c.Mode == Scroll && s.HideScrolling) || (c.Mode == Top && s.HideTop) ||
+		(c.Mode == Bottom && s.HideBottom) || (c.Color != White && s.HideColored) {
 		return false
 	}
 	text := strings.ToLower(c.Text)

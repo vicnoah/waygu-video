@@ -142,6 +142,42 @@ danmakuAppID: 弹弹 Play 应用 ID
 danmakuAppSecret: 弹弹 Play 应用密钥
 danmakuConnect: 保存弹弹 Play 凭据
 danmakuDisconnect: 移除弹弹 Play 凭据
+danmakuDisplayTab: 显示
+danmakuSourceTab: 来源
+danmakuFilterTab: 屏蔽
+danmakuEnabledByDefault: 默认开启弹幕
+danmakuAutoMatch: 自动匹配弹幕
+danmakuOpacity: 不透明度
+danmakuFontSize: 字号
+danmakuSpeed: 滚动速度
+danmakuDensity: 同屏密度上限
+danmakuDecrease: "降低{control}"
+danmakuIncrease: "提高{control}"
+danmakuArea: 显示区域
+danmakuFullArea: 全屏
+danmakuOutline: 描边样式
+danmakuOutlineNone: 无描边
+danmakuOutlineRegular: 普通描边
+danmakuOutlineStrong: 重描边
+danmakuBold: 粗体
+danmakuReserveSubtitles: 为字幕留出空间
+danmakuTypes: 弹幕类型
+danmakuScrolling: 滚动
+danmakuTop: 顶部
+danmakuBottom: 底部
+danmakuColored: 彩色
+danmakuOffset: "时间偏移 {seconds} 秒"
+danmakuEarlier: 提前 0.5 秒
+danmakuLater: 延后 0.5 秒
+danmakuResetOffset: 重置偏移
+danmakuPercent: "{value}%"
+danmakuKeywords: 屏蔽关键词
+danmakuPatterns: 屏蔽正则表达式
+danmakuOneRulePerLine: 每行一条规则
+danmakuSaveFilters: 保存屏蔽规则
+danmakuInvalidPattern: "无效的正则表达式 {pattern}"
+danmakuDeduplicate: 合并重复弹幕
+danmakuPreferencesError: 无法保存弹幕偏好。
 playbackSettings: 播放
 streamingQuality: 在线播放画质
 playerQuality: 画质

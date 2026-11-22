@@ -21,7 +21,8 @@ func TestRenderWithASS(t *testing.T) {
 	if os.Getenv("WAYGU_TEST_MPV") != "1" {
 		t.Skip("generate the Docker video fixtures and set WAYGU_TEST_MPV=1")
 	}
-	fixture, err := filepath.Abs("../../../integration/servers/media/Movies/Waygu Test Movie (2025)/Waygu Test Movie (2025).mp4")
+	// Use a solid-color video so every decoded frame has the same background.
+	fixture, err := filepath.Abs("../../../integration/servers/media/Movies/Waygu Resume Across Sources (2025)/Waygu Resume Across Sources (2025).mp4")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,6 +34,9 @@ func TestRenderWithASS(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer p.Close()
+	if err := p.property("ao", "null"); err != nil {
+		t.Fatal(err)
+	}
 	if err := p.Pause(true); err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +55,7 @@ func TestRenderWithASS(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		return loaded && drawn && p.Status().Width == 640 && frame.RGBAAt(20, 20).R > 0
+		return loaded && drawn && p.Status().Width == 160 && frame.RGBAAt(20, 20).R > 0
 	})
 	if err := p.Seek(2 * time.Second); err != nil {
 		t.Fatal(err)
@@ -64,9 +68,11 @@ func TestRenderWithASS(t *testing.T) {
 		return drawn && p.Status().Position >= 2*time.Second
 	})
 	baseline := bytes.Clone(frame.Pix)
-	track := danmaku.Schedule([]danmaku.Comment{
+	comments := []danmaku.Comment{
 		{At: time.Second, Mode: danmaku.Top, Color: danmaku.White, Text: "Waygu fixture comments"},
-	}, danmaku.DefaultSettings())
+	}
+	settings := danmaku.DefaultSettings()
+	track := danmaku.Schedule(comments, settings)
 	p.Danmaku(&track)
 	until(t, func() bool {
 		if _, err := p.Frame(frame, true); err != nil {
@@ -74,6 +80,25 @@ func TestRenderWithASS(t *testing.T) {
 		}
 		row := 55 * frame.Stride
 		return !bytes.Equal(baseline[:row], frame.Pix[:row]) && bytes.Equal(baseline[row:], frame.Pix[row:])
+	})
+	fullOpacity := bytes.Clone(frame.Pix)
+	settings.Opacity, settings.FontSize, settings.Outline = .35, 36, 3
+	changed := danmaku.Schedule(comments, settings)
+	p.Danmaku(&changed)
+	until(t, func() bool {
+		if _, err := p.Frame(frame, true); err != nil {
+			t.Fatal(err)
+		}
+		return !bytes.Equal(baseline, frame.Pix) && !bytes.Equal(fullOpacity, frame.Pix)
+	})
+	settings.HideTop = true
+	filtered := danmaku.Schedule(comments, settings)
+	p.Danmaku(&filtered)
+	until(t, func() bool {
+		if _, err := p.Frame(frame, true); err != nil {
+			t.Fatal(err)
+		}
+		return bytes.Equal(baseline, frame.Pix)
 	})
 }
 

@@ -42,3 +42,34 @@ func TestParseFilterScheduleAndSeek(t *testing.T) {
 		t.Fatalf("unexpected overlay: %q", display)
 	}
 }
+
+func TestDisplaySettingsAndDuplicatesReachASS(t *testing.T) {
+	comments := []Comment{
+		{At: time.Second, Mode: Scroll, Color: White, Text: "Hello"},
+		{At: 1100 * time.Millisecond, Mode: Top, Color: White, Text: "hello"},
+		{At: 1200 * time.Millisecond, Mode: Bottom, Color: White, Text: "Bottom"},
+		{At: 1300 * time.Millisecond, Mode: Bottom, Color: White, Text: "Over the limit"},
+		{At: 6 * time.Second, Mode: Top, Color: White, Text: "Later"},
+	}
+	settings := DefaultSettings()
+	settings.Offset, settings.Speed, settings.MaxOnScreen = 500*time.Millisecond, 2, 2
+	settings.Bold, settings.Opacity, settings.Outline = false, .5, 3
+	settings.FontSize = 34
+	track := Schedule(comments, settings)
+	if len(track.Events) != 3 || track.Events[0].Start != 1500*time.Millisecond ||
+		track.Events[0].End-track.Events[0].Start != 4*time.Second {
+		t.Fatalf("timing or density was not applied: %+v", track.Events)
+	}
+	at := 2 * time.Second
+	if output := track.Overlay(at); !strings.Contains(output, `\fs34\b0\bord3.0\shad0\alpha&H7F&`) ||
+		!strings.Contains(output, "Hello ×2") || strings.Contains(output, "Over the limit") {
+		t.Fatalf("unexpected libmpv overlay: %s", output)
+	}
+	reserved := track.Events[1].Y
+	settings.ReserveSubtitles, settings.Deduplicate = false, false
+	settings.HideScrolling = true
+	track = Schedule(comments, settings)
+	if len(track.Events) != 3 || track.Events[0].DisplayText() != "hello" || track.Events[1].Y <= reserved {
+		t.Fatalf("subtitle reservation, type filtering or deduplication toggle was ignored: %+v", track.Events)
+	}
+}
