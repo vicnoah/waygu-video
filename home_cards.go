@@ -30,33 +30,67 @@ func recommendHomeTitles(recent []catalogItem) []catalogItem {
 	return featured[:min(len(featured), 4)]
 }
 
-func (a *application) homeHeroCarousel(cx *core.Scope, titles []catalogItem) core.Node {
+var homeHorizontalPan = core.PanActivation{ActiveOffsetX: 12, FailOffsetY: 12}
+
+func (a *application) homeHeroCarousel(cx *core.Scope, titles []catalogItem, tablet bool) core.Node {
 	index := core.NewSignal(cx, 0)
-	cx.Effect(func() {
-		cursor := index.Get()
-		if len(titles) > 1 && a.tab.Get() == 0 && !cx.Env().ReduceMotion() {
-			cx.AfterFunc(8*time.Second, func() { index.Set((cursor + 1) % len(titles)) })
-		}
-	})
+	if !tablet {
+		cx.Effect(func() {
+			cursor := index.Get()
+			if len(titles) > 1 && a.tab.Get() == 0 && !cx.Env().ReduceMotion() {
+				cx.AfterFunc(8*time.Second, func() { index.Set((cursor + 1) % len(titles)) })
+			}
+		})
+	}
+	style := "bg-zinc-900/20 dark:bg-zinc-50/20 selected:bg-violet-500"
+	rowClass := "flex-row justify-center gap-1.5"
+	if tablet {
+		style = "bg-white/40 selected:bg-white"
+		rowClass = "absolute right-6 bottom-6 flex-row gap-1.5"
+	}
 	dots := make([]core.Node, 0, len(titles))
 	for i, title := range titles {
 		dots = append(dots, base.Button{Label: title.item.Title, TestID: "home-hero-dot-" + strconv.Itoa(i),
-			Class:   "h-1.5 w-1.5 rounded-full bg-zinc-900/20 dark:bg-zinc-50/20 selected:w-5 selected:bg-violet-500",
+			Class:   "h-1.5 w-1.5 rounded-full selected:w-5 " + style,
 			HitSlop: core.All(4), Selected: func() bool { return index.Get() == i },
 			Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, OnPress: func(core.PressEvent) { index.Set(i) },
 		})
 	}
+	dotRow := core.View{Class: rowClass, Children: dots}
+	if tablet {
+		card := core.View{Class: "relative mx-6 h-[260px] overflow-hidden rounded-3xl shadow-2xl shadow-black/25", TestID: "home-hero",
+			Children: []core.Node{
+				core.Dynamic(func(cx *core.Scope) core.Node { return a.homeHero(cx, titles[index.Get()], true) }), dotRow,
+			}}
+		if len(titles) > 1 {
+			card.PanActivation = homeHorizontalPan
+			card.OnPan = func(event core.PanEvent) {
+				if event.Phase != core.GestureEnded {
+					return
+				}
+				if event.Translation.X <= -44 {
+					index.Update(func(i int) int { return (i + 1) % len(titles) })
+				} else if event.Translation.X >= 44 {
+					index.Update(func(i int) int { return (i + len(titles) - 1) % len(titles) })
+				}
+			}
+		}
+		return card
+	}
 	return core.View{Class: "gap-3", TestID: "home-hero-carousel", Children: []core.Node{
-		core.Dynamic(func(cx *core.Scope) core.Node { return a.phoneHero(cx, titles[index.Get()]) }),
-		core.View{Class: "flex-row justify-center gap-1.5", Children: dots},
+		core.Dynamic(func(cx *core.Scope) core.Node { return a.homeHero(cx, titles[index.Get()], false) }),
+		dotRow,
 	}}
 }
 
-func (a *application) phoneHero(cx *core.Scope, entry catalogItem) core.Node {
+func (a *application) homeHero(cx *core.Scope, entry catalogItem, tablet bool) core.Node {
 	item := entry.item
 	var meta []string
 	if item.Year > 0 {
 		meta = append(meta, strconv.Itoa(item.Year))
+	}
+	if tablet && len(item.Genres) > 0 {
+		meta = append(meta, strings.Join(item.Genres[:min(2, len(item.Genres))], " / "))
 	}
 	if minutes := int(item.Duration / time.Minute); minutes > 0 {
 		meta = append(meta, locales.HomeDuration(cx, strconv.Itoa(minutes)))
@@ -81,12 +115,24 @@ func (a *application) phoneHero(cx *core.Scope, entry catalogItem) core.Node {
 	}
 	byline = append(byline, core.Text{Content: entry.source.Name, TestID: "home-hero-source", Class: "text-xs text-white/80", MaxLines: 1})
 	actions := []core.Node{
-		homeHeroAction(cx, "home-hero-details", locales.Details(cx), lucide.Info(), false, func() { a.openCatalogEntry(entry) }),
+		homeHeroAction(cx, "home-hero-details", locales.Details(cx), lucide.Info(), false, tablet, func() { a.openCatalogEntry(entry) }),
 	}
 	if playable(item) {
 		actions = append([]core.Node{
-			homeHeroAction(cx, "home-hero-play", locales.Play(cx), lucide.Play(), true, func() { a.playCatalogEntry(entry) }),
+			homeHeroAction(cx, "home-hero-play", locales.Play(cx), lucide.Play(), true, tablet, func() { a.playCatalogEntry(entry) }),
 		}, actions...)
+	}
+	if tablet {
+		return core.View{Class: "absolute inset-0", Children: []core.Node{
+			homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0"),
+			core.View{Class: "absolute inset-0 bg-linear-to-r from-black/85 via-black/45 to-transparent"},
+			core.View{Class: "absolute bottom-0 left-0 w-[460px] max-w-full gap-3 p-8", Children: []core.Node{
+				core.View{Class: "flex-row items-center gap-2", Children: byline},
+				core.Text{Content: item.Title, TestID: "home-hero-title", Class: "text-4xl font-bold tracking-tight text-white", MaxLines: 2},
+				core.Text{Content: strings.Join(meta, " · "), Class: "text-sm text-white/80", MaxLines: 1},
+				core.View{Class: "flex-row gap-3 pt-1", Children: actions},
+			}},
+		}}
 	}
 	return core.View{TestID: "home-hero", Class: "relative mx-5 h-[440px] overflow-hidden rounded-3xl shadow-xl shadow-black/20", Children: []core.Node{
 		homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0 pt-16"),
@@ -105,13 +151,20 @@ func (a *application) phoneHero(cx *core.Scope, entry catalogItem) core.Node {
 	}}
 }
 
-func homeHeroAction(cx *core.Scope, id, label string, icon *core.SVG, primary bool, press func()) core.Node {
+func homeHeroAction(cx *core.Scope, id, label string, icon *core.SVG, primary, tablet bool, press func()) core.Node {
 	fill, tint := "bg-white/20", "text-white"
 	if primary {
 		fill, tint = "bg-white", "text-black"
 	}
+	shape := "h-11 flex-1 rounded-xl"
+	if tablet {
+		shape = "h-10 rounded-full px-5"
+		if primary {
+			shape += " shadow-lg"
+		}
+	}
 	return base.Button{TestID: id, Label: label,
-		Class: "h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl " + fill, Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
+		Class: "flex-row items-center justify-center gap-2 " + shape + " " + fill, Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
 		OnPress: func(core.PressEvent) { press() }, Children: []core.Node{
 			core.Icon{SVG: icon, Class: "size-4 " + tint},
 			core.Text{Content: label, Class: "text-sm font-semibold " + tint},

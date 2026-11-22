@@ -88,6 +88,9 @@ func captureDesign(t *testing.T, project, name, panel string) {
 				app.WaitFor("text:Waygu", 5*time.Second)
 				app.WaitFor("text:稍后设置", time.Second)
 			}
+			if name == "tablet-home.scenra" {
+				app.WaitFor("text:观看记录", 5*time.Second)
+			}
 			app.Advance(500 * time.Millisecond)
 			stem := strings.TrimSuffix(filepath.ToSlash(name), ".scenra")
 			if variant.ID != "" {

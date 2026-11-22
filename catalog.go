@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -49,8 +50,13 @@ type catalogResult struct {
 	sources       map[string]homeSourceStatus
 }
 
+var shellIdiom = core.NewKey("waygu.shellIdiom", core.Idiom(0))
+
 func (a *application) shell(cx *core.Scope) core.Node {
 	layout := core.NewMemo(cx, func() core.Idiom {
+		if override := shellIdiom.Use(cx); override != 0 {
+			return override
+		}
 		idiom := cx.Env().Idiom()
 		if idiom == core.IdiomDesktop {
 			if width := cx.Env().Window().Width; width > 0 && width < 560 {
@@ -63,6 +69,9 @@ func (a *application) shell(cx *core.Scope) core.Node {
 }
 
 func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
+	if idiom == core.IdiomTablet {
+		return a.tabletShell(cx)
+	}
 	titles := []string{locales.Home(cx), locales.Library(cx), locales.Search(cx), locales.Settings(cx)}
 	icons := []func() *core.SVG{lucide.House, lucide.LibraryBig, lucide.Search, lucide.Settings}
 	pages := []screen{screenHome, screenLibrary, screenSearch, screenSettings}
@@ -70,9 +79,9 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 		if pages[index] == screenSettings {
 			return a.settings(cx)
 		}
-		return a.browse(cx, pages[index], idiom == core.IdiomPhone)
+		return a.browse(cx, pages[index], idiom, nil)
 	}
-	if idiom == core.IdiomDesktop || idiom == core.IdiomTablet || idiom == core.IdiomTV {
+	if idiom == core.IdiomDesktop || idiom == core.IdiomTV {
 		content := core.Dynamic(func(cx *core.Scope) core.Node { return page(cx, a.tab.Get()) })
 		if idiom == core.IdiomTV {
 			items := []core.Node{brand(locales.Brand(cx))}
@@ -109,12 +118,21 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 	return ui.TabShell{Tabs: tabs, Selected: a.tab.Get, OnChange: a.tab.Set}
 }
 
-func (a *application) browse(cx *core.Scope, page screen, phone bool) core.Node {
+func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, category *core.Signal[libraryCategory]) core.Node {
 	query := core.NewSignal(cx, "")
 	draft := core.NewSignal(cx, "")
 	library := core.NewSignal(cx, "")
-	category := core.NewSignal(cx, libraryCategory(""))
+	if category == nil {
+		category = core.NewSignal(cx, libraryCategory(""))
+	}
 	limit := core.NewSignal(cx, 36)
+	if page == screenLibrary {
+		cx.Effect(func() {
+			category.Get()
+			library.Set("")
+			limit.Set(36)
+		})
+	}
 	results := core.NewResource(cx, func() (catalogRequest, bool) {
 		sources := a.sources.Get()
 		term := query.Get()
@@ -136,14 +154,24 @@ func (a *application) browse(cx *core.Scope, page screen, phone bool) core.Node 
 			}
 		})
 		cx.Effect(func() {
-			if result, ready := results.Get(); ready {
+			if result, ready := results.Get(); ready && !results.Loading() {
+				if idiom == core.IdiomTablet {
+					a.sourceStatus.Update(func(current map[string]homeSourceStatus) map[string]homeSourceStatus {
+						status := make(map[string]homeSourceStatus, len(current)+len(result.sources))
+						if a.sourceFilter.GetUntracked() != "" {
+							maps.Copy(status, current)
+						}
+						maps.Copy(status, result.sources)
+						return status
+					})
+				}
 				for _, update := range result.resumeCache {
 					a.saveResumeCache(update)
 				}
 			}
 		})
-		if phone {
-			return a.phoneHome(cx, results, limit)
+		if idiom == core.IdiomPhone || idiom == core.IdiomTablet {
+			return a.home(cx, results, limit, idiom == core.IdiomTablet)
 		}
 	}
 	title := locales.Home(cx)
@@ -173,11 +201,7 @@ func (a *application) browse(cx *core.Scope, page screen, phone bool) core.Node 
 		options := libraryCategories(cx, locales.AllCategories(cx))
 		controls = append(controls, core.View{Class: "flex-row flex-wrap items-center gap-3", Children: []core.Node{
 			ui.Select[libraryCategory]{Label: locales.LibraryCategory(cx), TestID: "catalog-category", Options: options,
-				Value: category.Get, OnChange: func(value libraryCategory) {
-					category.Set(value)
-					library.Set("")
-					limit.Set(36)
-				}},
+				Value: category.Get, OnChange: category.Set},
 			core.Dynamic(func(cx *core.Scope) core.Node {
 				choices := []ui.Option[string]{{Label: locales.AllLibraries(cx)}}
 				filter := a.sourceFilter.Get()
@@ -204,7 +228,7 @@ func (a *application) browse(cx *core.Scope, page screen, phone bool) core.Node 
 		submit := func() { query.Set(strings.TrimSpace(draft.GetUntracked())); limit.Set(36) }
 		controls = append(controls, core.View{Class: "flex-row items-center gap-2", Children: []core.Node{
 			ui.Input{Label: locales.SearchHint(cx), Placeholder: locales.SearchHint(cx), TestID: "search-query",
-				Value: draft.Get, OnChange: func(value string) {
+				AutoFocus: idiom == core.IdiomTablet, Value: draft.Get, OnChange: func(value string) {
 					draft.Set(value)
 					if strings.TrimSpace(value) == "" {
 						query.Set("")

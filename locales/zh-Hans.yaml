@@ -60,6 +60,11 @@ importLibraries: 选择要导入的媒体库
 completeSource: 完成
 noLibraries: 此账号没有可导入的影视库。
 home: 首页
+openSidebar: 展开侧边栏
+closeSidebar: 收起侧边栏
+navigation: 导航
+browse: 浏览
+sourcesOnline: "{count} 个媒体源在线"
 homeGreeting: 欢迎回来
 homeSummary: "{sources} 个媒体源在线 · 已载入 {count} 项"
 homeBySource: 按媒体源

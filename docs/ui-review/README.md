@@ -8,6 +8,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Add source · light and dark | [Screenshots and discovery checks](add-source.md) | Compared on Linux GTK with Emby and Jellyfin Docker responders. Several design rows and mobile verification remain pending. |
 | Connect to server · both appearances and all provider tabs | [Screenshots and sign-in checks](source-login.md) | Compared on Linux GTK. The Emby advanced group and the real device checks remain pending. The Plex form lacks a Scenra variant. |
 | Phone home · light and dark | [Screenshots and media server checks](home.md) | The compact layout was compared on Linux GTK with three Docker media servers. Phone device captures and some metadata details remain pending. |
+| Tablet home · light and dark | [Screenshots and tablet interaction checks](tablet-home.md) | The tablet layout was compared on Linux GTK with three Docker media servers. Personal sections and real-device captures remain pending. |
 
 ## Capture a comparison
 
@@ -32,6 +33,13 @@ With the same Docker fixtures, capture the phone home layout and its source card
 ```sh
 go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerHomeReview$' -screenshots .nsgo/ui-review/home
+```
+
+The tablet home test selects the tablet layout in the GTK harness at 1180 × 820 pt in landscape and 820 × 1180 pt in portrait.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerTabletHomeReview$' -screenshots .nsgo/ui-review/tablet
 ```
 
 The reference uses the Scenra version pinned in this project and renders the original design files and components. Run it in its own module.

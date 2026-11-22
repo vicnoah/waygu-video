@@ -60,6 +60,11 @@ importLibraries: Choose libraries to import
 completeSource: Done
 noLibraries: This account has no video libraries.
 home: Home
+openSidebar: Open sidebar
+closeSidebar: Close sidebar
+navigation: Navigation
+browse: Browse
+sourcesOnline: "{count} sources online"
 homeGreeting: Welcome back
 homeSummary: "{sources} online · {count} loaded"
 homeBySource: By source

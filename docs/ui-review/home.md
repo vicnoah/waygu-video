@@ -30,4 +30,4 @@ The 1480 px reference clips the source cards. These cropped native captures show
 
 `TestDockerHomeReview` checks the card and tab-bar heights, selects a carousel item, advances the clock by eight seconds, expands and collapses the recent shelf, filters by an Emby card, restores all sources through the selector, opens details, and enters the player. The existing Docker media suite checks the underlying playback endpoints. The GTK test run also passed the native video decode check.
 
-The test lab uses Cairo for GTK screenshot rendering and preloads its installed libsoup 3 so remote fixture artwork loads before the screenshots. The images show the actual artwork served by the fixtures. Tablet, desktop, TV home designs, and native phone captures remain in the [screen inventory](screens.md).
+The test lab uses Cairo for GTK screenshot rendering and preloads its installed libsoup 3 so remote fixture artwork loads before the screenshots. The images show the actual artwork served by the fixtures. The [tablet home review](tablet-home.md) covers the tablet layout. Desktop and TV home designs and native phone captures remain in the [screen inventory](screens.md).

@@ -43,7 +43,7 @@ box class="w-60 gap-5 border-r border-white/8 bg-[#1a1b25]/40 px-3 pt-5 pb-4"
       text "收藏" class="text-sm text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
     end
     box name=history class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
-      icon history class="size-4 text-zinc-400 group-selected:text-violet-400"
+      icon clock class="size-4 text-zinc-400 group-selected:text-violet-400"
       text "观看记录" class="text-sm text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
     end
     box name=downloads class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"

@@ -47,6 +47,7 @@ var Parameters = map[string][]string{
 	"AddDiscoveredSource":       {"name"},
 	"Connected":                 {"name"},
 	"SignedInAs":                {"name"},
+	"SourcesOnline":             {"count"},
 	"HomeSummary":               {"sources", "count"},
 	"HomeItemCount":             {"count"},
 	"HomeDuration":              {"minutes"},
@@ -87,6 +88,7 @@ type Translation struct {
 	AddDiscoveredSource       func(name string) string
 	Connected                 func(name string) string
 	SignedInAs                func(name string) string
+	SourcesOnline             func(count string) string
 	HomeSummary               func(sources string, count string) string
 	HomeItemCount             func(count string) string
 	HomeDuration              func(minutes string) string
@@ -179,6 +181,10 @@ const (
 	textCompleteSource
 	textNoLibraries
 	textHome
+	textOpenSidebar
+	textCloseSidebar
+	textNavigation
+	textBrowse
 	textHomeGreeting
 	textHomeBySource
 	textHomeUnavailable
@@ -398,6 +404,10 @@ var keyOfText = [numTexts]string{
 	"completeSource",
 	"noLibraries",
 	"home",
+	"openSidebar",
+	"closeSidebar",
+	"navigation",
+	"browse",
 	"homeGreeting",
 	"homeBySource",
 	"homeUnavailable",
@@ -615,6 +625,10 @@ var textsEn = i18n.NewTexts(""+
 	"Done"+
 	"This account has no video libraries."+
 	"Home"+
+	"Open sidebar"+
+	"Close sidebar"+
+	"Navigation"+
+	"Browse"+
 	"Welcome back"+
 	"By source"+
 	"Connection error"+
@@ -829,6 +843,10 @@ var textsEn = i18n.NewTexts(""+
 		4,
 		36,
 		4,
+		12,
+		13,
+		10,
+		6,
 		12,
 		9,
 		16,
@@ -1046,6 +1064,10 @@ var textsZhHans = i18n.NewTexts(""+
 	"完成"+
 	"此账号没有可导入的影视库。"+
 	"首页"+
+	"展开侧边栏"+
+	"收起侧边栏"+
+	"导航"+
+	"浏览"+
 	"欢迎回来"+
 	"按媒体源"+
 	"连接异常"+
@@ -1259,6 +1281,10 @@ var textsZhHans = i18n.NewTexts(""+
 		27,
 		6,
 		39,
+		6,
+		15,
+		15,
+		6,
 		6,
 		12,
 		12,
@@ -1482,6 +1508,9 @@ func Supply(lang string, t Translation) {
 	}
 	if t.SignedInAs != nil {
 		s.SignedInAs = t.SignedInAs
+	}
+	if t.SourcesOnline != nil {
+		s.SourcesOnline = t.SourcesOnline
 	}
 	if t.HomeSummary != nil {
 		s.HomeSummary = t.HomeSummary
@@ -2097,6 +2126,56 @@ func Home(cx *core.Scope) string { return For(cx).Home() }
 
 // Home is the package's Home in the language of msgs.
 func (msgs Messages) Home() string { return msgs.text(textHome) }
+
+// OpenSidebar says "Open sidebar"
+// in the language the app shows under cx.
+func OpenSidebar(cx *core.Scope) string { return For(cx).OpenSidebar() }
+
+// OpenSidebar is the package's OpenSidebar in the language of msgs.
+func (msgs Messages) OpenSidebar() string { return msgs.text(textOpenSidebar) }
+
+// CloseSidebar says "Close sidebar"
+// in the language the app shows under cx.
+func CloseSidebar(cx *core.Scope) string { return For(cx).CloseSidebar() }
+
+// CloseSidebar is the package's CloseSidebar in the language of msgs.
+func (msgs Messages) CloseSidebar() string { return msgs.text(textCloseSidebar) }
+
+// Navigation says "Navigation"
+// in the language the app shows under cx.
+func Navigation(cx *core.Scope) string { return For(cx).Navigation() }
+
+// Navigation is the package's Navigation in the language of msgs.
+func (msgs Messages) Navigation() string { return msgs.text(textNavigation) }
+
+// Browse says "Browse"
+// in the language the app shows under cx.
+func Browse(cx *core.Scope) string { return For(cx).Browse() }
+
+// Browse is the package's Browse in the language of msgs.
+func (msgs Messages) Browse() string { return msgs.text(textBrowse) }
+
+// SourcesOnline says "{count} sources online"
+// in the language the app shows under cx.
+func SourcesOnline(cx *core.Scope, count string) string { return For(cx).SourcesOnline(count) }
+
+// SourcesOnline is the package's SourcesOnline in the language of msgs.
+func (msgs Messages) SourcesOnline(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SourcesOnline(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SourcesOnline; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " sources online"
+		case "zh-Hans":
+			return count + " 个媒体源在线"
+		}
+	}
+}
 
 // HomeGreeting says "Welcome back"
 // in the language the app shows under cx.

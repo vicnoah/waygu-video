@@ -155,6 +155,9 @@ func TestDockerCrossSourceTitles(t *testing.T) {
 
 func setDockerCopyProgress(t *testing.T, ctx context.Context, client media.Client, item media.Item, position time.Duration) time.Time {
 	t.Helper()
+	// Some servers report LastPlayed with second precision. Poll past
+	// any older row left by an earlier run with the same position.
+	reportedAt := time.Now().UTC().Truncate(time.Second)
 	stream, err := client.Playback(ctx, item, media.PlaybackOptions{})
 	if err != nil {
 		t.Fatal(err)
@@ -171,7 +174,7 @@ func setDockerCopyProgress(t *testing.T, ctx context.Context, client media.Clien
 			t.Fatal(err)
 		}
 		for _, row := range items {
-			if row.ID == item.ID && row.Position == position && !row.LastPlayed.IsZero() {
+			if row.ID == item.ID && row.Position == position && !row.LastPlayed.Before(reportedAt) {
 				return row.LastPlayed
 			}
 		}

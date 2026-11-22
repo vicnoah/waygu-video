@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"errors"
+	"maps"
 	"slices"
 	"strconv"
 	"sync"
@@ -78,6 +79,7 @@ type application struct {
 	routes        *core.Signal[[]route]
 	tab           *core.Signal[int]
 	sourceFilter  *core.Signal[string]
+	sourceStatus  *core.Signal[map[string]homeSourceStatus]
 	mergeTitles   *core.Signal[bool]
 	mpvPreferred  *core.Signal[bool]
 	bitrateLimit  *core.Signal[int]
@@ -140,6 +142,7 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 		device: media.Device{ID: deviceID, Name: "Waygu Video"}, storage: storage, secrets: cx.Secrets(), newMedia: factory, newDandan: dandan,
 		sources: core.NewSignalFunc(cx, sources, nil), routes: core.NewSignalFunc(cx, []route{{screen: first}}, nil),
 		tab: core.NewSignal(cx, 0), sourceFilter: core.NewSignal(cx, ""),
+		sourceStatus:  core.NewSignalFunc[map[string]homeSourceStatus](cx, nil, maps.Equal),
 		mergeTitles:   core.NewSignal(cx, mergeTitles != "false"),
 		mpvPreferred:  core.NewSignal(cx, mpvPreference == "true"),
 		bitrateLimit:  core.NewSignal(cx, bitrate),
