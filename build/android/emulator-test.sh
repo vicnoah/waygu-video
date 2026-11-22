@@ -15,5 +15,9 @@ if [ "$1" = tv ]; then
     adb -s "$ANDROID_SERIAL" shell am force-stop "$app_id"
     navigation=TestTVNavigation
 fi
-go tool nsgo test -target android -device "$ANDROID_SERIAL" \
-    -run "^(TestChineseAppName|$navigation|TestNativeVideoDecodes)$" -timeout 2m .
+if ! go tool nsgo test -target android -device "$ANDROID_SERIAL" \
+    -run "^(TestChineseAppName|$navigation|TestNativeVideoDecodes)$" -timeout 2m .; then
+    adb -s "$ANDROID_SERIAL" logcat -d -v brief -s AndroidRuntime:E MediaPlayer:V \
+        MediaPlayerNative:V NuPlayer:V NuPlayerDriver:V CCodec:V | tail -120
+    exit 1
+fi
