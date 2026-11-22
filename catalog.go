@@ -35,6 +35,8 @@ type catalogRequest struct {
 	home         bool
 	personal     screen
 	category     libraryCategory
+	libraryFacts bool
+	scan         bool
 	merge        bool
 	cachedResume map[string][]media.Item
 }
@@ -85,7 +87,11 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 		}
 		if pages[index] == screenLibrary {
 			return core.Dynamic(func(cx *core.Scope) core.Node {
-				return a.browse(cx, a.libraryView.Get(), idiom, nil)
+				view := a.libraryView.Get()
+				if idiom == core.IdiomPhone && view == screenLibrary {
+					return a.compactLibrary(cx)
+				}
+				return a.browse(cx, view, idiom, nil)
 			})
 		}
 		return a.browse(cx, pages[index], idiom, nil)
@@ -397,6 +403,7 @@ func (a *application) loadCatalog(ctx context.Context, q catalogRequest) catalog
 		all.resumeCache = append(all.resumeCache, group.resumeCache...)
 		all.hasMore = all.hasMore || group.hasMore
 		all.failure = errors.Join(all.failure, group.failure)
+		all.connected = all.connected || group.connected
 		if q.home && (q.filter == "" || q.filter == q.sources[index].ID) {
 			all.sources[q.sources[index].ID] = homeSourceStatus{total: group.total, connected: group.connected, failed: group.failure != nil}
 		}
@@ -463,7 +470,14 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 	var result catalogResult
 	seen := make(map[string]bool)
 	for _, library := range libraries {
-		page, err := list(ctx, library.Library, media.Query{LibraryID: library.ID, Limit: q.limit, Search: q.search})
+		query := media.Query{LibraryID: library.ID, Limit: q.limit, Search: q.search, CatalogFacts: q.libraryFacts}
+		var page media.Page
+		var err error
+		if q.scan {
+			page, err = scanCatalogPages(ctx, client, query)
+		} else {
+			page, err = list(ctx, library.Library, query)
+		}
 		globalSearch := err != nil && source.Provider == media.Flymoo && q.search != "" && q.library == ""
 		if globalSearch {
 			// Older FnOS servers omit the library ID on global search results.
@@ -471,7 +485,9 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 		}
 		if err != nil {
 			result.failure = errors.Join(result.failure, err)
-			continue
+			if len(page.Items) == 0 {
+				continue
+			}
 		}
 		result.connected = true
 		result.total += max(page.Total, len(page.Items))
@@ -503,6 +519,8 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 		if refreshed {
 			result.resumeCache = []resumeCacheUpdate{{source: source, items: result.resume}}
 		}
+	} else if q.libraryFacts && q.category != libraryMovies && !q.scan {
+		result.resume, _, _ = resumeShelf(ctx, client, source, libraries, nil)
 	}
 	return result
 }

@@ -15,8 +15,8 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [设置窗口 · 深色](../../design/desktop-settings.scenra#L135) | dark | `desktop · 1100 × 760` | — | Pending |
 | [手机/首页](../../design/home.scenra#L1) | light | `phone · auto × 1480` | — | [Compared](home.md) |
 | [首页 · 深色](../../design/home.scenra#L143) | dark | `phone · auto × 1480` | — | [Compared](home.md) |
-| [手机/媒体库](../../design/library.scenra#L1) | light | `phone · auto × 1100` | anime, docs, movies, shows | Pending |
-| [媒体库 · 深色](../../design/library.scenra#L94) | dark | `phone · auto × 1100` | anime, docs, movies, shows | Pending |
+| [手机/媒体库](../../design/library.scenra#L1) | light | `phone · auto × 1100` | anime, docs, movies, shows | [Compared](phone-library.md) |
+| [媒体库 · 深色](../../design/library.scenra#L94) | dark | `phone · auto × 1100` | anime, docs, movies, shows | [Compared](phone-library.md) |
 | [手机/电影详情](../../design/movie-detail.scenra#L1) | light | `phone · auto × 1960` | — | [Compared](phone-movie.md) |
 | [电影详情 · 深色](../../design/movie-detail.scenra#L185) | dark | `phone · auto × 1960` | — | [Compared](phone-movie.md) |
 | [手机/弹幕面板](../../design/player-danmaku.scenra#L1) | default | `phone · 844 × 390` | block, show, source | Pending |

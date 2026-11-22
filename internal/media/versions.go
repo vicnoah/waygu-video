@@ -25,6 +25,12 @@ type VersionClient interface {
 	Versions(context.Context, Item) ([]Version, error)
 }
 
+func (item *Item) addVideoProfile(profile VideoProfile) {
+	if !slices.Contains(item.VideoProfiles, profile) {
+		item.VideoProfiles = append(item.VideoProfiles, profile)
+	}
+}
+
 func videoFileName(value string) string {
 	value = strings.ReplaceAll(strings.TrimSpace(value), "\\", "/")
 	if strings.Contains(value, "://") {

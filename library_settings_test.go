@@ -68,8 +68,12 @@ func TestManageLibraryPreferences(t *testing.T) {
 
 	pressLibraryTestTab(app, screenLibrary, "Library")
 	app.WaitFor("id:title-movies-title", time.Second)
-	app.Press("id:catalog-category")
-	app.Press("id:catalog-category-3")
+	if app.Exists("id:library-category-anime") {
+		app.Press("id:library-category-anime")
+	} else {
+		app.Press("id:catalog-category")
+		app.Press("id:catalog-category-3")
+	}
 	app.WaitFor("id:title-shows-title", time.Second)
 	app.WaitForGone("id:title-movies-title", time.Second)
 	app.WaitForGone("id:title-new-title", time.Second)

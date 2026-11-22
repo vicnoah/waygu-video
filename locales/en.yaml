@@ -79,6 +79,30 @@ homeSeeAll: See all
 homeCollapse: Show less
 homeEpisode: "Season {season} · Episode {episode}"
 library: Library
+libraryFilters: Library filters
+libraryListView: Switch to list
+libraryPosterView: Switch to posters
+libraryClearFilters: Clear filters
+libraryDone: Done
+librarySort: Sort titles
+librarySortTitle: Title
+librarySortYear: Newest release
+librarySortRating: Highest rating
+libraryGenre: Genre
+libraryYear: Year
+libraryResolution: Resolution
+libraryAnyGenre: All genres
+libraryAnyYear: All years
+libraryAnyResolution: All resolutions
+libraryUnwatched: Unwatched
+libraryLoadedCount: "Loaded {count} titles"
+libraryTitleCount: "{count} titles · {sources} sources"
+libraryMovieCount: "{count} movies · {sources} sources"
+librarySeriesCount: "{count} series"
+librarySeriesUnplayed: "{count} with unwatched episodes"
+libraryEpisodePosition: "S{season} · E{episode}"
+libraryEpisodeCount: "{count} episodes"
+libraryUnplayedEpisodes: "{count} unwatched"
 search: Search
 settings: Settings
 allSources: All media sources

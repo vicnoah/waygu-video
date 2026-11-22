@@ -79,6 +79,30 @@ homeSeeAll: 全部
 homeCollapse: 收起
 homeEpisode: "第 {season} 季 · 第 {episode} 集"
 library: 媒体库
+libraryFilters: 媒体库筛选
+libraryListView: 切换为列表
+libraryPosterView: 切换为海报墙
+libraryClearFilters: 清除筛选
+libraryDone: 完成
+librarySort: 影片排序
+librarySortTitle: 片名
+librarySortYear: 上映年份
+librarySortRating: 评分最高
+libraryGenre: 类型
+libraryYear: 年份
+libraryResolution: 分辨率
+libraryAnyGenre: 全部类型
+libraryAnyYear: 全部年份
+libraryAnyResolution: 全部分辨率
+libraryUnwatched: 未观看
+libraryLoadedCount: "已载入 {count} 项"
+libraryTitleCount: "{count} 部 · 来自 {sources} 个媒体源"
+libraryMovieCount: "{count} 部电影 · 来自 {sources} 个媒体源"
+librarySeriesCount: "{count} 部剧集"
+librarySeriesUnplayed: "{count} 部有未看分集"
+libraryEpisodePosition: "S{season} · E{episode}"
+libraryEpisodeCount: "{count} 集"
+libraryUnplayedEpisodes: "{count} 集未看"
 search: 搜索
 settings: 设置
 allSources: 全部媒体源

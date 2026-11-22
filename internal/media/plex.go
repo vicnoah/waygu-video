@@ -45,6 +45,7 @@ type plexMetadata struct {
 	AddedAt                                     int64
 	LastViewedAt                                int64
 	ViewCount                                   int
+	ChildCount, LeafCount, ViewedLeafCount      int
 	Genre                                       []struct{ Tag string }
 	Director, Role                              []struct{ Tag, Role, Thumb string }
 	PrimaryGuid                                 string                `json:"guid"`
@@ -287,10 +288,21 @@ func (p *plexClient) item(entry plexMetadata) Item {
 	switch entry.Type {
 	case "show":
 		item.Kind = Series
+		item.SeasonCount, item.EpisodeCount = entry.ChildCount, entry.LeafCount
+		if entry.LeafCount > 0 {
+			unplayed := max(0, entry.LeafCount-entry.ViewedLeafCount)
+			item.UnplayedCount = &unplayed
+			item.Watched = unplayed == 0
+		}
 	case "season":
 		item.Season, item.SeriesID = entry.Index, entry.ParentRatingKey
 	case "episode":
 		item.Episode, item.Season, item.SeriesID = entry.Index, entry.ParentIndex, entry.GrandparentRatingKey
+	}
+	for _, medium := range entry.Media {
+		if medium.Width > 0 || medium.Height > 0 {
+			item.addVideoProfile(VideoProfile{Width: medium.Width, Height: medium.Height})
+		}
 	}
 	return item
 }

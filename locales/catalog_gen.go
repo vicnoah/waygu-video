@@ -52,6 +52,14 @@ var Parameters = map[string][]string{
 	"HomeItemCount":             {"count"},
 	"HomeDuration":              {"minutes"},
 	"HomeEpisode":               {"season", "episode"},
+	"LibraryLoadedCount":        {"count"},
+	"LibraryTitleCount":         {"count", "sources"},
+	"LibraryMovieCount":         {"count", "sources"},
+	"LibrarySeriesCount":        {"count"},
+	"LibrarySeriesUnplayed":     {"count"},
+	"LibraryEpisodePosition":    {"season", "episode"},
+	"LibraryEpisodeCount":       {"count"},
+	"LibraryUnplayedEpisodes":   {"count"},
 	"MoveSourceUp":              {"name"},
 	"MoveSourceDown":            {"name"},
 	"ShowNamedLibrary":          {"name"},
@@ -110,6 +118,14 @@ type Translation struct {
 	HomeItemCount             func(count string) string
 	HomeDuration              func(minutes string) string
 	HomeEpisode               func(season string, episode string) string
+	LibraryLoadedCount        func(count string) string
+	LibraryTitleCount         func(count string, sources string) string
+	LibraryMovieCount         func(count string, sources string) string
+	LibrarySeriesCount        func(count string) string
+	LibrarySeriesUnplayed     func(count string) string
+	LibraryEpisodePosition    func(season string, episode string) string
+	LibraryEpisodeCount       func(count string) string
+	LibraryUnplayedEpisodes   func(count string) string
 	MoveSourceUp              func(name string) string
 	MoveSourceDown            func(name string) string
 	ShowNamedLibrary          func(name string) string
@@ -229,6 +245,22 @@ const (
 	textHomeSeeAll
 	textHomeCollapse
 	textLibrary
+	textLibraryFilters
+	textLibraryListView
+	textLibraryPosterView
+	textLibraryClearFilters
+	textLibraryDone
+	textLibrarySort
+	textLibrarySortTitle
+	textLibrarySortYear
+	textLibrarySortRating
+	textLibraryGenre
+	textLibraryYear
+	textLibraryResolution
+	textLibraryAnyGenre
+	textLibraryAnyYear
+	textLibraryAnyResolution
+	textLibraryUnwatched
 	textSearch
 	textSettings
 	textAllSources
@@ -518,6 +550,22 @@ var keyOfText = [numTexts]string{
 	"homeSeeAll",
 	"homeCollapse",
 	"library",
+	"libraryFilters",
+	"libraryListView",
+	"libraryPosterView",
+	"libraryClearFilters",
+	"libraryDone",
+	"librarySort",
+	"librarySortTitle",
+	"librarySortYear",
+	"librarySortRating",
+	"libraryGenre",
+	"libraryYear",
+	"libraryResolution",
+	"libraryAnyGenre",
+	"libraryAnyYear",
+	"libraryAnyResolution",
+	"libraryUnwatched",
 	"search",
 	"settings",
 	"allSources",
@@ -805,6 +853,22 @@ var textsEn = i18n.NewTexts(""+
 	"See all"+
 	"Show less"+
 	"Library"+
+	"Library filters"+
+	"Switch to list"+
+	"Switch to posters"+
+	"Clear filters"+
+	"Done"+
+	"Sort titles"+
+	"Title"+
+	"Newest release"+
+	"Highest rating"+
+	"Genre"+
+	"Year"+
+	"Resolution"+
+	"All genres"+
+	"All years"+
+	"All resolutions"+
+	"Unwatched"+
 	"Search"+
 	"Settings"+
 	"All media sources"+
@@ -1089,6 +1153,22 @@ var textsEn = i18n.NewTexts(""+
 		7,
 		9,
 		7,
+		15,
+		14,
+		17,
+		13,
+		4,
+		11,
+		5,
+		14,
+		14,
+		5,
+		4,
+		10,
+		10,
+		9,
+		15,
+		9,
 		6,
 		8,
 		17,
@@ -1376,6 +1456,22 @@ var textsZhHans = i18n.NewTexts(""+
 	"全部"+
 	"收起"+
 	"媒体库"+
+	"媒体库筛选"+
+	"切换为列表"+
+	"切换为海报墙"+
+	"清除筛选"+
+	"完成"+
+	"影片排序"+
+	"片名"+
+	"上映年份"+
+	"评分最高"+
+	"类型"+
+	"年份"+
+	"分辨率"+
+	"全部类型"+
+	"全部年份"+
+	"全部分辨率"+
+	"未观看"+
 	"搜索"+
 	"设置"+
 	"全部媒体源"+
@@ -1659,6 +1755,22 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		6,
 		6,
+		9,
+		15,
+		15,
+		18,
+		12,
+		6,
+		12,
+		6,
+		12,
+		12,
+		6,
+		6,
+		9,
+		12,
+		12,
+		15,
 		9,
 		6,
 		6,
@@ -1953,6 +2065,30 @@ func Supply(lang string, t Translation) {
 	}
 	if t.HomeEpisode != nil {
 		s.HomeEpisode = t.HomeEpisode
+	}
+	if t.LibraryLoadedCount != nil {
+		s.LibraryLoadedCount = t.LibraryLoadedCount
+	}
+	if t.LibraryTitleCount != nil {
+		s.LibraryTitleCount = t.LibraryTitleCount
+	}
+	if t.LibraryMovieCount != nil {
+		s.LibraryMovieCount = t.LibraryMovieCount
+	}
+	if t.LibrarySeriesCount != nil {
+		s.LibrarySeriesCount = t.LibrarySeriesCount
+	}
+	if t.LibrarySeriesUnplayed != nil {
+		s.LibrarySeriesUnplayed = t.LibrarySeriesUnplayed
+	}
+	if t.LibraryEpisodePosition != nil {
+		s.LibraryEpisodePosition = t.LibraryEpisodePosition
+	}
+	if t.LibraryEpisodeCount != nil {
+		s.LibraryEpisodeCount = t.LibraryEpisodeCount
+	}
+	if t.LibraryUnplayedEpisodes != nil {
+		s.LibraryUnplayedEpisodes = t.LibraryUnplayedEpisodes
 	}
 	if t.MoveSourceUp != nil {
 		s.MoveSourceUp = t.MoveSourceUp
@@ -2819,6 +2955,310 @@ func Library(cx *core.Scope) string { return For(cx).Library() }
 
 // Library is the package's Library in the language of msgs.
 func (msgs Messages) Library() string { return msgs.text(textLibrary) }
+
+// LibraryFilters says "Library filters"
+// in the language the app shows under cx.
+func LibraryFilters(cx *core.Scope) string { return For(cx).LibraryFilters() }
+
+// LibraryFilters is the package's LibraryFilters in the language of msgs.
+func (msgs Messages) LibraryFilters() string { return msgs.text(textLibraryFilters) }
+
+// LibraryListView says "Switch to list"
+// in the language the app shows under cx.
+func LibraryListView(cx *core.Scope) string { return For(cx).LibraryListView() }
+
+// LibraryListView is the package's LibraryListView in the language of msgs.
+func (msgs Messages) LibraryListView() string { return msgs.text(textLibraryListView) }
+
+// LibraryPosterView says "Switch to posters"
+// in the language the app shows under cx.
+func LibraryPosterView(cx *core.Scope) string { return For(cx).LibraryPosterView() }
+
+// LibraryPosterView is the package's LibraryPosterView in the language of msgs.
+func (msgs Messages) LibraryPosterView() string { return msgs.text(textLibraryPosterView) }
+
+// LibraryClearFilters says "Clear filters"
+// in the language the app shows under cx.
+func LibraryClearFilters(cx *core.Scope) string { return For(cx).LibraryClearFilters() }
+
+// LibraryClearFilters is the package's LibraryClearFilters in the language of msgs.
+func (msgs Messages) LibraryClearFilters() string { return msgs.text(textLibraryClearFilters) }
+
+// LibraryDone says "Done"
+// in the language the app shows under cx.
+func LibraryDone(cx *core.Scope) string { return For(cx).LibraryDone() }
+
+// LibraryDone is the package's LibraryDone in the language of msgs.
+func (msgs Messages) LibraryDone() string { return msgs.text(textLibraryDone) }
+
+// LibrarySort says "Sort titles"
+// in the language the app shows under cx.
+func LibrarySort(cx *core.Scope) string { return For(cx).LibrarySort() }
+
+// LibrarySort is the package's LibrarySort in the language of msgs.
+func (msgs Messages) LibrarySort() string { return msgs.text(textLibrarySort) }
+
+// LibrarySortTitle says "Title"
+// in the language the app shows under cx.
+func LibrarySortTitle(cx *core.Scope) string { return For(cx).LibrarySortTitle() }
+
+// LibrarySortTitle is the package's LibrarySortTitle in the language of msgs.
+func (msgs Messages) LibrarySortTitle() string { return msgs.text(textLibrarySortTitle) }
+
+// LibrarySortYear says "Newest release"
+// in the language the app shows under cx.
+func LibrarySortYear(cx *core.Scope) string { return For(cx).LibrarySortYear() }
+
+// LibrarySortYear is the package's LibrarySortYear in the language of msgs.
+func (msgs Messages) LibrarySortYear() string { return msgs.text(textLibrarySortYear) }
+
+// LibrarySortRating says "Highest rating"
+// in the language the app shows under cx.
+func LibrarySortRating(cx *core.Scope) string { return For(cx).LibrarySortRating() }
+
+// LibrarySortRating is the package's LibrarySortRating in the language of msgs.
+func (msgs Messages) LibrarySortRating() string { return msgs.text(textLibrarySortRating) }
+
+// LibraryGenre says "Genre"
+// in the language the app shows under cx.
+func LibraryGenre(cx *core.Scope) string { return For(cx).LibraryGenre() }
+
+// LibraryGenre is the package's LibraryGenre in the language of msgs.
+func (msgs Messages) LibraryGenre() string { return msgs.text(textLibraryGenre) }
+
+// LibraryYear says "Year"
+// in the language the app shows under cx.
+func LibraryYear(cx *core.Scope) string { return For(cx).LibraryYear() }
+
+// LibraryYear is the package's LibraryYear in the language of msgs.
+func (msgs Messages) LibraryYear() string { return msgs.text(textLibraryYear) }
+
+// LibraryResolution says "Resolution"
+// in the language the app shows under cx.
+func LibraryResolution(cx *core.Scope) string { return For(cx).LibraryResolution() }
+
+// LibraryResolution is the package's LibraryResolution in the language of msgs.
+func (msgs Messages) LibraryResolution() string { return msgs.text(textLibraryResolution) }
+
+// LibraryAnyGenre says "All genres"
+// in the language the app shows under cx.
+func LibraryAnyGenre(cx *core.Scope) string { return For(cx).LibraryAnyGenre() }
+
+// LibraryAnyGenre is the package's LibraryAnyGenre in the language of msgs.
+func (msgs Messages) LibraryAnyGenre() string { return msgs.text(textLibraryAnyGenre) }
+
+// LibraryAnyYear says "All years"
+// in the language the app shows under cx.
+func LibraryAnyYear(cx *core.Scope) string { return For(cx).LibraryAnyYear() }
+
+// LibraryAnyYear is the package's LibraryAnyYear in the language of msgs.
+func (msgs Messages) LibraryAnyYear() string { return msgs.text(textLibraryAnyYear) }
+
+// LibraryAnyResolution says "All resolutions"
+// in the language the app shows under cx.
+func LibraryAnyResolution(cx *core.Scope) string { return For(cx).LibraryAnyResolution() }
+
+// LibraryAnyResolution is the package's LibraryAnyResolution in the language of msgs.
+func (msgs Messages) LibraryAnyResolution() string { return msgs.text(textLibraryAnyResolution) }
+
+// LibraryUnwatched says "Unwatched"
+// in the language the app shows under cx.
+func LibraryUnwatched(cx *core.Scope) string { return For(cx).LibraryUnwatched() }
+
+// LibraryUnwatched is the package's LibraryUnwatched in the language of msgs.
+func (msgs Messages) LibraryUnwatched() string { return msgs.text(textLibraryUnwatched) }
+
+// LibraryLoadedCount says "Loaded {count} titles"
+// in the language the app shows under cx.
+func LibraryLoadedCount(cx *core.Scope, count string) string {
+	return For(cx).LibraryLoadedCount(count)
+}
+
+// LibraryLoadedCount is the package's LibraryLoadedCount in the language of msgs.
+func (msgs Messages) LibraryLoadedCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.LibraryLoadedCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].LibraryLoadedCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return "Loaded " + msgs.arg(count) + " titles"
+		case "zh-Hans":
+			return "已载入 " + count + " 项"
+		}
+	}
+}
+
+// LibraryTitleCount says "{count} titles · {sources} sources"
+// in the language the app shows under cx.
+func LibraryTitleCount(cx *core.Scope, count string, sources string) string {
+	return For(cx).LibraryTitleCount(count, sources)
+}
+
+// LibraryTitleCount is the package's LibraryTitleCount in the language of msgs.
+func (msgs Messages) LibraryTitleCount(count string, sources string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.LibraryTitleCount(count, sources))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].LibraryTitleCount; f != nil {
+			return f(count, sources)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " titles · " + msgs.arg(sources) + " sources"
+		case "zh-Hans":
+			return count + " 部 · 来自 " + sources + " 个媒体源"
+		}
+	}
+}
+
+// LibraryMovieCount says "{count} movies · {sources} sources"
+// in the language the app shows under cx.
+func LibraryMovieCount(cx *core.Scope, count string, sources string) string {
+	return For(cx).LibraryMovieCount(count, sources)
+}
+
+// LibraryMovieCount is the package's LibraryMovieCount in the language of msgs.
+func (msgs Messages) LibraryMovieCount(count string, sources string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.LibraryMovieCount(count, sources))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].LibraryMovieCount; f != nil {
+			return f(count, sources)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " movies · " + msgs.arg(sources) + " sources"
+		case "zh-Hans":
+			return count + " 部电影 · 来自 " + sources + " 个媒体源"
+		}
+	}
+}
+
+// LibrarySeriesCount says "{count} series"
+// in the language the app shows under cx.
+func LibrarySeriesCount(cx *core.Scope, count string) string {
+	return For(cx).LibrarySeriesCount(count)
+}
+
+// LibrarySeriesCount is the package's LibrarySeriesCount in the language of msgs.
+func (msgs Messages) LibrarySeriesCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.LibrarySeriesCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].LibrarySeriesCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " series"
+		case "zh-Hans":
+			return count + " 部剧集"
+		}
+	}
+}
+
+// LibrarySeriesUnplayed says "{count} with unwatched episodes"
+// in the language the app shows under cx.
+func LibrarySeriesUnplayed(cx *core.Scope, count string) string {
+	return For(cx).LibrarySeriesUnplayed(count)
+}
+
+// LibrarySeriesUnplayed is the package's LibrarySeriesUnplayed in the language of msgs.
+func (msgs Messages) LibrarySeriesUnplayed(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.LibrarySeriesUnplayed(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].LibrarySeriesUnplayed; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " with unwatched episodes"
+		case "zh-Hans":
+			return count + " 部有未看分集"
+		}
+	}
+}
+
+// LibraryEpisodePosition says "S{season} · E{episode}"
+// in the language the app shows under cx.
+func LibraryEpisodePosition(cx *core.Scope, season string, episode string) string {
+	return For(cx).LibraryEpisodePosition(season, episode)
+}
+
+// LibraryEpisodePosition is the package's LibraryEpisodePosition in the language of msgs.
+func (msgs Messages) LibraryEpisodePosition(season string, episode string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.LibraryEpisodePosition(season, episode))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].LibraryEpisodePosition; f != nil {
+			return f(season, episode)
+		}
+		switch lang {
+		case "", "en":
+			return "S" + msgs.arg(season) + " · E" + msgs.arg(episode)
+		case "zh-Hans":
+			return "S" + season + " · E" + episode
+		}
+	}
+}
+
+// LibraryEpisodeCount says "{count} episodes"
+// in the language the app shows under cx.
+func LibraryEpisodeCount(cx *core.Scope, count string) string {
+	return For(cx).LibraryEpisodeCount(count)
+}
+
+// LibraryEpisodeCount is the package's LibraryEpisodeCount in the language of msgs.
+func (msgs Messages) LibraryEpisodeCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.LibraryEpisodeCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].LibraryEpisodeCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " episodes"
+		case "zh-Hans":
+			return count + " 集"
+		}
+	}
+}
+
+// LibraryUnplayedEpisodes says "{count} unwatched"
+// in the language the app shows under cx.
+func LibraryUnplayedEpisodes(cx *core.Scope, count string) string {
+	return For(cx).LibraryUnplayedEpisodes(count)
+}
+
+// LibraryUnplayedEpisodes is the package's LibraryUnplayedEpisodes in the language of msgs.
+func (msgs Messages) LibraryUnplayedEpisodes(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.LibraryUnplayedEpisodes(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].LibraryUnplayedEpisodes; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " unwatched"
+		case "zh-Hans":
+			return count + " 集未看"
+		}
+	}
+}
 
 // Search says "Search"
 // in the language the app shows under cx.

@@ -72,6 +72,12 @@ type Person struct {
 	Director             bool
 }
 
+// VideoProfile describes the picture format exposed in catalog metadata.
+type VideoProfile struct {
+	Width, Height int
+	Range         string
+}
+
 type Item struct {
 	ID                string
 	LibraryID         string
@@ -87,6 +93,10 @@ type Item struct {
 	Episode           int
 	Rating            float64
 	Genres            []string
+	VideoProfiles     []VideoProfile
+	SeasonCount       int
+	EpisodeCount      int
+	UnplayedCount     *int
 	People            []Person
 	Poster            string
 	Backdrop          string
@@ -101,10 +111,11 @@ type Item struct {
 }
 
 type Query struct {
-	LibraryID string
-	Search    string
-	Offset    int
-	Limit     int
+	LibraryID    string
+	Search       string
+	Offset       int
+	Limit        int
+	CatalogFacts bool
 }
 
 func (q Query) bounds() (int, int) {

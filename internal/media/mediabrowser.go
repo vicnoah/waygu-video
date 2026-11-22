@@ -131,26 +131,29 @@ type browserList struct {
 }
 
 type browserItem struct {
-	ID                string
-	Name              string
-	OriginalTitle     string
-	OfficialRating    string
-	Overview          string
-	Type              string
-	CollectionType    string
-	SeriesID          string
-	SeriesName        string
-	ParentIndexNumber int
-	IndexNumber       int
-	ProductionYear    int
-	CommunityRating   float64
-	RunTimeTicks      int64
-	DateCreated       string
-	Genres            []string
-	ProviderIds       map[string]string
-	ImageTags         map[string]string
-	BackdropImageTags []string
-	People            []struct {
+	ID                             string
+	Name                           string
+	OriginalTitle                  string
+	OfficialRating                 string
+	Overview                       string
+	Type                           string
+	CollectionType                 string
+	SeriesID                       string
+	SeriesName                     string
+	ParentIndexNumber              int
+	IndexNumber                    int
+	ProductionYear                 int
+	CommunityRating                float64
+	ChildCount, RecursiveItemCount int
+	MediaStreams                   []browserStream
+	MediaSources                   []struct{ MediaStreams []browserStream }
+	RunTimeTicks                   int64
+	DateCreated                    string
+	Genres                         []string
+	ProviderIds                    map[string]string
+	ImageTags                      map[string]string
+	BackdropImageTags              []string
+	People                         []struct {
 		ID, Name, Role, Type, PrimaryImageTag string
 	}
 	UserData struct {
@@ -158,6 +161,7 @@ type browserItem struct {
 		LastPlayedDate        string
 		Played                bool
 		IsFavorite            bool
+		UnplayedItemCount     *int
 	}
 }
 
@@ -171,7 +175,14 @@ func (m *mediaBrowser) itemFields() string {
 func (m *mediaBrowser) Catalog(ctx context.Context, q Query) (Page, error) {
 	offset, limit := q.bounds()
 	params := m.userQuery()
-	params.Set("Fields", m.itemFields())
+	fields := m.itemFields()
+	if q.CatalogFacts {
+		fields += ",MediaStreams,MediaSources,ChildCount,RecursiveItemCount"
+		if m.kind == Emby {
+			fields += ",ProductionYear,CommunityRating"
+		}
+	}
+	params.Set("Fields", fields)
 	params.Set("IncludeItemTypes", "Movie,Series,Video")
 	params.Set("Recursive", "true")
 	params.Set("SortBy", "DateCreated,SortName")
@@ -300,10 +311,23 @@ func (m *mediaBrowser) item(entry browserItem) Item {
 		item.ExternalIDs[strings.ToLower(key)] = id
 	}
 	switch item.Kind {
+	case Series:
+		item.SeasonCount, item.EpisodeCount, item.UnplayedCount = entry.ChildCount, entry.RecursiveItemCount, entry.UserData.UnplayedItemCount
 	case Season:
 		item.Season = entry.IndexNumber
 	case Episode:
 		item.Season, item.Episode = entry.ParentIndexNumber, entry.IndexNumber
+	}
+	addStreams := func(streams []browserStream) {
+		for _, stream := range streams {
+			if strings.EqualFold(stream.Type, "video") && (stream.Width > 0 || stream.Height > 0) {
+				item.addVideoProfile(VideoProfile{Width: stream.Width, Height: stream.Height, Range: stream.VideoRangeType})
+			}
+		}
+	}
+	addStreams(entry.MediaStreams)
+	for _, source := range entry.MediaSources {
+		addStreams(source.MediaStreams)
 	}
 	if tag := entry.ImageTags["Primary"]; tag != "" {
 		item.Poster = m.image(entry.ID, "Primary", tag)
