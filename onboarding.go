@@ -46,6 +46,7 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 	headingClass := "gap-3"
 	actionsClass := "mt-auto gap-1 pb-6"
 	featurePadding := "py-2.5"
+	focusRing := ui.FocusRing(cx, 3)
 	if cx.Env().Idiom() == core.IdiomTV {
 		layoutClass = "w-full max-w-[1120px] self-center flex-row items-center"
 		heroClass = "relative w-[36%] self-stretch overflow-hidden"
@@ -55,6 +56,7 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 		headingClass = "gap-2"
 		actionsClass = "gap-1"
 		featurePadding = "py-1.5"
+		focusRing.OutlineColor = core.RGB(0x8b5cf6)
 	}
 	wall := make([]core.Node, 0, 4)
 	for col, files := range [][2]string{
@@ -110,12 +112,12 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 					core.View{Class: actionsClass, Style: core.Style{PaddingEnv: core.EnvEdges{Bottom: core.EnvSafeArea}}, Children: []core.Node{
 						base.Button{Label: add, TestID: "add-source",
 							Class:   "h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30",
-							Style:   core.Style{FocusVisible: ui.FocusRing(cx, 3)},
+							Style:   core.Style{FocusVisible: focusRing},
 							OnPress: func(core.PressEvent) { a.push(route{screen: screenSources}) },
 							Children: []core.Node{core.Icon{SVG: lucide.Plus(), Class: "size-5 text-white"},
 								core.Text{Content: add, Class: "text-base font-semibold text-white"}}},
 						base.Button{Label: later, TestID: "onboarding-later", Class: "items-center py-2",
-							Style: core.Style{FocusVisible: ui.FocusRing(cx, 3)}, OnPress: func(core.PressEvent) { a.enter() },
+							Style: core.Style{FocusVisible: focusRing}, OnPress: func(core.PressEvent) { a.enter() },
 							Children: []core.Node{core.Text{Content: later, Class: "text-sm font-medium text-zinc-500 dark:text-zinc-400"}}},
 					}},
 				}},

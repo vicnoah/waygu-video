@@ -1,7 +1,6 @@
 """Exercise the installed Android TV launcher APK through its visible UI."""
 
 import os
-import re
 import subprocess
 import time
 import xml.etree.ElementTree as ET
@@ -40,33 +39,32 @@ def visible(test_id):
     raise RuntimeError(f"{test_id!r} did not appear: {diagnostic}")
 
 
-def skip_onboarding_with_remote():
-    visible("add-source")
-    for _ in range(4):
-        if any(node.get("resource-id") == "onboarding-later" and node.get("focused") == "true"
-               for node in nodes_on_screen()):
+def select_with_remote(test_id, direction="KEYCODE_DPAD_DOWN"):
+    visible(test_id)
+    focused = ""
+    for _ in range(8):
+        focused = next((node.get("resource-id") for node in nodes_on_screen()
+                        if node.get("focused") == "true"), "")
+        if focused == test_id:
             adb("shell", "input", "keyevent", "KEYCODE_DPAD_CENTER")
             return
-        adb("shell", "input", "keyevent", "KEYCODE_DPAD_DOWN")
-    raise RuntimeError("D-pad focus did not reach the onboarding skip button")
-
-
-def press(test_id):
-    match = re.fullmatch(r"\[(\d+),(\d+)\]\[(\d+),(\d+)\]", visible(test_id).get("bounds", ""))
-    if match is None:
-        raise RuntimeError(f"{test_id!r} has no screen bounds")
-    x1, y1, x2, y2 = map(int, match.groups())
-    if x2 <= x1 or y2 <= y1:
-        raise RuntimeError(f"{test_id!r} is outside the screen")
-    adb("shell", "input", "tap", str((x1 + x2) // 2), str((y1 + y2) // 2))
+        adb("shell", "input", "keyevent", direction)
+    raise RuntimeError(f"D-pad focus did not reach {test_id!r}. Last focus was {focused!r}.")
 
 
 if __name__ == "__main__":
-    skip_onboarding_with_remote()
+    select_with_remote("add-source")
+    visible("scan-again")
+    select_with_remote("choose-emby")
+    visible("server-port")
+    adb("shell", "input", "keyevent", "KEYCODE_BACK")
+    visible("choose-emby")
+    adb("shell", "input", "keyevent", "KEYCODE_BACK")
+    select_with_remote("onboarding-later")
     visible("empty-add-source")
-    press("tv-tab-settings")
-    press("settings-add-source")
+    select_with_remote("tv-tab-settings", "KEYCODE_DPAD_RIGHT")
+    select_with_remote("settings-add-source")
     visible("choose-flymoo")
-    press("back")
+    adb("shell", "input", "keyevent", "KEYCODE_BACK")
     visible("settings-add-source")
-    print("Android TV launcher, onboarding, settings and source selection passed.")
+    print("Android TV onboarding, server setup and settings passed using only the remote.")

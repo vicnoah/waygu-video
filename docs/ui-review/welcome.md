@@ -33,4 +33,10 @@ The phone design stacks the poster wall and the actions. On the Android TV emula
 
 Left is commit `445d75b`. Right is the revised APK. Both emulator captures are shown at half size from 1920 × 1080 px on Android 36 in dark appearance. `TestTVNavigation` checks that the complete bounds of both actions fit at 960 × 540 pt in English and Simplified Chinese.
 
-The installed APK accepted D-pad Down and Select once a Tab key moved the initial focus from the Android window to the first action. A cold start driven by the D-pad alone still leaves focus on the Android window. The Android TV remote-only launch check remains open.
+## Android TV remote focus
+
+![Android TV welcome screen after the first Down key, before and after the focus fix](images/welcome-tv-focus.png)
+
+Both captures follow the first D-pad Down after a cold start on Android TV 36. The left image uses `3965d66`, which leaves focus on the window. The right image shows **Add media source** focused with a violet outline, consistent with the [TV design's focus treatment](../../design/tv-home.scenra). Both captures are shown at half size from 1920 × 1080 px.
+
+The installed x86-64 APK passed `build/android/tv-smoke.py` after a Leanback launch. The remote opens the Emby form, returns to welcome, skips setup, enters Settings, and reopens the provider chooser. The app reports focus through Android's native accessibility tree. Physical remote testing is pending.

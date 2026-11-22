@@ -1,0 +1,35 @@
+--- a/internal/platform/android/java/dev/oneo/nsgo/NsgoView.java
++++ b/internal/platform/android/java/dev/oneo/nsgo/NsgoView.java
+@@ -4345 +4345,26 @@
+-        return keyBinding(e) || super.dispatchKeyEvent(e);
++        return keyBinding(e) || focusFirstTvControl(e) || super.dispatchKeyEvent(e);
++    }
++
++    private boolean focusFirstTvControl(KeyEvent event) {
++        if (event.getAction() != KeyEvent.ACTION_DOWN || !event.hasNoModifiers() || !isFocused()
++                || !isTelevision()) return false;
++        int key = event.getKeyCode();
++        switch (key) {
++            case KeyEvent.KEYCODE_DPAD_UP:
++            case KeyEvent.KEYCODE_DPAD_DOWN:
++            case KeyEvent.KEYCODE_DPAD_LEFT:
++            case KeyEvent.KEYCODE_DPAD_RIGHT:
++                break;
++            default:
++                return false;
++        }
++        // The host encloses every control, so spatial search from its bounds has no outward candidate.
++        View next = android.view.FocusFinder.getInstance().findNextFocus(this, this, FOCUS_FORWARD);
++        if (next == null || next == this || !next.requestFocus()) return false;
++        consumedKeys.add(key);
++        return true;
++    }
++
++    private boolean isTelevision() {
++        return (getResources().getConfiguration().uiMode & Configuration.UI_MODE_TYPE_MASK)
++                == Configuration.UI_MODE_TYPE_TELEVISION;
+@@ -5114,0 +5140,4 @@
++        if (n.field == null && isTelevision()) {
++            view.setOnFocusChangeListener(press ? (v, focused) ->
++                    report(n, focused ? Protocol.EVENT_FOCUS : Protocol.EVENT_BLUR) : null);
++        }

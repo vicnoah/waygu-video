@@ -1,0 +1,98 @@
+NSGo
+Copyright 2026 ONEO <https://oneo.me>
+
+NSGo is a Go port of Native Shell (NSH), https://github.com/longbridge/nsh,
+Copyright 2026 Longbridge <https://longbridge.com>, licensed under the Apache
+License, Version 2.0. NSGo is not affiliated with, or endorsed by, Longbridge.
+
+The Go packages ported from NSH are modified: Rust is translated into Go, names
+follow Go conventions, and behavior differs where ARCHITECTURE.md records it.
+ARCHITECTURE.md's "Code map" names the NSH crate each package comes from.
+
+internal/platform/objcblock follows purego's Objective-C block bridge,
+https://github.com/ebitengine/purego, Copyright 2025 The Ebitengine Authors,
+licensed under the Apache License, Version 2.0. NSGo pins the templates,
+keeps descriptors in native memory and checks allocation before returning a block.
+
+core/tailwind_palette.go is Tailwind CSS's default palette,
+https://github.com/tailwindlabs/tailwindcss, Copyright (c) Tailwind Labs, Inc.,
+licensed under the MIT License, converted to sRGB as NSH converts it.
+
+base/richeditor ports ProseMirror, https://prosemirror.net, Copyright (c) 2015-2017
+by Marijn Haverbeke and others, and follows Tiptap, https://tiptap.dev, Copyright
+(c) Tiptap GmbH, both licensed under the MIT License: their structures, algorithms,
+names and command semantics apply to what it ports.
+
+The Lucide icon set in icons/lucide comes from
+https://github.com/lucide-icons/lucide, Copyright (c) 2026 Lucide Icons and
+Contributors, licensed under the ISC License, together with Feather's MIT
+notice. icons/lucide/LICENSE holds both texts.
+
+Layout test fixtures in internal/layout/testdata/ come from Taffy,
+https://github.com/DioxusLabs/taffy, Copyright (c) 2018 Visly Inc. and
+Copyright (c) 2026 Taffy Authors, licensed under the MIT License. That directory's
+LICENSE file holds the full text.
+
+The fonts in internal/woff/testdata/ are Pacifico,
+https://github.com/googlefonts/Pacifico, Copyright 2018 The Pacifico Project
+Authors, licensed under the SIL Open Font License, Version 1.1. That
+directory's OFL.txt file holds the full text.
+
+The shader compiler in internal/shader and internal/shaderir is Ebitengine's
+Kage compiler, https://github.com/hajimehoshi/ebiten, Copyright 2020 The Ebiten
+Authors, licensed under the Apache License, Version 2.0, as MyGo,
+https://github.com/egoist/mygo, Copyright (c) 2026 MyGo contributors, forked
+it under the MIT License. Its files keep their notices and say what MyGo
+changed; NSGo replaced MyGo's bridge. internal/shader/LICENSE holds both texts.
+
+base/formula/fonts/NewCMMath-Book.otf is New Computer Modern Math Book, Copyright (C) 2019-2026 Antonis Tsolomitis, copied unmodified from typst/typst-assets, https://github.com/typst/typst-assets, at commit 94dcb990. It is one file of the NewComputerModern package, whose complete and unmodified Work is on CTAN, https://ctan.org/pkg/newcomputermodern, version 8.1.1 of 2026-06-22. It is licensed under the GUST Font License 1.0, that is, under the LaTeX Project Public License 1.3c; base/formula/fonts/LICENSE holds both texts.
+
+The date and time tables in internal/cldr/tables.go are generated from the
+Unicode Common Locale Data Repository (CLDR), https://cldr.unicode.org,
+Copyright (c) 1991-2025 Unicode, Inc., licensed under the Unicode License v3.
+
+cmd/nsgo/dsstore.go, which lays out disk images' Finder windows, comes from
+MyGo, https://github.com/egoist/mygo, Copyright (c) 2026 MyGo contributors,
+licensed under the MIT License. cmd/nsgo/install follows NSH's install scripts.
+
+The nsgo tool identifies license text with Google's licenseclassifier,
+https://github.com/google/licenseclassifier, licensed under Apache-2.0.
+Its Go dependencies include go-diff (MIT, https://github.com/sergi/go-diff)
+and go-spew (ISC, https://github.com/davecgh/go-spew).
+
+base/terminal/internal/vt, base/terminal/internal/pty and
+base/terminal/mirror.go and mirror_images.go come from
+https://github.com/egoist/mygo, Copyright (c) 2026 MyGo contributors, licensed
+under the MIT License. base/terminal/internal/library/lib holds libghostty-vt
+built from Ghostty, https://github.com/ghostty-org/ghostty, Copyright (c) 2024
+Mitchell Hashimoto, Ghostty contributors, licensed under the MIT License.
+base/terminal/ghostty_themes.go holds iTerm2-Color-Schemes' themes as Ghostty
+ships them, under the MIT License its header gives.
+
+base/diagram/paint.go draws limu's scenes as limumygo, limu's adapter to MyGo, draws them, https://github.com/firede/limu, Copyright (c) 2026 Firede, licensed under the MIT License: what each item's parts, markers and label are painted in, and where a label's lines and spans go. limu, which base/diagram imports, ports much of Pele, https://github.com/obsidianmd/pele, Copyright (c) 2026 kepano, under the MIT License, and carries both notices in its LICENSE.
+
+core/audit.go's layout audit follows mygo-layout-audit, https://github.com/knothhe/mygo-layout-audit, Copyright (c) 2026 knothhe, licensed under the MIT License: its colors, its grid and its ruler.
+
+internal/platform/macos/permissionguide.go and permissionguide_layout.go, macOS's permission guide, port MyGo's permissionflow plugin, https://github.com/egoist/mygo, Copyright (c) 2026 MyGo contributors, licensed under the MIT License, which follows PermissionFlow, https://github.com/jaywcjlove/PermissionFlow, Copyright (c) 2026 小弟调调: what the guide does, the panes it opens and which of them take a drag, the pasteboard types of the dragged app, and the panel's geometry and text. None of PermissionFlow's code is copied. PermissionFlow's license:
+
+MIT License
+
+Copyright (c) 2026 小弟调调
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
