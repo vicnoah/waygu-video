@@ -24,3 +24,13 @@ Each strip shows the baseline app on the left, the Scenra reference in the cente
 ## Native interaction checks
 
 `TestWelcomeReview` passed in both appearances. It asserts the hero height, the primary action height, and the four feature rows. It presses **添加媒体源**, confirms the Emby choice is present, goes back, presses **稍后设置**, and checks that the empty home screen offers to add a source. Native phone captures and input checks are still pending.
+
+## Android TV viewport
+
+The phone design stacks the poster wall and the actions. On the Android TV emulator's 960 × 540 pt client area, that layout put both actions below the first screen. The TV layout places the poster wall beside the welcome content, keeping both actions visible at launch. The existing light and dark GTK phone-size captures match the revised app pixel for pixel.
+
+![Android TV welcome screen before and after the viewport fix](images/welcome-tv-regression.png)
+
+Left is commit `445d75b`. Right is the revised APK. Both emulator captures are shown at half size from 1920 × 1080 px on Android 36 in dark appearance. `TestTVNavigation` checks that the complete bounds of both actions fit at 960 × 540 pt in English and Simplified Chinese.
+
+The installed APK accepted D-pad Down and Select once a Tab key moved the initial focus from the Android window to the first action. A cold start driven by the D-pad alone still leaves focus on the Android window. The Android TV remote-only launch check remains open.

@@ -38,6 +38,24 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 	cx.Cleanup(func() {
 		cx.SetStatusBar(core.StatusBarSetting{Foreground: core.StatusBarAuto})
 	})
+	layoutClass := "w-full max-w-[640px] self-center"
+	heroClass := "relative h-[250px] overflow-hidden"
+	wallClass := "absolute top-0 left-0 flex-row gap-3"
+	fadeClass := "absolute inset-0 bg-linear-to-b from-transparent via-[#f4f4f7]/40 to-[#f4f4f7] dark:via-[#0f1017]/40 dark:to-[#0f1017]"
+	bodyClass := "flex-1 gap-5 px-7"
+	headingClass := "gap-3"
+	actionsClass := "mt-auto gap-1 pb-6"
+	featurePadding := "py-2.5"
+	if cx.Env().Idiom() == core.IdiomTV {
+		layoutClass = "w-full max-w-[1120px] self-center flex-row items-center"
+		heroClass = "relative w-[36%] self-stretch overflow-hidden"
+		wallClass = "absolute top-12 left-0 flex-row gap-3"
+		fadeClass = "absolute inset-0 bg-linear-to-r from-transparent via-[#f4f4f7]/40 to-[#f4f4f7] dark:via-[#0f1017]/40 dark:to-[#0f1017]"
+		bodyClass = "min-w-0 flex-1 gap-3 px-7 py-5"
+		headingClass = "gap-2"
+		actionsClass = "gap-1"
+		featurePadding = "py-1.5"
+	}
 	wall := make([]core.Node, 0, 4)
 	for col, files := range [][2]string{
 		{"wandering-earth-2.jpg", "three-body.jpg"},
@@ -57,13 +75,13 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 		wall = append(wall, core.View{Class: "gap-3", Style: core.Style{Padding: core.Edges{Top: offset}}, Children: pictures})
 	}
 	features := []core.Node{
-		welcomeFeature(lucide.Server(), "bg-violet-500/12", "text-violet-500 dark:text-violet-400",
+		welcomeFeature(lucide.Server(), featurePadding, "bg-violet-500/12", "text-violet-500 dark:text-violet-400",
 			locales.WelcomeMediaSources(cx), locales.WelcomeMediaSourcesDetail(cx, locales.Flymoo(cx))),
-		welcomeFeature(lucide.MessageSquareText(), "bg-fuchsia-500/12", "text-fuchsia-500 dark:text-fuchsia-400",
+		welcomeFeature(lucide.MessageSquareText(), featurePadding, "bg-fuchsia-500/12", "text-fuchsia-500 dark:text-fuchsia-400",
 			locales.WelcomeDanmaku(cx), locales.WelcomeDanmakuDetail(cx)),
-		welcomeFeature(lucide.Sparkles(), "bg-amber-500/12", "text-amber-500 dark:text-amber-400",
+		welcomeFeature(lucide.Sparkles(), featurePadding, "bg-amber-500/12", "text-amber-500 dark:text-amber-400",
 			locales.WelcomeOriginalPlayback(cx), locales.WelcomeOriginalPlaybackDetail(cx)),
-		welcomeFeature(lucide.Cloud(), "bg-sky-500/12", "text-sky-500 dark:text-sky-400",
+		welcomeFeature(lucide.Cloud(), featurePadding, "bg-sky-500/12", "text-sky-500 dark:text-sky-400",
 			locales.WelcomeContinueWatching(cx), locales.WelcomeContinueWatchingDetail(cx)),
 	}
 	add, later := locales.AddSource(cx), locales.Later(cx)
@@ -71,15 +89,15 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 		core.SVGView{Class: "absolute inset-0 w-full h-full dark:hidden", SVG: welcomeAmbientLight},
 		core.SVGView{Class: "absolute inset-0 hidden w-full h-full dark:flex", SVG: welcomeAmbientDark},
 		core.Scroll{Class: "flex-1", Children: []core.Node{
-			core.View{Class: "w-full max-w-[640px] self-center", StyleFunc: func() core.Style {
+			core.View{Class: layoutClass, StyleFunc: func() core.Style {
 				return core.Style{MinHeight: core.Pt(cx.Env().Window().Height)}
 			}, Children: []core.Node{
-				core.View{TestID: "welcome-hero", Class: "relative h-[250px] overflow-hidden", Children: []core.Node{
-					core.View{Class: "absolute top-0 left-0 flex-row gap-3", Children: wall},
-					core.View{Class: "absolute inset-0 bg-linear-to-b from-transparent via-[#f4f4f7]/40 to-[#f4f4f7] dark:via-[#0f1017]/40 dark:to-[#0f1017]"},
+				core.View{TestID: "welcome-hero", Class: heroClass, Children: []core.Node{
+					core.View{Class: wallClass, Children: wall},
+					core.View{Class: fadeClass},
 				}},
-				core.View{Class: "flex-1 gap-5 px-7", Children: []core.Node{
-					core.View{Class: "gap-3", Children: []core.Node{
+				core.View{Class: bodyClass, Children: []core.Node{
+					core.View{Class: headingClass, Children: []core.Node{
 						core.View{Class: "flex-row items-center gap-2", Children: []core.Node{
 							core.Image{Class: "size-10", Source: core.ImageSource{Data: welcomeMark}, ResizeMode: core.Contain, ElementsHidden: true},
 							core.Text{Content: locales.AppName(cx), Class: "text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50"},
@@ -89,7 +107,7 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 					}},
 					core.View{TestID: "welcome-features", Class: "gap-px overflow-hidden rounded-2xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5 dark:border-white/8 dark:bg-white/7",
 						Children: features},
-					core.View{Class: "mt-auto gap-1 pb-6", Style: core.Style{PaddingEnv: core.EnvEdges{Bottom: core.EnvSafeArea}}, Children: []core.Node{
+					core.View{Class: actionsClass, Style: core.Style{PaddingEnv: core.EnvEdges{Bottom: core.EnvSafeArea}}, Children: []core.Node{
 						base.Button{Label: add, TestID: "add-source",
 							Class:   "h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30",
 							Style:   core.Style{FocusVisible: ui.FocusRing(cx, 3)},
@@ -106,8 +124,8 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 	}}
 }
 
-func welcomeFeature(icon *core.SVG, background, tint, title, detail string) core.Node {
-	return core.View{Class: "flex-row items-center gap-3 bg-white px-4 py-2.5 dark:bg-[#1a1b25]", Children: []core.Node{
+func welcomeFeature(icon *core.SVG, padding, background, tint, title, detail string) core.Node {
+	return core.View{Class: "flex-row items-center gap-3 bg-white px-4 dark:bg-[#1a1b25] " + padding, Children: []core.Node{
 		core.View{Class: "size-9 items-center justify-center rounded-xl " + background, Children: []core.Node{
 			core.Icon{SVG: icon, Class: "size-4 " + tint},
 		}},

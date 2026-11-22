@@ -22,13 +22,25 @@ func TestSkipOnboarding(t *testing.T) {
 }
 
 func TestTVNavigation(t *testing.T) {
-	app := nsgotest.Start(t, Root, nsgotest.Idiom(core.IdiomTV), nsgotest.Size(1280, 720))
-	app.Press("id:onboarding-later")
-	app.Press("id:tv-tab-settings")
-	app.Press("id:settings-add-source")
-	app.Find("id:choose-flymoo")
-	app.Press("id:back")
-	app.Find("id:settings-add-source")
+	const height = 540
+	for _, locale := range []string{"en", "zh-Hans"} {
+		t.Run(locale, func(t *testing.T) {
+			app := nsgotest.Start(t, Root, nsgotest.Idiom(core.IdiomTV), nsgotest.Size(960, height),
+				nsgotest.Environment(core.Environment{Locale: locale}))
+			for _, id := range []string{"add-source", "onboarding-later"} {
+				bounds := app.Find("id:" + id).Bounds()
+				if bounds.Origin.Y < 0 || bounds.Origin.Y+bounds.Size.Height > height {
+					t.Fatalf("%s is outside the first TV screen: %+v", id, bounds)
+				}
+			}
+			app.Press("id:onboarding-later")
+			app.Press("id:tv-tab-settings")
+			app.Press("id:settings-add-source")
+			app.Find("id:choose-flymoo")
+			app.Press("id:back")
+			app.Find("id:settings-add-source")
+		})
+	}
 }
 
 func TestChineseAppName(t *testing.T) {
