@@ -154,6 +154,15 @@ type Stream struct {
 	Position  time.Duration
 	Duration  time.Duration
 	Tracks    []Track
+	Rendition Version
+}
+
+// VersionID identifies the selection. SourceID remains the server's media ID for progress reports.
+func (s Stream) VersionID() string {
+	if s.Rendition.ID != "" {
+		return s.Rendition.ID
+	}
+	return s.SourceID
 }
 
 type PlaybackEvent string

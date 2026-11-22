@@ -30,15 +30,16 @@ type subtitleSelection struct {
 	cues *playback.Captions
 }
 
-func playerTracks(cx *core.Scope, tracks func() []media.Track, decoder func() *desktopVideo, position *core.Signal[time.Duration],
-	rate *core.Signal[float32], canChangeRate, switchingAudio, audioError *core.Signal[bool],
-	chooseAudio func(media.Track)) trackControls {
+func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *desktopVideo, position *core.Signal[time.Duration],
+	rate *core.Signal[float32], canChangeRate, switchingPlayback, audioError *core.Signal[bool],
+	chooseAudio func(media.Track), quality func(*core.Scope) core.Node) trackControls {
 	open := core.NewSignal(cx, false)
 	tab := core.NewSignal(cx, 0)
 	subtitles := core.NewSignal(cx, subtitleSelection{})
 	delay := core.NewSignal(cx, time.Duration(0))
 	loading := core.NewSignal(cx, false)
 	failed := core.NewSignal(cx, false)
+	trackSource := core.NewMemo(cx, func() string { return stream().SourceID })
 	viewContext := cx.Context()
 	finishSubtitles := func(selection subtitleSelection, err error) {
 		loading.Set(false)
@@ -62,10 +63,13 @@ func playerTracks(cx *core.Scope, tracks func() []media.Track, decoder func() *d
 		}
 		loading.Set(true)
 		failed.Set(false)
+		source := trackSource.GetUntracked()
 		go func() {
 			cues, err := read(viewContext)
 			cx.Post(func() {
-				if err == nil {
+				if id != "local" && trackSource.GetUntracked() != source {
+					loading.Set(false)
+				} else if err == nil {
 					applySubtitles(subtitleSelection{id: id, name: name, cues: cues})
 				} else {
 					finishSubtitles(subtitleSelection{}, err)
@@ -73,6 +77,12 @@ func playerTracks(cx *core.Scope, tracks func() []media.Track, decoder func() *d
 			})
 		}()
 	}
+	cx.Effect(func() {
+		trackSource.Get()
+		if choice := subtitles.GetUntracked(); choice.id != "local" {
+			subtitles.Set(subtitleSelection{})
+		}
+	})
 	pick := func() {
 		cx.PickFiles(core.PickFilesOptions{Types: []string{".srt", ".vtt"}, Title: locales.OpenSubtitleFile(cx)}, func(files []core.File, err error) {
 			if err != nil {
@@ -111,31 +121,38 @@ func playerTracks(cx *core.Scope, tracks func() []media.Track, decoder func() *d
 	tabs := []ui.Option[int]{
 		{Value: 0, Label: locales.Subtitles(cx), TestID: "track-tab-subtitles"},
 		{Value: 1, Label: locales.AudioTracks(cx), TestID: "track-tab-audio"},
-		{Value: 2, Label: locales.PlaybackSpeed(cx), TestID: "track-tab-speed"},
 	}
+	if quality != nil {
+		tabs = append(tabs, ui.Option[int]{Value: 3, Label: locales.PlayerQuality(cx), TestID: "track-tab-quality"})
+	}
+	tabs = append(tabs, ui.Option[int]{Value: 2, Label: locales.PlaybackSpeed(cx), TestID: "track-tab-speed"})
 	rows := core.Dynamic(func(cx *core.Scope) core.Node {
+		activeTab := tab.Get()
+		if activeTab == 3 {
+			return quality(cx)
+		}
 		d := decoder()
 		var local []mpv.Track
 		if d != nil {
 			local = d.tracks.Get()
 		}
-		switch tab.Get() {
+		switch activeTab {
 		case 1:
 			if options := decoderAudio(local); len(options) != 0 {
-				return audioChoices(cx, options, false, switchingAudio.Get, audioError.Get, func(track media.Track) {
+				return audioChoices(cx, options, false, switchingPlayback.Get, audioError.Get, func(track media.Track) {
 					id, err := strconv.ParseInt(track.ID, 10, 64)
-					if err != nil || switchingAudio.GetUntracked() {
+					if err != nil || switchingPlayback.GetUntracked() {
 						return
 					}
-					switchingAudio.Set(true)
+					switchingPlayback.Set(true)
 					audioError.Set(false)
 					d.selectTrack(mpv.AudioTrack, id, func(err error) {
-						switchingAudio.Set(false)
+						switchingPlayback.Set(false)
 						audioError.Set(err != nil)
 					})
 				})
 			}
-			return audioChoices(cx, tracks(), true, switchingAudio.Get, audioError.Get, chooseAudio)
+			return audioChoices(cx, stream().Tracks, true, switchingPlayback.Get, audioError.Get, chooseAudio)
 		case 2:
 			return speedChoices(cx, rate, canChangeRate.Get)
 		}
@@ -167,7 +184,7 @@ func playerTracks(cx *core.Scope, tracks func() []media.Track, decoder func() *d
 					})
 				}})
 		}
-		for _, track := range tracks() {
+		for _, track := range stream().Tracks {
 			if track.Type != "subtitle" || track.URL == "" || (nativeSubtitles && !track.External) {
 				continue
 			}

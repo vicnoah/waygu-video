@@ -11,7 +11,7 @@ The Scenra files in `design/` define the product. The current app connects to Em
 
 ## Playback and library
 
-- Movie and episode details offer the versions grouped by an Emby, Jellyfin or Plex server. Playback settings can prefer the highest resolution, fit the configured streaming bitrate or remember the last version played. Add Flymoo quality selection and version selection across servers.
+- Movie and episode details offer the versions grouped by an Emby, Jellyfin or Plex server and the qualities exposed by Flymoo. The player's quality controls switch at the current position. Emby, Jellyfin and Plex also allow a bitrate override for the current playback. Playback settings can prefer the highest quality, fit the configured streaming bitrate or remember the last version played. Add version selection across servers.
 - The player switches Emby, Jellyfin and Plex audio at the current position, supports local SRT and WebVTT files, text subtitles from Emby and Jellyfin, external SRT and WebVTT from Plex, subtitle delay and playback speed on capable backends.
 - Desktop direct play with libmpv switches embedded audio and subtitles in place, including Flymoo streams and embedded Plex subtitles. It supports subtitle delay alongside the independent danmaku overlay.
 - Verify codec-driven direct stream and transcode decisions. Add network-specific bitrate preferences, Flymoo track selection and embedded Plex subtitles on native backends, subtitle image format coverage, subtitle language preferences, online search, caption styles, audio controls and offline progress replay. Verify next-episode playback across seasons on TV devices and add intro and credits markers.

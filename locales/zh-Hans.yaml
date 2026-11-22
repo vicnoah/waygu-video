@@ -120,6 +120,8 @@ showDanmaku: 显示弹幕
 danmakuFileError: 无法从所选文件读取弹幕。
 playbackSettings: 播放
 streamingQuality: 在线播放画质
+playerQuality: 画质
+qualitySwitchError: 无法切换播放画质。
 originalQuality: 原画
 bitrateMegabits: "{bitrate} Mbps"
 streamingQualityProviders: 适用于 Emby、Jellyfin 和 Plex。

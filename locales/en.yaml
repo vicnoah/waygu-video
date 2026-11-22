@@ -120,6 +120,8 @@ showDanmaku: Show danmaku
 danmakuFileError: The selected file does not contain readable danmaku comments.
 playbackSettings: Playback
 streamingQuality: Streaming quality
+playerQuality: Quality
+qualitySwitchError: Could not switch playback quality.
 originalQuality: Original quality
 bitrateMegabits: "{bitrate} Mbps"
 streamingQualityProviders: Applies to Emby, Jellyfin and Plex.

@@ -120,6 +120,9 @@ func playbackChoice[T comparable](cx *core.Scope, label, id string, options []ui
 
 func versionLabel(cx *core.Scope, version media.Version, number int) string {
 	parts := make([]string, 0, 4)
+	if version.Original {
+		parts = append(parts, locales.OriginalQuality(cx))
+	}
 	if name := strings.TrimSpace(version.Name); name != "" {
 		parts = append(parts, name)
 	}
@@ -131,6 +134,12 @@ func versionLabel(cx *core.Scope, version media.Version, number int) string {
 	}
 	if version.VideoCodec != "" {
 		parts = append(parts, strings.ToUpper(version.VideoCodec))
+	}
+	if version.Method != "" && version.Bitrate > 0 {
+		parts = append(parts, locales.BitrateMegabits(cx, strconv.FormatFloat(float64(version.Bitrate)/1_000_000, 'f', 1, 64)))
+	}
+	if version.Method == media.Transcode {
+		parts = append(parts, playMethod(cx, version.Method))
 	}
 	if version.Size > 0 {
 		if version.Size >= 1<<30 {

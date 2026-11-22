@@ -99,8 +99,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	canChangeRate := core.NewSignal(cx, false)
 	failure := core.NewSignal(cx, false)
 	buffering := core.NewSignal(cx, false)
-	switchingAudio := core.NewSignal(cx, false)
+	switchingPlayback := core.NewSignal(cx, false)
 	audioError := core.NewSignal(cx, false)
+	qualityError := core.NewSignal(cx, false)
 	desktop := core.NewSignal[*desktopVideo](cx, nil)
 	var danmakuTrack *danmaku.Track
 	loaded := false
@@ -140,30 +141,28 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	playerContext := cx.Context()
 	preferMPV := cx.Env().Desktop() && a.mpvPreferred.GetUntracked()
 	android := cx.Env().OS() == core.OSAndroid
-	bitrate := a.bitrateLimit.GetUntracked()
+	bitrate := core.NewSignal(cx, a.bitrateLimit.GetUntracked())
 	noServerSubtitles := -1
-	chooseAudio := func(track media.Track) {
-		index, err := strconv.Atoi(track.ID)
-		if err != nil || track.Selected || switchingAudio.GetUntracked() {
+	switchStream := func(options media.PlaybackOptions, failed *core.Signal[bool]) {
+		if switchingPlayback.GetUntracked() {
 			return
 		}
+		options.SubtitleIndex = &noServerSubtitles
 		previous := medium.GetUntracked()
-		switchingAudio.Set(true)
-		audioError.Set(false)
+		switchingPlayback.Set(true)
+		failed.Set(false)
 		go func() {
 			ctx, cancel := context.WithTimeout(playerContext, 35*time.Second)
 			defer cancel()
-			stream, err := previous.client.Playback(ctx, current.item, media.PlaybackOptions{
-				SourceID: previous.stream.SourceID, MaxBitrate: bitrate, AudioIndex: &index, SubtitleIndex: &noServerSubtitles,
-			})
+			stream, err := previous.client.Playback(ctx, current.item, options)
 			var next playerMedia
 			if err == nil {
 				next, err = prepareVideo(playerContext, previous.client, stream, android)
 			}
 			cx.Post(func() {
-				switchingAudio.Set(false)
+				switchingPlayback.Set(false)
 				if err != nil {
-					audioError.Set(true)
+					failed.Set(true)
 					return
 				}
 				if loaded && !ended.GetUntracked() {
@@ -178,10 +177,18 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				buffering.Set(true)
 				canChangeRate.Set(false)
 				desktop.Set(nil)
+				bitrate.Set(options.MaxBitrate)
 				previous.close()
 				medium.Set(next)
 			})
 		}()
+	}
+	chooseAudio := func(track media.Track) {
+		index, err := strconv.Atoi(track.ID)
+		if err == nil && !track.Selected {
+			switchStream(media.PlaybackOptions{SourceID: medium.GetUntracked().stream.VersionID(),
+				MaxBitrate: bitrate.GetUntracked(), AudioIndex: &index}, audioError)
+		}
 	}
 	image := core.Dynamic(func(cx *core.Scope) core.Node {
 		active := medium.Get()
@@ -194,7 +201,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 					duration.Set(info.Duration)
 				}
 				loaded = true
-				a.rememberPlaybackVersion(current, active.client, active.stream.SourceID)
+				a.rememberPlaybackVersion(current, active.client, active.stream.VersionID())
 				buffering.Set(false)
 				canChangeRate.Set(info.RateChangeable)
 				if !info.RateChangeable {
@@ -274,8 +281,10 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		}
 		return decoder
 	}
-	tracks := playerTracks(cx, func() []media.Track { return medium.Get().stream.Tracks }, directDecoder,
-		position, rate, canChangeRate, switchingAudio, audioError, chooseAudio)
+	activeStream := func() media.Stream { return medium.Get().stream }
+	tracks := playerTracks(cx, activeStream, directDecoder, position, rate, canChangeRate, switchingPlayback, audioError, chooseAudio,
+		playerQuality(current, initial.client, activeStream, bitrate.Get, switchingPlayback.Get, qualityError.Get,
+			func(options media.PlaybackOptions) { switchStream(options, qualityError) }))
 	toggle := func() {
 		if ended.GetUntracked() {
 			seek(0)

@@ -198,6 +198,8 @@ const (
 	textDanmakuFileError
 	textPlaybackSettings
 	textStreamingQuality
+	textPlayerQuality
+	textQualitySwitchError
 	textOriginalQuality
 	textStreamingQualityProviders
 	textAutoNextEpisode
@@ -331,6 +333,8 @@ var keyOfText = [numTexts]string{
 	"danmakuFileError",
 	"playbackSettings",
 	"streamingQuality",
+	"playerQuality",
+	"qualitySwitchError",
 	"originalQuality",
 	"streamingQualityProviders",
 	"autoNextEpisode",
@@ -462,6 +466,8 @@ var textsEn = i18n.NewTexts(""+
 	"The selected file does not contain readable danmaku comments."+
 	"Playback"+
 	"Streaming quality"+
+	"Quality"+
+	"Could not switch playback quality."+
 	"Original quality"+
 	"Applies to Emby, Jellyfin and Plex."+
 	"Automatically play the next episode"+
@@ -590,6 +596,8 @@ var textsEn = i18n.NewTexts(""+
 		61,
 		8,
 		17,
+		7,
+		34,
 		16,
 		35,
 		35,
@@ -721,6 +729,8 @@ var textsZhHans = i18n.NewTexts(""+
 	"无法从所选文件读取弹幕。"+
 	"播放"+
 	"在线播放画质"+
+	"画质"+
+	"无法切换播放画质。"+
 	"原画"+
 	"适用于 Emby、Jellyfin 和 Plex。"+
 	"自动播放下一集"+
@@ -849,6 +859,8 @@ var textsZhHans = i18n.NewTexts(""+
 		36,
 		6,
 		18,
+		6,
+		27,
 		6,
 		37,
 		21,
@@ -1984,6 +1996,20 @@ func StreamingQuality(cx *core.Scope) string { return For(cx).StreamingQuality()
 
 // StreamingQuality is the package's StreamingQuality in the language of msgs.
 func (msgs Messages) StreamingQuality() string { return msgs.text(textStreamingQuality) }
+
+// PlayerQuality says "Quality"
+// in the language the app shows under cx.
+func PlayerQuality(cx *core.Scope) string { return For(cx).PlayerQuality() }
+
+// PlayerQuality is the package's PlayerQuality in the language of msgs.
+func (msgs Messages) PlayerQuality() string { return msgs.text(textPlayerQuality) }
+
+// QualitySwitchError says "Could not switch playback quality."
+// in the language the app shows under cx.
+func QualitySwitchError(cx *core.Scope) string { return For(cx).QualitySwitchError() }
+
+// QualitySwitchError is the package's QualitySwitchError in the language of msgs.
+func (msgs Messages) QualitySwitchError() string { return msgs.text(textQualitySwitchError) }
 
 // OriginalQuality says "Original quality"
 // in the language the app shows under cx.

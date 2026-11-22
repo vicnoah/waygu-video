@@ -6,11 +6,13 @@ import (
 	"slices"
 )
 
-// Version describes a distinct playable file exposed by one media server.
+// Version describes a playable file or rendition exposed by one media server.
 type Version struct {
 	ID, Name, VideoCodec   string
 	Width, Height, Bitrate int
 	Size                   int64
+	Original               bool
+	Method                 PlayMethod
 }
 
 type VersionClient interface {
@@ -59,10 +61,18 @@ func versionOrder(versions []Version, options PlaybackOptions) []int {
 				return cmp.Compare(a.Bitrate, b.Bitrate)
 			}
 		}
-		if resolution := cmp.Compare(int64(b.Width)*int64(b.Height), int64(a.Width)*int64(a.Height)); resolution != 0 {
+		if resolution := cmp.Compare(versionPixels(b), versionPixels(a)); resolution != 0 {
 			return resolution
 		}
 		return cmp.Compare(b.Bitrate, a.Bitrate)
 	})
 	return indices
+}
+
+func versionPixels(v Version) int64 {
+	width, height := int64(max(v.Width, 0)), int64(max(v.Height, 0))
+	if width == 0 {
+		width = height * 16 / 9
+	}
+	return width * height
 }

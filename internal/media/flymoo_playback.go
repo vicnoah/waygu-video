@@ -17,14 +17,14 @@ func (f *flymooClient) playInfo(ctx context.Context, id string) (map[string]any,
 	return flymooObject(data), err
 }
 
-func (f *flymooClient) Playback(ctx context.Context, item Item, _ PlaybackOptions) (Stream, error) {
+func (f *flymooClient) loadPlayback(ctx context.Context, item Item) (flymooPlayback, error) {
 	info, err := f.playInfo(ctx, item.ID)
 	if err != nil {
-		return Stream{}, err
+		return flymooPlayback{}, err
 	}
 	source := flymooText(info, "media_guid")
 	if source == "" {
-		return Stream{}, ErrNoStream
+		return flymooPlayback{}, ErrNoStream
 	}
 	body := struct {
 		MediaGUID string              `json:"media_guid"`
@@ -33,58 +33,24 @@ func (f *flymooClient) Playback(ctx context.Context, item Item, _ PlaybackOption
 	}{source, "fnmovie-windows", map[string][]string{"User-Agent": {"FnMovie/0.1"}}}
 	data, err := f.call(ctx, http.MethodPost, "stream", nil, body, f.session.Token)
 	if err != nil {
-		return Stream{}, err
+		return flymooPlayback{}, err
 	}
 	result := flymooObject(data)
 	video := flymooObject(result["video_stream"])
 	duration := flymooDuration(flymooNumber(video, "duration"))
 	position := flymooResume(flymooDuration(flymooNumber(info, "ts")), duration)
-	direct, err := f.flymooDirectURL(result)
+	original, err := f.resolve("api/v1/media/range/"+url.PathEscape(source), nil)
 	if err != nil {
-		return Stream{}, err
-	}
-	if direct == nil {
-		direct, err = f.resolve("api/v1/media/range/"+url.PathEscape(source), nil)
-		if err != nil {
-			return Stream{}, err
-		}
+		return flymooPlayback{}, err
 	}
 	headers := f.auth(f.session.Token)
 	headers.Set("User-Agent", "FnMovie/0.1")
-	return Stream{ItemID: item.ID, SourceID: source, Duration: duration, Position: position,
-		Method: DirectPlay, URL: direct.String(), Headers: headers}, nil
-}
-
-func (f *flymooClient) flymooDirectURL(result map[string]any) (*url.URL, error) {
-	qualities, _ := result["direct_link_qualities"].([]any)
-	if len(qualities) == 0 {
-		qualities, _ = result["qualities"].([]any)
-	}
-	var chosen string
-	var bitrate float64
-	for _, entry := range qualities {
-		quality := flymooObject(entry)
-		link := flymooText(quality, "url")
-		rate := flymooNumber(quality, "bitrate")
-		if link != "" && (chosen == "" || rate > bitrate) {
-			chosen, bitrate = link, rate
-		}
-	}
-	if chosen == "" {
-		return nil, nil
-	}
-	link, err := url.Parse(chosen)
-	if err != nil || link.User != nil {
-		return nil, ErrResponse
-	}
-	link = f.base.ResolveReference(link)
-	if !isHTTP(link) {
-		return nil, ErrResponse
-	}
-	if !sameOrigin(link, f.base) {
-		return nil, nil
-	}
-	return link, nil
+	stream := Stream{ItemID: item.ID, SourceID: source, Duration: duration, Position: position, Headers: headers}
+	return flymooPlayback{info: info, result: result, stream: stream, original: flymooQuality{
+		Version: Version{ID: "original", Original: true, Method: DirectPlay, Width: flymooInt(video, "width"),
+			Height: flymooInt(video, "height"), Bitrate: flymooInt(video, "bitrate"), VideoCodec: flymooText(video, "codec_name", "codec")},
+		link: original,
+	}}, nil
 }
 
 func flymooResume(position, duration time.Duration) time.Duration {
@@ -166,7 +132,11 @@ func (f *flymooClient) Report(ctx context.Context, event PlaybackState) error {
 		MediaGUID string `json:"media_guid"`
 		ItemGUID  string `json:"item_guid"`
 		Position  int64  `json:"ts"`
-	}{event.Stream.SourceID, event.Stream.ItemID, int64(max(0, event.Position) / time.Second)}
+		PlayLink  string `json:"play_link,omitempty"`
+	}{MediaGUID: event.Stream.SourceID, ItemGUID: event.Stream.ItemID, Position: int64(max(0, event.Position) / time.Second)}
+	if event.Stream.Method == Transcode {
+		body.PlayLink = event.Stream.URL
+	}
 	_, err := f.call(ctx, http.MethodPost, "play/record", nil, body, f.session.Token)
 	return err
 }
