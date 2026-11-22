@@ -44,13 +44,13 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-4-1 xvfb xauth
+          sudo apt-get install -y libgtk-4-1 xvfb xauth gstreamer1.0-plugins-good gstreamer1.0-libav
       - name: Native window smoke test on Linux
         if: runner.os == 'Linux'
-        run: xvfb-run -a go tool nsgo test -target linux -run '^(TestChineseAppName|TestSkipOnboarding)$' -timeout 2m .
+        run: xvfb-run -a go tool nsgo test -target linux -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes)$' -timeout 2m .
       - name: Native window smoke test
         if: runner.os != 'Linux'
-        run: go tool nsgo test -target ${{ matrix.native }} -run '^(TestChineseAppName|TestSkipOnboarding)$' -timeout 2m .
+        run: go tool nsgo test -target ${{ matrix.native }} -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes)$' -timeout 2m .
       - name: Package desktop app
         shell: bash
         run: |
@@ -90,10 +90,10 @@ jobs:
           }
           for kind in iPhone iPad; do
             simulator=$(device "$kind")
-            go tool nsgo test -target ios_simulator -device "$simulator" -run '^(TestChineseAppName|TestSkipOnboarding)$' -timeout 2m .
+            go tool nsgo test -target ios_simulator -device "$simulator" -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes)$' -timeout 2m .
             xcrun simctl shutdown "$simulator"
           done
-          go tool nsgo test -target tvos_simulator -device "$(device Apple-TV)" -run '^TestChineseAppName$' -timeout 2m .
+          go tool nsgo test -target tvos_simulator -device "$(device Apple-TV)" -run '^(TestChineseAppName|TestNativeVideoDecodes)$' -timeout 2m .
       - name: Archive simulator apps
         run: tar -czf waygu-video-apple-simulators.tar.gz -C dist .
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -158,9 +158,9 @@ jobs:
           ndk: 27.2.12479018
           script: |
             if [ "${{ matrix.form }}" = tv ]; then
-              go tool nsgo test -target android -device emulator-5554 -run '^TestChineseAppName$' -timeout 2m .
+              go tool nsgo test -target android -device emulator-5554 -run '^(TestChineseAppName|TestNativeVideoDecodes)$' -timeout 2m .
             else
-              go tool nsgo test -target android -device emulator-5554 -run '^(TestChineseAppName|TestSkipOnboarding)$' -timeout 2m .
+              go tool nsgo test -target android -device emulator-5554 -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes)$' -timeout 2m .
             fi
 
   integration:
