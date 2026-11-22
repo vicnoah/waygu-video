@@ -128,6 +128,7 @@ var Parameters = map[string][]string{
 	"PhonePlayerBrightness":           {"level"},
 	"PhonePlayerVolume":               {"level"},
 	"PhonePlayerDanmakuLoaded":        {"count"},
+	"PhonePlayerLocalDanmakuFormat":   {"format"},
 	"PhonePlayerDanmakuRegex":         {"rule"},
 	"PhonePlayerRemoveRule":           {"rule"},
 	"TvAllTitles":                     {"count"},
@@ -269,6 +270,7 @@ type Translation struct {
 	PhonePlayerBrightness           func(level string) string
 	PhonePlayerVolume               func(level string) string
 	PhonePlayerDanmakuLoaded        func(count string) string
+	PhonePlayerLocalDanmakuFormat   func(format string) string
 	PhonePlayerDanmakuRegex         func(rule string) string
 	PhonePlayerRemoveRule           func(rule string) string
 	TvAllTitles                     func(count string) string
@@ -811,6 +813,8 @@ const (
 	textPhonePlayerDanmakuTiming
 	textPhonePlayerDandan
 	textPhonePlayerLocalDanmaku
+	textPhonePlayerDanmakuNotImported
+	textPhonePlayerDanmakuManualMatch
 	textPhonePlayerAddFilter
 	textPhonePlayerHideColored
 	textPhonePlayerDanmakuSpeed
@@ -1685,6 +1689,8 @@ var keyOfText = [numTexts]string{
 	"phonePlayerDanmakuTiming",
 	"phonePlayerDandan",
 	"phonePlayerLocalDanmaku",
+	"phonePlayerDanmakuNotImported",
+	"phonePlayerDanmakuManualMatch",
 	"phonePlayerAddFilter",
 	"phonePlayerHideColored",
 	"phonePlayerDanmakuSpeed",
@@ -2557,6 +2563,8 @@ var textsEn = i18n.NewTexts(""+
 	"Danmaku timing"+
 	"DandanPlay"+
 	"Local danmaku file"+
+	"No file"+
+	"Match manually"+
 	"+ Add"+
 	"Hide colored danmaku"+
 	"Danmaku follows the current playback speed."+
@@ -2688,7 +2696,7 @@ var textsEn = i18n.NewTexts(""+
 	"Full"+
 	"Half"+
 	"Display style, comment sources and filters"+
-	"Local XML / JSON files"+
+	"Local XML / JSON / ASS files"+
 	"Manual matching"+
 	"Preview"+
 	"Brilliant acting"+
@@ -3426,6 +3434,8 @@ var textsEn = i18n.NewTexts(""+
 		14,
 		10,
 		18,
+		7,
+		14,
 		5,
 		20,
 		43,
@@ -3557,7 +3567,7 @@ var textsEn = i18n.NewTexts(""+
 		4,
 		4,
 		42,
-		22,
+		28,
 		15,
 		7,
 		16,
@@ -4298,6 +4308,8 @@ var textsZhHans = i18n.NewTexts(""+
 	"弹幕时间偏移"+
 	"弹弹play"+
 	"本地弹幕文件"+
+	"未导入"+
+	"手动搜索匹配"+
 	"+ 添加"+
 	"屏蔽彩色弹幕"+
 	"弹幕速度随播放倍速同步。"+
@@ -4429,7 +4441,7 @@ var textsZhHans = i18n.NewTexts(""+
 	"全屏"+
 	"半屏"+
 	"弹幕显示样式、弹幕源与屏蔽规则"+
-	"本地 XML / JSON 文件"+
+	"本地 XML / JSON / ASS 文件"+
 	"手动匹配"+
 	"预览"+
 	"演技太好了"+
@@ -5167,6 +5179,8 @@ var textsZhHans = i18n.NewTexts(""+
 		18,
 		10,
 		18,
+		9,
+		18,
 		8,
 		18,
 		36,
@@ -5298,7 +5312,7 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		6,
 		45,
-		24,
+		30,
 		12,
 		6,
 		15,
@@ -5857,6 +5871,9 @@ func Supply(lang string, t Translation) {
 	}
 	if t.PhonePlayerDanmakuLoaded != nil {
 		s.PhonePlayerDanmakuLoaded = t.PhonePlayerDanmakuLoaded
+	}
+	if t.PhonePlayerLocalDanmakuFormat != nil {
+		s.PhonePlayerLocalDanmakuFormat = t.PhonePlayerLocalDanmakuFormat
 	}
 	if t.PhonePlayerDanmakuRegex != nil {
 		s.PhonePlayerDanmakuRegex = t.PhonePlayerDanmakuRegex
@@ -11515,6 +11532,52 @@ func PhonePlayerLocalDanmaku(cx *core.Scope) string { return For(cx).PhonePlayer
 // PhonePlayerLocalDanmaku is the package's PhonePlayerLocalDanmaku in the language of msgs.
 func (msgs Messages) PhonePlayerLocalDanmaku() string { return msgs.text(textPhonePlayerLocalDanmaku) }
 
+// PhonePlayerLocalDanmakuFormat says "Local {format} file"
+// in the language the app shows under cx.
+func PhonePlayerLocalDanmakuFormat(cx *core.Scope, format string) string {
+	return For(cx).PhonePlayerLocalDanmakuFormat(format)
+}
+
+// PhonePlayerLocalDanmakuFormat is the package's PhonePlayerLocalDanmakuFormat in the language of msgs.
+func (msgs Messages) PhonePlayerLocalDanmakuFormat(format string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhonePlayerLocalDanmakuFormat(format))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhonePlayerLocalDanmakuFormat; f != nil {
+			return f(format)
+		}
+		switch lang {
+		case "", "en":
+			return "Local " + msgs.arg(format) + " file"
+		case "zh-Hans":
+			return "本地 " + format + " 文件"
+		}
+	}
+}
+
+// PhonePlayerDanmakuNotImported says "No file"
+// in the language the app shows under cx.
+func PhonePlayerDanmakuNotImported(cx *core.Scope) string {
+	return For(cx).PhonePlayerDanmakuNotImported()
+}
+
+// PhonePlayerDanmakuNotImported is the package's PhonePlayerDanmakuNotImported in the language of msgs.
+func (msgs Messages) PhonePlayerDanmakuNotImported() string {
+	return msgs.text(textPhonePlayerDanmakuNotImported)
+}
+
+// PhonePlayerDanmakuManualMatch says "Match manually"
+// in the language the app shows under cx.
+func PhonePlayerDanmakuManualMatch(cx *core.Scope) string {
+	return For(cx).PhonePlayerDanmakuManualMatch()
+}
+
+// PhonePlayerDanmakuManualMatch is the package's PhonePlayerDanmakuManualMatch in the language of msgs.
+func (msgs Messages) PhonePlayerDanmakuManualMatch() string {
+	return msgs.text(textPhonePlayerDanmakuManualMatch)
+}
+
 // PhonePlayerDanmakuRegex says "Regex {rule}"
 // in the language the app shows under cx.
 func PhonePlayerDanmakuRegex(cx *core.Scope, rule string) string {
@@ -13144,7 +13207,7 @@ func DesktopDanmakuHint(cx *core.Scope) string { return For(cx).DesktopDanmakuHi
 // DesktopDanmakuHint is the package's DesktopDanmakuHint in the language of msgs.
 func (msgs Messages) DesktopDanmakuHint() string { return msgs.text(textDesktopDanmakuHint) }
 
-// DesktopDanmakuLocalFiles says "Local XML / JSON files"
+// DesktopDanmakuLocalFiles says "Local XML / JSON / ASS files"
 // in the language the app shows under cx.
 func DesktopDanmakuLocalFiles(cx *core.Scope) string { return For(cx).DesktopDanmakuLocalFiles() }
 

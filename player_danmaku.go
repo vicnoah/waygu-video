@@ -44,6 +44,11 @@ type videoSample struct {
 	seen     time.Time
 }
 
+type importedDanmaku struct {
+	comments []danmaku.Comment
+	format   string
+}
+
 func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.Stream,
 	sample *core.Signal[videoSample], size *core.Signal[core.Size], paused, buffering *core.Signal[bool],
 	resize func() core.ResizeMode, rate func() float32, tvSettings, useCanvas func() bool, showOnMPV func(*danmaku.Track)) danmakuControls {
@@ -73,14 +78,14 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 		return comments
 	})
 	authored := core.NewSignalFunc(cx, saved, nil)
-	local := core.NewSignalFunc(cx, []danmaku.Comment(nil), nil)
+	local := core.NewSignalFunc(cx, importedDanmaku{}, nil)
 	remote := core.NewSignalFunc(cx, remoteComments{}, nil)
 	enableLocal := core.NewSignal(cx, true)
 	enableRemote := core.NewSignal(cx, true)
 	track := core.NewResource(cx, func() (input, bool) {
 		sources := input{prefs: a.danmakuPrefs.Get(), offset: offset.Get(), authored: authored.Get()}
 		if enableLocal.Get() && !sources.prefs.DisableLocal {
-			sources.local = local.Get()
+			sources.local = local.Get().comments
 		}
 		if enableRemote.Get() && !sources.prefs.DisableDandan {
 			sources.remote = remote.Get()
@@ -118,7 +123,14 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 	}
 	panel := core.NewSignal(cx, false)
 	tab := core.NewSignal(cx, 0)
-	openMatch := func() { tab.Set(1); panel.Set(true) }
+	showMatch := core.NewSignal(cx, false)
+	openMatch := func() {
+		cx.Batch(func() {
+			showMatch.Set(true)
+			tab.Set(1)
+			panel.Set(true)
+		})
+	}
 	invalid := core.NewSignal(cx, false)
 	busy := core.NewSignal(cx, false)
 	clock := core.NewSignal(cx, time.Duration(0))
@@ -134,7 +146,10 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 	}
 
 	choose := func() {
-		cx.PickFiles(core.PickFilesOptions{Types: []string{".xml", ".json"}, Title: locales.AddDanmaku(cx)}, func(files []core.File, err error) {
+		if busy.GetUntracked() {
+			return
+		}
+		cx.PickFiles(core.PickFilesOptions{Types: []string{".xml", ".json", ".ass"}, Title: locales.AddDanmaku(cx)}, func(files []core.File, err error) {
 			if err != nil {
 				invalid.Set(true)
 				return
@@ -150,10 +165,14 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 					defer os.Remove(file.Path)
 				}
 				var result []danmaku.Comment
+				extension := strings.ToLower(filepath.Ext(file.Name))
 				if reader, err := file.Open(); err == nil {
-					if strings.EqualFold(filepath.Ext(file.Name), ".json") {
+					switch extension {
+					case ".json":
 						result, err = danmaku.ReadJSON(reader)
-					} else {
+					case ".ass":
+						result, err = danmaku.ReadASS(reader)
+					default:
 						result, err = danmaku.ReadXML(reader)
 					}
 					reader.Close()
@@ -168,7 +187,7 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 					busy.Set(false)
 					invalid.Set(len(result) == 0)
 					if len(result) > 0 {
-						local.Set(result)
+						local.Set(importedDanmaku{comments: result, format: strings.ToUpper(strings.TrimPrefix(extension, "."))})
 						enableLocal.Set(true)
 						open.Set(true)
 					}
@@ -200,7 +219,7 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 			}
 		case 1:
 			if compact {
-				node = editor.playerSources(cx, current, source, func() int { return len(local.Get()) }, func() int { return len(remote.Get().comments) },
+				node = editor.playerSources(cx, current, source, showMatch, local.Get, func() int { return len(remote.Get().comments) },
 					enableLocal, enableRemote, invalid.Get, busy.Get, choose)
 			} else {
 				node = core.View{Class: "gap-3", Children: []core.Node{
@@ -257,7 +276,7 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 			heading := core.View{Class: "min-w-0 flex-1 flex-row items-center gap-2", Children: []core.Node{
 				playerDanmakuBadge(cx), panelHeading(title),
 				core.Text{ContentFunc: func() string {
-					return locales.PhonePlayerDanmakuLoaded(cx, strconv.Itoa(len(local.Get())+len(remote.Get().comments)))
+					return locales.PhonePlayerDanmakuLoaded(cx, strconv.Itoa(len(local.Get().comments)+len(remote.Get().comments)))
 				}, Class: "text-xs text-zinc-500", MaxLines: 1},
 			}}
 			return playerSidePanel(cx, "danmaku-sources-dialog", "close-danmaku-sources", title, panel.Get, close,
@@ -284,7 +303,7 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 			}
 			return nil
 		},
-		rawCounts: func() (int, int) { return len(local.Get()) + len(authored.Get()), len(remote.Get().comments) },
+		rawCounts: func() (int, int) { return len(local.Get().comments) + len(authored.Get()), len(remote.Get().comments) },
 		addLocal: func(comment danmaku.Comment) bool {
 			before := authored.GetUntracked()
 			items := append(slices.Clone(before[max(0, len(before)-999):]), comment)
@@ -347,7 +366,7 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 						return core.Style{}
 					}, Children: []core.Node{canvas}}
 			}},
-			core.Show{When: invalid.Get, Then: func(cx *core.Scope) core.Node {
+			core.Show{When: func() bool { return invalid.Get() && !panel.Get() }, Then: func(cx *core.Scope) core.Node {
 				return core.View{Class: "absolute inset-0 items-center justify-center", Children: []core.Node{
 					notice(locales.DanmakuFileError(cx)),
 				}}

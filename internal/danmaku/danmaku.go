@@ -24,23 +24,24 @@ const (
 )
 
 const (
-	White      = 0xffffff
-	MaxXMLSize = 16 << 20
-	maxEntries = 100_000
+	White              = 0xffffff
+	maxCommentFileSize = 16 << 20
+	maxEntries         = 100_000
 )
 
 type Comment struct {
-	At    time.Duration
-	Mode  Mode
-	Color uint32
-	Text  string
-	User  string `json:",omitempty"`
+	At        time.Duration
+	Mode      Mode
+	Color     uint32
+	Text      string
+	User      string `json:",omitempty"`
+	Rightward bool   `json:",omitempty"`
 }
 
 // ReadXML reads the Bilibili-compatible XML format used by locally saved
 // comment tracks. Unsupported overlay effects are skipped.
 func ReadXML(reader io.Reader) ([]Comment, error) {
-	limited := &io.LimitedReader{R: reader, N: MaxXMLSize + 1}
+	limited := &io.LimitedReader{R: reader, N: maxCommentFileSize + 1}
 	decoder := xml.NewDecoder(limited)
 	var comments []Comment
 	for {
@@ -239,7 +240,12 @@ func ScheduleContext(ctx context.Context, comments []Comment, settings Settings)
 				event := &track.Events[previous]
 				event.Copies++
 				if event.Mode == Scroll {
-					event.X1 = -estimatedWidth(event.DisplayText(), settings.FontSize)
+					outside := -estimatedWidth(event.DisplayText(), settings.FontSize)
+					if event.Rightward {
+						event.X0 = outside
+					} else {
+						event.X1 = outside
+					}
 				}
 				continue
 			}
@@ -267,6 +273,9 @@ func ScheduleContext(ctx context.Context, comments []Comment, settings Settings)
 		if comment.Mode == Scroll {
 			duration = time.Duration(float64(8*time.Second) / settings.Speed)
 			x0, x1 = settings.Width, -estimatedWidth(comment.Text, settings.FontSize)
+			if comment.Rightward {
+				x0, x1 = x1, x0
+			}
 		}
 		if start > time.Duration(math.MaxInt64)-duration {
 			continue

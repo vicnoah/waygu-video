@@ -52,6 +52,19 @@ With the same three fixtures, `TestDockerOfflineDownloadReview` saves an origina
 `TestDockerServers` compares the four chapter names and times reported by each service to the embedded chapter metadata. `TestDockerPhonePlayerGesturesAndPreview` plays the Jellyfin copy, jumps to a chapter, and checks slider commits, lock behavior and the thumbnail returned by Jellyfin while the slider is held. The headless case also verifies the temporary speed command and its restoration after cancellation. On an existing Docker setup, run `fixtures.sh` and `bootstrap.py` again to import the chaptered fixture.
 
 
+## ASS danmaku import
+
+`TestReadASSAndSchedule` imports UTF‑8 and UTF‑16 files and checks time, ASS primary colors, direction, sender filters and offsets. Fixed comments use their ASS alignment, and horizontal movement selects the corresponding scrolling direction. The shared scheduler supplies duration, placement and styling from the user's playback settings. The importer uses dialogue text and omits ASS drawing commands. `TestRenderWithASS` schedules imported dialogue and checks the resulting libmpv pixels before and after changing the display settings. [ASS format guide](https://github.com/libass/libass/wiki/ASS-File-Format-Guide)
+
+`TestDockerASSDanmakuReview` opens the generated Track Test clip through Emby, Jellyfin and Plex. It verifies the picker advertises all three supported formats, imports a synthetic ASS file through the local row, exercises the source toggle and rejects a malformed replacement. The native GTK run uses Emby, decodes the test video, selects the generated file in the GTK picker with `xdotool` on X11, and captures the Sources panel before and after import and the resulting overlay. [Scenra comparison](../../docs/ui-review/phone-player.md#ass-file-import)
+
+```sh
+WAYGU_TEST_SERVERS=1 WAYGU_TEST_MPV=1 go tool nsgo test ./... \
+  -run '^(TestReadASS|TestRenderWithASS|TestDockerASSDanmakuReview)' -count=1
+GDK_DEBUG=no-portals go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerASSDanmakuReview$' -screenshots .nsgo/ui-review/phone-danmaku-ass
+```
+
 ## DLNA casting
 
 `TestDockerPhoneDLNACasting` connects to a local renderer fixture from the Emby detail page. It verifies byte ranges, video decode, play and pause, volume, seek, position polling and local resume. `TestDockerDLNAUsesServerTranscode` limits the renderer to HLS and decodes the stream produced by each of the three Docker servers.

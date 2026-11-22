@@ -48,6 +48,14 @@ The scan and ellipsis icons retain their position in the main comparison. Their 
 
 ![Danmaku filters tab comparison](images/phone-player-danmaku-block.png)
 
+### ASS file import
+
+The source strip shows the Scenra panel, the local row before import and the same row after importing an ASS file with four comments. Manual match and Import use the design's two centered 36 pt buttons. The local row opens the picker when empty, then shows the imported format, comment count and a switch. Scenra's Bilibili and Bahamut rows push the actions below the fold in its four-source example. The fixture's two source rows leave both actions visible.
+
+![Scenra player and the Emby clip with the imported ASS comments](images/phone-player-danmaku-ass.png)
+
+The playback comparison shows the native GTK video paused at the fixture's comment window. The comments include both scrolling directions and pinned top and bottom text. The app lays out these comments using the playback settings for size, speed, opacity and lane spacing. Its first comment lane sits closer to the top edge than Scenra's example. The pill opens file import. Public comment sending, which Scenra assigns to that pill, remains open. The Docker test covers import with Emby, Jellyfin and Plex, and the libmpv test checks the imported overlay against decoded frame pixels. [Fixture and capture commands](../../integration/servers/TESTING.md#ass-danmaku-import)
+
 ## Findings
 
 | Area | Result |
@@ -58,8 +66,8 @@ The scan and ellipsis icons retain their position in the main comparison. Their 
 | Picture ratio | Original, Fill and crop, and Stretch use the native video modes. The three fixed ratios fit a centered frame for the video, captions and danmaku. The geometry checks cover all six options and confirm that changing ratio retains the mounted video. |
 | Playback actions | Playback information and chapters open inside More. The A/B action records the current position for each mark, shows the interval on the timeline and repeats at B. Seeking out of the interval clears it. The 15, 30, 45 and 60 minute sleep timer keeps its deadline across automatic episode changes and pauses at expiry. Leaving the player clears it. Screenshot export and audio/video sync remain unavailable with the current native playback API. |
 | Tracks | Each tab uses the 360 pt right-side panel. The subtitle list uses actual server and decoder tracks. Delay and style changes apply in the current session, and the local subtitle picker occupies the action row. Online subtitle search, audio delay, audio dynamic range controls and complete channel metadata remain pending. |
-| Danmaku display | The sliders and choices update saved rendering preferences. The overlay reads the playback clock and the picture fit mode. The capture has four generated comments from a local DandanPlay response. The headless test imports XML and exercises the same rendering and source controls. |
-| Danmaku sources and filters | The panel exposes the supported DandanPlay and local sources and their counts, with per-session switches. Keyword and regular expression rules use removable chips and the shared settings editor. Deduplication and colored-comment filtering are available. Other online providers, sender blocking, comment sending and a quality-level filter remain pending. |
+| Danmaku display | The sliders and choices update saved rendering preferences. The overlay reads the playback clock and the picture fit mode. The display and filter captures use four generated comments from a local DandanPlay response. Local XML and ASS use the same timeline and display controls. |
+| Danmaku sources and filters | The panel exposes the supported DandanPlay and local sources and their counts, with per-session switches. The import action accepts XML, JSON and ASS. Keyword and regular expression rules use removable chips and the shared settings editor. Deduplication and colored-comment filtering are available. Other online providers, sender blocking controls, comment sending and a quality-level filter remain open. |
 | Platform | GTK verifies rendering and input at the landscape design size. iOS and Android receive a landscape request scoped to the player. Rotation, native Picture in Picture, safe areas and gesture input still need verification on phone hardware. |
 
 The native review exercises all six ratios, an A/B repeat on the decoded Emby file, expiry using the accelerated test clock, the unlock path, track selection and the seven tabs. The headless checks cover a stale decoder report after a loop seek, timer continuity across automatic episode changes, cancellation of a preview, and restoration of speed. [Capture commands](README.md) · [Docker media fixtures](../../integration/servers/TESTING.md)

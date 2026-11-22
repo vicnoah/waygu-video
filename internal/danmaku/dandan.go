@@ -271,7 +271,7 @@ func (c *DandanClient) request(ctx context.Context, method, route string, query 
 }
 
 func decodeDanmakuJSON(reader io.Reader, response any) error {
-	limited := &io.LimitedReader{R: reader, N: MaxXMLSize + 1}
+	limited := &io.LimitedReader{R: reader, N: maxCommentFileSize + 1}
 	decoder := json.NewDecoder(limited)
 	if err := decoder.Decode(response); err != nil {
 		return err

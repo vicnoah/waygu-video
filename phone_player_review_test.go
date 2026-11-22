@@ -205,7 +205,7 @@ func TestDockerPhonePlayerDesignReview(t *testing.T) {
 	app.WaitFor("id:danmaku-display-enabled", time.Second)
 	capture("player-danmaku-panel-show")
 	app.Press("id:danmaku-tab-source")
-	app.WaitFor("id:danmaku-toggle-local", time.Second)
+	app.WaitFor("id:danmaku-import-file", time.Second)
 	capture("player-danmaku-panel-source")
 	app.Press("id:danmaku-toggle-" + visibleSource)
 	app.WaitForGone("id:danmaku-canvas", 3*time.Second)

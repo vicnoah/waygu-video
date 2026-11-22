@@ -575,6 +575,9 @@ phonePlayerDanmakuLoaded: "{count} comments loaded"
 phonePlayerDanmakuTiming: Danmaku timing
 phonePlayerDandan: DandanPlay
 phonePlayerLocalDanmaku: Local danmaku file
+phonePlayerLocalDanmakuFormat: "Local {format} file"
+phonePlayerDanmakuNotImported: No file
+phonePlayerDanmakuManualMatch: Match manually
 phonePlayerDanmakuRegex: "Regex {rule}"
 phonePlayerRemoveRule: "Remove {rule}"
 phonePlayerAddFilter: "+ Add"
@@ -736,7 +739,7 @@ desktopDanmakuFilters: "Block rules · {count}"
 desktopDanmakuFull: "Full"
 desktopDanmakuHalf: "Half"
 desktopDanmakuHint: "Display style, comment sources and filters"
-desktopDanmakuLocalFiles: "Local XML / JSON files"
+desktopDanmakuLocalFiles: "Local XML / JSON / ASS files"
 desktopDanmakuManualMatch: "Manual matching"
 desktopDanmakuPreview: "Preview"
 desktopDanmakuSampleActing: "Brilliant acting"

@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -78,8 +79,11 @@ func TestRenderWithASS(t *testing.T) {
 		return drawn && p.Status().Position >= 2*time.Second
 	})
 	baseline := bytes.Clone(frame.Pix)
-	comments := []danmaku.Comment{
-		{At: time.Second, Mode: danmaku.Top, Color: danmaku.White, Text: "Waygu fixture comments"},
+	comments, err := danmaku.ReadASS(strings.NewReader(`[Events]
+Dialogue: 0,0:00:01.00,0:00:05.00,Default,,0,0,0,,{\an8}Waygu fixture comments
+`))
+	if err != nil || len(comments) != 1 {
+		t.Fatalf("ASS fixture import = %v, %v", comments, err)
 	}
 	settings := danmaku.DefaultSettings()
 	track := danmaku.Schedule(comments, settings)

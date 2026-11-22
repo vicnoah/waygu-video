@@ -90,7 +90,8 @@ func (e danmakuEditor) playerChoices(cx *core.Scope, label, id string, values []
 	}}
 }
 
-func (e danmakuEditor) playerSources(cx *core.Scope, current route, online core.Node, localCount, onlineCount func() int,
+func (e danmakuEditor) playerSources(cx *core.Scope, current route, online core.Node, showMatch *core.Signal[bool],
+	imported func() importedDanmaku, onlineCount func() int,
 	local, remote *core.Signal[bool], invalid, busy func() bool, openFile func()) core.Node {
 	poster := core.View{Class: "h-12 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-zinc-800", Children: []core.Node{
 		core.Icon{SVG: lucide.Film(), Class: "size-4 text-zinc-400"},
@@ -98,6 +99,34 @@ func (e danmakuEditor) playerSources(cx *core.Scope, current route, online core.
 			return core.Image{Class: "absolute inset-0", Source: core.Src(current.item.Poster), ResizeMode: core.Cover}
 		}},
 	}}
+	const rowClass = "min-h-11 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+	localRow := core.Dynamic(func(cx *core.Scope) core.Node {
+		file := imported()
+		title, status := locales.PhonePlayerLocalDanmaku(cx), locales.PhonePlayerDanmakuNotImported(cx)
+		if len(file.comments) > 0 {
+			title, status = locales.PhonePlayerLocalDanmakuFormat(cx, file.format), strconv.Itoa(len(file.comments))
+		}
+		children := []core.Node{
+			core.View{Class: "size-6 items-center justify-center rounded-md bg-zinc-600", Children: []core.Node{
+				core.Icon{SVG: lucide.FileText(), Class: "size-3.5 text-white"},
+			}},
+			core.Text{Content: title, Class: "min-w-0 flex-1 text-sm text-white", MaxLines: 1},
+			core.Text{Content: status, TestID: "danmaku-local-count", Class: "text-xs text-zinc-500"},
+		}
+		if len(file.comments) > 0 {
+			return core.View{Class: rowClass, Children: append(children, playerSwitch(cx, title, "danmaku-toggle-local", local.Get, local.Set))}
+		}
+		return base.Button{Label: title, TestID: "danmaku-open-local-file", Class: rowClass + " disabled:opacity-50",
+			Disabled: busy, Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)}, OnPress: func(core.PressEvent) { openFile() },
+			Children: append(children, core.Icon{SVG: lucide.ChevronRight(), Class: "size-4 text-zinc-600"})}
+	})
+	action := func(id, label string, icon *core.SVG, disabled func() bool, press func()) core.Node {
+		return base.Button{Label: label, TestID: id, Disabled: disabled,
+			Class: "h-9 min-w-0 flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/10 disabled:opacity-50",
+			Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)}, OnPress: func(core.PressEvent) { press() },
+			Children: []core.Node{core.Icon{SVG: icon, Class: "size-3.5 shrink-0 text-white"},
+				core.Text{Content: label, MaxLines: 1, Class: "min-w-0 shrink text-xs text-white"}}}
+	}
 	return core.View{Class: "gap-3", Children: []core.Node{
 		core.View{Class: "flex-row items-center gap-3 rounded-2xl border border-violet-500/30 bg-linear-to-br from-violet-500/20 to-fuchsia-500/10 p-3",
 			Children: []core.Node{poster, core.View{Class: "min-w-0 flex-1 gap-0.5", Children: []core.Node{
@@ -110,24 +139,21 @@ func (e danmakuEditor) playerSources(cx *core.Scope, current route, online core.
 				}, Class: "text-[11px] text-violet-300"},
 			}}}},
 		core.View{Class: "gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10", Children: []core.Node{
-			core.View{Class: "min-h-11 flex-row items-center gap-3 bg-zinc-800/70 px-3", Children: []core.Node{
+			core.View{Class: rowClass, Children: []core.Node{
 				playerDanmakuBadge(cx), core.Text{Content: locales.PhonePlayerDandan(cx), Class: "flex-1 text-sm text-white"},
 				core.Text{ContentFunc: func() string { return strconv.Itoa(onlineCount()) }, Class: "text-xs text-zinc-500"},
 				playerSwitch(cx, locales.PhonePlayerDandan(cx), "danmaku-toggle-remote", remote.Get, remote.Set),
 			}},
-			core.View{Class: "min-h-11 flex-row items-center gap-3 bg-zinc-800/70 px-3", Children: []core.Node{
-				core.View{Class: "size-6 items-center justify-center rounded-md bg-zinc-600", Children: []core.Node{
-					core.Icon{SVG: lucide.FileText(), Class: "size-3.5 text-white"},
-				}},
-				core.Text{Content: locales.PhonePlayerLocalDanmaku(cx), Class: "flex-1 text-sm text-white"},
-				core.Text{ContentFunc: func() string { return strconv.Itoa(localCount()) }, Class: "text-xs text-zinc-500"},
-				playerSwitch(cx, locales.PhonePlayerLocalDanmaku(cx), "danmaku-toggle-local", local.Get, local.Set),
-			}},
+			localRow,
 		}},
-		playerPanelAction(cx, "danmaku-import-file", locales.AddDanmaku(cx), lucide.FolderOpen, false, busy, openFile),
+		core.View{Class: "flex-row gap-2", Children: []core.Node{
+			action("danmaku-manual-match", locales.PhonePlayerDanmakuManualMatch(cx), lucide.Search(),
+				func() bool { return current.downloadID != "" }, func() { showMatch.Update(func(open bool) bool { return !open }) }),
+			action("danmaku-import-file", locales.AddDanmaku(cx), lucide.Upload(), busy, openFile),
+		}},
 		core.Show{When: invalid, Then: func(cx *core.Scope) core.Node { return notice(locales.DanmakuFileError(cx)) }},
 		e.playerToggle(cx, locales.DanmakuDeduplicate(cx), "danmaku-deduplicate", func(p *danmakuPreferences) *bool { return &p.Deduplicate }),
-		online,
+		core.Show{When: func() bool { return current.downloadID != "" || showMatch.Get() }, Then: func(*core.Scope) core.Node { return online }},
 	}}
 }
 

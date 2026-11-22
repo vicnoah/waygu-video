@@ -575,6 +575,9 @@ phonePlayerDanmakuLoaded: "已加载 {count} 条"
 phonePlayerDanmakuTiming: 弹幕时间偏移
 phonePlayerDandan: 弹弹play
 phonePlayerLocalDanmaku: 本地弹幕文件
+phonePlayerLocalDanmakuFormat: "本地 {format} 文件"
+phonePlayerDanmakuNotImported: 未导入
+phonePlayerDanmakuManualMatch: 手动搜索匹配
 phonePlayerDanmakuRegex: "正则 {rule}"
 phonePlayerRemoveRule: "移除 {rule}"
 phonePlayerAddFilter: "+ 添加"
@@ -736,7 +739,7 @@ desktopDanmakuFilters: "屏蔽词 · {count}"
 desktopDanmakuFull: "全屏"
 desktopDanmakuHalf: "半屏"
 desktopDanmakuHint: "弹幕显示样式、弹幕源与屏蔽规则"
-desktopDanmakuLocalFiles: "本地 XML / JSON 文件"
+desktopDanmakuLocalFiles: "本地 XML / JSON / ASS 文件"
 desktopDanmakuManualMatch: "手动匹配"
 desktopDanmakuPreview: "预览"
 desktopDanmakuSampleActing: "演技太好了"
