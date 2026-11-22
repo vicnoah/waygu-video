@@ -44,7 +44,9 @@ func For(cx *core.Scope) Messages {
 // (tsx.RegisterMessages).
 var Parameters = map[string][]string{
 	"WelcomeMediaSourcesDetail": {"flymoo"},
+	"AddDiscoveredSource":       {"name"},
 	"Connected":                 {"name"},
+	"SignedInAs":                {"name"},
 	"MoveSourceUp":              {"name"},
 	"MoveSourceDown":            {"name"},
 	"ShowNamedLibrary":          {"name"},
@@ -78,7 +80,9 @@ var Parameters = map[string][]string{
 type Translation struct {
 	Texts                     map[string]string
 	WelcomeMediaSourcesDetail func(flymoo string) string
+	AddDiscoveredSource       func(name string) string
 	Connected                 func(name string) string
+	SignedInAs                func(name string) string
 	MoveSourceUp              func(name string) string
 	MoveSourceDown            func(name string) string
 	ShowNamedLibrary          func(name string) string
@@ -111,6 +115,7 @@ var supplied = map[string]Translation{}
 const (
 	textAppName = iota
 	textNSLocalNetworkUsageDescription
+	textNSCameraUsageDescription
 	textBrand
 	textWelcomeTitle
 	textWelcomeBody
@@ -125,13 +130,29 @@ const (
 	textLater
 	textBack
 	textChooseSource
+	textChooseSourceDetail
+	textLocalDiscovery
+	textDiscovering
+	textDiscoverAgain
+	textNoLocalServers
+	textAddDiscovered
 	textFlymoo
 	textConnectServer
 	textServerAddress
+	textServerAddressShort
+	textServerPort
+	textServerGroup
+	textLoginGroup
+	textUseHTTPS
+	textScanServerAddress
 	textSourceName
+	textSourceNameShort
 	textUsername
 	textPassword
+	textShowPassword
+	textHidePassword
 	textPlexToken
+	textPlexTokenShort
 	textLinkPlexAccount
 	textPlexScanQR
 	textPlexWaitingAuthorization
@@ -145,8 +166,9 @@ const (
 	textPlexServerUnreachable
 	textTestConnection
 	textSignIn
+	textConnectionVerified
 	textImportLibraries
-	textImportAction
+	textCompleteSource
 	textNoLibraries
 	textHome
 	textLibrary
@@ -293,6 +315,7 @@ const (
 	textSeriesType
 	textEpisodeType
 	textQuickConnect
+	textQuickConnectHelp
 	textQuickConnectUnavailable
 	numTexts
 )
@@ -302,6 +325,7 @@ const (
 var keyOfText = [numTexts]string{
 	"appName",
 	"NSLocalNetworkUsageDescription",
+	"NSCameraUsageDescription",
 	"brand",
 	"welcomeTitle",
 	"welcomeBody",
@@ -316,13 +340,29 @@ var keyOfText = [numTexts]string{
 	"later",
 	"back",
 	"chooseSource",
+	"chooseSourceDetail",
+	"localDiscovery",
+	"discovering",
+	"discoverAgain",
+	"noLocalServers",
+	"addDiscovered",
 	"flymoo",
 	"connectServer",
 	"serverAddress",
+	"serverAddressShort",
+	"serverPort",
+	"serverGroup",
+	"loginGroup",
+	"useHTTPS",
+	"scanServerAddress",
 	"sourceName",
+	"sourceNameShort",
 	"username",
 	"password",
+	"showPassword",
+	"hidePassword",
 	"plexToken",
+	"plexTokenShort",
 	"linkPlexAccount",
 	"plexScanQR",
 	"plexWaitingAuthorization",
@@ -336,8 +376,9 @@ var keyOfText = [numTexts]string{
 	"plexServerUnreachable",
 	"testConnection",
 	"signIn",
+	"connectionVerified",
 	"importLibraries",
-	"importAction",
+	"completeSource",
 	"noLibraries",
 	"home",
 	"library",
@@ -484,6 +525,7 @@ var keyOfText = [numTexts]string{
 	"seriesType",
 	"episodeType",
 	"quickConnect",
+	"quickConnectHelp",
 	"quickConnectUnavailable",
 }
 
@@ -491,6 +533,7 @@ var keyOfText = [numTexts]string{
 var textsEn = i18n.NewTexts(""+
 	"waygu-video"+
 	"Connect to media servers on your local network."+
+	"Scan a QR code to fill in a media server address."+
 	"Waygu"+
 	"Your private cinema,\non every screen."+
 	"Connect your media servers and NAS, organize your library, and resume on phones, tablets, computers, and TVs."+
@@ -504,14 +547,30 @@ var textsEn = i18n.NewTexts(""+
 	"Add media source"+
 	"Set up later"+
 	"Back"+
-	"Choose a media server"+
+	"Media servers"+
+	"Choose where your videos are stored. You can add more sources later in Settings."+
+	"Find servers on your network"+
+	"Scanning…"+
+	"Scan again"+
+	"No servers found. You can add a server by address."+
+	"Add"+
 	"Flymoo"+
 	"Connect to server"+
 	"Server address"+
+	"Address"+
+	"Port"+
+	"Server"+
+	"Login"+
+	"Use HTTPS"+
+	"Scan server address"+
 	"Display name"+
+	"Name"+
 	"Username"+
 	"Password"+
+	"Show password"+
+	"Hide password"+
 	"Plex access token"+
+	"Token"+
 	"Link Plex account"+
 	"Scan this QR code with your phone to sign in to Plex."+
 	"Waiting for Plex authorization…"+
@@ -525,8 +584,9 @@ var textsEn = i18n.NewTexts(""+
 	"Could not connect to the selected Plex server."+
 	"Test connection"+
 	"Sign in"+
+	"The server responded to the connection test."+
 	"Choose libraries to import"+
-	"Import libraries"+
+	"Done"+
 	"This account has no video libraries."+
 	"Home"+
 	"Library"+
@@ -673,10 +733,12 @@ var textsEn = i18n.NewTexts(""+
 	"Show"+
 	"Episode"+
 	"Jellyfin Quick Connect"+
+	"Use Quick Connect on a signed-in Jellyfin device to sign in without a password."+
 	"Enable Quick Connect on the Jellyfin server or use your password.",
 	[]uint16{
 		11,
 		47,
+		49,
 		5,
 		37,
 		109,
@@ -690,14 +752,30 @@ var textsEn = i18n.NewTexts(""+
 		16,
 		12,
 		4,
-		21,
+		13,
+		80,
+		28,
+		11,
+		10,
+		50,
+		3,
 		6,
 		17,
 		14,
+		7,
+		4,
+		6,
+		5,
+		9,
+		19,
 		12,
+		4,
 		8,
 		8,
+		13,
+		13,
 		17,
+		5,
 		17,
 		53,
 		33,
@@ -711,8 +789,9 @@ var textsEn = i18n.NewTexts(""+
 		46,
 		15,
 		7,
+		44,
 		26,
-		16,
+		4,
 		36,
 		4,
 		7,
@@ -859,6 +938,7 @@ var textsEn = i18n.NewTexts(""+
 		4,
 		7,
 		22,
+		79,
 		65,
 	})
 
@@ -866,6 +946,7 @@ var textsEn = i18n.NewTexts(""+
 var textsZhHans = i18n.NewTexts(""+
 	"肥牛视频"+
 	"连接同一局域网内的影视服务器。"+
+	"扫描二维码以填入媒体服务器地址。"+
 	"Waygu"+
 	"你的私人影院，\n在每一块屏幕上。"+
 	"连接家里的媒体服务器与 NAS，自动整理海报墙，手机、平板、电脑、电视无缝续播。"+
@@ -879,14 +960,30 @@ var textsZhHans = i18n.NewTexts(""+
 	"添加媒体源"+
 	"稍后设置"+
 	"返回"+
-	"选择媒体服务器"+
+	"媒体服务器"+
+	"选择你的影片存放位置，可随时在设置中添加更多。"+
+	"局域网自动发现"+
+	"正在扫描…"+
+	"重新扫描"+
+	"未发现服务器，你可以通过地址手动添加。"+
+	"添加"+
 	"飞牛影视"+
 	"连接服务器"+
 	"服务器地址"+
+	"地址"+
+	"端口"+
+	"服务器"+
+	"登录"+
+	"使用 HTTPS"+
+	"扫描服务器地址"+
 	"显示名称"+
+	"名称"+
 	"用户名"+
 	"密码"+
+	"显示密码"+
+	"隐藏密码"+
 	"Plex 访问令牌"+
+	"访问令牌"+
 	"关联 Plex 账号"+
 	"用手机扫描二维码登录 Plex。"+
 	"正在等待 Plex 授权…"+
@@ -900,8 +997,9 @@ var textsZhHans = i18n.NewTexts(""+
 	"无法连接到所选 Plex 服务器。"+
 	"测试连接"+
 	"登录"+
+	"服务器已响应连接测试。"+
 	"选择要导入的媒体库"+
-	"导入媒体库"+
+	"完成"+
 	"此账号没有可导入的影视库。"+
 	"首页"+
 	"媒体库"+
@@ -1048,10 +1146,12 @@ var textsZhHans = i18n.NewTexts(""+
 	"剧集"+
 	"分集"+
 	"Jellyfin 快速连接"+
+	"可在已登录的 Jellyfin 设备上通过快速连接免密码登录。"+
 	"请在 Jellyfin 服务器上启用快速连接，或使用密码登录。",
 	[]uint16{
 		12,
 		45,
+		48,
 		5,
 		46,
 		112,
@@ -1065,14 +1165,30 @@ var textsZhHans = i18n.NewTexts(""+
 		15,
 		12,
 		6,
+		15,
+		69,
 		21,
+		15,
+		12,
+		57,
+		6,
 		12,
 		15,
 		15,
-		12,
+		6,
+		6,
 		9,
 		6,
+		12,
+		21,
+		12,
+		6,
+		9,
+		6,
+		12,
+		12,
 		17,
+		12,
 		18,
 		38,
 		27,
@@ -1086,8 +1202,9 @@ var textsZhHans = i18n.NewTexts(""+
 		39,
 		12,
 		6,
+		33,
 		27,
-		15,
+		6,
 		39,
 		6,
 		9,
@@ -1235,6 +1352,7 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		21,
 		73,
+		73,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -1294,8 +1412,14 @@ func Supply(lang string, t Translation) {
 	if t.WelcomeMediaSourcesDetail != nil {
 		s.WelcomeMediaSourcesDetail = t.WelcomeMediaSourcesDetail
 	}
+	if t.AddDiscoveredSource != nil {
+		s.AddDiscoveredSource = t.AddDiscoveredSource
+	}
 	if t.Connected != nil {
 		s.Connected = t.Connected
+	}
+	if t.SignedInAs != nil {
+		s.SignedInAs = t.SignedInAs
 	}
 	if t.MoveSourceUp != nil {
 		s.MoveSourceUp = t.MoveSourceUp
@@ -1398,6 +1522,15 @@ func NSLocalNetworkUsageDescription(cx *core.Scope) string {
 // NSLocalNetworkUsageDescription is the package's NSLocalNetworkUsageDescription in the language of msgs.
 func (msgs Messages) NSLocalNetworkUsageDescription() string {
 	return msgs.text(textNSLocalNetworkUsageDescription)
+}
+
+// NSCameraUsageDescription says "Scan a QR code to fill in a media server address."
+// in the language the app shows under cx.
+func NSCameraUsageDescription(cx *core.Scope) string { return For(cx).NSCameraUsageDescription() }
+
+// NSCameraUsageDescription is the package's NSCameraUsageDescription in the language of msgs.
+func (msgs Messages) NSCameraUsageDescription() string {
+	return msgs.text(textNSCameraUsageDescription)
 }
 
 // Brand says "Waygu"
@@ -1523,12 +1656,78 @@ func Back(cx *core.Scope) string { return For(cx).Back() }
 // Back is the package's Back in the language of msgs.
 func (msgs Messages) Back() string { return msgs.text(textBack) }
 
-// ChooseSource says "Choose a media server"
+// ChooseSource says "Media servers"
 // in the language the app shows under cx.
 func ChooseSource(cx *core.Scope) string { return For(cx).ChooseSource() }
 
 // ChooseSource is the package's ChooseSource in the language of msgs.
 func (msgs Messages) ChooseSource() string { return msgs.text(textChooseSource) }
+
+// ChooseSourceDetail says "Choose where your videos are stored. You can add more sources later in Settings."
+// in the language the app shows under cx.
+func ChooseSourceDetail(cx *core.Scope) string { return For(cx).ChooseSourceDetail() }
+
+// ChooseSourceDetail is the package's ChooseSourceDetail in the language of msgs.
+func (msgs Messages) ChooseSourceDetail() string { return msgs.text(textChooseSourceDetail) }
+
+// LocalDiscovery says "Find servers on your network"
+// in the language the app shows under cx.
+func LocalDiscovery(cx *core.Scope) string { return For(cx).LocalDiscovery() }
+
+// LocalDiscovery is the package's LocalDiscovery in the language of msgs.
+func (msgs Messages) LocalDiscovery() string { return msgs.text(textLocalDiscovery) }
+
+// Discovering says "Scanning…"
+// in the language the app shows under cx.
+func Discovering(cx *core.Scope) string { return For(cx).Discovering() }
+
+// Discovering is the package's Discovering in the language of msgs.
+func (msgs Messages) Discovering() string { return msgs.text(textDiscovering) }
+
+// DiscoverAgain says "Scan again"
+// in the language the app shows under cx.
+func DiscoverAgain(cx *core.Scope) string { return For(cx).DiscoverAgain() }
+
+// DiscoverAgain is the package's DiscoverAgain in the language of msgs.
+func (msgs Messages) DiscoverAgain() string { return msgs.text(textDiscoverAgain) }
+
+// NoLocalServers says "No servers found. You can add a server by address."
+// in the language the app shows under cx.
+func NoLocalServers(cx *core.Scope) string { return For(cx).NoLocalServers() }
+
+// NoLocalServers is the package's NoLocalServers in the language of msgs.
+func (msgs Messages) NoLocalServers() string { return msgs.text(textNoLocalServers) }
+
+// AddDiscovered says "Add"
+// in the language the app shows under cx.
+func AddDiscovered(cx *core.Scope) string { return For(cx).AddDiscovered() }
+
+// AddDiscovered is the package's AddDiscovered in the language of msgs.
+func (msgs Messages) AddDiscovered() string { return msgs.text(textAddDiscovered) }
+
+// AddDiscoveredSource says "Add {name}"
+// in the language the app shows under cx.
+func AddDiscoveredSource(cx *core.Scope, name string) string {
+	return For(cx).AddDiscoveredSource(name)
+}
+
+// AddDiscoveredSource is the package's AddDiscoveredSource in the language of msgs.
+func (msgs Messages) AddDiscoveredSource(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.AddDiscoveredSource(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].AddDiscoveredSource; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Add " + msgs.arg(name)
+		case "zh-Hans":
+			return "添加" + name
+		}
+	}
+}
 
 // Flymoo says "Flymoo"
 // in the language the app shows under cx.
@@ -1551,12 +1750,61 @@ func ServerAddress(cx *core.Scope) string { return For(cx).ServerAddress() }
 // ServerAddress is the package's ServerAddress in the language of msgs.
 func (msgs Messages) ServerAddress() string { return msgs.text(textServerAddress) }
 
+// ServerAddressShort says "Address"
+// in the language the app shows under cx.
+func ServerAddressShort(cx *core.Scope) string { return For(cx).ServerAddressShort() }
+
+// ServerAddressShort is the package's ServerAddressShort in the language of msgs.
+func (msgs Messages) ServerAddressShort() string { return msgs.text(textServerAddressShort) }
+
+// ServerPort says "Port"
+// in the language the app shows under cx.
+func ServerPort(cx *core.Scope) string { return For(cx).ServerPort() }
+
+// ServerPort is the package's ServerPort in the language of msgs.
+func (msgs Messages) ServerPort() string { return msgs.text(textServerPort) }
+
+// ServerGroup says "Server"
+// in the language the app shows under cx.
+func ServerGroup(cx *core.Scope) string { return For(cx).ServerGroup() }
+
+// ServerGroup is the package's ServerGroup in the language of msgs.
+func (msgs Messages) ServerGroup() string { return msgs.text(textServerGroup) }
+
+// LoginGroup says "Login"
+// in the language the app shows under cx.
+func LoginGroup(cx *core.Scope) string { return For(cx).LoginGroup() }
+
+// LoginGroup is the package's LoginGroup in the language of msgs.
+func (msgs Messages) LoginGroup() string { return msgs.text(textLoginGroup) }
+
+// UseHTTPS says "Use HTTPS"
+// in the language the app shows under cx.
+func UseHTTPS(cx *core.Scope) string { return For(cx).UseHTTPS() }
+
+// UseHTTPS is the package's UseHTTPS in the language of msgs.
+func (msgs Messages) UseHTTPS() string { return msgs.text(textUseHTTPS) }
+
+// ScanServerAddress says "Scan server address"
+// in the language the app shows under cx.
+func ScanServerAddress(cx *core.Scope) string { return For(cx).ScanServerAddress() }
+
+// ScanServerAddress is the package's ScanServerAddress in the language of msgs.
+func (msgs Messages) ScanServerAddress() string { return msgs.text(textScanServerAddress) }
+
 // SourceName says "Display name"
 // in the language the app shows under cx.
 func SourceName(cx *core.Scope) string { return For(cx).SourceName() }
 
 // SourceName is the package's SourceName in the language of msgs.
 func (msgs Messages) SourceName() string { return msgs.text(textSourceName) }
+
+// SourceNameShort says "Name"
+// in the language the app shows under cx.
+func SourceNameShort(cx *core.Scope) string { return For(cx).SourceNameShort() }
+
+// SourceNameShort is the package's SourceNameShort in the language of msgs.
+func (msgs Messages) SourceNameShort() string { return msgs.text(textSourceNameShort) }
 
 // Username says "Username"
 // in the language the app shows under cx.
@@ -1572,12 +1820,33 @@ func Password(cx *core.Scope) string { return For(cx).Password() }
 // Password is the package's Password in the language of msgs.
 func (msgs Messages) Password() string { return msgs.text(textPassword) }
 
+// ShowPassword says "Show password"
+// in the language the app shows under cx.
+func ShowPassword(cx *core.Scope) string { return For(cx).ShowPassword() }
+
+// ShowPassword is the package's ShowPassword in the language of msgs.
+func (msgs Messages) ShowPassword() string { return msgs.text(textShowPassword) }
+
+// HidePassword says "Hide password"
+// in the language the app shows under cx.
+func HidePassword(cx *core.Scope) string { return For(cx).HidePassword() }
+
+// HidePassword is the package's HidePassword in the language of msgs.
+func (msgs Messages) HidePassword() string { return msgs.text(textHidePassword) }
+
 // PlexToken says "Plex access token"
 // in the language the app shows under cx.
 func PlexToken(cx *core.Scope) string { return For(cx).PlexToken() }
 
 // PlexToken is the package's PlexToken in the language of msgs.
 func (msgs Messages) PlexToken() string { return msgs.text(textPlexToken) }
+
+// PlexTokenShort says "Token"
+// in the language the app shows under cx.
+func PlexTokenShort(cx *core.Scope) string { return For(cx).PlexTokenShort() }
+
+// PlexTokenShort is the package's PlexTokenShort in the language of msgs.
+func (msgs Messages) PlexTokenShort() string { return msgs.text(textPlexTokenShort) }
 
 // LinkPlexAccount says "Link Plex account"
 // in the language the app shows under cx.
@@ -1698,6 +1967,35 @@ func (msgs Messages) Connected(name string) string {
 	}
 }
 
+// ConnectionVerified says "The server responded to the connection test."
+// in the language the app shows under cx.
+func ConnectionVerified(cx *core.Scope) string { return For(cx).ConnectionVerified() }
+
+// ConnectionVerified is the package's ConnectionVerified in the language of msgs.
+func (msgs Messages) ConnectionVerified() string { return msgs.text(textConnectionVerified) }
+
+// SignedInAs says "Signed in as {name}"
+// in the language the app shows under cx.
+func SignedInAs(cx *core.Scope, name string) string { return For(cx).SignedInAs(name) }
+
+// SignedInAs is the package's SignedInAs in the language of msgs.
+func (msgs Messages) SignedInAs(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SignedInAs(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SignedInAs; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Signed in as " + msgs.arg(name)
+		case "zh-Hans":
+			return "已登录为 " + name
+		}
+	}
+}
+
 // ImportLibraries says "Choose libraries to import"
 // in the language the app shows under cx.
 func ImportLibraries(cx *core.Scope) string { return For(cx).ImportLibraries() }
@@ -1705,12 +2003,12 @@ func ImportLibraries(cx *core.Scope) string { return For(cx).ImportLibraries() }
 // ImportLibraries is the package's ImportLibraries in the language of msgs.
 func (msgs Messages) ImportLibraries() string { return msgs.text(textImportLibraries) }
 
-// ImportAction says "Import libraries"
+// CompleteSource says "Done"
 // in the language the app shows under cx.
-func ImportAction(cx *core.Scope) string { return For(cx).ImportAction() }
+func CompleteSource(cx *core.Scope) string { return For(cx).CompleteSource() }
 
-// ImportAction is the package's ImportAction in the language of msgs.
-func (msgs Messages) ImportAction() string { return msgs.text(textImportAction) }
+// CompleteSource is the package's CompleteSource in the language of msgs.
+func (msgs Messages) CompleteSource() string { return msgs.text(textCompleteSource) }
 
 // NoLibraries says "This account has no video libraries."
 // in the language the app shows under cx.
@@ -3259,6 +3557,13 @@ func QuickConnect(cx *core.Scope) string { return For(cx).QuickConnect() }
 
 // QuickConnect is the package's QuickConnect in the language of msgs.
 func (msgs Messages) QuickConnect() string { return msgs.text(textQuickConnect) }
+
+// QuickConnectHelp says "Use Quick Connect on a signed-in Jellyfin device to sign in without a password."
+// in the language the app shows under cx.
+func QuickConnectHelp(cx *core.Scope) string { return For(cx).QuickConnectHelp() }
+
+// QuickConnectHelp is the package's QuickConnectHelp in the language of msgs.
+func (msgs Messages) QuickConnectHelp() string { return msgs.text(textQuickConnectHelp) }
 
 // QuickConnectInstruction says "Enter {code} under Quick Connect on a signed-in Jellyfin device."
 // in the language the app shows under cx.

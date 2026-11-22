@@ -12,6 +12,11 @@ DESIGN = ROOT / "design"
 INVENTORY = ROOT / "docs" / "ui-review" / "screens.md"
 HEADER = re.compile(r"^design(?: .*)?$", re.MULTILINE)
 PANEL = re.compile(r'\bpanel=(?:"([^"]+)"|([^\s"]+))')
+REVIEWS = {
+    "welcome.scenra": "welcome.md",
+    "add-source.scenra": "add-source.md",
+    "source-login.scenra": "source-login.md",
+}
 
 
 def screens():
@@ -51,7 +56,7 @@ def document():
         location = attrs.get("in", attrs.get("device", "phone"))
         if "width" in attrs or "height" in attrs:
             location += f" · {attrs.get('width', 'auto')} × {attrs.get('height', 'auto')}"
-        review = "[Compared](welcome.md)" if relative == "welcome.scenra" else "Pending"
+        review = f"[Compared]({REVIEWS[relative]})" if relative in REVIEWS else "Pending"
         lines.append(
             f"| [{name}](../../design/{relative}#L{line}) | {variant} | "
             f"`{location}` | {', '.join(panels) or '—'} | {review} |"

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nsgo-dev/nsgo/base"
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/icons/lucide"
 	"github.com/nsgo-dev/nsgo/ui"
@@ -127,7 +128,33 @@ func libraryEditor(cx *core.Scope, draft *core.Signal[[]sourceLibrary], importin
 				OnChange: func(show bool) { edit(func(library *sourceLibrary) { library.Hidden = !show }) },
 			}
 			title := []core.Node{visible}
-			if !importing {
+			if importing {
+				title = []core.Node{base.Checkbox{
+					LabelFunc: name, TestID: visible.TestID, Disabled: busy, Checked: visible.Checked, OnChange: visible.OnChange,
+					Class: "min-h-12 flex-row-reverse items-center gap-3 px-4", Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)},
+					Indicator: core.Dynamic(func(*core.Scope) core.Node {
+						if visible.Checked() {
+							return core.Icon{SVG: lucide.CircleCheck(), Class: "size-5 " + setupAccent}
+						}
+						return core.Icon{SVG: lucide.Circle(), Class: "size-5 text-zinc-500/60 dark:text-zinc-400/60"}
+					}),
+					Children: []core.Node{core.View{Class: "flex-1 flex-row items-center gap-3", Children: []core.Node{
+						core.Dynamic(func(*core.Scope) core.Node {
+							icon, fill := lucide.Film(), "bg-violet-500"
+							switch item().category() {
+							case librarySeries:
+								icon = lucide.Tv()
+							case libraryAnime:
+								icon = lucide.Sparkles()
+							case libraryDocumentaries:
+								icon, fill = lucide.Globe(), "bg-slate-500"
+							}
+							return setupBadge(icon, fill)
+						}),
+						core.Text{ContentFunc: name, Class: "flex-1 text-[15px] " + setupTitle},
+					}}},
+				}}
+			} else {
 				visible.TextFunc = nil
 				visible.Text = locales.ShowLibrary(cx)
 				visible.LabelFunc = func() string { return locales.ShowNamedLibrary(cx, name()) }
@@ -153,7 +180,11 @@ func libraryEditor(cx *core.Scope, draft *core.Signal[[]sourceLibrary], importin
 				}
 			}
 			title = append(title, core.Show{When: func() bool { return !item().Hidden }, Then: func(cx *core.Scope) core.Node {
-				return core.View{Class: "flex-row flex-wrap items-center gap-3", Children: []core.Node{
+				class := "flex-row flex-wrap items-center gap-3"
+				if importing {
+					class += " px-4 pb-2.5"
+				}
+				return core.View{Class: class, Children: []core.Node{
 					ui.Select[libraryCategory]{Options: options, Label: locales.LibraryCategory(cx), TestID: "library-category-" + id,
 						Disabled: busy, Value: func() libraryCategory { return item().Category }, OnChange: func(value libraryCategory) {
 							edit(func(library *sourceLibrary) { library.Category = value })
@@ -164,6 +195,9 @@ func libraryEditor(cx *core.Scope, draft *core.Signal[[]sourceLibrary], importin
 						OnChange:  func(show bool) { edit(func(library *sourceLibrary) { library.HideFromHome = !show }) }},
 				}}
 			}})
+			if importing {
+				return core.View{Class: "bg-white dark:bg-[#1a1b25]", Children: title}
+			}
 			return core.View{Class: "gap-2 rounded-xl border border-border p-3", Children: title}
 		})
 }

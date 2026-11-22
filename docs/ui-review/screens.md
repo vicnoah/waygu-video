@@ -6,8 +6,8 @@ The [review log](README.md) records captures and remaining differences. An inven
 
 | Design | Variant | Device or host | Panels | Review |
 | --- | --- | --- | --- | --- |
-| [引导/添加媒体源](../../design/add-source.scenra#L1) | light | `phone · auto × 1180` | — | Pending |
-| [添加媒体源 · 深色](../../design/add-source.scenra#L78) | dark | `phone · auto × 1180` | — | Pending |
+| [引导/添加媒体源](../../design/add-source.scenra#L1) | light | `phone · auto × 1180` | — | [Compared](add-source.md) |
+| [添加媒体源 · 深色](../../design/add-source.scenra#L78) | dark | `phone · auto × 1180` | — | [Compared](add-source.md) |
 | [桌面/主窗口](../../design/desktop-main.scenra#L1) | light | `desktop · 1440 × 1500` | — | Pending |
 | [主窗口 · 深色](../../design/desktop-main.scenra#L134) | dark | `desktop · 1440 × 1500` | — | Pending |
 | [桌面/播放器](../../design/desktop-player.scenra#L1) | default | `desktop · 1440 × 810` | danmaku, episodes, info | Pending |
@@ -48,8 +48,8 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [同步与账户 · 深色](../../design/settings-sync.scenra#L101) | dark | `phone · auto × 1560` | — | Pending |
 | [设置/设置](../../design/settings.scenra#L1) | light | `phone · auto × 1160` | — | Pending |
 | [设置 · 深色](../../design/settings.scenra#L57) | dark | `phone · auto × 1160` | — | Pending |
-| [引导/连接服务器](../../design/source-login.scenra#L1) | light | `phone · auto × 1240` | emby, fnos, jellyfin | Pending |
-| [连接服务器 · 深色](../../design/source-login.scenra#L103) | dark | `phone · auto × 1240` | emby, fnos, jellyfin | Pending |
+| [引导/连接服务器](../../design/source-login.scenra#L1) | light | `phone · auto × 1240` | emby, fnos, jellyfin | [Compared](source-login.md) |
+| [连接服务器 · 深色](../../design/source-login.scenra#L103) | dark | `phone · auto × 1240` | emby, fnos, jellyfin | [Compared](source-login.md) |
 | [平板/电影详情](../../design/tablet-detail.scenra#L1) | light | `tablet · 1180 × 820` | — | Pending |
 | [电影详情 · 深色](../../design/tablet-detail.scenra#L160) | dark | `tablet · 1180 × 820` | — | Pending |
 | [平板/首页](../../design/tablet-home.scenra#L1) | light | `tablet · 1180 × 820` | — | Pending |

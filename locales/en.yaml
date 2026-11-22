@@ -1,5 +1,6 @@
 appName: waygu-video
 NSLocalNetworkUsageDescription: Connect to media servers on your local network.
+NSCameraUsageDescription: Scan a QR code to fill in a media server address.
 brand: Waygu
 welcomeTitle: "Your private cinema,\non every screen."
 welcomeBody: Connect your media servers and NAS, organize your library, and resume on phones, tablets, computers, and TVs.
@@ -14,14 +15,31 @@ welcomeContinueWatchingDetail: Save playback progress to your media server
 addSource: Add media source
 later: Set up later
 back: Back
-chooseSource: Choose a media server
+chooseSource: Media servers
+chooseSourceDetail: Choose where your videos are stored. You can add more sources later in Settings.
+localDiscovery: Find servers on your network
+discovering: Scanning…
+discoverAgain: Scan again
+noLocalServers: No servers found. You can add a server by address.
+addDiscovered: Add
+addDiscoveredSource: "Add {name}"
 flymoo: Flymoo
 connectServer: Connect to server
 serverAddress: Server address
+serverAddressShort: Address
+serverPort: Port
+serverGroup: Server
+loginGroup: Login
+useHTTPS: Use HTTPS
+scanServerAddress: Scan server address
 sourceName: Display name
+sourceNameShort: Name
 username: Username
 password: Password
+showPassword: Show password
+hidePassword: Hide password
 plexToken: Plex access token
+plexTokenShort: Token
 linkPlexAccount: Link Plex account
 plexScanQR: Scan this QR code with your phone to sign in to Plex.
 plexWaitingAuthorization: Waiting for Plex authorization…
@@ -36,8 +54,10 @@ plexServerUnreachable: Could not connect to the selected Plex server.
 testConnection: Test connection
 signIn: Sign in
 connected: "Connected to {name}"
+connectionVerified: The server responded to the connection test.
+signedInAs: "Signed in as {name}"
 importLibraries: Choose libraries to import
-importAction: Import libraries
+completeSource: Done
 noLibraries: This account has no video libraries.
 home: Home
 library: Library
@@ -207,5 +227,6 @@ episodeType: Episode
 episodeLabel: "Episode {number}"
 seasonLabel: "Season {number}"
 quickConnect: Jellyfin Quick Connect
+quickConnectHelp: Use Quick Connect on a signed-in Jellyfin device to sign in without a password.
 quickConnectInstruction: "Enter {code} under Quick Connect on a signed-in Jellyfin device."
 quickConnectUnavailable: Enable Quick Connect on the Jellyfin server or use your password.

@@ -6,7 +6,6 @@ import (
 	"embed"
 	"errors"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/nsgo-dev/nsgo/base"
@@ -119,159 +118,6 @@ func welcomeFeature(icon *core.SVG, background, tint, title, detail string) core
 	}}
 }
 
-func (a *application) chooseSource(cx *core.Scope) core.Node {
-	choices := make([]core.Node, 0, 5)
-	choices = append(choices, heading(locales.ChooseSource(cx)))
-	for _, provider := range []media.Provider{media.Emby, media.Jellyfin, media.Flymoo, media.Plex} {
-		icon := lucide.Server
-		if provider == media.Flymoo {
-			icon = lucide.HardDrive
-		}
-		choices = append(choices, ui.Button{Text: providerName(cx, provider), Icon: icon,
-			Variant: ui.ButtonOutline, Size: ui.SizeLarge, TestID: "choose-" + string(provider),
-			OnPress: func() { a.push(route{screen: screenConnect, provider: provider}) }})
-	}
-	return pageFrame(pageHeader(cx, locales.AddSource(cx), a.back), pageBody(choices...))
-}
-
-type connectionMethod uint8
-
-const (
-	probeConnection connectionMethod = iota
-	passwordConnection
-	quickConnection
-)
-
-type candidateSource struct {
-	source    source
-	info      media.ServerInfo
-	session   media.Session
-	libraries []media.Library
-}
-
-func (a *application) connect(cx *core.Scope, current route) core.Node {
-	address := core.NewSignal(cx, current.source.Address)
-	name := core.NewSignal(cx, current.source.Name)
-	user := core.NewSignal(cx, current.source.Username)
-	password := core.NewSignal(cx, "")
-	busy := core.NewSignal(cx, false)
-	failure := core.NewSignal[error](cx, nil)
-	preview := core.NewSignal(cx, media.ServerInfo{})
-	candidate := core.NewSignal[*candidateSource](cx, nil)
-	quickCode := core.NewSignal(cx, "")
-	viewContext := cx.Context()
-	plex := current.provider == media.Plex
-	submit := func(method connectionMethod) {
-		if busy.GetUntracked() {
-			return
-		}
-		base, err := media.NormalizeAddress(address.GetUntracked())
-		if err != nil {
-			failure.Set(err)
-			return
-		}
-		form := source{ID: current.source.ID, Address: base.String(), Provider: current.provider,
-			Name: strings.TrimSpace(name.GetUntracked()), Username: strings.TrimSpace(user.GetUntracked())}
-		input := media.Credentials{Username: form.Username, Password: password.GetUntracked()}
-		if plex {
-			input.Token = input.Password
-			input.Password = ""
-		}
-		timeout := 35 * time.Second
-		if method == quickConnection {
-			timeout = 8 * time.Minute
-		}
-		ctx, cancel := context.WithTimeout(viewContext, timeout)
-		busy.Set(true)
-		failure.Set(nil)
-		go func() {
-			defer cancel()
-			result, err := a.connectServer(ctx, form, input, method, func(code string) {
-				cx.Post(func() {
-					if viewContext.Err() == nil {
-						quickCode.Set(code)
-					}
-				})
-			})
-			cx.Post(func() {
-				if viewContext.Err() != nil {
-					return
-				}
-				busy.Set(false)
-				quickCode.Set("")
-				failure.Set(err)
-				if err == nil {
-					preview.Set(result.info)
-					if method != probeConnection {
-						password.Set("")
-						candidate.Set(&result)
-					}
-				}
-			})
-		}()
-	}
-	return pageFrame(pageHeader(cx, locales.ConnectServer(cx), a.back), pageBody(core.Dynamic(func(form *core.Scope) core.Node {
-		if result := candidate.Get(); result != nil {
-			return a.importSource(form, *result, func() { candidate.Set(nil) })
-		}
-		manual := connectionForm(form, current.provider, address, name, user, password, busy, failure, preview, quickCode, submit)
-		if !plex {
-			return manual
-		}
-		return core.View{Class: "gap-4", Children: []core.Node{
-			ui.Button{Text: locales.LinkPlexAccount(form), Icon: lucide.Link, Size: ui.SizeLarge,
-				TestID: "link-plex-account", Disabled: busy.Get, OnPress: func() {
-					a.push(route{screen: screenPlexLink, source: current.source})
-				}},
-			manual,
-		}}
-	})))
-}
-
-func connectionForm(cx *core.Scope, provider media.Provider, address, name, user, password *core.Signal[string],
-	busy *core.Signal[bool], failure *core.Signal[error], preview *core.Signal[media.ServerInfo], quickCode *core.Signal[string], submit func(connectionMethod)) core.Node {
-	entry := func(id, label, example string, signal *core.Signal[string], masked bool, keyboard core.KeyboardType) core.Node {
-		return core.View{Class: "gap-1.5", Children: []core.Node{
-			core.Text{Content: label, Class: "text-sm font-medium"},
-			ui.Input{Label: label, TestID: id, Placeholder: example, Masked: masked, KeyboardType: keyboard,
-				Value: signal.Get, OnChange: signal.Set, NoAutoCorrect: true, Disabled: busy.Get,
-				Style: core.Style{Height: core.Pt(44), FontSize: 15}},
-		}}
-	}
-	fields := []core.Node{
-		heading(providerName(cx, provider)),
-		entry("server-address", locales.ServerAddress(cx), "https://nas.example.com:8096", address, false, core.KeyboardURL),
-		entry("server-name", locales.SourceName(cx), providerName(cx, provider), name, false, 0),
-	}
-	if provider != media.Plex {
-		fields = append(fields, entry("server-username", locales.Username(cx), "", user, false, 0),
-			entry("server-password", locales.Password(cx), "", password, true, 0))
-	} else {
-		fields = append(fields, entry("server-password", locales.PlexToken(cx), "", password, true, 0))
-	}
-	fields = append(fields, core.Dynamic(func(cx *core.Scope) core.Node {
-		if err := failure.Get(); err != nil {
-			return notice(errorText(cx, err))
-		}
-		if code := quickCode.Get(); code != "" {
-			return notice(locales.QuickConnectInstruction(cx, code))
-		}
-		if info := preview.Get(); info.Name != "" {
-			return notice(locales.Connected(cx, strings.TrimSpace(info.Name+" "+info.Version)))
-		}
-		return nil
-	}), core.View{Class: "flex-row flex-wrap gap-3", Children: []core.Node{
-		ui.Button{Text: locales.TestConnection(cx), Variant: ui.ButtonOutline, Size: ui.SizeLarge, Disabled: busy.Get,
-			TestID: "test-connection", OnPress: func() { submit(probeConnection) }},
-		ui.Button{Text: locales.SignIn(cx), Size: ui.SizeLarge, Busy: busy.Get, TestID: "sign-in", OnPress: func() { submit(passwordConnection) }},
-	}})
-	if provider == media.Jellyfin {
-		fields = append(fields, ui.Button{Text: locales.QuickConnect(cx), Variant: ui.ButtonOutline,
-			TestID: "quick-connect", Disabled: busy.Get, OnPress: func() { submit(quickConnection) }})
-	}
-	return core.View{Class: "gap-4 rounded-3xl border border-border bg-card p-5", Children: fields}
-}
-
 func (a *application) connectServer(ctx context.Context, form source, input media.Credentials, method connectionMethod, showCode func(string)) (candidateSource, error) {
 	guest, err := a.newMedia(form.Provider, form.Address, a.device, media.Session{})
 	if err != nil {
@@ -350,9 +196,9 @@ func (a *application) importSource(cx *core.Scope, candidate candidateSource, ba
 	busy := core.NewSignal(cx, false)
 	failure := core.NewSignal[error](cx, nil)
 	viewContext := cx.Context()
-	list := []core.Node{heading(locales.ImportLibraries(cx))}
+	list := []core.Node{}
 	if len(libraries) == 0 {
-		list = append(list, hint(locales.NoLibraries(cx)))
+		list = append(list, core.View{Class: setupRow, Children: []core.Node{hint(locales.NoLibraries(cx))}})
 	}
 	list = append(list, libraryEditor(cx, draft, true, busy.Get))
 	store := func() {
@@ -415,19 +261,21 @@ func (a *application) importSource(cx *core.Scope, candidate candidateSource, ba
 			})
 		}()
 	}
-	list = append(list, core.Dynamic(func(cx *core.Scope) core.Node {
-		if err := failure.Get(); err != nil {
-			return notice(errorText(cx, err))
-		}
-		return nil
-	}), core.View{Class: "flex-row flex-wrap gap-3 pt-2", Children: []core.Node{
-		ui.Button{Text: locales.Back(cx), Variant: ui.ButtonGhost, Disabled: busy.Get, TestID: "import-back", OnPress: back},
-		ui.Button{Text: locales.ImportAction(cx), Busy: busy.Get, Size: ui.SizeLarge, TestID: "import-libraries",
-			Disabled: func() bool {
+	return core.View{Class: "gap-6", Children: []core.Node{
+		setupGroup(locales.ImportLibraries(cx), "", list...),
+		core.Dynamic(func(cx *core.Scope) core.Node {
+			if err := failure.Get(); err != nil {
+				return core.View{Class: "mx-4", Children: []core.Node{notice(errorText(cx, err))}}
+			}
+			return nil
+		}),
+		core.View{Class: "mx-4 gap-2", Children: []core.Node{
+			ui.Button{Text: locales.Back(cx), Variant: ui.ButtonGhost, Disabled: busy.Get, TestID: "import-back", OnPress: back},
+			setupPrimary(cx, "import-libraries", locales.CompleteSource(cx), busy.Get, func() bool {
 				return !slices.ContainsFunc(draft.Get(), func(library sourceLibrary) bool { return !library.Hidden })
-			}, OnPress: store},
-	}})
-	return core.View{Class: "gap-4 rounded-3xl border border-border bg-card p-5", Children: list}
+			}, store),
+		}},
+	}}
 }
 
 func (a *application) matchSource(form source) source {

@@ -1,5 +1,6 @@
 appName: 肥牛视频
 NSLocalNetworkUsageDescription: 连接同一局域网内的影视服务器。
+NSCameraUsageDescription: 扫描二维码以填入媒体服务器地址。
 brand: Waygu
 welcomeTitle: "你的私人影院，\n在每一块屏幕上。"
 welcomeBody: 连接家里的媒体服务器与 NAS，自动整理海报墙，手机、平板、电脑、电视无缝续播。
@@ -14,14 +15,31 @@ welcomeContinueWatchingDetail: 播放进度回写到媒体服务器
 addSource: 添加媒体源
 later: 稍后设置
 back: 返回
-chooseSource: 选择媒体服务器
+chooseSource: 媒体服务器
+chooseSourceDetail: 选择你的影片存放位置，可随时在设置中添加更多。
+localDiscovery: 局域网自动发现
+discovering: 正在扫描…
+discoverAgain: 重新扫描
+noLocalServers: 未发现服务器，你可以通过地址手动添加。
+addDiscovered: 添加
+addDiscoveredSource: "添加{name}"
 flymoo: 飞牛影视
 connectServer: 连接服务器
 serverAddress: 服务器地址
+serverAddressShort: 地址
+serverPort: 端口
+serverGroup: 服务器
+loginGroup: 登录
+useHTTPS: 使用 HTTPS
+scanServerAddress: 扫描服务器地址
 sourceName: 显示名称
+sourceNameShort: 名称
 username: 用户名
 password: 密码
+showPassword: 显示密码
+hidePassword: 隐藏密码
 plexToken: Plex 访问令牌
+plexTokenShort: 访问令牌
 linkPlexAccount: 关联 Plex 账号
 plexScanQR: 用手机扫描二维码登录 Plex。
 plexWaitingAuthorization: 正在等待 Plex 授权…
@@ -36,8 +54,10 @@ plexServerUnreachable: 无法连接到所选 Plex 服务器。
 testConnection: 测试连接
 signIn: 登录
 connected: "已连接 {name}"
+connectionVerified: 服务器已响应连接测试。
+signedInAs: "已登录为 {name}"
 importLibraries: 选择要导入的媒体库
-importAction: 导入媒体库
+completeSource: 完成
 noLibraries: 此账号没有可导入的影视库。
 home: 首页
 library: 媒体库
@@ -207,5 +227,6 @@ episodeType: 分集
 episodeLabel: "第 {number} 集"
 seasonLabel: "第 {number} 季"
 quickConnect: Jellyfin 快速连接
+quickConnectHelp: 可在已登录的 Jellyfin 设备上通过快速连接免密码登录。
 quickConnectInstruction: "在已登录的 Jellyfin 设备上打开快速连接，输入 {code}。"
 quickConnectUnavailable: 请在 Jellyfin 服务器上启用快速连接，或使用密码登录。
