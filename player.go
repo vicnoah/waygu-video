@@ -429,7 +429,11 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			return
 		}
 		if ended.GetUntracked() {
-			seek(0)
+			start := time.Duration(0)
+			if segment := loop.segment.GetUntracked(); segment.active {
+				start = segment.start
+			}
+			seekPosition(start)
 			report(media.Started)
 		}
 		sleepExpired.Set(false)

@@ -296,6 +296,20 @@ func TestDockerPhonePlayerDesignReview(t *testing.T) {
 	app.WaitForGone("id:phone-player-loop-ticks", time.Second)
 	app.Press("id:player-seek-forward")
 	app.WaitUntil(time.Second, func() bool { return app.Find("id:player-position").Text == "00:00:24" })
+	if localFixture {
+		choosePhonePlayerAction(app, "chapters")
+		app.Press("id:phone-player-chapter-1")
+		choosePhonePlayerAction(app, "loop")
+		app.Press("id:phone-player-loop-start")
+		app.Press("id:phone-player-info-close")
+		app.Progress("id:video-player", 24*time.Second, 24*time.Second)
+		choosePhonePlayerAction(app, "loop")
+		app.Press("id:phone-player-loop-end")
+		app.Press("id:phone-player-info-close")
+		app.Press("id:toggle-play")
+		app.WaitUntil(time.Second, func() bool { return app.Find("id:player-position").Text == "00:00:04" })
+		app.WaitFor("id:phone-player-loop-ticks", time.Second)
+	}
 	app.Press("id:close-player")
 	app.WaitFor("id:detail-play", time.Second)
 }
