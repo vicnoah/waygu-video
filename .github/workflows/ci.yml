@@ -174,7 +174,7 @@ jobs:
             fi
           done
           if (( ${#unused[@]} )); then
-            sdkmanager --uninstall "${unused[@]}"
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --uninstall "${unused[@]}"
           fi
           df -h "$ANDROID_HOME"
       - name: Enable KVM
