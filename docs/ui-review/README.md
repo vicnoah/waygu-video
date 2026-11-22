@@ -14,6 +14,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Phone series detail · light and dark | [Season and specials comparisons](phone-series.md) | Compared on GTK with two seasons and a special. Phone device captures remain pending. |
 | Tablet home · light and dark | [Screenshots and tablet interaction checks](tablet-home.md) | The tablet layout was compared on Linux GTK with three Docker media servers. Real-device captures remain pending. |
 | Tablet movie detail · light and dark | [Screenshots and playback checks](tablet-detail.md) | Compared on GTK with Docker movie metadata and tracks. Tablet device checks remain pending. |
+| Phone settings and source management · light and dark | [Comparison and server checks](phone-source-settings.md) | Compared on GTK with three Docker media servers. Source reordering, sync and removal are tested. Phone device captures remain pending. |
 | Phone playback and subtitle settings · light and dark | [Settings comparison and playback checks](phone-player-settings.md) | Compared on GTK. Audio and caption preferences were verified against Emby and Jellyfin. Device captures and several controls remain pending. |
 | Storage and downloads · light and dark | [Design comparison and offline playback checks](storage-downloads.md) | Original-file downloads compared and tested on GTK. Transcoded downloads and platform background handling remain pending. |
 | Personal library | [Favorite and watch-history captures](personal-library.md) | Compared the tablet sidebar and detail actions, and recorded both catalog destinations on GTK. |
@@ -104,6 +105,16 @@ With the same Docker servers, capture the storage page while an original file is
 go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerOfflineDownloadReview$' -screenshots .nsgo/ui-review/downloads
 ```
+
+Capture the settings home and media source pages with the Docker fixtures. The offline fixture also captures the error and empty states.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^(TestDockerPhoneSourceSettingsReview|TestPhoneSourceSettingsOfflineAndEmpty)$' \
+  -screenshots .nsgo/ui-review/source-settings
+```
+
+Use `WAYGU_REVIEW_DESIGN=settings.scenra` or `settings-sources.scenra` with the reference exporter.
 
 Capture the phone playback and subtitle settings and exercise the language ordering and color controls.
 

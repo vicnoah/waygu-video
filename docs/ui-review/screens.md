@@ -38,16 +38,16 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [家长控制 · 深色](../../design/settings-parental.scenra#L38) | dark | `phone · auto × 1080` | — | Pending |
 | [设置/播放](../../design/settings-playback.scenra#L1) | light | `phone · auto × 1760` | — | [Compared](phone-player-settings.md) |
 | [播放 · 深色](../../design/settings-playback.scenra#L59) | dark | `phone · auto × 1760` | — | [Compared](phone-player-settings.md) |
-| [设置/媒体源](../../design/settings-sources.scenra#L1) | light | `phone · auto × 1320` | — | Pending |
-| [媒体源 · 深色](../../design/settings-sources.scenra#L143) | dark | `phone · auto × 1320` | — | Pending |
+| [设置/媒体源](../../design/settings-sources.scenra#L1) | light | `phone · auto × 1320` | — | [Compared](phone-source-settings.md) |
+| [媒体源 · 深色](../../design/settings-sources.scenra#L143) | dark | `phone · auto × 1320` | — | [Compared](phone-source-settings.md) |
 | [设置/存储与下载](../../design/settings-storage.scenra#L1) | light | `phone · auto × 1380` | — | [Compared](storage-downloads.md) |
 | [存储与下载 · 深色](../../design/settings-storage.scenra#L87) | dark | `phone · auto × 1380` | — | [Compared](storage-downloads.md) |
 | [设置/字幕](../../design/settings-subtitles.scenra#L1) | light | `phone · auto × 1780` | — | [Compared](phone-player-settings.md) |
 | [字幕 · 深色](../../design/settings-subtitles.scenra#L77) | dark | `phone · auto × 1780` | — | [Compared](phone-player-settings.md) |
 | [设置/同步与账户](../../design/settings-sync.scenra#L1) | light | `phone · auto × 1560` | — | Pending |
 | [同步与账户 · 深色](../../design/settings-sync.scenra#L101) | dark | `phone · auto × 1560` | — | Pending |
-| [设置/设置](../../design/settings.scenra#L1) | light | `phone · auto × 1160` | — | Pending |
-| [设置 · 深色](../../design/settings.scenra#L57) | dark | `phone · auto × 1160` | — | Pending |
+| [设置/设置](../../design/settings.scenra#L1) | light | `phone · auto × 1160` | — | [Compared](phone-source-settings.md) |
+| [设置 · 深色](../../design/settings.scenra#L57) | dark | `phone · auto × 1160` | — | [Compared](phone-source-settings.md) |
 | [引导/连接服务器](../../design/source-login.scenra#L1) | light | `phone · auto × 1240` | emby, fnos, jellyfin | [Compared](source-login.md) |
 | [连接服务器 · 深色](../../design/source-login.scenra#L103) | dark | `phone · auto × 1240` | emby, fnos, jellyfin | [Compared](source-login.md) |
 | [平板/电影详情](../../design/tablet-detail.scenra#L1) | light | `tablet · 1180 × 820` | — | [Compared](tablet-detail.md) |

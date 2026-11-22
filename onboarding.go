@@ -264,9 +264,14 @@ func (a *application) importSource(cx *core.Scope, candidate candidateSource, ba
 					failure.Set(err)
 					return
 				}
-				others := slices.Clone(a.sources.GetUntracked())
-				others = slices.DeleteFunc(others, func(entry source) bool { return entry.ID == form.ID })
-				if err := a.saveSources(append(others, form)); err != nil {
+				form.LibrariesSyncedAt = time.Now().Unix()
+				sources := slices.Clone(a.sources.GetUntracked())
+				if index := slices.IndexFunc(sources, func(entry source) bool { return entry.ID == form.ID }); index >= 0 {
+					sources[index] = form
+				} else {
+					sources = append(sources, form)
+				}
+				if err := a.saveSources(sources); err != nil {
 					discard()
 					failure.Set(err)
 					return
@@ -275,6 +280,9 @@ func (a *application) importSource(cx *core.Scope, candidate candidateSource, ba
 				if previousKey != "" {
 					a.tokens.Delete(previousKey)
 					go func() { _ = a.secrets.Delete(previousKey) }()
+				}
+				if a.returnToSourceSettings() {
+					return
 				}
 				a.sourceFilter.Set("")
 				a.enter()

@@ -15,23 +15,28 @@ func phoneSettingsPage(cx *core.Scope, title string, back func(), scrollID strin
 }
 
 func phoneSettingsFrame(cx *core.Scope, title string, back func(), scrollID string, body core.Node) core.Node {
+	return phoneSettingsFrameAction(cx, title, back, scrollID, body, nil, nil)
+}
+
+func phoneSettingsFrameAction(cx *core.Scope, title string, back func(), scrollID string, body, action core.Node, ref *core.Ref) core.Node {
 	label := locales.Settings(cx)
 	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Style: core.Style{
 		FlexShrink: 1, PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea, Bottom: core.EnvKeyboard},
 	}, Children: []core.Node{
 		homeAmbient(false, false), homeAmbient(true, false),
 		core.View{Class: "gap-1 pb-2", Children: []core.Node{
-			core.View{Class: "h-11 flex-row items-center px-2", Children: []core.Node{
+			core.View{Class: "h-11 flex-row items-center justify-between px-2", Children: []core.Node{
 				base.Button{Label: label, TestID: "back", Class: "h-11 flex-row items-center gap-0.5 rounded px-2",
 					Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)}, OnPress: func(core.PressEvent) { back() },
 					Children: []core.Node{
 						core.Icon{SVG: lucide.ChevronLeft(), Class: "size-6 " + setupAccent},
 						core.Text{Content: label, Class: "text-[17px] " + setupAccent},
 					}},
+				action,
 			}},
 			core.Text{Content: title, Class: "px-5 text-3xl font-bold " + setupTitle},
 		}},
-		core.Scroll{Class: "flex-1", TestID: scrollID, Children: []core.Node{body}},
+		core.Scroll{Class: "flex-1", Ref: ref, TestID: scrollID, Children: []core.Node{body}},
 	}}
 }
 
@@ -86,16 +91,24 @@ func (s phoneSetting) unavailable(cx *core.Scope) core.Node {
 }
 
 func phoneSettingValue(value string) core.Node {
+	return phoneSettingValueFunc(func() string { return value })
+}
+
+func phoneSettingValueFunc(value func() string) core.Node {
 	return core.View{Class: "max-w-[55%] shrink-0 flex-row items-center gap-3", Children: []core.Node{
-		core.Text{Content: value, Class: "shrink text-right text-[15px] " + setupMuted},
+		core.Text{ContentFunc: value, MaxLines: 1, Class: "shrink text-right text-[15px] " + setupMuted},
 		core.Icon{SVG: lucide.ChevronRight(), Class: "size-4 opacity-60 " + setupMuted},
 	}}
 }
 
 func (s phoneSetting) link(cx *core.Scope, id, value string, action func()) core.Node {
+	return s.linkValue(cx, id, func() string { return value }, action)
+}
+
+func (s phoneSetting) linkValue(cx *core.Scope, id string, value func() string, action func()) core.Node {
 	return base.Button{Label: s.label, TestID: id, Class: setupRow + " py-2.5",
 		Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)}, OnPress: func(core.PressEvent) { action() },
-		Children: append(s.parts(), phoneSettingValue(value))}
+		Children: append(s.parts(), phoneSettingValueFunc(value))}
 }
 
 func phoneSettingChoice[T comparable](cx *core.Scope, setting phoneSetting, id string,

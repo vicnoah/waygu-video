@@ -65,6 +65,7 @@ func TestPlayerBindsDandanPlayAndReusesComments(t *testing.T) {
 		settingsTab, homeTab = "id:tab-settings", "id:tab-home"
 	}
 	app.Press(settingsTab)
+	app.Press("id:open-phone-danmaku-settings")
 	app.Type("id:dandan-app-id", "ui-fixture-id")
 	app.Type("id:dandan-app-secret", "ui-fixture-secret")
 	app.Press("id:dandan-save")
@@ -74,6 +75,7 @@ func TestPlayerBindsDandanPlayAndReusesComments(t *testing.T) {
 			t.Fatal("credential was written to plain app storage")
 		}
 	}
+	app.Press("id:back")
 	app.Press(homeTab)
 	app.WaitFor("id:title-test-film", time.Second)
 	app.Press("id:title-test-film")

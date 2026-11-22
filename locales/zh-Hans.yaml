@@ -440,3 +440,43 @@ settingsLowerSubtitleLanguage: "下移{name}"
 settingsAudio: 音频
 settingsCustomSubtitleColor: 自定义颜色
 settingsSubtitleASSDescription: 桌面端 libmpv 会保留内嵌 ASS 字幕的原始样式。
+settingsLocalProfile: 本机账户
+settingsLocalProfileDetail: 设置与下载保存在此设备
+settingsSourceManager: 媒体源管理
+settingsNoSource: 尚未添加
+settingsProviders: Emby · Jellyfin · Plex · 飞牛
+settingsInterfaceLibrary: 界面与媒体库
+settingsAppearance: 外观
+settingsFollowSystem: 跟随系统
+settingsLibraryMetadata: 媒体库与元数据
+settingsAccountsData: 账户与数据
+settingsSyncAccounts: 同步与账户
+settingsLocalOnly: 仅本机
+settingsParental: 家长控制
+settingsOther: 其他
+settingsAbout: 关于与帮助
+settingsFooter: "Waygu {version} · 支持 Emby、Jellyfin、飞牛影视、Plex"
+settingsEnabled: 已开启
+settingsDisabled: 关闭
+settingsEdit: 编辑
+settingsOrder: 优先源顺序
+settingsCheckingSource: 检查中
+settingsSourceOffline: 离线
+settingsSourceOnline: 在线
+settingsSourceSyncedAt: "同步于 {time}"
+settingsSourceNotSynced: 尚未同步
+settingsSourceSyncing: 同步中…
+settingsSourceSync: 同步
+settingsSourceRetry: 重新连接
+settingsSourceLibraries: "媒体库 {count}"
+settingsConnection: 连接
+settingsConnectOnLaunch: 启动时自动连接
+settingsConnectionFailover: 局域网 / 外网自动切换
+settingsConnectionFailoverDetail: 在家时优先使用局域网地址，离开后切换到外网地址
+settingsConnectionTimeout: 连接超时
+settingsMultipleSources: 多个媒体源
+settingsSourcePriorityFooter: 同一部影片在多个媒体源中存在时，按上方卡片顺序优先播放，也可在详情页手动切换媒体源。
+settingsSourceMatchDetail: 按 TMDB / IMDb ID 识别同一影片
+settingsSourceRemoveConfirm: "从此设备移除{name}及其登录凭据？"
+settingsSourceNeedsLogin: 需要登录
+settingsSourceUser: "用户 {name}"

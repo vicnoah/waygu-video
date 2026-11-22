@@ -204,6 +204,7 @@ func libraryEditor(cx *core.Scope, draft *core.Signal[[]sourceLibrary], importin
 
 func (a *application) manageLibraries(cx *core.Scope, current source) core.Node {
 	draft := core.NewSignalFunc(cx, current.Libraries, nil)
+	refreshed := false
 	busy := core.NewSignal(cx, false)
 	failure := core.NewSignal(cx, "")
 	viewContext := cx.Context()
@@ -213,8 +214,9 @@ func (a *application) manageLibraries(cx *core.Scope, current source) core.Node 
 		}
 		busy.Set(true)
 		failure.Set("")
+		timeout := time.Duration(a.sourceTimeout.GetUntracked()) * time.Second
 		go func() {
-			ctx, cancel := context.WithTimeout(viewContext, 20*time.Second)
+			ctx, cancel := context.WithTimeout(viewContext, timeout)
 			defer cancel()
 			client, err := a.client(current)
 			var libraries []media.Library
@@ -227,6 +229,7 @@ func (a *application) manageLibraries(cx *core.Scope, current source) core.Node 
 					failure.Set(errorText(cx, err))
 					return
 				}
+				refreshed = true
 				draft.Set(mergeLibraries(libraries, draft.GetUntracked(), true))
 			})
 		}()
@@ -242,6 +245,9 @@ func (a *application) manageLibraries(cx *core.Scope, current source) core.Node 
 			return
 		}
 		sources[index].Libraries = draft.GetUntracked()
+		if refreshed {
+			sources[index].LibrariesSyncedAt = time.Now().Unix()
+		}
 		if err := a.saveSources(sources); err != nil {
 			failure.Set(locales.LibrarySaveError(cx))
 			return

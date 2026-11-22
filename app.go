@@ -31,6 +31,8 @@ const (
 	screenFavorites         screen = "favorites"
 	screenHistory           screen = "history"
 	screenSettings          screen = "settings"
+	screenSourceSettings    screen = "settings-sources"
+	screenDanmakuSettings   screen = "settings-danmaku"
 	screenPlaybackSettings  screen = "settings-playback"
 	screenSubtitleSettings  screen = "settings-subtitles"
 	screenSubtitleLanguages screen = "settings-subtitle-languages"
@@ -56,17 +58,18 @@ type route struct {
 }
 
 type source struct {
-	ID            string
-	Provider      media.Provider
-	Address       string
-	Name          string
-	ServerID      string
-	AccountID     string
-	Username      string
-	PlexLinked    bool   `json:",omitempty"`
-	CredentialKey string `json:",omitempty"`
-	Libraries     []sourceLibrary
-	Volatile      bool `json:"-"`
+	ID                string
+	Provider          media.Provider
+	Address           string
+	Name              string
+	ServerID          string
+	AccountID         string
+	Username          string
+	PlexLinked        bool   `json:",omitempty"`
+	CredentialKey     string `json:",omitempty"`
+	Libraries         []sourceLibrary
+	LibrariesSyncedAt int64 `json:",omitempty"`
+	Volatile          bool  `json:"-"`
 }
 
 func (s source) credentialKey() string {
@@ -94,6 +97,8 @@ type application struct {
 	phoneSearch    phoneSearchState
 	sourceFilter   *core.Signal[string]
 	sourceStatus   *core.Signal[map[string]homeSourceStatus]
+	sourceChecks   *core.Signal[map[string]sourceCheck]
+	sourceTimeout  *core.Signal[int]
 	mergeTitles    *core.Signal[bool]
 	mpvPreferred   *core.Signal[bool]
 	bitrateLimit   *core.Signal[int]
@@ -147,6 +152,7 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 	policy, _ := storage.GetItem(versionPolicyKey)
 	autoNext, _ := storage.GetItem(autoNextKey)
 	mergeTitles, _ := storage.GetItem(mergeTitlesKey)
+	sourceTimeout, _ := storage.GetItem(sourceTimeoutKey)
 	bitrate, _ := strconv.Atoi(bitrateSetting)
 	if !slices.Contains(playbackBitrates, bitrate) {
 		bitrate = 0
@@ -171,6 +177,8 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 	a.progress = core.Untracked(cx, func() *progressOutbox { return newProgressOutbox(cx, storage) })
 	a.playbackPrefs = core.NewSignal(cx, core.Untracked(cx, func() playbackPreferences { return readPlaybackPreferences(storage) }))
 	a.subtitlePrefs = core.NewSignalFunc(cx, core.Untracked(cx, func() subtitlePreferences { return readSubtitlePreferences(storage) }), nil)
+	a.sourceChecks = core.NewSignalFunc(cx, map[string]sourceCheck{}, nil)
+	a.sourceTimeout = core.NewSignal(cx, readSourceTimeout(sourceTimeout))
 	a.phoneLibrary = core.NewSignal(cx, phoneLibraryState{})
 	a.phoneSearch = newPhoneSearchState(cx)
 	a.scheduleProgressReplay(time.Second)
@@ -200,6 +208,11 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 					account = media.NewPlexAccount(a.device)
 				}
 				return a.linkPlex(screenScope, current.source, account)
+			case screenSourceSettings:
+				return a.phoneSourceSettings(screenScope)
+			case screenDanmakuSettings:
+				return phoneSettingsPage(screenScope, locales.Danmaku(screenScope), a.back, "phone-danmaku-settings",
+					core.View{Class: "gap-4 px-4", Children: []core.Node{a.danmakuSettings(screenScope), a.danmakuDefaults(screenScope)}})
 			case screenManageLibraries:
 				return a.manageLibraries(screenScope, current.source)
 			case screenDetail:

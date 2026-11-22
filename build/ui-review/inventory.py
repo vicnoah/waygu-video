@@ -23,6 +23,8 @@ REVIEWS = {
     "series-detail.scenra": "phone-series.md",
     "tablet-home.scenra": "tablet-home.md",
     "tablet-detail.scenra": "tablet-detail.md",
+    "settings.scenra": "phone-source-settings.md",
+    "settings-sources.scenra": "phone-source-settings.md",
     "settings-playback.scenra": "phone-player-settings.md",
     "settings-subtitles.scenra": "phone-player-settings.md",
     "settings-storage.scenra": "storage-downloads.md",

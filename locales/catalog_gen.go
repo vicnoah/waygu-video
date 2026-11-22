@@ -108,6 +108,11 @@ var Parameters = map[string][]string{
 	"SettingsRemoveSubtitleLanguage": {"name"},
 	"SettingsRaiseSubtitleLanguage":  {"name"},
 	"SettingsLowerSubtitleLanguage":  {"name"},
+	"SettingsFooter":                 {"version"},
+	"SettingsSourceSyncedAt":         {"time_"},
+	"SettingsSourceLibraries":        {"count"},
+	"SettingsSourceRemoveConfirm":    {"name"},
+	"SettingsSourceUser":             {"name"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -181,6 +186,11 @@ type Translation struct {
 	SettingsRemoveSubtitleLanguage func(name string) string
 	SettingsRaiseSubtitleLanguage  func(name string) string
 	SettingsLowerSubtitleLanguage  func(name string) string
+	SettingsFooter                 func(version string) string
+	SettingsSourceSyncedAt         func(time_ string) string
+	SettingsSourceLibraries        func(count string) string
+	SettingsSourceRemoveConfirm    func(name string) string
+	SettingsSourceUser             func(name string) string
 }
 
 var supplied = map[string]Translation{}
@@ -564,6 +574,41 @@ const (
 	textSettingsAudio
 	textSettingsCustomSubtitleColor
 	textSettingsSubtitleASSDescription
+	textSettingsLocalProfile
+	textSettingsLocalProfileDetail
+	textSettingsSourceManager
+	textSettingsNoSource
+	textSettingsProviders
+	textSettingsInterfaceLibrary
+	textSettingsAppearance
+	textSettingsFollowSystem
+	textSettingsLibraryMetadata
+	textSettingsAccountsData
+	textSettingsSyncAccounts
+	textSettingsLocalOnly
+	textSettingsParental
+	textSettingsOther
+	textSettingsAbout
+	textSettingsEnabled
+	textSettingsDisabled
+	textSettingsEdit
+	textSettingsOrder
+	textSettingsCheckingSource
+	textSettingsSourceOffline
+	textSettingsSourceOnline
+	textSettingsSourceNotSynced
+	textSettingsSourceSyncing
+	textSettingsSourceSync
+	textSettingsSourceRetry
+	textSettingsConnection
+	textSettingsConnectOnLaunch
+	textSettingsConnectionFailover
+	textSettingsConnectionFailoverDetail
+	textSettingsConnectionTimeout
+	textSettingsMultipleSources
+	textSettingsSourcePriorityFooter
+	textSettingsSourceMatchDetail
+	textSettingsSourceNeedsLogin
 	numTexts
 )
 
@@ -947,6 +992,41 @@ var keyOfText = [numTexts]string{
 	"settingsAudio",
 	"settingsCustomSubtitleColor",
 	"settingsSubtitleASSDescription",
+	"settingsLocalProfile",
+	"settingsLocalProfileDetail",
+	"settingsSourceManager",
+	"settingsNoSource",
+	"settingsProviders",
+	"settingsInterfaceLibrary",
+	"settingsAppearance",
+	"settingsFollowSystem",
+	"settingsLibraryMetadata",
+	"settingsAccountsData",
+	"settingsSyncAccounts",
+	"settingsLocalOnly",
+	"settingsParental",
+	"settingsOther",
+	"settingsAbout",
+	"settingsEnabled",
+	"settingsDisabled",
+	"settingsEdit",
+	"settingsOrder",
+	"settingsCheckingSource",
+	"settingsSourceOffline",
+	"settingsSourceOnline",
+	"settingsSourceNotSynced",
+	"settingsSourceSyncing",
+	"settingsSourceSync",
+	"settingsSourceRetry",
+	"settingsConnection",
+	"settingsConnectOnLaunch",
+	"settingsConnectionFailover",
+	"settingsConnectionFailoverDetail",
+	"settingsConnectionTimeout",
+	"settingsMultipleSources",
+	"settingsSourcePriorityFooter",
+	"settingsSourceMatchDetail",
+	"settingsSourceNeedsLogin",
 }
 
 // textsEn are the messages without arguments in en.
@@ -1327,7 +1407,42 @@ var textsEn = i18n.NewTexts(""+
 	"Traditional Chinese"+
 	"Audio"+
 	"Custom color"+
-	"Desktop libmpv renders the original styling of embedded ASS subtitles.",
+	"Desktop libmpv renders the original styling of embedded ASS subtitles."+
+	"Local profile"+
+	"Settings and downloads on this device"+
+	"Manage media sources"+
+	"No sources"+
+	"Emby · Jellyfin · Plex · Flymoo"+
+	"Interface and library"+
+	"Appearance"+
+	"Follow system"+
+	"Library and metadata"+
+	"Account and data"+
+	"Sync and account"+
+	"Local only"+
+	"Parental controls"+
+	"Other"+
+	"About and help"+
+	"Enabled"+
+	"Off"+
+	"Edit"+
+	"Source priority"+
+	"Checking"+
+	"Offline"+
+	"Online"+
+	"Not yet synced"+
+	"Syncing…"+
+	"Sync"+
+	"Reconnect"+
+	"Connection"+
+	"Connect automatically at launch"+
+	"Switch local and remote addresses"+
+	"Prefer the local address on your home network"+
+	"Connection timeout"+
+	"Multiple media sources"+
+	"When several sources have the same title, the source order sets playback priority. Change the source on a title’s detail page."+
+	"Identify matching titles by TMDB or IMDb ID"+
+	"Sign in required",
 	[]uint16{
 		11,
 		47,
@@ -1706,6 +1821,41 @@ var textsEn = i18n.NewTexts(""+
 		5,
 		12,
 		70,
+		13,
+		37,
+		20,
+		10,
+		34,
+		21,
+		10,
+		13,
+		20,
+		16,
+		16,
+		10,
+		17,
+		5,
+		14,
+		7,
+		3,
+		4,
+		15,
+		8,
+		7,
+		6,
+		14,
+		10,
+		4,
+		9,
+		10,
+		31,
+		33,
+		45,
+		18,
+		22,
+		128,
+		43,
+		16,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -2086,7 +2236,42 @@ var textsZhHans = i18n.NewTexts(""+
 	"繁中"+
 	"音频"+
 	"自定义颜色"+
-	"桌面端 libmpv 会保留内嵌 ASS 字幕的原始样式。",
+	"桌面端 libmpv 会保留内嵌 ASS 字幕的原始样式。"+
+	"本机账户"+
+	"设置与下载保存在此设备"+
+	"媒体源管理"+
+	"尚未添加"+
+	"Emby · Jellyfin · Plex · 飞牛"+
+	"界面与媒体库"+
+	"外观"+
+	"跟随系统"+
+	"媒体库与元数据"+
+	"账户与数据"+
+	"同步与账户"+
+	"仅本机"+
+	"家长控制"+
+	"其他"+
+	"关于与帮助"+
+	"已开启"+
+	"关闭"+
+	"编辑"+
+	"优先源顺序"+
+	"检查中"+
+	"离线"+
+	"在线"+
+	"尚未同步"+
+	"同步中…"+
+	"同步"+
+	"重新连接"+
+	"连接"+
+	"启动时自动连接"+
+	"局域网 / 外网自动切换"+
+	"在家时优先使用局域网地址，离开后切换到外网地址"+
+	"连接超时"+
+	"多个媒体源"+
+	"同一部影片在多个媒体源中存在时，按上方卡片顺序优先播放，也可在详情页手动切换媒体源。"+
+	"按 TMDB / IMDb ID 识别同一影片"+
+	"需要登录",
 	[]uint16{
 		12,
 		45,
@@ -2465,6 +2650,41 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		15,
 		61,
+		12,
+		33,
+		15,
+		12,
+		34,
+		18,
+		6,
+		12,
+		21,
+		15,
+		15,
+		9,
+		12,
+		6,
+		15,
+		9,
+		6,
+		6,
+		15,
+		9,
+		6,
+		6,
+		12,
+		12,
+		6,
+		12,
+		6,
+		21,
+		30,
+		69,
+		12,
+		15,
+		126,
+		37,
+		12,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -2715,6 +2935,21 @@ func Supply(lang string, t Translation) {
 	}
 	if t.SettingsLowerSubtitleLanguage != nil {
 		s.SettingsLowerSubtitleLanguage = t.SettingsLowerSubtitleLanguage
+	}
+	if t.SettingsFooter != nil {
+		s.SettingsFooter = t.SettingsFooter
+	}
+	if t.SettingsSourceSyncedAt != nil {
+		s.SettingsSourceSyncedAt = t.SettingsSourceSyncedAt
+	}
+	if t.SettingsSourceLibraries != nil {
+		s.SettingsSourceLibraries = t.SettingsSourceLibraries
+	}
+	if t.SettingsSourceRemoveConfirm != nil {
+		s.SettingsSourceRemoveConfirm = t.SettingsSourceRemoveConfirm
+	}
+	if t.SettingsSourceUser != nil {
+		s.SettingsSourceUser = t.SettingsSourceUser
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -6952,4 +7187,385 @@ func SettingsSubtitleASSDescription(cx *core.Scope) string {
 // SettingsSubtitleASSDescription is the package's SettingsSubtitleASSDescription in the language of msgs.
 func (msgs Messages) SettingsSubtitleASSDescription() string {
 	return msgs.text(textSettingsSubtitleASSDescription)
+}
+
+// SettingsLocalProfile says "Local profile"
+// in the language the app shows under cx.
+func SettingsLocalProfile(cx *core.Scope) string { return For(cx).SettingsLocalProfile() }
+
+// SettingsLocalProfile is the package's SettingsLocalProfile in the language of msgs.
+func (msgs Messages) SettingsLocalProfile() string { return msgs.text(textSettingsLocalProfile) }
+
+// SettingsLocalProfileDetail says "Settings and downloads on this device"
+// in the language the app shows under cx.
+func SettingsLocalProfileDetail(cx *core.Scope) string { return For(cx).SettingsLocalProfileDetail() }
+
+// SettingsLocalProfileDetail is the package's SettingsLocalProfileDetail in the language of msgs.
+func (msgs Messages) SettingsLocalProfileDetail() string {
+	return msgs.text(textSettingsLocalProfileDetail)
+}
+
+// SettingsSourceManager says "Manage media sources"
+// in the language the app shows under cx.
+func SettingsSourceManager(cx *core.Scope) string { return For(cx).SettingsSourceManager() }
+
+// SettingsSourceManager is the package's SettingsSourceManager in the language of msgs.
+func (msgs Messages) SettingsSourceManager() string { return msgs.text(textSettingsSourceManager) }
+
+// SettingsNoSource says "No sources"
+// in the language the app shows under cx.
+func SettingsNoSource(cx *core.Scope) string { return For(cx).SettingsNoSource() }
+
+// SettingsNoSource is the package's SettingsNoSource in the language of msgs.
+func (msgs Messages) SettingsNoSource() string { return msgs.text(textSettingsNoSource) }
+
+// SettingsProviders says "Emby · Jellyfin · Plex · Flymoo"
+// in the language the app shows under cx.
+func SettingsProviders(cx *core.Scope) string { return For(cx).SettingsProviders() }
+
+// SettingsProviders is the package's SettingsProviders in the language of msgs.
+func (msgs Messages) SettingsProviders() string { return msgs.text(textSettingsProviders) }
+
+// SettingsInterfaceLibrary says "Interface and library"
+// in the language the app shows under cx.
+func SettingsInterfaceLibrary(cx *core.Scope) string { return For(cx).SettingsInterfaceLibrary() }
+
+// SettingsInterfaceLibrary is the package's SettingsInterfaceLibrary in the language of msgs.
+func (msgs Messages) SettingsInterfaceLibrary() string {
+	return msgs.text(textSettingsInterfaceLibrary)
+}
+
+// SettingsAppearance says "Appearance"
+// in the language the app shows under cx.
+func SettingsAppearance(cx *core.Scope) string { return For(cx).SettingsAppearance() }
+
+// SettingsAppearance is the package's SettingsAppearance in the language of msgs.
+func (msgs Messages) SettingsAppearance() string { return msgs.text(textSettingsAppearance) }
+
+// SettingsFollowSystem says "Follow system"
+// in the language the app shows under cx.
+func SettingsFollowSystem(cx *core.Scope) string { return For(cx).SettingsFollowSystem() }
+
+// SettingsFollowSystem is the package's SettingsFollowSystem in the language of msgs.
+func (msgs Messages) SettingsFollowSystem() string { return msgs.text(textSettingsFollowSystem) }
+
+// SettingsLibraryMetadata says "Library and metadata"
+// in the language the app shows under cx.
+func SettingsLibraryMetadata(cx *core.Scope) string { return For(cx).SettingsLibraryMetadata() }
+
+// SettingsLibraryMetadata is the package's SettingsLibraryMetadata in the language of msgs.
+func (msgs Messages) SettingsLibraryMetadata() string { return msgs.text(textSettingsLibraryMetadata) }
+
+// SettingsAccountsData says "Account and data"
+// in the language the app shows under cx.
+func SettingsAccountsData(cx *core.Scope) string { return For(cx).SettingsAccountsData() }
+
+// SettingsAccountsData is the package's SettingsAccountsData in the language of msgs.
+func (msgs Messages) SettingsAccountsData() string { return msgs.text(textSettingsAccountsData) }
+
+// SettingsSyncAccounts says "Sync and account"
+// in the language the app shows under cx.
+func SettingsSyncAccounts(cx *core.Scope) string { return For(cx).SettingsSyncAccounts() }
+
+// SettingsSyncAccounts is the package's SettingsSyncAccounts in the language of msgs.
+func (msgs Messages) SettingsSyncAccounts() string { return msgs.text(textSettingsSyncAccounts) }
+
+// SettingsLocalOnly says "Local only"
+// in the language the app shows under cx.
+func SettingsLocalOnly(cx *core.Scope) string { return For(cx).SettingsLocalOnly() }
+
+// SettingsLocalOnly is the package's SettingsLocalOnly in the language of msgs.
+func (msgs Messages) SettingsLocalOnly() string { return msgs.text(textSettingsLocalOnly) }
+
+// SettingsParental says "Parental controls"
+// in the language the app shows under cx.
+func SettingsParental(cx *core.Scope) string { return For(cx).SettingsParental() }
+
+// SettingsParental is the package's SettingsParental in the language of msgs.
+func (msgs Messages) SettingsParental() string { return msgs.text(textSettingsParental) }
+
+// SettingsOther says "Other"
+// in the language the app shows under cx.
+func SettingsOther(cx *core.Scope) string { return For(cx).SettingsOther() }
+
+// SettingsOther is the package's SettingsOther in the language of msgs.
+func (msgs Messages) SettingsOther() string { return msgs.text(textSettingsOther) }
+
+// SettingsAbout says "About and help"
+// in the language the app shows under cx.
+func SettingsAbout(cx *core.Scope) string { return For(cx).SettingsAbout() }
+
+// SettingsAbout is the package's SettingsAbout in the language of msgs.
+func (msgs Messages) SettingsAbout() string { return msgs.text(textSettingsAbout) }
+
+// SettingsFooter says "Waygu {version} · Supports Emby, Jellyfin, Plex and Flymoo"
+// in the language the app shows under cx.
+func SettingsFooter(cx *core.Scope, version string) string { return For(cx).SettingsFooter(version) }
+
+// SettingsFooter is the package's SettingsFooter in the language of msgs.
+func (msgs Messages) SettingsFooter(version string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SettingsFooter(version))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SettingsFooter; f != nil {
+			return f(version)
+		}
+		switch lang {
+		case "", "en":
+			return "Waygu " + msgs.arg(version) + " · Supports Emby, Jellyfin, Plex and Flymoo"
+		case "zh-Hans":
+			return "Waygu " + version + " · 支持 Emby、Jellyfin、飞牛影视、Plex"
+		}
+	}
+}
+
+// SettingsEnabled says "Enabled"
+// in the language the app shows under cx.
+func SettingsEnabled(cx *core.Scope) string { return For(cx).SettingsEnabled() }
+
+// SettingsEnabled is the package's SettingsEnabled in the language of msgs.
+func (msgs Messages) SettingsEnabled() string { return msgs.text(textSettingsEnabled) }
+
+// SettingsDisabled says "Off"
+// in the language the app shows under cx.
+func SettingsDisabled(cx *core.Scope) string { return For(cx).SettingsDisabled() }
+
+// SettingsDisabled is the package's SettingsDisabled in the language of msgs.
+func (msgs Messages) SettingsDisabled() string { return msgs.text(textSettingsDisabled) }
+
+// SettingsEdit says "Edit"
+// in the language the app shows under cx.
+func SettingsEdit(cx *core.Scope) string { return For(cx).SettingsEdit() }
+
+// SettingsEdit is the package's SettingsEdit in the language of msgs.
+func (msgs Messages) SettingsEdit() string { return msgs.text(textSettingsEdit) }
+
+// SettingsOrder says "Source priority"
+// in the language the app shows under cx.
+func SettingsOrder(cx *core.Scope) string { return For(cx).SettingsOrder() }
+
+// SettingsOrder is the package's SettingsOrder in the language of msgs.
+func (msgs Messages) SettingsOrder() string { return msgs.text(textSettingsOrder) }
+
+// SettingsCheckingSource says "Checking"
+// in the language the app shows under cx.
+func SettingsCheckingSource(cx *core.Scope) string { return For(cx).SettingsCheckingSource() }
+
+// SettingsCheckingSource is the package's SettingsCheckingSource in the language of msgs.
+func (msgs Messages) SettingsCheckingSource() string { return msgs.text(textSettingsCheckingSource) }
+
+// SettingsSourceOffline says "Offline"
+// in the language the app shows under cx.
+func SettingsSourceOffline(cx *core.Scope) string { return For(cx).SettingsSourceOffline() }
+
+// SettingsSourceOffline is the package's SettingsSourceOffline in the language of msgs.
+func (msgs Messages) SettingsSourceOffline() string { return msgs.text(textSettingsSourceOffline) }
+
+// SettingsSourceOnline says "Online"
+// in the language the app shows under cx.
+func SettingsSourceOnline(cx *core.Scope) string { return For(cx).SettingsSourceOnline() }
+
+// SettingsSourceOnline is the package's SettingsSourceOnline in the language of msgs.
+func (msgs Messages) SettingsSourceOnline() string { return msgs.text(textSettingsSourceOnline) }
+
+// SettingsSourceSyncedAt says "Synced at {time}"
+// in the language the app shows under cx.
+func SettingsSourceSyncedAt(cx *core.Scope, time_ string) string {
+	return For(cx).SettingsSourceSyncedAt(time_)
+}
+
+// SettingsSourceSyncedAt is the package's SettingsSourceSyncedAt in the language of msgs.
+func (msgs Messages) SettingsSourceSyncedAt(time_ string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SettingsSourceSyncedAt(time_))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SettingsSourceSyncedAt; f != nil {
+			return f(time_)
+		}
+		switch lang {
+		case "", "en":
+			return "Synced at " + msgs.arg(time_)
+		case "zh-Hans":
+			return "同步于 " + time_
+		}
+	}
+}
+
+// SettingsSourceNotSynced says "Not yet synced"
+// in the language the app shows under cx.
+func SettingsSourceNotSynced(cx *core.Scope) string { return For(cx).SettingsSourceNotSynced() }
+
+// SettingsSourceNotSynced is the package's SettingsSourceNotSynced in the language of msgs.
+func (msgs Messages) SettingsSourceNotSynced() string { return msgs.text(textSettingsSourceNotSynced) }
+
+// SettingsSourceSyncing says "Syncing…"
+// in the language the app shows under cx.
+func SettingsSourceSyncing(cx *core.Scope) string { return For(cx).SettingsSourceSyncing() }
+
+// SettingsSourceSyncing is the package's SettingsSourceSyncing in the language of msgs.
+func (msgs Messages) SettingsSourceSyncing() string { return msgs.text(textSettingsSourceSyncing) }
+
+// SettingsSourceSync says "Sync"
+// in the language the app shows under cx.
+func SettingsSourceSync(cx *core.Scope) string { return For(cx).SettingsSourceSync() }
+
+// SettingsSourceSync is the package's SettingsSourceSync in the language of msgs.
+func (msgs Messages) SettingsSourceSync() string { return msgs.text(textSettingsSourceSync) }
+
+// SettingsSourceRetry says "Reconnect"
+// in the language the app shows under cx.
+func SettingsSourceRetry(cx *core.Scope) string { return For(cx).SettingsSourceRetry() }
+
+// SettingsSourceRetry is the package's SettingsSourceRetry in the language of msgs.
+func (msgs Messages) SettingsSourceRetry() string { return msgs.text(textSettingsSourceRetry) }
+
+// SettingsSourceLibraries says "Libraries {count}"
+// in the language the app shows under cx.
+func SettingsSourceLibraries(cx *core.Scope, count string) string {
+	return For(cx).SettingsSourceLibraries(count)
+}
+
+// SettingsSourceLibraries is the package's SettingsSourceLibraries in the language of msgs.
+func (msgs Messages) SettingsSourceLibraries(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SettingsSourceLibraries(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SettingsSourceLibraries; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return "Libraries " + msgs.arg(count)
+		case "zh-Hans":
+			return "媒体库 " + count
+		}
+	}
+}
+
+// SettingsConnection says "Connection"
+// in the language the app shows under cx.
+func SettingsConnection(cx *core.Scope) string { return For(cx).SettingsConnection() }
+
+// SettingsConnection is the package's SettingsConnection in the language of msgs.
+func (msgs Messages) SettingsConnection() string { return msgs.text(textSettingsConnection) }
+
+// SettingsConnectOnLaunch says "Connect automatically at launch"
+// in the language the app shows under cx.
+func SettingsConnectOnLaunch(cx *core.Scope) string { return For(cx).SettingsConnectOnLaunch() }
+
+// SettingsConnectOnLaunch is the package's SettingsConnectOnLaunch in the language of msgs.
+func (msgs Messages) SettingsConnectOnLaunch() string { return msgs.text(textSettingsConnectOnLaunch) }
+
+// SettingsConnectionFailover says "Switch local and remote addresses"
+// in the language the app shows under cx.
+func SettingsConnectionFailover(cx *core.Scope) string { return For(cx).SettingsConnectionFailover() }
+
+// SettingsConnectionFailover is the package's SettingsConnectionFailover in the language of msgs.
+func (msgs Messages) SettingsConnectionFailover() string {
+	return msgs.text(textSettingsConnectionFailover)
+}
+
+// SettingsConnectionFailoverDetail says "Prefer the local address on your home network"
+// in the language the app shows under cx.
+func SettingsConnectionFailoverDetail(cx *core.Scope) string {
+	return For(cx).SettingsConnectionFailoverDetail()
+}
+
+// SettingsConnectionFailoverDetail is the package's SettingsConnectionFailoverDetail in the language of msgs.
+func (msgs Messages) SettingsConnectionFailoverDetail() string {
+	return msgs.text(textSettingsConnectionFailoverDetail)
+}
+
+// SettingsConnectionTimeout says "Connection timeout"
+// in the language the app shows under cx.
+func SettingsConnectionTimeout(cx *core.Scope) string { return For(cx).SettingsConnectionTimeout() }
+
+// SettingsConnectionTimeout is the package's SettingsConnectionTimeout in the language of msgs.
+func (msgs Messages) SettingsConnectionTimeout() string {
+	return msgs.text(textSettingsConnectionTimeout)
+}
+
+// SettingsMultipleSources says "Multiple media sources"
+// in the language the app shows under cx.
+func SettingsMultipleSources(cx *core.Scope) string { return For(cx).SettingsMultipleSources() }
+
+// SettingsMultipleSources is the package's SettingsMultipleSources in the language of msgs.
+func (msgs Messages) SettingsMultipleSources() string { return msgs.text(textSettingsMultipleSources) }
+
+// SettingsSourcePriorityFooter says "When several sources have the same title, the source order sets playback priority. Change the source on a title’s detail page."
+// in the language the app shows under cx.
+func SettingsSourcePriorityFooter(cx *core.Scope) string {
+	return For(cx).SettingsSourcePriorityFooter()
+}
+
+// SettingsSourcePriorityFooter is the package's SettingsSourcePriorityFooter in the language of msgs.
+func (msgs Messages) SettingsSourcePriorityFooter() string {
+	return msgs.text(textSettingsSourcePriorityFooter)
+}
+
+// SettingsSourceMatchDetail says "Identify matching titles by TMDB or IMDb ID"
+// in the language the app shows under cx.
+func SettingsSourceMatchDetail(cx *core.Scope) string { return For(cx).SettingsSourceMatchDetail() }
+
+// SettingsSourceMatchDetail is the package's SettingsSourceMatchDetail in the language of msgs.
+func (msgs Messages) SettingsSourceMatchDetail() string {
+	return msgs.text(textSettingsSourceMatchDetail)
+}
+
+// SettingsSourceRemoveConfirm says "Remove {name} and its saved sign-in from this device?"
+// in the language the app shows under cx.
+func SettingsSourceRemoveConfirm(cx *core.Scope, name string) string {
+	return For(cx).SettingsSourceRemoveConfirm(name)
+}
+
+// SettingsSourceRemoveConfirm is the package's SettingsSourceRemoveConfirm in the language of msgs.
+func (msgs Messages) SettingsSourceRemoveConfirm(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SettingsSourceRemoveConfirm(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SettingsSourceRemoveConfirm; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Remove " + msgs.arg(name) + " and its saved sign-in from this device?"
+		case "zh-Hans":
+			return "从此设备移除" + name + "及其登录凭据？"
+		}
+	}
+}
+
+// SettingsSourceNeedsLogin says "Sign in required"
+// in the language the app shows under cx.
+func SettingsSourceNeedsLogin(cx *core.Scope) string { return For(cx).SettingsSourceNeedsLogin() }
+
+// SettingsSourceNeedsLogin is the package's SettingsSourceNeedsLogin in the language of msgs.
+func (msgs Messages) SettingsSourceNeedsLogin() string {
+	return msgs.text(textSettingsSourceNeedsLogin)
+}
+
+// SettingsSourceUser says "User {name}"
+// in the language the app shows under cx.
+func SettingsSourceUser(cx *core.Scope, name string) string { return For(cx).SettingsSourceUser(name) }
+
+// SettingsSourceUser is the package's SettingsSourceUser in the language of msgs.
+func (msgs Messages) SettingsSourceUser(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SettingsSourceUser(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SettingsSourceUser; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "User " + msgs.arg(name)
+		case "zh-Hans":
+			return "用户 " + name
+		}
+	}
 }

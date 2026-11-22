@@ -5,7 +5,7 @@ The Scenra files in `design/` define the product. The current app connects to Em
 ## Media sources
 
 - Add LAN discovery and Flymoo FN Connect.
-- Imported libraries support category, visibility, home visibility and per-source ordering. Refresh the server's library list from source settings.
+- Imported libraries support category, visibility, home visibility and per-source ordering. The phone source settings refresh the server’s library list. Refreshes keep visibility, categories and ordering for known libraries and hide new libraries until they are enabled.
 - All Sources combines movies and series with matching IMDb or TMDB IDs. Source order supplies the default copy. The media source settings let users reorder sources and turn matching off. Add multi-address failover, account recovery and scheduled library refresh.
 - Verify Plex account authorization with a real account and a claimed server, including remote and relay connections. Extend Flymoo fixture coverage for artwork, authentication redirects and version-specific payloads.
 

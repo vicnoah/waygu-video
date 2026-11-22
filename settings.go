@@ -1,7 +1,6 @@
 package main
 
 import (
-	"slices"
 	"strconv"
 
 	"github.com/nsgo-dev/nsgo/core"
@@ -13,6 +12,9 @@ import (
 )
 
 func (a *application) settings(cx *core.Scope) core.Node {
+	if appLayoutIdiom(cx) == core.IdiomPhone {
+		return a.phoneSettingsHome(cx)
+	}
 	confirm := core.NewSignal(cx, "")
 	failure := core.NewSignal[error](cx, nil)
 	bitrateOptions := []ui.Option[int]{{Label: locales.OriginalQuality(cx)}}
@@ -45,24 +47,12 @@ func (a *application) settings(cx *core.Scope) core.Node {
 			}},
 		)
 	}
-	var playbackPage core.Node = core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: playbackControls}
-	var phoneControls core.Node
-	if appLayoutIdiom(cx) == core.IdiomPhone {
-		phoneControls = setupGroup(locales.SettingsPlaybackExperience(cx), "",
-			(phoneSetting{locales.PlaybackSettings(cx), "", "bg-violet-500", lucide.Play}).
-				link(cx, "open-phone-playback-settings", "", func() { a.push(route{screen: screenPlaybackSettings}) }),
-			(phoneSetting{locales.Subtitles(cx), "", "bg-sky-500", lucide.Captions}).
-				link(cx, "open-phone-subtitle-settings", "", func() { a.push(route{screen: screenSubtitleSettings}) }),
-		)
-		playbackPage = nil
-	}
 	return core.Scroll{Class: "flex-1", Children: []core.Node{core.View{
 		Class: "gap-5 p-5 md:p-8", StyleFunc: func() core.Style {
 			return core.Style{PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea, Bottom: core.EnvKeyboard},
 				Padding: core.Edges{Bottom: 24 + tabBarInset(cx)}}
 		}, Children: []core.Node{
 			heading(locales.Settings(cx)),
-			phoneControls,
 			core.View{Class: "flex-row flex-wrap items-center justify-between gap-3", Children: []core.Node{
 				heading(locales.MediaSources(cx)),
 				ui.Button{Text: locales.AddSource(cx), Icon: lucide.Plus, TestID: "settings-add-source",
@@ -87,21 +77,11 @@ func (a *application) settings(cx *core.Scope) core.Node {
 						actions = []core.Node{
 							ui.Button{Text: locales.Back(cx), Variant: ui.ButtonGhost, OnPress: func() { confirm.Set("") }},
 							ui.Button{Text: locales.RemoveSource(cx), Color: func() core.Color { return cx.Palette().Danger }, TestID: "confirm-remove-source", OnPress: func() {
-								current := slices.Clone(a.sources.GetUntracked())
-								current = slices.DeleteFunc(current, func(entry source) bool { return entry.ID == selected.ID })
-								if err := a.saveSources(current); err != nil {
+								if err := a.removeSource(selected); err != nil {
 									failure.Set(err)
 									return
 								}
-								key := selected.credentialKey()
-								a.storage.RemoveItem(resumeCacheKey(selected))
-								a.removeSourceProgress(selected)
-								a.tokens.Delete(key)
-								if a.sourceFilter.GetUntracked() == selected.ID {
-									a.sourceFilter.Set("")
-								}
 								confirm.Set("")
-								go func() { _ = a.secrets.Delete(key) }()
 							}},
 						}
 					} else {
@@ -148,20 +128,9 @@ func (a *application) settings(cx *core.Scope) core.Node {
 				return ui.Button{Text: locales.StorageDownloads(cx), Icon: lucide.HardDrive, TestID: "settings-downloads",
 					Variant: ui.ButtonOutline, OnPress: func() { a.push(route{screen: screenDownloads}) }}
 			}},
-			playbackPage,
+			core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: playbackControls},
 			a.danmakuSettings(cx),
 			a.danmakuDefaults(cx),
 		},
 	}}}
-}
-
-func (a *application) moveSource(id string, delta int) error {
-	entries := slices.Clone(a.sources.GetUntracked())
-	index := slices.IndexFunc(entries, func(entry source) bool { return entry.ID == id })
-	other := index + delta
-	if index < 0 || other < 0 || other >= len(entries) {
-		return nil
-	}
-	entries[index], entries[other] = entries[other], entries[index]
-	return a.saveSources(entries)
 }

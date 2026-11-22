@@ -94,7 +94,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 		if plex {
 			input.Token, input.Password = input.Password, ""
 		}
-		timeout := 35 * time.Second
+		timeout := time.Duration(a.sourceTimeout.GetUntracked()) * time.Second
 		if method == quickConnection {
 			timeout = 8 * time.Minute
 		}

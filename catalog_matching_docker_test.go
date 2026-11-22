@@ -142,12 +142,26 @@ func TestDockerCrossSourceTitles(t *testing.T) {
 
 	app.Press("id:back")
 	app.Press("role:tab Settings")
+	phoneSettings := app.Exists("id:open-phone-source-settings")
+	if phoneSettings {
+		app.Press("id:open-phone-source-settings")
+		app.Press("id:source-settings-edit")
+	}
 	app.Press("id:move-source-up-emby")
+	if phoneSettings {
+		app.Press("id:back")
+	}
 	app.Press("role:tab Library")
 	app.WaitFor(alternate, 5*time.Second)
 	app.WaitForGone(preferred, time.Second)
 	app.Press("role:tab Settings")
+	if phoneSettings {
+		app.Press("id:open-phone-source-settings")
+	}
 	app.Press("id:merge-identical-titles")
+	if phoneSettings {
+		app.Press("id:back")
+	}
 	app.Press("role:tab Library")
 	app.WaitFor(preferred, 5*time.Second)
 	app.WaitFor(alternate, 5*time.Second)

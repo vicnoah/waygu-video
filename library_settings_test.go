@@ -26,6 +26,10 @@ func TestManageLibraryPreferences(t *testing.T) {
 	app.WaitFor("id:resume-movies-resume", time.Second)
 	app.WaitFor("id:title-private-title", time.Second)
 	pressLibraryTestTab(app, screenSettings, "Settings")
+	phoneSettings := app.Exists("id:open-phone-source-settings")
+	if phoneSettings {
+		app.Press("id:open-phone-source-settings")
+	}
 	app.Press("id:manage-libraries-library-fixture")
 	app.Press("id:library-up-shows")
 	app.Press("id:library-category-shows")
@@ -58,6 +62,9 @@ func TestManageLibraryPreferences(t *testing.T) {
 		t.Fatal("canceling the editor saved the draft")
 	}
 
+	if phoneSettings {
+		app.Press("id:back")
+	}
 	pressLibraryTestTab(app, screenHome, "Home")
 	app.WaitFor("id:title-shows-title", time.Second)
 	app.WaitFor("id:resume-shows-resume", time.Second)

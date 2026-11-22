@@ -440,3 +440,43 @@ settingsLowerSubtitleLanguage: "Move {name} down"
 settingsAudio: Audio
 settingsCustomSubtitleColor: Custom color
 settingsSubtitleASSDescription: Desktop libmpv renders the original styling of embedded ASS subtitles.
+settingsLocalProfile: Local profile
+settingsLocalProfileDetail: Settings and downloads on this device
+settingsSourceManager: Manage media sources
+settingsNoSource: No sources
+settingsProviders: Emby · Jellyfin · Plex · Flymoo
+settingsInterfaceLibrary: Interface and library
+settingsAppearance: Appearance
+settingsFollowSystem: Follow system
+settingsLibraryMetadata: Library and metadata
+settingsAccountsData: Account and data
+settingsSyncAccounts: Sync and account
+settingsLocalOnly: Local only
+settingsParental: Parental controls
+settingsOther: Other
+settingsAbout: About and help
+settingsFooter: "Waygu {version} · Supports Emby, Jellyfin, Plex and Flymoo"
+settingsEnabled: Enabled
+settingsDisabled: Off
+settingsEdit: Edit
+settingsOrder: Source priority
+settingsCheckingSource: Checking
+settingsSourceOffline: Offline
+settingsSourceOnline: Online
+settingsSourceSyncedAt: "Synced at {time}"
+settingsSourceNotSynced: Not yet synced
+settingsSourceSyncing: Syncing…
+settingsSourceSync: Sync
+settingsSourceRetry: Reconnect
+settingsSourceLibraries: "Libraries {count}"
+settingsConnection: Connection
+settingsConnectOnLaunch: Connect automatically at launch
+settingsConnectionFailover: Switch local and remote addresses
+settingsConnectionFailoverDetail: Prefer the local address on your home network
+settingsConnectionTimeout: Connection timeout
+settingsMultipleSources: Multiple media sources
+settingsSourcePriorityFooter: When several sources have the same title, the source order sets playback priority. Change the source on a title’s detail page.
+settingsSourceMatchDetail: Identify matching titles by TMDB or IMDb ID
+settingsSourceRemoveConfirm: "Remove {name} and its saved sign-in from this device?"
+settingsSourceNeedsLogin: Sign in required
+settingsSourceUser: "User {name}"

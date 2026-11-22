@@ -53,9 +53,16 @@ func TestPlexLinkAndImport(t *testing.T) {
 					return fixtureServer{session: session}, nil
 				}, fixture)
 			}, options...)
+			phoneSettings := false
 			if target.reconnect {
 				app.Press("role:tab Settings")
-				app.Press("role:button Sign in again")
+				phoneSettings = app.Exists("id:open-phone-source-settings")
+				if phoneSettings {
+					app.Press("id:open-phone-source-settings")
+					app.Press("id:source-edit-" + oldSource)
+				} else {
+					app.Press("role:button Sign in again")
+				}
 			} else {
 				app.Press("id:add-source")
 				app.Press("id:choose-plex")
@@ -82,6 +89,11 @@ func TestPlexLinkAndImport(t *testing.T) {
 			app.WaitFor("id:import-library-library-second", time.Second)
 			app.WaitForGone("id:import-library-library-first", time.Second)
 			app.Press("id:import-libraries")
+			if phoneSettings {
+				app.WaitFor("id:source-settings-card-"+oldSource, time.Second)
+				app.Press("id:back")
+				app.Press("role:tab Home")
+			}
 			app.WaitFor("id:title-test-film", time.Second)
 
 			config, _ := app.Storage().GetItem(sourcesKey)
