@@ -50,6 +50,13 @@ func TestDesktopSettingsWindow(t *testing.T) {
 		t.Fatalf("saved filter = %q", value.Keywords)
 	}
 	window.Press("id:desktop-settings-tab-playback")
+	if !window.Find("id:desktop-prefer-direct").Props.Checked {
+		t.Fatal("the desktop should prefer direct play by default")
+	}
+	window.Press("id:desktop-prefer-direct")
+	if !readPlaybackPreferences(app.Storage()).DisableDirectPlay {
+		t.Fatal("the desktop switch did not store the shared direct play preference")
+	}
 	for _, change := range []struct{ id, label string }{
 		{"desktop-playback-engine", "Built-in mpv"},
 		{"desktop-seek-step", "Back 10s / forward 30s"},

@@ -64,7 +64,7 @@ func (a *application) phonePlaybackSettings(cx *core.Scope) core.Node {
 	}
 
 	return phoneSettingsPage(cx, locales.PlaybackSettings(cx), a.back, "phone-playback-settings",
-		setupGroup(locales.PlayerQuality(cx), locales.StreamingQualityProviders(cx),
+		setupGroup(locales.PlayerQuality(cx), locales.SettingsDirectPlayHint(cx),
 			phoneSettingChoice(cx, phoneSetting{locales.SettingsWifiQuality(cx), "", "bg-violet-500", lucide.Wifi},
 				"phone-streaming-quality", quality, a.bitrateLimit.Get, func(value int) {
 					failure.Set(storeSettingValue(a.storage, bitrateKey, a.bitrateLimit, value, strconv.Itoa(value)))
@@ -73,7 +73,9 @@ func (a *application) phonePlaybackSettings(cx *core.Scope) core.Node {
 				"phone-cellular-quality", quality, func() int { return a.playbackPrefs.Get().CellularBitrate },
 				func(value int) { save(func(p *playbackPreferences) { p.CellularBitrate = value }) }),
 			(phoneSetting{locales.SettingsPreferDirect(cx), "", "bg-emerald-500", lucide.Zap}).
-				toggle(cx, "", func() bool { return true }, nil),
+				toggle(cx, "phone-prefer-direct", a.preferDirectPlay, func(enabled bool) {
+					failure.Set(a.setPreferDirectPlay(enabled))
+				}),
 			(phoneSetting{locales.SettingsCellularWarning(cx), "", "bg-amber-500", lucide.TriangleAlert}).
 				toggle(cx, "phone-cellular-warning", func() bool { return a.playbackPrefs.Get().WarnOnCellular },
 					func(enabled bool) { save(func(p *playbackPreferences) { p.WarnOnCellular = enabled }) }),

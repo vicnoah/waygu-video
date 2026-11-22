@@ -420,6 +420,7 @@ settingsAlwaysOn: 始终开启
 settingsWifiQuality: Wi-Fi 下画质
 settingsCellularQuality: 移动网络画质
 settingsPreferDirect: 优先直接播放
+settingsDirectPlayHint: 直接播放不经服务器转码，画质最好；网络不足时自动降为转码播放。
 settingsCellularWarning: 移动网络播放前提醒
 playbackCellularConfirmTitle: 使用移动网络播放？
 playbackCellularConfirmDescription: 播放会消耗你的移动数据流量。

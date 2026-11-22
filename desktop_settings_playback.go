@@ -52,7 +52,8 @@ func (a *application) desktopSettingsPlayback(cx *core.Scope) core.Node {
 		desktopFormRow(quality, desktopFormSelect(cx, "bitrate-limit", quality, desktopBitrates(cx), a.bitrateLimit.Get, func(value int) {
 			failure.Set(storeSettingValue(a.storage, bitrateKey, a.bitrateLimit, value, strconv.Itoa(value)))
 		})),
-		disabledSwitch(locales.SettingsPreferDirect(cx), true),
+		desktopFormRow(locales.SettingsPreferDirect(cx), desktopFormToggle(cx, "desktop-prefer-direct", locales.SettingsPreferDirect(cx),
+			a.preferDirectPlay, func(enabled bool) { failure.Set(a.setPreferDirectPlay(enabled)) })),
 		unavailable(locales.SettingsMatchHDR(cx)),
 		unavailable(locales.SettingsToneMap(cx)),
 		disabledSwitch(locales.SettingsMatchRate(cx), false),

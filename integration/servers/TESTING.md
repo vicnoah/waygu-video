@@ -35,7 +35,13 @@ Stop the fixture services with `docker compose -f integration/servers/compose.ya
 
 With the same three fixtures, `TestDockerOfflineDownloadReview` saves an original video from the detail page, restarts the app with the saved data, disconnects the test gateway, opens the cached movie from the library and probes the local file with `ffprobe`. The headless case reconnects and verifies the offline checkpoint in the server's detail response. GTK also advances the native playback clock while the gateway refuses requests. The download store fixture checks byte ranges after cancellation, verifies the supplied response MD5 and final SHA-256, and checks the space limit and deletion.
 
+## Streaming quality
+
+`TestDockerPreferredPlaybackMethod` opens the same title through the phone player on Emby, Jellyfin and Plex with Prefer direct play enabled and disabled. `ffprobe` decodes frames from the player's MP4 and HLS URLs. The phone and desktop settings tests exercise the shared preference and verify that it is saved.
+
 `TestDockerPlaybackHeightLimit` requests a height limit of 180p with a 4 Mbps bitrate ceiling from Emby, Jellyfin and Plex. The 360p fixture is already below the bitrate ceiling. The test opens the authenticated HLS stream through the app proxy and measures its decoded resolution with `ffprobe`. `TestPlaybackQualityChangesAtCurrentPosition` checks the phone preset arguments along with the selected version, audio track, paused state and seek position. `TestPlexHLSStartsWithTranscodeDecision` checks that the Plex decision call and HLS request share the session and quality limits. [Quality panel comparison](../../docs/ui-review/phone-player.md#subtitles-and-audio) · [Plex Universal Transcoder](https://developer.plex.tv/pms/#tag/Transcoder)
+
+## Catalog and player fixtures
 
 `TestDockerMovieFeatures` reads local extras and recommendations from all three servers. Emby and Jellyfin index the generated trailer and featurette and resolve both clips for playback. The unclaimed Plex fixture returns an empty extras list. `TestDockerPhoneMovieReview` opens the Emby trailer in the native player, follows a recommendation from the same library, and tests the cast and playback controls. When adding the extras to an existing fixture library, rescan it with `bootstrap.py` before running the phone review. [Emby library API](https://dev.emby.media/reference/RestAPI/UserLibraryService.html) · [Jellyfin library API](https://typescript-sdk.jellyfin.org/classes/generated-client.LibraryApi.html) · [Plex Media Server API](https://developer.plex.tv/pms/)
 

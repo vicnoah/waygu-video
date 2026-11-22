@@ -123,8 +123,6 @@ func (m *mediaBrowser) Playback(ctx context.Context, item Item, options Playback
 		params.Set("EnableDirectPlay", "false")
 		params.Set("EnableDirectStream", "false")
 		body["EnableDirectPlay"], body["EnableDirectStream"] = false, false
-	}
-	if options.MaxHeight > 0 {
 		body["AllowVideoStreamCopy"] = false
 	}
 	if options.SourceID != "" {
@@ -194,9 +192,12 @@ func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID 
 		stream.URL = original
 		stream.Method = DirectPlay
 	} else if source.TranscodingUrl != "" {
-		var limits url.Values
+		limits := url.Values{}
+		if options.ForceTranscode || options.MaxHeight > 0 {
+			limits.Set("AllowVideoStreamCopy", "false")
+		}
 		if options.MaxHeight > 0 {
-			limits = url.Values{"MaxHeight": {strconv.Itoa(options.MaxHeight)}, "AllowVideoStreamCopy": {"false"}}
+			limits.Set("MaxHeight", strconv.Itoa(options.MaxHeight))
 		}
 		stream.URL = m.mediaURL(source.TranscodingUrl, limits)
 		stream.Headers = m.auth()

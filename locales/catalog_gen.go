@@ -677,6 +677,7 @@ const (
 	textSettingsWifiQuality
 	textSettingsCellularQuality
 	textSettingsPreferDirect
+	textSettingsDirectPlayHint
 	textSettingsCellularWarning
 	textPlaybackCellularConfirmTitle
 	textPlaybackCellularConfirmDescription
@@ -1556,6 +1557,7 @@ var keyOfText = [numTexts]string{
 	"settingsWifiQuality",
 	"settingsCellularQuality",
 	"settingsPreferDirect",
+	"settingsDirectPlayHint",
 	"settingsCellularWarning",
 	"playbackCellularConfirmTitle",
 	"playbackCellularConfirmDescription",
@@ -2433,6 +2435,7 @@ var textsEn = i18n.NewTexts(""+
 	"Wi-Fi quality"+
 	"Cellular quality"+
 	"Prefer direct play"+
+	"Direct play preserves the original quality. If the network is too slow, the server transcodes the video."+
 	"Warn before streaming on cellular"+
 	"Play on cellular data?"+
 	"Streaming uses your mobile data allowance."+
@@ -3307,6 +3310,7 @@ var textsEn = i18n.NewTexts(""+
 		13,
 		16,
 		18,
+		104,
 		33,
 		22,
 		42,
@@ -4184,6 +4188,7 @@ var textsZhHans = i18n.NewTexts(""+
 	"Wi-Fi 下画质"+
 	"移动网络画质"+
 	"优先直接播放"+
+	"直接播放不经服务器转码，画质最好；网络不足时自动降为转码播放。"+
 	"移动网络播放前提醒"+
 	"使用移动网络播放？"+
 	"播放会消耗你的移动数据流量。"+
@@ -5058,6 +5063,7 @@ var textsZhHans = i18n.NewTexts(""+
 		15,
 		18,
 		18,
+		93,
 		27,
 		27,
 		42,
@@ -10067,6 +10073,13 @@ func SettingsPreferDirect(cx *core.Scope) string { return For(cx).SettingsPrefer
 
 // SettingsPreferDirect is the package's SettingsPreferDirect in the language of msgs.
 func (msgs Messages) SettingsPreferDirect() string { return msgs.text(textSettingsPreferDirect) }
+
+// SettingsDirectPlayHint says "Direct play preserves the original quality. If the network is too slow, the server transcodes the video."
+// in the language the app shows under cx.
+func SettingsDirectPlayHint(cx *core.Scope) string { return For(cx).SettingsDirectPlayHint() }
+
+// SettingsDirectPlayHint is the package's SettingsDirectPlayHint in the language of msgs.
+func (msgs Messages) SettingsDirectPlayHint() string { return msgs.text(textSettingsDirectPlayHint) }
 
 // SettingsCellularWarning says "Warn before streaming on cellular"
 // in the language the app shows under cx.

@@ -57,6 +57,7 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	showTVHints := sync.OnceValue(a.showTVPlayerHints)
 	noServerSubtitles := -1
 	options, remembered := a.initialPlaybackOptions(current)
+	options.ForceTranscode = prefs.DisableDirectPlay
 	options.SubtitleIndex = &noServerSubtitles
 	subtitlePrefs := a.subtitlePrefs.GetUntracked()
 	restrictions := core.Untracked(cx, a.parentalRules)
@@ -374,6 +375,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			return
 		}
 		options.SubtitleIndex = &noServerSubtitles
+		options.ForceTranscode = prefs.DisableDirectPlay
 		previous := medium.GetUntracked()
 		preset := options.MaxBitrate
 		options.MaxHeight = playbackPresetHeight(preset)

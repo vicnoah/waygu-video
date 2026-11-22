@@ -420,6 +420,7 @@ settingsAlwaysOn: Always on
 settingsWifiQuality: Wi-Fi quality
 settingsCellularQuality: Cellular quality
 settingsPreferDirect: Prefer direct play
+settingsDirectPlayHint: Direct play preserves the original quality. If the network is too slow, the server transcodes the video.
 settingsCellularWarning: Warn before streaming on cellular
 playbackCellularConfirmTitle: Play on cellular data?
 playbackCellularConfirmDescription: Streaming uses your mobile data allowance.

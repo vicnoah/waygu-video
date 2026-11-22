@@ -14,14 +14,15 @@ var playbackRates = []float32{0.5, 0.75, 1, 1.25, 1.5, 1.75, 2}
 var seekIntervals = []int{5, 10, 15, 30, 60}
 
 type playbackPreferences struct {
-	BackSeconds      int
-	NextSeconds      int
-	CellularBitrate  int
-	WarnOnCellular   bool
-	Rate             float32
-	Picture          string
-	DisableAutoPiP   bool
-	KeepIntroCredits bool
+	BackSeconds       int
+	NextSeconds       int
+	CellularBitrate   int
+	WarnOnCellular    bool
+	Rate              float32
+	Picture           string
+	DisableDirectPlay bool
+	DisableAutoPiP    bool
+	KeepIntroCredits  bool
 }
 
 func readPlaybackPreferences(storage core.Storage) playbackPreferences {
@@ -29,6 +30,7 @@ func readPlaybackPreferences(storage core.Storage) playbackPreferences {
 	if raw, ok := storage.GetItem(playbackPreferencesKey); ok {
 		saved := prefs
 		if json.Unmarshal([]byte(raw), &saved) == nil {
+			prefs.DisableDirectPlay = saved.DisableDirectPlay
 			prefs.DisableAutoPiP = saved.DisableAutoPiP
 			prefs.KeepIntroCredits = saved.KeepIntroCredits
 			prefs.WarnOnCellular = saved.WarnOnCellular
@@ -50,6 +52,16 @@ func readPlaybackPreferences(storage core.Storage) playbackPreferences {
 		}
 	}
 	return prefs
+}
+
+func (a *application) preferDirectPlay() bool {
+	return !a.playbackPrefs.Get().DisableDirectPlay
+}
+
+func (a *application) setPreferDirectPlay(enabled bool) error {
+	prefs := a.playbackPrefs.GetUntracked()
+	prefs.DisableDirectPlay = !enabled
+	return storeSettings(a.storage, playbackPreferencesKey, a.playbackPrefs, prefs)
 }
 
 func (p playbackPreferences) backStep() time.Duration {

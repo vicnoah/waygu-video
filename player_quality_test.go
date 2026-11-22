@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -142,6 +143,67 @@ func TestDockerPlaybackHeightLimit(t *testing.T) {
 				t.Fatalf("expected a decodable stream of at most %dp, got %+v, %v", height, measured, err)
 			}
 			t.Logf("decoded %dp from the %dp original", measured.Streams[0].Height, original.Rendition.Height)
+		})
+	}
+}
+
+func TestDockerPreferredPlaybackMethod(t *testing.T) {
+	if os.Getenv("WAYGU_TEST_SERVERS") != "1" || nsgotest.Target() != "" {
+		t.Skip("requires the Docker media servers and the simulated playback surface")
+	}
+	for _, provider := range []string{"emby", "jellyfin", "plex"} {
+		t.Run(provider, func(t *testing.T) {
+			for _, mode := range []struct {
+				name, preferences, container string
+			}{
+				{"direct", "", "mp4"},
+				{"transcode", `{"DisableDirectPlay":true}`, "hls"},
+			} {
+				t.Run(mode.name, func(t *testing.T) {
+					config, secrets := homeReviewSources(t)
+					_, item := reviewFixtureItem(t, config, secrets, provider, "Waygu Test Movie")
+					config[playbackPreferencesKey] = mode.preferences
+					app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
+						shellIdiom.Provide(cx, core.IdiomPhone)
+						return Root(cx)
+					}, nsgotest.Size(390, 800), nsgotest.Offscreen(),
+						nsgotest.Storage(config), nsgotest.Secrets(secrets))
+					app.Press("id:tab-search")
+					app.Type("id:search-query", item.Title)
+					app.Press("id:search-source-" + provider)
+					result := "id:title-" + provider + "-" + item.ID
+					app.WaitFor(result, 10*time.Second)
+					app.Press(result)
+					app.WaitFor("id:detail-play", 10*time.Second)
+					app.Press("id:detail-play")
+					app.WaitFor("id:video-player", 15*time.Second)
+					video := app.FindMounted("id:video-player").Video
+					ctx, cancel := context.WithTimeout(t.Context(), 25*time.Second)
+					defer cancel()
+					raw, err := exec.CommandContext(ctx, "ffprobe", "-v", "error", "-select_streams", "v:0",
+						"-read_intervals", "%+1", "-show_frames",
+						"-show_entries", "format=format_name:stream=codec_name:frame=key_frame", "-of", "json", video.Source).Output()
+					if err != nil {
+						t.Fatalf("probe the player's stream: %v", err)
+					}
+					var measured struct {
+						Format struct {
+							Name string `json:"format_name"`
+						}
+						Streams []struct {
+							Codec string `json:"codec_name"`
+						}
+						Frames []struct{}
+					}
+					if err := json.Unmarshal(raw, &measured); err != nil || len(measured.Streams) != 1 || len(measured.Frames) == 0 ||
+						measured.Streams[0].Codec != "h264" || !slices.Contains(strings.Split(measured.Format.Name, ","), mode.container) {
+						t.Fatalf("wanted H.264 in %s, got %s (%v)", mode.container, raw, err)
+					}
+					app.Play("id:video-player", core.VideoInfo{Duration: item.Duration})
+					app.Press("id:close-player")
+					t.Logf("decoded H.264 in %s", mode.container)
+				})
+			}
 		})
 	}
 }

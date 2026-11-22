@@ -38,6 +38,13 @@ func TestPhonePlaybackAndSubtitleSettingsReview(t *testing.T) {
 			app.WaitFor("id:phone-streaming-quality >> text:原画", time.Second)
 			app.WaitFor("id:phone-cellular-quality >> text:4 Mbps", time.Second)
 			capture("settings-playback")
+			if !app.Find("id:phone-prefer-direct").Props.Checked {
+				t.Fatal("legacy settings should prefer direct play")
+			}
+			app.Press("id:phone-prefer-direct")
+			if !readPlaybackPreferences(app.Storage()).DisableDirectPlay {
+				t.Fatal("turning off direct play was not saved")
+			}
 			app.Press("id:phone-cellular-quality")
 			app.WaitFor("role:option 8 Mbps", time.Second)
 			app.Press("role:option 8 Mbps")
@@ -70,6 +77,10 @@ func TestPhonePlaybackAndSubtitleSettingsReview(t *testing.T) {
 			app.Press("role:option 15 秒")
 			if p := readPlaybackPreferences(app.Storage()); p.Rate != 1.5 || p.NextSeconds != 15 || p.BackSeconds != 10 {
 				t.Fatalf("saved playback controls = %+v", p)
+			}
+			app.Press("id:phone-prefer-direct")
+			if readPlaybackPreferences(app.Storage()).DisableDirectPlay {
+				t.Fatal("turning direct play back on was not saved")
 			}
 			app.Press("id:back")
 			app.Press("id:open-phone-subtitle-settings")
