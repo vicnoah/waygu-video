@@ -8,6 +8,8 @@ node auth "认证" kind=decision
 node pwd "用户名 + 密码登录" note="Emby/Jellyfin：调用 AuthenticateByName 登录接口，保存 AccessToken 与 UserId"
 node quick "Quick Connect 验证码" note="Jellyfin 10.8+：在已登录设备上输入 6 位码授权"
 node fn "飞牛账号登录获取 Token" note="飞牛影视 API：账号密码或 fnOS 远程访问 FN Connect，保存 Token 与设备 ID"
+node plex "关联 Plex 账号" note="在浏览器登录 Plex，或用手机扫描二维码授权"
+node plexServer "选择 Plex 服务器" note="获取账号可访问的服务器，验证服务器身份后使用对应服务器的令牌"
 node file "文件协议凭据" note="SMB / WebDAV / NFS / FTP 用户名密码；网盘使用扫码授权 OAuth"
 node libs "拉取媒体库列表" note="Emby/Jellyfin：GET /Users/{UserId}/Views；飞牛影视：媒体库列表接口；文件源：浏览目录"
 node pick "选择导入的媒体库" note="可按库设置类型（电影 / 剧集 / 动漫 / 纪录片）与是否显示在首页"
@@ -18,7 +20,8 @@ node merge "合并多源中的同一影片" note="按 TMDB / IMDb ID 合并，�
 node save "写入本地索引，同步配置到 iCloud" kind=data note="密码与 Token 存钥匙串，不随配置同步；其它设备需重新认证或扫码授权"
 node done "进入首页" kind=end
 start -> type
-type -> discover "服务器 / 文件协议"
+type -> discover "手动输入 / 局域网发现"
+type -> plex "Plex 账号"
 type -> file "网盘"
 discover -> test
 test -> fail "失败"
@@ -31,6 +34,7 @@ auth -> file "文件协议"
 pwd -> libs
 quick -> libs
 fn -> libs
+plex -> plexServer -> libs
 file -> libs
 libs -> pick -> meta
 meta -> server "服务器源"

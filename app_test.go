@@ -43,7 +43,7 @@ func TestConnectLibraryAndOpenPlayer(t *testing.T) {
 				return nil, media.ErrInvalidAddress
 			}
 			return fixtureServer{session: session}, nil
-		})
+		}, nil)
 	})
 	app.Press("id:add-source")
 	app.Press("id:choose-jellyfin")

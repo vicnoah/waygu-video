@@ -87,12 +87,13 @@ func (a *application) settings(cx *core.Scope) core.Node {
 									failure.Set(err)
 									return
 								}
-								a.tokens.Delete(selected.ID)
+								key := selected.credentialKey()
+								a.tokens.Delete(key)
 								if a.sourceFilter.GetUntracked() == selected.ID {
 									a.sourceFilter.Set("")
 								}
 								confirm.Set("")
-								go func() { _ = a.secrets.Delete(selected.ID) }()
+								go func() { _ = a.secrets.Delete(key) }()
 							}},
 						}
 					} else {

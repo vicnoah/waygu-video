@@ -85,6 +85,17 @@ const (
 	textUsername
 	textPassword
 	textPlexToken
+	textLinkPlexAccount
+	textPlexScanQR
+	textPlexWaitingAuthorization
+	textOpenPlexSignIn
+	textPlexBrowserUnavailable
+	textSelectPlexServer
+	textNoPlexServers
+	textPlexServerNotInAccount
+	textRestartPlexAuthorization
+	textPlexAuthorizationExpired
+	textPlexServerUnreachable
 	textTestConnection
 	textSignIn
 	textImportLibraries
@@ -170,6 +181,17 @@ var keyOfText = [numTexts]string{
 	"username",
 	"password",
 	"plexToken",
+	"linkPlexAccount",
+	"plexScanQR",
+	"plexWaitingAuthorization",
+	"openPlexSignIn",
+	"plexBrowserUnavailable",
+	"selectPlexServer",
+	"noPlexServers",
+	"plexServerNotInAccount",
+	"restartPlexAuthorization",
+	"plexAuthorizationExpired",
+	"plexServerUnreachable",
 	"testConnection",
 	"signIn",
 	"importLibraries",
@@ -253,6 +275,17 @@ var textsEn = i18n.NewTexts(""+
 	"Username"+
 	"Password"+
 	"Plex access token"+
+	"Link Plex account"+
+	"Scan this QR code with your phone to sign in to Plex."+
+	"Waiting for Plex authorization…"+
+	"Open Plex sign-in"+
+	"Could not open the browser. Scan the QR code with your phone."+
+	"Select a Plex server"+
+	"This Plex account has no available media servers."+
+	"The saved Plex server is unavailable to this account."+
+	"Start a new Plex authorization"+
+	"Plex authorization expired. Start a new authorization."+
+	"Could not connect to the selected Plex server."+
 	"Test connection"+
 	"Sign in"+
 	"Choose libraries to import"+
@@ -333,6 +366,17 @@ var textsEn = i18n.NewTexts(""+
 		8,
 		8,
 		17,
+		17,
+		53,
+		33,
+		17,
+		61,
+		20,
+		49,
+		53,
+		30,
+		54,
+		46,
 		15,
 		7,
 		26,
@@ -416,6 +460,17 @@ var textsZhHans = i18n.NewTexts(""+
 	"用户名"+
 	"密码"+
 	"Plex 访问令牌"+
+	"关联 Plex 账号"+
+	"用手机扫描二维码登录 Plex。"+
+	"正在等待 Plex 授权…"+
+	"打开 Plex 登录页面"+
+	"无法打开浏览器，请用手机扫描二维码。"+
+	"选择 Plex 服务器"+
+	"此 Plex 账号下没有可用的媒体服务器。"+
+	"此 Plex 账号无法访问已保存的服务器。"+
+	"重新发起 Plex 授权"+
+	"Plex 授权已过期，请重新发起授权。"+
+	"无法连接到所选 Plex 服务器。"+
 	"测试连接"+
 	"登录"+
 	"选择要导入的媒体库"+
@@ -496,6 +551,17 @@ var textsZhHans = i18n.NewTexts(""+
 		9,
 		6,
 		17,
+		18,
+		38,
+		27,
+		24,
+		54,
+		21,
+		51,
+		51,
+		24,
+		47,
+		39,
 		12,
 		6,
 		27,
@@ -761,6 +827,89 @@ func PlexToken(cx *core.Scope) string { return For(cx).PlexToken() }
 
 // PlexToken is the package's PlexToken in the language of msgs.
 func (msgs Messages) PlexToken() string { return msgs.text(textPlexToken) }
+
+// LinkPlexAccount says "Link Plex account"
+// in the language the app shows under cx.
+func LinkPlexAccount(cx *core.Scope) string { return For(cx).LinkPlexAccount() }
+
+// LinkPlexAccount is the package's LinkPlexAccount in the language of msgs.
+func (msgs Messages) LinkPlexAccount() string { return msgs.text(textLinkPlexAccount) }
+
+// PlexScanQR says "Scan this QR code with your phone to sign in to Plex."
+// in the language the app shows under cx.
+func PlexScanQR(cx *core.Scope) string { return For(cx).PlexScanQR() }
+
+// PlexScanQR is the package's PlexScanQR in the language of msgs.
+func (msgs Messages) PlexScanQR() string { return msgs.text(textPlexScanQR) }
+
+// PlexWaitingAuthorization says "Waiting for Plex authorization…"
+// in the language the app shows under cx.
+func PlexWaitingAuthorization(cx *core.Scope) string { return For(cx).PlexWaitingAuthorization() }
+
+// PlexWaitingAuthorization is the package's PlexWaitingAuthorization in the language of msgs.
+func (msgs Messages) PlexWaitingAuthorization() string {
+	return msgs.text(textPlexWaitingAuthorization)
+}
+
+// OpenPlexSignIn says "Open Plex sign-in"
+// in the language the app shows under cx.
+func OpenPlexSignIn(cx *core.Scope) string { return For(cx).OpenPlexSignIn() }
+
+// OpenPlexSignIn is the package's OpenPlexSignIn in the language of msgs.
+func (msgs Messages) OpenPlexSignIn() string { return msgs.text(textOpenPlexSignIn) }
+
+// PlexBrowserUnavailable says "Could not open the browser. Scan the QR code with your phone."
+// in the language the app shows under cx.
+func PlexBrowserUnavailable(cx *core.Scope) string { return For(cx).PlexBrowserUnavailable() }
+
+// PlexBrowserUnavailable is the package's PlexBrowserUnavailable in the language of msgs.
+func (msgs Messages) PlexBrowserUnavailable() string { return msgs.text(textPlexBrowserUnavailable) }
+
+// SelectPlexServer says "Select a Plex server"
+// in the language the app shows under cx.
+func SelectPlexServer(cx *core.Scope) string { return For(cx).SelectPlexServer() }
+
+// SelectPlexServer is the package's SelectPlexServer in the language of msgs.
+func (msgs Messages) SelectPlexServer() string { return msgs.text(textSelectPlexServer) }
+
+// NoPlexServers says "This Plex account has no available media servers."
+// in the language the app shows under cx.
+func NoPlexServers(cx *core.Scope) string { return For(cx).NoPlexServers() }
+
+// NoPlexServers is the package's NoPlexServers in the language of msgs.
+func (msgs Messages) NoPlexServers() string { return msgs.text(textNoPlexServers) }
+
+// PlexServerNotInAccount says "The saved Plex server is unavailable to this account."
+// in the language the app shows under cx.
+func PlexServerNotInAccount(cx *core.Scope) string { return For(cx).PlexServerNotInAccount() }
+
+// PlexServerNotInAccount is the package's PlexServerNotInAccount in the language of msgs.
+func (msgs Messages) PlexServerNotInAccount() string { return msgs.text(textPlexServerNotInAccount) }
+
+// RestartPlexAuthorization says "Start a new Plex authorization"
+// in the language the app shows under cx.
+func RestartPlexAuthorization(cx *core.Scope) string { return For(cx).RestartPlexAuthorization() }
+
+// RestartPlexAuthorization is the package's RestartPlexAuthorization in the language of msgs.
+func (msgs Messages) RestartPlexAuthorization() string {
+	return msgs.text(textRestartPlexAuthorization)
+}
+
+// PlexAuthorizationExpired says "Plex authorization expired. Start a new authorization."
+// in the language the app shows under cx.
+func PlexAuthorizationExpired(cx *core.Scope) string { return For(cx).PlexAuthorizationExpired() }
+
+// PlexAuthorizationExpired is the package's PlexAuthorizationExpired in the language of msgs.
+func (msgs Messages) PlexAuthorizationExpired() string {
+	return msgs.text(textPlexAuthorizationExpired)
+}
+
+// PlexServerUnreachable says "Could not connect to the selected Plex server."
+// in the language the app shows under cx.
+func PlexServerUnreachable(cx *core.Scope) string { return For(cx).PlexServerUnreachable() }
+
+// PlexServerUnreachable is the package's PlexServerUnreachable in the language of msgs.
+func (msgs Messages) PlexServerUnreachable() string { return msgs.text(textPlexServerUnreachable) }
 
 // TestConnection says "Test connection"
 // in the language the app shows under cx.

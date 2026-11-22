@@ -72,12 +72,16 @@ type plexTrack struct {
 }
 
 func (p *plexClient) auth() http.Header {
+	return plexHeaders(p.device, p.session.Token)
+}
+
+func plexHeaders(device Device, token string) http.Header {
 	headers := make(http.Header)
 	headers.Set("X-Plex-Product", "Waygu Video")
 	headers.Set("X-Plex-Version", "0.1.0")
-	headers.Set("X-Plex-Client-Identifier", p.device.ID)
-	if p.session.Token != "" {
-		headers.Set("X-Plex-Token", p.session.Token)
+	headers.Set("X-Plex-Client-Identifier", device.ID)
+	if token != "" {
+		headers.Set("X-Plex-Token", token)
 	}
 	return headers
 }
@@ -96,6 +100,17 @@ func (p *plexClient) get(ctx context.Context, route string, params url.Values) (
 func (p *plexClient) Probe(ctx context.Context) (ServerInfo, error) {
 	ctx, cancel := context.WithTimeout(ctx, 8*time.Second)
 	defer cancel()
+	info, err := p.identity(ctx)
+	if err != nil {
+		return ServerInfo{}, err
+	}
+	if root, err := p.get(ctx, "/", nil); err == nil && root.Name != "" {
+		info.Name = root.Name
+	}
+	return info, nil
+}
+
+func (p *plexClient) identity(ctx context.Context) (ServerInfo, error) {
 	info, err := p.get(ctx, "/identity", nil)
 	if err != nil {
 		return ServerInfo{}, err
@@ -103,11 +118,7 @@ func (p *plexClient) Probe(ctx context.Context) (ServerInfo, error) {
 	if info.Identifier == "" {
 		return ServerInfo{}, ErrResponse
 	}
-	name := "Plex"
-	if root, err := p.get(ctx, "/", nil); err == nil && root.Name != "" {
-		name = root.Name
-	}
-	return ServerInfo{ID: info.Identifier, Name: name, Version: info.Version}, nil
+	return ServerInfo{ID: info.Identifier, Name: "Plex", Version: info.Version}, nil
 }
 
 func (p *plexClient) SignIn(ctx context.Context, input Credentials) (Session, error) {

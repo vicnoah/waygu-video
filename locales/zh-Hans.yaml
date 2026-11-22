@@ -14,6 +14,17 @@ sourceName: 显示名称
 username: 用户名
 password: 密码
 plexToken: Plex 访问令牌
+linkPlexAccount: 关联 Plex 账号
+plexScanQR: 用手机扫描二维码登录 Plex。
+plexWaitingAuthorization: 正在等待 Plex 授权…
+openPlexSignIn: 打开 Plex 登录页面
+plexBrowserUnavailable: 无法打开浏览器，请用手机扫描二维码。
+selectPlexServer: 选择 Plex 服务器
+noPlexServers: 此 Plex 账号下没有可用的媒体服务器。
+plexServerNotInAccount: 此 Plex 账号无法访问已保存的服务器。
+restartPlexAuthorization: 重新发起 Plex 授权
+plexAuthorizationExpired: Plex 授权已过期，请重新发起授权。
+plexServerUnreachable: 无法连接到所选 Plex 服务器。
 testConnection: 测试连接
 signIn: 登录
 connected: "已连接 {name}"

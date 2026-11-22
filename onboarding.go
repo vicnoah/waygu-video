@@ -155,7 +155,17 @@ func (a *application) connect(cx *core.Scope, current route) core.Node {
 		if result := candidate.Get(); result != nil {
 			return a.importSource(form, *result, func() { candidate.Set(nil) })
 		}
-		return connectionForm(form, current.provider, address, name, user, password, busy, failure, preview, quickCode, submit)
+		manual := connectionForm(form, current.provider, address, name, user, password, busy, failure, preview, quickCode, submit)
+		if !plex {
+			return manual
+		}
+		return core.View{Class: "gap-4", Children: []core.Node{
+			ui.Button{Text: locales.LinkPlexAccount(form), Icon: lucide.Link, Size: ui.SizeLarge,
+				TestID: "link-plex-account", Disabled: busy.Get, OnPress: func() {
+					a.push(route{screen: screenPlexLink, source: current.source})
+				}},
+			manual,
+		}}
 	})))
 }
 
@@ -291,26 +301,45 @@ func (a *application) importSource(cx *core.Scope, candidate candidateSource, ba
 			}, Disabled: busy.Get})
 	}
 	store := func() {
+		if busy.GetUntracked() {
+			return
+		}
 		form := candidate.source
 		form.Libraries = selected.GetUntracked()
+		var previousKey string
 		for _, existing := range a.sources.GetUntracked() {
-			if existing.Provider == form.Provider && existing.Address == form.Address && existing.Username == form.Username {
+			matchesAddress := form.ID == "" && existing.Provider == form.Provider && existing.Address == form.Address &&
+				existing.Username == form.Username && existing.PlexLinked == form.PlexLinked
+			if matchesAddress || (form.ID != "" && existing.ID == form.ID) {
 				form.ID = existing.ID
+				previousKey = existing.credentialKey()
 				break
 			}
 		}
 		if form.ID == "" {
 			form.ID = rand.Text()
 		}
+		// Stage replacements under a fresh key so the saved source keeps its old
+		// credential if the view closes or saving the source settings fails.
+		if previousKey != "" {
+			form.CredentialKey = rand.Text()
+		}
+		key, token := form.credentialKey(), candidate.session.Token
 		busy.Set(true)
 		go func() {
 			var err error
-			if candidate.session.Token != "" {
-				err = a.secrets.Set(form.ID, candidate.session.Token)
+			if token != "" {
+				err = a.secrets.Set(key, token)
 			}
 			form.Volatile = errors.Is(err, core.ErrSecretsUnavailable)
-			cx.Post(func() {
+			discard := func() {
+				if token != "" && err == nil {
+					go func() { _ = a.secrets.Delete(key) }()
+				}
+			}
+			a.scope.Post(func() {
 				if viewContext.Err() != nil {
+					discard()
 					return
 				}
 				busy.Set(false)
@@ -321,10 +350,15 @@ func (a *application) importSource(cx *core.Scope, candidate candidateSource, ba
 				others := slices.Clone(a.sources.GetUntracked())
 				others = slices.DeleteFunc(others, func(entry source) bool { return entry.ID == form.ID })
 				if err := a.saveSources(append(others, form)); err != nil {
+					discard()
 					failure.Set(err)
 					return
 				}
-				a.tokens.Store(form.ID, candidate.session.Token)
+				a.tokens.Store(key, token)
+				if previousKey != "" {
+					a.tokens.Delete(previousKey)
+					go func() { _ = a.secrets.Delete(previousKey) }()
+				}
 				a.sourceFilter.Set("")
 				a.enter()
 			})
@@ -336,7 +370,7 @@ func (a *application) importSource(cx *core.Scope, candidate candidateSource, ba
 		}
 		return nil
 	}), core.View{Class: "flex-row flex-wrap gap-3 pt-2", Children: []core.Node{
-		ui.Button{Text: locales.Back(cx), Variant: ui.ButtonGhost, Disabled: busy.Get, OnPress: back},
+		ui.Button{Text: locales.Back(cx), Variant: ui.ButtonGhost, Disabled: busy.Get, TestID: "import-back", OnPress: back},
 		ui.Button{Text: locales.ImportAction(cx), Busy: busy.Get, Size: ui.SizeLarge, TestID: "import-libraries",
 			Disabled: func() bool { return len(selected.Get()) == 0 }, OnPress: store},
 	}})

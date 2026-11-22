@@ -14,6 +14,17 @@ sourceName: Display name
 username: Username
 password: Password
 plexToken: Plex access token
+linkPlexAccount: Link Plex account
+plexScanQR: Scan this QR code with your phone to sign in to Plex.
+plexWaitingAuthorization: Waiting for Plex authorization…
+openPlexSignIn: Open Plex sign-in
+plexBrowserUnavailable: Could not open the browser. Scan the QR code with your phone.
+selectPlexServer: Select a Plex server
+noPlexServers: This Plex account has no available media servers.
+plexServerNotInAccount: The saved Plex server is unavailable to this account.
+restartPlexAuthorization: Start a new Plex authorization
+plexAuthorizationExpired: Plex authorization expired. Start a new authorization.
+plexServerUnreachable: Could not connect to the selected Plex server.
 testConnection: Test connection
 signIn: Sign in
 connected: "Connected to {name}"

@@ -15,7 +15,7 @@ func TestPlayNextEpisodeAcrossSeasons(t *testing.T) {
 	app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
 		return appRoot(cx, func(_ media.Provider, _ string, _ media.Device, session media.Session) (media.Client, error) {
 			return episodeServer{fixtureServer{session: session}}, nil
-		})
+		}, nil)
 	}, nsgotest.Storage(map[string]string{sourcesKey: `[{
 		"ID":"example","Provider":"jellyfin","Address":"http://example.test",
 		"Name":"Example","Libraries":[{"ID":"shows"}]

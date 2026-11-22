@@ -21,6 +21,7 @@ const (
 	screenWelcome  screen = "welcome"
 	screenSources  screen = "sources"
 	screenConnect  screen = "connect"
+	screenPlexLink screen = "plex-link"
 	screenHome     screen = "home"
 	screenLibrary  screen = "library"
 	screenSearch   screen = "search"
@@ -38,20 +39,30 @@ type route struct {
 }
 
 type source struct {
-	ID        string
-	Provider  media.Provider
-	Address   string
-	Name      string
-	ServerID  string
-	AccountID string
-	Username  string
-	Libraries []media.Library
-	Volatile  bool `json:"-"`
+	ID            string
+	Provider      media.Provider
+	Address       string
+	Name          string
+	ServerID      string
+	AccountID     string
+	Username      string
+	PlexLinked    bool   `json:",omitempty"`
+	CredentialKey string `json:",omitempty"`
+	Libraries     []media.Library
+	Volatile      bool `json:"-"`
+}
+
+func (s source) credentialKey() string {
+	if s.CredentialKey != "" {
+		return s.CredentialKey
+	}
+	return s.ID
 }
 
 type mediaFactory func(media.Provider, string, media.Device, media.Session) (media.Client, error)
 
 type application struct {
+	scope        *core.Scope
 	device       media.Device
 	storage      core.Storage
 	secrets      core.Secrets
@@ -78,10 +89,10 @@ const (
 var playbackBitrates = []int{0, 4_000_000, 8_000_000, 20_000_000}
 
 func Root(cx *core.Scope) core.Node {
-	return appRoot(cx, media.NewClient)
+	return appRoot(cx, media.NewClient, nil)
 }
 
-func appRoot(cx *core.Scope, factory mediaFactory) core.Node {
+func appRoot(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer) core.Node {
 	cx.SetTheme(wayguTheme())
 	storage := cx.Storage()
 	var sources []source
@@ -105,6 +116,7 @@ func appRoot(cx *core.Scope, factory mediaFactory) core.Node {
 		first = screenHome
 	}
 	a := &application{
+		scope:  cx,
 		device: media.Device{ID: deviceID, Name: "Waygu Video"}, storage: storage, secrets: cx.Secrets(), newMedia: factory,
 		sources: core.NewSignalFunc(cx, sources, nil), routes: core.NewSignalFunc(cx, []route{{screen: first}}, nil),
 		tab: core.NewSignal(cx, 0), sourceFilter: core.NewSignal(cx, ""),
@@ -130,6 +142,12 @@ func appRoot(cx *core.Scope, factory mediaFactory) core.Node {
 				return a.chooseSource(screenScope)
 			case screenConnect:
 				return a.connect(screenScope, current)
+			case screenPlexLink:
+				account := plexAccount
+				if account == nil {
+					account = media.NewPlexAccount(a.device)
+				}
+				return a.linkPlex(screenScope, current.source, account)
 			case screenDetail:
 				return a.detail(screenScope, current)
 			case screenPlayer:
@@ -172,17 +190,18 @@ func (a *application) saveSources(sources []source) error {
 }
 
 func (a *application) client(s source) (media.Client, error) {
-	value, exists := a.tokens.Load(s.ID)
+	key := s.credentialKey()
+	value, exists := a.tokens.Load(key)
 	if !exists {
-		token, found, err := a.secrets.Get(s.ID)
+		token, found, err := a.secrets.Get(key)
 		if err != nil && !errors.Is(err, core.ErrSecretsUnavailable) {
 			return nil, err
 		}
-		if !found && s.Provider != media.Plex {
+		if !found && (s.Provider != media.Plex || s.PlexLinked) {
 			return nil, media.ErrAuthentication
 		}
 		value = token
-		a.tokens.Store(s.ID, token)
+		a.tokens.Store(key, token)
 	}
 	return a.newMedia(s.Provider, s.Address, a.device, media.Session{UserID: s.AccountID, Token: value.(string)})
 }
@@ -195,6 +214,10 @@ func errorText(cx *core.Scope, err error) string {
 		return locales.AuthenticationError(cx)
 	case errors.Is(err, media.ErrQuickConnectUnavailable):
 		return locales.QuickConnectUnavailable(cx)
+	case errors.Is(err, media.ErrPlexPINExpired):
+		return locales.PlexAuthorizationExpired(cx)
+	case errors.Is(err, media.ErrPlexUnreachable):
+		return locales.PlexServerUnreachable(cx)
 	case errors.Is(err, core.ErrSecretsUnavailable):
 		return locales.SecretUnavailable(cx)
 	default:
