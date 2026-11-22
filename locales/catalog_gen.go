@@ -44,6 +44,8 @@ func For(cx *core.Scope) Messages {
 // (tsx.RegisterMessages).
 var Parameters = map[string][]string{
 	"Connected":               {"name"},
+	"MoveSourceUp":            {"name"},
+	"MoveSourceDown":          {"name"},
 	"ShowNamedLibrary":        {"name"},
 	"ShowNamedLibraryOnHome":  {"name"},
 	"MoveLibraryUp":           {"name"},
@@ -66,6 +68,8 @@ var Parameters = map[string][]string{
 type Translation struct {
 	Texts                   map[string]string
 	Connected               func(name string) string
+	MoveSourceUp            func(name string) string
+	MoveSourceDown          func(name string) string
 	ShowNamedLibrary        func(name string) string
 	ShowNamedLibraryOnHome  func(name string) string
 	MoveLibraryUp           func(name string) string
@@ -122,6 +126,9 @@ const (
 	textSearch
 	textSettings
 	textAllSources
+	textMergeIdenticalTitles
+	textMergeTitlesDescription
+	textPlaybackSource
 	textAllLibraries
 	textAllCategories
 	textManageLibraries
@@ -257,6 +264,9 @@ var keyOfText = [numTexts]string{
 	"search",
 	"settings",
 	"allSources",
+	"mergeIdenticalTitles",
+	"mergeTitlesDescription",
+	"playbackSource",
 	"allLibraries",
 	"allCategories",
 	"manageLibraries",
@@ -390,6 +400,9 @@ var textsEn = i18n.NewTexts(""+
 	"Search"+
 	"Settings"+
 	"All media sources"+
+	"Merge matching titles"+
+	"Match titles by IMDb or TMDB ID. The source order determines which copy plays first."+
+	"Playback source"+
 	"All libraries"+
 	"All categories"+
 	"Manage libraries"+
@@ -520,6 +533,9 @@ var textsEn = i18n.NewTexts(""+
 		6,
 		8,
 		17,
+		21,
+		84,
+		15,
 		13,
 		14,
 		16,
@@ -653,6 +669,9 @@ var textsZhHans = i18n.NewTexts(""+
 	"搜索"+
 	"设置"+
 	"全部媒体源"+
+	"合并相同影片"+
+	"按 IMDb 或 TMDB ID 匹配影片。媒体源的排列顺序决定优先播放哪一份。"+
+	"播放来源"+
 	"全部媒体库"+
 	"全部分类"+
 	"管理媒体库"+
@@ -783,6 +802,9 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		6,
 		15,
+		18,
+		90,
+		12,
 		15,
 		12,
 		15,
@@ -933,6 +955,12 @@ func Supply(lang string, t Translation) {
 	s := supplied[lang]
 	if t.Connected != nil {
 		s.Connected = t.Connected
+	}
+	if t.MoveSourceUp != nil {
+		s.MoveSourceUp = t.MoveSourceUp
+	}
+	if t.MoveSourceDown != nil {
+		s.MoveSourceDown = t.MoveSourceDown
 	}
 	if t.ShowNamedLibrary != nil {
 		s.ShowNamedLibrary = t.ShowNamedLibrary
@@ -1276,6 +1304,71 @@ func AllSources(cx *core.Scope) string { return For(cx).AllSources() }
 
 // AllSources is the package's AllSources in the language of msgs.
 func (msgs Messages) AllSources() string { return msgs.text(textAllSources) }
+
+// MergeIdenticalTitles says "Merge matching titles"
+// in the language the app shows under cx.
+func MergeIdenticalTitles(cx *core.Scope) string { return For(cx).MergeIdenticalTitles() }
+
+// MergeIdenticalTitles is the package's MergeIdenticalTitles in the language of msgs.
+func (msgs Messages) MergeIdenticalTitles() string { return msgs.text(textMergeIdenticalTitles) }
+
+// MergeTitlesDescription says "Match titles by IMDb or TMDB ID. The source order determines which copy plays first."
+// in the language the app shows under cx.
+func MergeTitlesDescription(cx *core.Scope) string { return For(cx).MergeTitlesDescription() }
+
+// MergeTitlesDescription is the package's MergeTitlesDescription in the language of msgs.
+func (msgs Messages) MergeTitlesDescription() string { return msgs.text(textMergeTitlesDescription) }
+
+// MoveSourceUp says "Move {name} up"
+// in the language the app shows under cx.
+func MoveSourceUp(cx *core.Scope, name string) string { return For(cx).MoveSourceUp(name) }
+
+// MoveSourceUp is the package's MoveSourceUp in the language of msgs.
+func (msgs Messages) MoveSourceUp(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MoveSourceUp(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MoveSourceUp; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Move " + msgs.arg(name) + " up"
+		case "zh-Hans":
+			return "上移" + name
+		}
+	}
+}
+
+// MoveSourceDown says "Move {name} down"
+// in the language the app shows under cx.
+func MoveSourceDown(cx *core.Scope, name string) string { return For(cx).MoveSourceDown(name) }
+
+// MoveSourceDown is the package's MoveSourceDown in the language of msgs.
+func (msgs Messages) MoveSourceDown(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MoveSourceDown(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MoveSourceDown; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Move " + msgs.arg(name) + " down"
+		case "zh-Hans":
+			return "下移" + name
+		}
+	}
+}
+
+// PlaybackSource says "Playback source"
+// in the language the app shows under cx.
+func PlaybackSource(cx *core.Scope) string { return For(cx).PlaybackSource() }
+
+// PlaybackSource is the package's PlaybackSource in the language of msgs.
+func (msgs Messages) PlaybackSource() string { return msgs.text(textPlaybackSource) }
 
 // AllLibraries says "All libraries"
 // in the language the app shows under cx.

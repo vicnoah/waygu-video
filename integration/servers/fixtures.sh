@@ -26,6 +26,16 @@ make_clip() {
 make_clip testsrc2 440 "$movie/Waygu Test Movie (2025).mp4"
 make_clip smptebars 520 "$season/Waygu Test Series - S01E01.mp4"
 
+cat > "$movie/Waygu Test Movie (2025).nfo" <<'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<movie>
+  <title>Waygu Test Movie</title>
+  <year>2025</year>
+  <uniqueid type="imdb" default="true">tt90000002</uniqueid>
+  <uniqueid type="tmdb">900000991</uniqueid>
+</movie>
+EOF
+
 if [ ! -s "$resume/Waygu Resume Test (2025).mp4" ]; then
     ffmpeg -nostdin -hide_banner -loglevel error -y \
         -f lavfi -i 'color=c=purple:size=160x90:rate=12' \

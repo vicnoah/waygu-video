@@ -36,6 +36,11 @@ library: 媒体库
 search: 搜索
 settings: 设置
 allSources: 全部媒体源
+mergeIdenticalTitles: 合并相同影片
+mergeTitlesDescription: 按 IMDb 或 TMDB ID 匹配影片。媒体源的排列顺序决定优先播放哪一份。
+moveSourceUp: "上移{name}"
+moveSourceDown: "下移{name}"
+playbackSource: 播放来源
 allLibraries: 全部媒体库
 allCategories: 全部分类
 manageLibraries: 管理媒体库

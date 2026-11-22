@@ -38,6 +38,7 @@ type route struct {
 	item      media.Item
 	resume    bool
 	versionID string
+	match     *catalogMatch
 }
 
 type source struct {
@@ -73,6 +74,7 @@ type application struct {
 	routes        *core.Signal[[]route]
 	tab           *core.Signal[int]
 	sourceFilter  *core.Signal[string]
+	mergeTitles   *core.Signal[bool]
 	mpvPreferred  *core.Signal[bool]
 	bitrateLimit  *core.Signal[int]
 	versionPolicy *core.Signal[media.VersionPolicy]
@@ -81,12 +83,13 @@ type application struct {
 }
 
 const (
-	sourcesKey  = "media-sources-v1"
-	deviceKey   = "media-device-v1"
-	seenKey     = "onboarding-seen-v1"
-	mpvKey      = "playback-libmpv-v1"
-	bitrateKey  = "playback-bitrate-v1"
-	autoNextKey = "playback-auto-next-v1"
+	sourcesKey     = "media-sources-v1"
+	deviceKey      = "media-device-v1"
+	seenKey        = "onboarding-seen-v1"
+	mpvKey         = "playback-libmpv-v1"
+	bitrateKey     = "playback-bitrate-v1"
+	autoNextKey    = "playback-auto-next-v1"
+	mergeTitlesKey = "media-merge-identical-titles-v1"
 )
 
 var playbackBitrates = []int{0, 4_000_000, 8_000_000, 20_000_000}
@@ -112,6 +115,7 @@ func appRoot(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer) c
 	bitrateSetting, _ := storage.GetItem(bitrateKey)
 	policy, _ := storage.GetItem(versionPolicyKey)
 	autoNext, _ := storage.GetItem(autoNextKey)
+	mergeTitles, _ := storage.GetItem(mergeTitlesKey)
 	bitrate, _ := strconv.Atoi(bitrateSetting)
 	if !slices.Contains(playbackBitrates, bitrate) {
 		bitrate = 0
@@ -124,6 +128,7 @@ func appRoot(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer) c
 		device: media.Device{ID: deviceID, Name: "Waygu Video"}, storage: storage, secrets: cx.Secrets(), newMedia: factory,
 		sources: core.NewSignalFunc(cx, sources, nil), routes: core.NewSignalFunc(cx, []route{{screen: first}}, nil),
 		tab: core.NewSignal(cx, 0), sourceFilter: core.NewSignal(cx, ""),
+		mergeTitles:   core.NewSignal(cx, mergeTitles != "false"),
 		mpvPreferred:  core.NewSignal(cx, mpvPreference == "true"),
 		bitrateLimit:  core.NewSignal(cx, bitrate),
 		versionPolicy: core.NewSignal(cx, playbackVersionPolicy(policy)),

@@ -201,6 +201,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 					duration.Set(info.Duration)
 				}
 				loaded = true
+				a.rememberPlayedCopy(current)
 				a.rememberPlaybackVersion(current, active.client, active.stream.VersionID())
 				buffering.Set(false)
 				canChangeRate.Set(info.RateChangeable)

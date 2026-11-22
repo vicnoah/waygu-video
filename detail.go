@@ -21,6 +21,78 @@ type detailResult struct {
 }
 
 func (a *application) detail(cx *core.Scope, current route) core.Node {
+	if current.match == nil {
+		return pageFrame(pageHeader(cx, locales.Details(cx), a.back), pageBody(a.detailContent(cx, current)))
+	}
+	anchor := catalogCopy{current.source, current.item}
+	sources := a.sources.GetUntracked()
+	selected := core.NewSignal(cx, copyKey{})
+	available := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) ([]catalogCopy, error) {
+		return a.relatedCopies(ctx, current, sources), nil
+	})
+	copies := core.NewMemoFunc(cx, func() []catalogCopy {
+		if loaded, ready := available.Get(); ready {
+			return prioritizeCopies(loaded, sources)
+		}
+		return prioritizeCopies(append([]catalogCopy{anchor}, current.match.copies...), sources)
+	}, nil)
+	active := core.NewMemoFunc(cx, func() catalogCopy {
+		choices := copies.Get()
+		if key := selected.Get(); key != (copyKey{}) {
+			for _, copy := range choices {
+				if copy.key() == key {
+					return copy
+				}
+			}
+		}
+		if remembered := a.rememberedCopy(current); remembered != "" {
+			for _, copy := range choices {
+				if encodeCopyKey(copy.key()) == remembered {
+					return copy
+				}
+			}
+		}
+		return choices[0]
+	}, func(a, b catalogCopy) bool { return a.key() == b.key() })
+	picker := core.Dynamic(func(cx *core.Scope) core.Node {
+		choices := copies.Get()
+		if len(choices) < 2 {
+			return nil
+		}
+		names := make(map[string]int)
+		for _, copy := range choices {
+			names[copy.source.Name]++
+		}
+		options := make([]ui.Option[copyKey], 0, len(choices))
+		for _, copy := range choices {
+			label := copy.source.Name
+			if names[label] > 1 {
+				label += " · " + copy.item.Title
+				for _, library := range copy.source.Libraries {
+					if library.ID == copy.item.LibraryID {
+						label += " · " + library.Name
+						break
+					}
+				}
+			}
+			options = append(options, ui.Option[copyKey]{Label: label, Value: copy.key()})
+		}
+		label := locales.PlaybackSource(cx)
+		return core.View{Class: "flex-row flex-wrap items-center gap-3", Children: []core.Node{
+			core.Text{Content: label, Class: "text-sm font-medium"},
+			playbackChoice(cx, label, "playback-source", options, func() copyKey { return active.Get().key() }, selected.Set),
+		}}
+	})
+	content := core.Dynamic(func(cx *core.Scope) core.Node {
+		copy := active.Get()
+		selectedRoute := current
+		selectedRoute.source, selectedRoute.item = copy.source, copy.item
+		return a.detailContent(cx, selectedRoute)
+	})
+	return pageFrame(pageHeader(cx, locales.Details(cx), a.back), pageBody(picker, content))
+}
+
+func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 	loaded := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (detailResult, error) {
 		result := detailResult{item: current.item}
 		client, err := a.client(current.source)
@@ -46,7 +118,7 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 	})
 	versionID := core.NewSignal(cx, "")
 	versions := a.versionPicker(cx, current, versionID)
-	return pageFrame(pageHeader(cx, locales.Details(cx), a.back), pageBody(core.Dynamic(func(cx *core.Scope) core.Node {
+	return core.Dynamic(func(cx *core.Scope) core.Node {
 		result, ready := loaded.Get()
 		if !ready {
 			result.item = current.item
@@ -73,7 +145,7 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 				label = locales.Resume(cx)
 			}
 			start := func(resume bool) {
-				a.push(route{screen: screenPlayer, source: current.source, item: item, resume: resume, versionID: versionID.GetUntracked()})
+				a.push(route{screen: screenPlayer, source: current.source, item: item, resume: resume, versionID: versionID.GetUntracked(), match: current.match})
 			}
 			actions := []core.Node{ui.Button{Text: label, Icon: lucide.Play, Size: ui.SizeLarge, TestID: "detail-play",
 				OnPress: func() { start(true) }}}
@@ -133,5 +205,5 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 			}
 		}
 		return core.View{Class: "gap-5", Children: rows}
-	})))
+	})
 }

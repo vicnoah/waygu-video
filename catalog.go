@@ -20,6 +20,7 @@ import (
 type catalogItem struct {
 	source source
 	item   media.Item
+	match  *catalogMatch
 }
 
 type catalogRequest struct {
@@ -30,6 +31,7 @@ type catalogRequest struct {
 	limit    int
 	home     bool
 	category libraryCategory
+	merge    bool
 }
 
 type catalogResult struct {
@@ -93,7 +95,7 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 		sources := a.sources.Get()
 		term := query.Get()
 		return catalogRequest{sources: sources, filter: a.sourceFilter.Get(), library: library.Get(), search: term,
-			limit: limit.Get(), home: page == screenHome, category: category.Get()}, len(sources) > 0 && (page != screenSearch || term != "")
+			limit: limit.Get(), home: page == screenHome, category: category.Get(), merge: a.mergeTitles.Get()}, len(sources) > 0 && (page != screenSearch || term != "")
 	}, func(ctx context.Context, request catalogRequest, _ core.ResourceInfo) (catalogResult, error) {
 		return a.loadCatalog(ctx, request), nil
 	})
@@ -238,6 +240,9 @@ func (a *application) loadCatalog(ctx context.Context, q catalogRequest) catalog
 		all.hasMore = all.hasMore || group.hasMore
 		all.failure = errors.Join(all.failure, group.failure)
 	}
+	if q.merge && len(q.sources) > 1 && q.filter == "" && q.library == "" {
+		all.items = mergeCatalogItems(all.items, q.home, q.category)
+	}
 	return all
 }
 
@@ -281,7 +286,7 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 				continue
 			}
 			if !seen[item.ID] && library.matchesCategory(q.category, item) {
-				result.items = append(result.items, catalogItem{source, item})
+				result.items = append(result.items, catalogItem{source: source, item: item})
 				seen[item.ID] = true
 			}
 		}
@@ -300,7 +305,7 @@ func resumeShelf(ctx context.Context, client media.Client, source source, visibl
 	seen := make(map[string]bool)
 	add := func(item media.Item) {
 		if len(shelf) < shelfLimit && item.ID != "" && item.Position > 0 && !seen[item.ID] {
-			shelf = append(shelf, catalogItem{source, item})
+			shelf = append(shelf, catalogItem{source: source, item: item})
 			seen[item.ID] = true
 		}
 	}
@@ -332,7 +337,7 @@ func resumeShelf(ctx context.Context, client media.Client, source source, visibl
 
 func (a *application) hero(cx *core.Scope, entry catalogItem) core.Node {
 	item := entry.item
-	open := func() { a.push(route{screen: screenDetail, source: entry.source, item: item}) }
+	open := func() { a.push(route{screen: screenDetail, source: entry.source, item: item, match: entry.match}) }
 	art := item.Backdrop
 	if art == "" {
 		art = item.Poster
@@ -347,7 +352,16 @@ func (a *application) hero(cx *core.Scope, entry catalogItem) core.Node {
 			core.View{Class: "flex-row gap-2", Children: []core.Node{
 				ui.Button{Text: locales.Play(cx), Icon: lucide.Play, Size: ui.SizeLarge, OnPress: func() {
 					if playable(item) {
-						a.push(route{screen: screenPlayer, source: entry.source, item: item, resume: true})
+						next := route{screen: screenPlayer, source: entry.source, item: item, resume: true, match: entry.match}
+						if remembered := a.rememberedCopy(next); remembered != "" {
+							for _, copy := range entry.match.copies {
+								if encodeCopyKey(copy.key()) == remembered {
+									next.source, next.item = copy.source, copy.item
+									break
+								}
+							}
+						}
+						a.push(next)
 					} else {
 						open()
 					}
@@ -370,22 +384,33 @@ func (a *application) posterShelf(cx *core.Scope, items []catalogItem) core.Node
 
 func (a *application) posterCard(cx *core.Scope, entry catalogItem, resume bool) core.Node {
 	item := entry.item
+	id := "title-" + item.ID
+	label := item.Title
+	description := itemMetadata(cx, item)
+	if len(a.sources.GetUntracked()) > 1 {
+		id = "title-" + entry.source.ID + "-" + item.ID
+		label += " · " + entry.source.Name
+		if description != "" {
+			description += " · "
+		}
+		description += entry.source.Name
+	}
 	style := core.Style{FlexShrink: 1, CornerRadius: 16, FocusVisible: ui.FocusRing(cx, 3)}
 	art := core.Node(core.Icon{SVG: lucide.Film(), Class: "size-9 text-primary"})
 	if item.Poster != "" {
 		art = core.Image{Class: "absolute inset-0", Source: core.Src(item.Poster), ResizeMode: core.Cover, ElementsHidden: true}
 	}
-	return base.Button{Label: item.Title, Style: style, TestID: "title-" + item.ID,
+	return base.Button{Label: label, Style: style, TestID: id,
 		OnPress: func(core.PressEvent) {
 			if resume && playable(item) {
 				a.push(route{screen: screenPlayer, source: entry.source, item: item, resume: true})
 			} else {
-				a.push(route{screen: screenDetail, source: entry.source, item: item})
+				a.push(route{screen: screenDetail, source: entry.source, item: item, match: entry.match})
 			}
 		}, Children: []core.Node{core.View{Class: "w-full gap-2", Children: []core.Node{
 			core.View{Class: "relative h-52 items-center justify-center overflow-hidden rounded-2xl border border-border bg-card", Children: []core.Node{art}},
 			core.Text{Content: item.Title, Class: "line-clamp-1 text-sm font-semibold"},
-			hint(itemMetadata(cx, item)),
+			hint(description),
 		}}}}
 }
 

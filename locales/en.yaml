@@ -36,6 +36,11 @@ library: Library
 search: Search
 settings: Settings
 allSources: All media sources
+mergeIdenticalTitles: Merge matching titles
+mergeTitlesDescription: Match titles by IMDb or TMDB ID. The source order determines which copy plays first.
+moveSourceUp: "Move {name} up"
+moveSourceDown: "Move {name} down"
+playbackSource: Playback source
 allLibraries: All libraries
 allCategories: All categories
 manageLibraries: Manage libraries

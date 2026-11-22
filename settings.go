@@ -78,7 +78,7 @@ func (a *application) settings(cx *core.Scope) core.Node {
 				if len(sources) == 0 {
 					cards = append(cards, notice(locales.NoSources(cx)))
 				}
-				for _, selected := range sources {
+				for i, selected := range sources {
 					content := []core.Node{
 						heading(selected.Name),
 						hint(providerName(cx, selected.Provider) + " · " + selected.Address),
@@ -117,10 +117,30 @@ func (a *application) settings(cx *core.Scope) core.Node {
 							}},
 							ui.Button{Text: locales.RemoveSource(cx), Variant: ui.ButtonGhost, OnPress: func() { confirm.Set(selected.ID) }},
 						}
+						if len(sources) > 1 {
+							move := func(delta int) {
+								failure.Set(a.moveSource(selected.ID, delta))
+							}
+							actions = append(actions,
+								ui.IconButton{Label: locales.MoveSourceUp(cx, selected.Name), Icon: lucide.ArrowUp, Size: 44,
+									TestID: "move-source-up-" + selected.ID, Disabled: func() bool { return i == 0 }, OnPress: func() { move(-1) }},
+								ui.IconButton{Label: locales.MoveSourceDown(cx, selected.Name), Icon: lucide.ArrowDown, Size: 44,
+									TestID: "move-source-down-" + selected.ID, Disabled: func() bool { return i == len(sources)-1 }, OnPress: func() { move(1) }})
+						}
 					}
 					content = append(content, core.View{Class: "flex-row flex-wrap gap-3 pt-2", Children: actions})
 					cards = append(cards, core.View{Class: "gap-2 rounded-2xl border border-border bg-card p-5", Children: content})
 				}
+				cards = append(cards, core.View{Class: "gap-2 rounded-2xl border border-border bg-card p-5", Children: []core.Node{
+					ui.Checkbox{Text: locales.MergeIdenticalTitles(cx), Checked: a.mergeTitles.Get, TestID: "merge-identical-titles", OnChange: func(enabled bool) {
+						if err := a.storage.SetItem(mergeTitlesKey, strconv.FormatBool(enabled)); err != nil {
+							failure.Set(err)
+							return
+						}
+						a.mergeTitles.Set(enabled)
+					}},
+					hint(locales.MergeTitlesDescription(cx)),
+				}})
 				if err := failure.Get(); err != nil {
 					cards = append(cards, notice(errorText(cx, err)))
 				}
@@ -129,4 +149,15 @@ func (a *application) settings(cx *core.Scope) core.Node {
 			core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: playbackControls},
 		},
 	}}}
+}
+
+func (a *application) moveSource(id string, delta int) error {
+	entries := slices.Clone(a.sources.GetUntracked())
+	index := slices.IndexFunc(entries, func(entry source) bool { return entry.ID == id })
+	other := index + delta
+	if index < 0 || other < 0 || other >= len(entries) {
+		return nil
+	}
+	entries[index], entries[other] = entries[other], entries[index]
+	return a.saveSources(entries)
 }

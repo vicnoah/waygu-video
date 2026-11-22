@@ -259,7 +259,7 @@ func (p *plexClient) item(entry plexMetadata) Item {
 			item.ExternalIDs[key] = id
 		}
 	}
-	if key, id, ok := strings.Cut(entry.PrimaryGuid, "://"); ok && (key == "tmdb" || key == "imdb" || key == "tvdb") {
+	if key, id := plexPrimaryExternalID(entry.PrimaryGuid); key != "" && item.ExternalIDs[key] == "" {
 		item.ExternalIDs[key] = id
 	}
 	switch entry.Type {
@@ -271,6 +271,24 @@ func (p *plexClient) item(entry plexMetadata) Item {
 		item.Episode, item.Season, item.SeriesID = entry.Index, entry.ParentIndex, entry.GrandparentRatingKey
 	}
 	return item
+}
+
+func plexPrimaryExternalID(guid string) (string, string) {
+	scheme, value, ok := strings.Cut(guid, "://")
+	if !ok {
+		return "", ""
+	}
+	id, _, _ := strings.Cut(value, "?")
+	switch scheme {
+	case "imdb", "com.plexapp.agents.imdb":
+		return "imdb", id
+	case "tmdb", "com.plexapp.agents.tmdb", "com.plexapp.agents.themoviedb":
+		return "tmdb", id
+	case "tvdb", "com.plexapp.agents.thetvdb":
+		return "tvdb", id
+	default:
+		return "", ""
+	}
 }
 
 func millis(n int64) time.Duration {

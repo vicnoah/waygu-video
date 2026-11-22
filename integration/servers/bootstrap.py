@@ -98,7 +98,21 @@ def setup_media_browser(provider, base):
         scan_jellyfin_fixtures(base, user["User"]["Id"], headers)
     else:
         request(base, "/Library/Refresh", method="POST", headers=headers)
+    wait_for_fixture_identity(base, user["User"]["Id"], headers)
     print(f"{provider} {info['Version']}: configured fixture libraries")
+
+
+def wait_for_fixture_identity(base, user_id, headers):
+    def movie_identified():
+        catalog = request(base, "/Items", headers=headers, params={
+            "UserId": user_id, "Recursive": "true", "IncludeItemTypes": "Movie",
+            "SearchTerm": "Waygu Test Movie", "Fields": "ProviderIds",
+        })
+        return next((item for item in catalog["Items"]
+                     if item["Name"].startswith("Waygu Test Movie")
+                     and item.get("ProviderIds", {}).get("Imdb") == "tt90000002"), None)
+
+    wait_until_ready(movie_identified, timeout=120)
 
 
 def scan_jellyfin_fixtures(base, user_id, headers):
