@@ -5,15 +5,19 @@ import (
 	"net/url"
 )
 
-// MovieFeaturesClient lists the playable extras and recommendations a server
-// exposes for a movie. Each method can succeed independently.
+// ExtrasClient lists trailers and special features attached to an item.
+type ExtrasClient interface {
+	Extras(context.Context, Item) ([]Item, error)
+}
+
+// MovieFeaturesClient exposes extras and same-provider recommendations.
 type MovieFeaturesClient interface {
-	MovieExtras(context.Context, Item) ([]Item, error)
+	ExtrasClient
 	RelatedMovies(context.Context, Item) ([]Item, error)
 }
 
-func (m *mediaBrowser) MovieExtras(ctx context.Context, movie Item) ([]Item, error) {
-	route := "Items/" + url.PathEscape(movie.ID)
+func (m *mediaBrowser) Extras(ctx context.Context, item Item) ([]Item, error) {
+	route := "Items/" + url.PathEscape(item.ID)
 	if m.kind == Emby {
 		route = m.userRoute() + "/" + route
 	}
@@ -27,9 +31,9 @@ func (m *mediaBrowser) MovieExtras(ctx context.Context, movie Item) ([]Item, err
 			continue
 		}
 		for _, entry := range m.items(entries) {
-			if entry.ID != movie.ID && !seen[entry.ID] {
+			if entry.ID != item.ID && !seen[entry.ID] {
 				seen[entry.ID] = true
-				entry.Kind, entry.LibraryID = Video, movie.LibraryID
+				entry.Kind, entry.LibraryID = Video, item.LibraryID
 				extras = append(extras, entry)
 			}
 		}
@@ -48,14 +52,14 @@ func (m *mediaBrowser) RelatedMovies(ctx context.Context, movie Item) ([]Item, e
 	return m.items(dto.Items), nil
 }
 
-func (p *plexClient) MovieExtras(ctx context.Context, movie Item) ([]Item, error) {
-	container, err := p.get(ctx, plexItemRoute(movie.ID)+"/extras", nil)
+func (p *plexClient) Extras(ctx context.Context, item Item) ([]Item, error) {
+	container, err := p.get(ctx, plexItemRoute(item.ID)+"/extras", nil)
 	if err != nil {
 		return nil, err
 	}
 	extras := p.items(container.Metadata)
 	for i := range extras {
-		extras[i].Kind, extras[i].LibraryID = Video, movie.LibraryID
+		extras[i].Kind, extras[i].LibraryID = Video, item.LibraryID
 	}
 	return extras, nil
 }

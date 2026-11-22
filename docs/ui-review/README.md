@@ -9,6 +9,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Connect to server · both appearances and all provider tabs | [Screenshots and sign-in checks](source-login.md) | Compared on Linux GTK. The Emby advanced group and the real device checks remain pending. The Plex form lacks a Scenra variant. |
 | Phone home · light and dark | [Screenshots and media server checks](home.md) | The compact layout was compared on Linux GTK with three Docker media servers. Phone device captures and some metadata details remain pending. |
 | Phone movie detail · light and dark | [Top and bottom comparisons and playback checks](phone-movie.md) | Compared on GTK with Docker movies, a trailer, and a featurette. Device captures and several design actions remain pending. |
+| Phone series detail · light and dark | [Season and specials comparisons](phone-series.md) | Compared on GTK with two seasons and a special. Phone device captures remain pending. |
 | Tablet home · light and dark | [Screenshots and tablet interaction checks](tablet-home.md) | The tablet layout was compared on Linux GTK with three Docker media servers. Real-device captures remain pending. |
 | Tablet movie detail · light and dark | [Screenshots and playback checks](tablet-detail.md) | Compared on GTK with Docker movie metadata and tracks. Tablet device checks remain pending. |
 | Storage and downloads · light and dark | [Design comparison and offline playback checks](storage-downloads.md) | Original-file downloads compared and tested on GTK. Transcoded downloads and platform background handling remain pending. |
@@ -45,6 +46,15 @@ Capture the compact movie detail at 390 pt wide with the Emby clip, cast, and ex
 go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerPhoneMovieReview$' -screenshots .nsgo/ui-review/movie
 ```
+
+Capture the compact series detail with the multi-season fixture. The test saves both appearances for the first season, the second season, and specials.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerPhoneSeriesReview$' -screenshots .nsgo/ui-review/series
+```
+
+Render the matching Scenra frame with `WAYGU_REVIEW_DESIGN=series-detail.scenra`. Render the other two sets with `WAYGU_REVIEW_PANEL=s2` and `WAYGU_REVIEW_PANEL=extras`.
 
 The tablet home test selects the tablet layout in the GTK harness at 1180 × 820 pt in landscape and 820 × 1180 pt in portrait.
 

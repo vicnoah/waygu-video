@@ -31,24 +31,29 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 }
 
 func (a *application) detailLayout(cx *core.Scope, current route, idiom core.Idiom) core.Node {
-	var movieDetail func(*core.Scope, route, func() []ui.Option[copyKey], func(copyKey)) core.Node
-	if current.item.Kind == media.Movie {
+	var titleDetail func(*core.Scope, route, func() []ui.Option[copyKey], func(copyKey)) core.Node
+	switch current.item.Kind {
+	case media.Movie:
 		switch idiom {
 		case core.IdiomTablet:
-			movieDetail = a.tabletMovieDetail
+			titleDetail = a.tabletMovieDetail
 		case core.IdiomPhone:
-			movieDetail = a.phoneMovieDetail
+			titleDetail = a.phoneMovieDetail
+		}
+	case media.Series:
+		if idiom == core.IdiomPhone {
+			titleDetail = a.phoneSeriesDetail
 		}
 	}
 	if current.match == nil {
-		if movieDetail != nil {
-			return movieDetail(cx, current, nil, nil)
+		if titleDetail != nil {
+			return titleDetail(cx, current, nil, nil)
 		}
 		return pageFrame(pageHeader(cx, locales.Details(cx), a.back), pageBody(a.detailContent(cx, current)))
 	}
 	anchor := catalogCopy{current.source, current.item}
 	sources := a.sources.GetUntracked()
-	selected := core.NewSignal(cx, copyKey{})
+	selected := core.NewSignal(cx, current.seriesView.copy)
 	available := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) ([]catalogCopy, error) {
 		return a.relatedCopies(ctx, current, sources), nil
 	})
@@ -109,9 +114,9 @@ func (a *application) detailLayout(cx *core.Scope, current route, idiom core.Idi
 		chosen.source, chosen.item = copy.source, copy.item
 		return chosen
 	}
-	if movieDetail != nil {
+	if titleDetail != nil {
 		return core.Dynamic(func(cx *core.Scope) core.Node {
-			return movieDetail(cx, selectedRoute(), sourceOptions.Get, selected.Set)
+			return titleDetail(cx, selectedRoute(), sourceOptions.Get, selected.Set)
 		})
 	}
 	picker := core.Dynamic(func(cx *core.Scope) core.Node {

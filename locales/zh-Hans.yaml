@@ -161,6 +161,19 @@ sourceMissing: 此媒体源不可用。
 noOverview: 暂无影片简介。
 seasons: 季
 episodes: 分集
+seriesSeasonCount: "{count} 季"
+seriesSpecials: 特别篇
+seriesSort: 剧集排序
+seriesSortAsc: 正序
+seriesSortDesc: 倒序
+seriesHideWatched: 隐藏已看
+seriesResumeEpisode: "继续播放 S{season} · E{episode}"
+seriesWatchedTime: "第 {episode} 集已看 {time}"
+seriesEpisodesLeft: "本季剩余 {count} 集"
+seriesFinished: 已看完
+seriesDanmakuCount: "{count} 条弹幕"
+seriesNoEpisodes: 暂无可显示的分集。
+seriesNoSpecials: 暂无特别篇与花絮。
 selectEpisode: 选择一集播放。
 nextPage: 加载更多
 videoError: 播放器无法打开这个视频。

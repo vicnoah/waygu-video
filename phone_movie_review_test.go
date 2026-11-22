@@ -24,7 +24,7 @@ func TestDockerMovieFeatures(t *testing.T) {
 			features := client.(media.MovieFeaturesClient)
 			ctx, cancel := context.WithTimeout(t.Context(), 15*time.Second)
 			defer cancel()
-			clips, err := features.MovieExtras(ctx, movie)
+			clips, err := features.Extras(ctx, movie)
 			if err != nil {
 				t.Fatal("read extras:", err)
 			}
@@ -55,7 +55,7 @@ func TestDockerPhoneMovieReview(t *testing.T) {
 	features := client.(media.MovieFeaturesClient)
 	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Second)
 	defer cancel()
-	clips, err := features.MovieExtras(ctx, movie)
+	clips, err := features.Extras(ctx, movie)
 	if err != nil || len(clips) < 2 {
 		t.Fatalf("read trailer and featurette: %v, %d items", err, len(clips))
 	}

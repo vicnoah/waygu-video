@@ -161,6 +161,19 @@ sourceMissing: This media source is unavailable.
 noOverview: No synopsis is available.
 seasons: Seasons
 episodes: Episodes
+seriesSeasonCount: "{count} seasons"
+seriesSpecials: Specials
+seriesSort: Sort episodes
+seriesSortAsc: Ascending
+seriesSortDesc: Descending
+seriesHideWatched: Hide watched
+seriesResumeEpisode: "Resume S{season} · E{episode}"
+seriesWatchedTime: "Episode {episode} · {time} watched"
+seriesEpisodesLeft: "{count} left this season"
+seriesFinished: Watched
+seriesDanmakuCount: "{count} comments"
+seriesNoEpisodes: No episodes to show.
+seriesNoSpecials: No specials or extras.
 selectEpisode: Select an episode to play.
 nextPage: Load more
 videoError: The player could not open this video.

@@ -18,6 +18,7 @@ REVIEWS = {
     "source-login.scenra": "source-login.md",
     "home.scenra": "home.md",
     "movie-detail.scenra": "phone-movie.md",
+    "series-detail.scenra": "phone-series.md",
     "tablet-home.scenra": "tablet-home.md",
     "tablet-detail.scenra": "tablet-detail.md",
     "settings-storage.scenra": "storage-downloads.md",

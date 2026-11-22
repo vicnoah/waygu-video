@@ -49,6 +49,7 @@ type route struct {
 	subtitleTrack string
 	downloadID    string
 	match         *catalogMatch
+	seriesView    seriesViewState
 }
 
 type source struct {

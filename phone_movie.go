@@ -168,7 +168,7 @@ func (a *application) movieFeatures(cx *core.Scope, current route, recommendatio
 		defer cancel()
 		if !recommendations {
 			if features, ok := client.(media.MovieFeaturesClient); ok {
-				items, err := features.MovieExtras(ctx, current.item)
+				items, err := features.Extras(ctx, current.item)
 				if len(items) != 0 {
 					return items, nil
 				}
@@ -247,7 +247,11 @@ func (a *application) phoneMovieHero(cx *core.Scope, item media.Item, version me
 	if len(badges) != 0 {
 		title = append(title, core.View{Class: "flex-row flex-wrap gap-1.5", Children: badges})
 	}
-	return core.View{Class: "relative h-[460px] shrink-0 overflow-hidden", TestID: "phone-movie-hero", Children: []core.Node{
+	return a.phoneMediaHero(cx, item, "h-[460px]", "phone-movie-hero", title, phoneMovieMore(cx, true, reload, false, nil))
+}
+
+func (a *application) phoneMediaHero(cx *core.Scope, item media.Item, height, id string, title []core.Node, tools ...core.Node) core.Node {
+	return core.View{Class: "relative shrink-0 overflow-hidden " + height, TestID: id, Children: []core.Node{
 		homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0"),
 		core.View{Class: "absolute inset-0 bg-linear-to-t from-black/90 via-black/35 to-black/45"},
 		core.View{Class: "absolute inset-x-0 bottom-0 h-12 bg-linear-to-b from-transparent to-[#f4f4f7] dark:to-[#0f1017]"},
@@ -257,7 +261,7 @@ func (a *application) phoneMovieHero(cx *core.Scope, item media.Item, version me
 			base.Button{Label: locales.Back(cx), TestID: "back", Class: "size-9 items-center justify-center rounded-full bg-black/40",
 				Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, OnPress: func(core.PressEvent) { a.back() },
 				Children: []core.Node{core.Icon{SVG: lucide.ChevronLeft(), Class: "size-5 text-white"}}},
-			phoneMovieMore(cx, true, reload, false, nil),
+			core.View{Class: "flex-row gap-2", Children: tools},
 		}},
 		core.View{Class: "absolute inset-x-0 bottom-0 gap-2.5 px-5 pb-12", Children: title},
 	}}

@@ -65,6 +65,11 @@ var Parameters = map[string][]string{
 	"TrackNumber":               {"number"},
 	"NumberedPlaybackVersion":   {"number"},
 	"EpisodeDetails":            {"episode"},
+	"SeriesSeasonCount":         {"count"},
+	"SeriesResumeEpisode":       {"season", "episode"},
+	"SeriesWatchedTime":         {"episode", "time_"},
+	"SeriesEpisodesLeft":        {"count"},
+	"SeriesDanmakuCount":        {"count"},
 	"DanmakuBoundEpisode":       {"episode"},
 	"DanmakuDecrease":           {"control"},
 	"DanmakuIncrease":           {"control"},
@@ -118,6 +123,11 @@ type Translation struct {
 	TrackNumber               func(number string) string
 	NumberedPlaybackVersion   func(number string) string
 	EpisodeDetails            func(episode string) string
+	SeriesSeasonCount         func(count string) string
+	SeriesResumeEpisode       func(season string, episode string) string
+	SeriesWatchedTime         func(episode string, time_ string) string
+	SeriesEpisodesLeft        func(count string) string
+	SeriesDanmakuCount        func(count string) string
 	DanmakuBoundEpisode       func(episode string) string
 	DanmakuDecrease           func(control string) string
 	DanmakuIncrease           func(control string) string
@@ -288,6 +298,14 @@ const (
 	textNoOverview
 	textSeasons
 	textEpisodes
+	textSeriesSpecials
+	textSeriesSort
+	textSeriesSortAsc
+	textSeriesSortDesc
+	textSeriesHideWatched
+	textSeriesFinished
+	textSeriesNoEpisodes
+	textSeriesNoSpecials
 	textSelectEpisode
 	textNextPage
 	textVideoError
@@ -569,6 +587,14 @@ var keyOfText = [numTexts]string{
 	"noOverview",
 	"seasons",
 	"episodes",
+	"seriesSpecials",
+	"seriesSort",
+	"seriesSortAsc",
+	"seriesSortDesc",
+	"seriesHideWatched",
+	"seriesFinished",
+	"seriesNoEpisodes",
+	"seriesNoSpecials",
 	"selectEpisode",
 	"nextPage",
 	"videoError",
@@ -848,6 +874,14 @@ var textsEn = i18n.NewTexts(""+
 	"No synopsis is available."+
 	"Seasons"+
 	"Episodes"+
+	"Specials"+
+	"Sort episodes"+
+	"Ascending"+
+	"Descending"+
+	"Hide watched"+
+	"Watched"+
+	"No episodes to show."+
+	"No specials or extras."+
 	"Select an episode to play."+
 	"Load more"+
 	"The player could not open this video."+
@@ -1124,6 +1158,14 @@ var textsEn = i18n.NewTexts(""+
 		25,
 		7,
 		8,
+		8,
+		13,
+		9,
+		10,
+		12,
+		7,
+		20,
+		22,
 		26,
 		9,
 		37,
@@ -1403,6 +1445,14 @@ var textsZhHans = i18n.NewTexts(""+
 	"暂无影片简介。"+
 	"季"+
 	"分集"+
+	"特别篇"+
+	"剧集排序"+
+	"正序"+
+	"倒序"+
+	"隐藏已看"+
+	"已看完"+
+	"暂无可显示的分集。"+
+	"暂无特别篇与花絮。"+
 	"选择一集播放。"+
 	"加载更多"+
 	"播放器无法打开这个视频。"+
@@ -1679,6 +1729,14 @@ var textsZhHans = i18n.NewTexts(""+
 		21,
 		3,
 		6,
+		9,
+		12,
+		6,
+		6,
+		12,
+		9,
+		27,
+		27,
 		21,
 		12,
 		36,
@@ -1934,6 +1992,21 @@ func Supply(lang string, t Translation) {
 	}
 	if t.EpisodeDetails != nil {
 		s.EpisodeDetails = t.EpisodeDetails
+	}
+	if t.SeriesSeasonCount != nil {
+		s.SeriesSeasonCount = t.SeriesSeasonCount
+	}
+	if t.SeriesResumeEpisode != nil {
+		s.SeriesResumeEpisode = t.SeriesResumeEpisode
+	}
+	if t.SeriesWatchedTime != nil {
+		s.SeriesWatchedTime = t.SeriesWatchedTime
+	}
+	if t.SeriesEpisodesLeft != nil {
+		s.SeriesEpisodesLeft = t.SeriesEpisodesLeft
+	}
+	if t.SeriesDanmakuCount != nil {
+		s.SeriesDanmakuCount = t.SeriesDanmakuCount
 	}
 	if t.DanmakuBoundEpisode != nil {
 		s.DanmakuBoundEpisode = t.DanmakuBoundEpisode
@@ -3527,6 +3600,180 @@ func Episodes(cx *core.Scope) string { return For(cx).Episodes() }
 
 // Episodes is the package's Episodes in the language of msgs.
 func (msgs Messages) Episodes() string { return msgs.text(textEpisodes) }
+
+// SeriesSeasonCount says "{count} seasons"
+// in the language the app shows under cx.
+func SeriesSeasonCount(cx *core.Scope, count string) string { return For(cx).SeriesSeasonCount(count) }
+
+// SeriesSeasonCount is the package's SeriesSeasonCount in the language of msgs.
+func (msgs Messages) SeriesSeasonCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SeriesSeasonCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SeriesSeasonCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " seasons"
+		case "zh-Hans":
+			return count + " 季"
+		}
+	}
+}
+
+// SeriesSpecials says "Specials"
+// in the language the app shows under cx.
+func SeriesSpecials(cx *core.Scope) string { return For(cx).SeriesSpecials() }
+
+// SeriesSpecials is the package's SeriesSpecials in the language of msgs.
+func (msgs Messages) SeriesSpecials() string { return msgs.text(textSeriesSpecials) }
+
+// SeriesSort says "Sort episodes"
+// in the language the app shows under cx.
+func SeriesSort(cx *core.Scope) string { return For(cx).SeriesSort() }
+
+// SeriesSort is the package's SeriesSort in the language of msgs.
+func (msgs Messages) SeriesSort() string { return msgs.text(textSeriesSort) }
+
+// SeriesSortAsc says "Ascending"
+// in the language the app shows under cx.
+func SeriesSortAsc(cx *core.Scope) string { return For(cx).SeriesSortAsc() }
+
+// SeriesSortAsc is the package's SeriesSortAsc in the language of msgs.
+func (msgs Messages) SeriesSortAsc() string { return msgs.text(textSeriesSortAsc) }
+
+// SeriesSortDesc says "Descending"
+// in the language the app shows under cx.
+func SeriesSortDesc(cx *core.Scope) string { return For(cx).SeriesSortDesc() }
+
+// SeriesSortDesc is the package's SeriesSortDesc in the language of msgs.
+func (msgs Messages) SeriesSortDesc() string { return msgs.text(textSeriesSortDesc) }
+
+// SeriesHideWatched says "Hide watched"
+// in the language the app shows under cx.
+func SeriesHideWatched(cx *core.Scope) string { return For(cx).SeriesHideWatched() }
+
+// SeriesHideWatched is the package's SeriesHideWatched in the language of msgs.
+func (msgs Messages) SeriesHideWatched() string { return msgs.text(textSeriesHideWatched) }
+
+// SeriesResumeEpisode says "Resume S{season} · E{episode}"
+// in the language the app shows under cx.
+func SeriesResumeEpisode(cx *core.Scope, season string, episode string) string {
+	return For(cx).SeriesResumeEpisode(season, episode)
+}
+
+// SeriesResumeEpisode is the package's SeriesResumeEpisode in the language of msgs.
+func (msgs Messages) SeriesResumeEpisode(season string, episode string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SeriesResumeEpisode(season, episode))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SeriesResumeEpisode; f != nil {
+			return f(season, episode)
+		}
+		switch lang {
+		case "", "en":
+			return "Resume S" + msgs.arg(season) + " · E" + msgs.arg(episode)
+		case "zh-Hans":
+			return "继续播放 S" + season + " · E" + episode
+		}
+	}
+}
+
+// SeriesWatchedTime says "Episode {episode} · {time} watched"
+// in the language the app shows under cx.
+func SeriesWatchedTime(cx *core.Scope, episode string, time_ string) string {
+	return For(cx).SeriesWatchedTime(episode, time_)
+}
+
+// SeriesWatchedTime is the package's SeriesWatchedTime in the language of msgs.
+func (msgs Messages) SeriesWatchedTime(episode string, time_ string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SeriesWatchedTime(episode, time_))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SeriesWatchedTime; f != nil {
+			return f(episode, time_)
+		}
+		switch lang {
+		case "", "en":
+			return "Episode " + msgs.arg(episode) + " · " + msgs.arg(time_) + " watched"
+		case "zh-Hans":
+			return "第 " + episode + " 集已看 " + time_
+		}
+	}
+}
+
+// SeriesEpisodesLeft says "{count} left this season"
+// in the language the app shows under cx.
+func SeriesEpisodesLeft(cx *core.Scope, count string) string {
+	return For(cx).SeriesEpisodesLeft(count)
+}
+
+// SeriesEpisodesLeft is the package's SeriesEpisodesLeft in the language of msgs.
+func (msgs Messages) SeriesEpisodesLeft(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SeriesEpisodesLeft(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SeriesEpisodesLeft; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " left this season"
+		case "zh-Hans":
+			return "本季剩余 " + count + " 集"
+		}
+	}
+}
+
+// SeriesFinished says "Watched"
+// in the language the app shows under cx.
+func SeriesFinished(cx *core.Scope) string { return For(cx).SeriesFinished() }
+
+// SeriesFinished is the package's SeriesFinished in the language of msgs.
+func (msgs Messages) SeriesFinished() string { return msgs.text(textSeriesFinished) }
+
+// SeriesDanmakuCount says "{count} comments"
+// in the language the app shows under cx.
+func SeriesDanmakuCount(cx *core.Scope, count string) string {
+	return For(cx).SeriesDanmakuCount(count)
+}
+
+// SeriesDanmakuCount is the package's SeriesDanmakuCount in the language of msgs.
+func (msgs Messages) SeriesDanmakuCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SeriesDanmakuCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SeriesDanmakuCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " comments"
+		case "zh-Hans":
+			return count + " 条弹幕"
+		}
+	}
+}
+
+// SeriesNoEpisodes says "No episodes to show."
+// in the language the app shows under cx.
+func SeriesNoEpisodes(cx *core.Scope) string { return For(cx).SeriesNoEpisodes() }
+
+// SeriesNoEpisodes is the package's SeriesNoEpisodes in the language of msgs.
+func (msgs Messages) SeriesNoEpisodes() string { return msgs.text(textSeriesNoEpisodes) }
+
+// SeriesNoSpecials says "No specials or extras."
+// in the language the app shows under cx.
+func SeriesNoSpecials(cx *core.Scope) string { return For(cx).SeriesNoSpecials() }
+
+// SeriesNoSpecials is the package's SeriesNoSpecials in the language of msgs.
+func (msgs Messages) SeriesNoSpecials() string { return msgs.text(textSeriesNoSpecials) }
 
 // SelectEpisode says "Select an episode to play."
 // in the language the app shows under cx.

@@ -82,6 +82,11 @@ type danmakuResult struct {
 	inferred bool
 }
 
+type danmakuBinding struct {
+	danmaku.DandanEpisode
+	Count *int `json:"commentCount,omitempty"`
+}
+
 func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.Stream,
 	apply func([]danmaku.Comment, float64), closePanel func()) core.Node {
 	key, seasonKey := danmakuBindingKey(current), danmakuSeasonKey(current)
@@ -180,7 +185,12 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 		if apply != nil {
 			apply(result.comments, result.bound.Shift)
 		}
-		encoded, _ := json.Marshal(result.bound)
+		binding := danmakuBinding{DandanEpisode: result.bound}
+		if apply != nil {
+			count := len(result.comments)
+			binding.Count = &count
+		}
+		encoded, _ := json.Marshal(binding)
 		err := a.storage.SetItem(key, string(encoded))
 		if err == nil && seasonKey != "" && result.bound.AnimeID > 0 && !result.inferred &&
 			(query.GetUntracked().action == danmakuPick || saved.ID <= 0) {
