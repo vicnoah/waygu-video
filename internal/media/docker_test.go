@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"image/jpeg"
 	"io"
 	"net/http"
 	"net/url"
@@ -104,7 +105,42 @@ func TestDockerServers(t *testing.T) {
 			verifyDockerTracks(t, ctx, client, movieLibrary, server.kind)
 			verifyDockerVersions(t, ctx, client, movieLibrary)
 			verifyDockerPersonal(t, ctx, client, Library{ID: movieLibrary, Kind: "movie"}, movie)
+			t.Run("seek-preview", func(t *testing.T) {
+				verifyDockerSeekPreview(t, ctx, client, movieLibrary, server.kind)
+			})
 		})
+	}
+}
+
+func verifyDockerSeekPreview(t *testing.T, ctx context.Context, client Client, library string, provider Provider) {
+	t.Helper()
+	title := "Waygu Track Test"
+	if provider == Emby {
+		title = "Waygu Resume Test"
+	}
+	movie := findDockerItem(t, ctx, client, Query{LibraryID: library}, Movie, title)
+	stream, err := client.Playback(ctx, movie, PlaybackOptions{})
+	if err != nil {
+		t.Fatal("resolve preview rendition:", err)
+	}
+	preview, err := client.(SeekPreviewClient).SeekPreviews(ctx, movie, stream.SourceID)
+	if err != nil {
+		t.Fatal("load preview index:", err)
+	}
+	var last []byte
+	for _, at := range []time.Duration{0, 12 * time.Second} {
+		raw, err := preview(ctx, at)
+		if err != nil {
+			t.Fatalf("load seek image at %s: %v", at, err)
+		}
+		frame, err := jpeg.Decode(bytes.NewReader(raw))
+		if err != nil || frame.Bounds().Dx() < 100 || frame.Bounds().Dy() < 56 {
+			t.Fatalf("decode seek image at %s: %v", at, err)
+		}
+		if provider != Emby && bytes.Equal(last, raw) {
+			t.Fatalf("the seek image at %s duplicates the first frame", at)
+		}
+		last = raw
 	}
 }
 

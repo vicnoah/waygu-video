@@ -123,6 +123,7 @@ var Parameters = map[string][]string{
 	"TvDetailProgress":               {"position", "remaining"},
 	"TvDetailVersion":                {"resolution"},
 	"TvStarring":                     {"names"},
+	"TvPlayerDanmakuCount":           {"count"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -211,6 +212,7 @@ type Translation struct {
 	TvDetailProgress               func(position string, remaining string) string
 	TvDetailVersion                func(resolution string) string
 	TvStarring                     func(names string) string
+	TvPlayerDanmakuCount           func(count string) string
 }
 
 var supplied = map[string]Translation{}
@@ -652,6 +654,14 @@ const (
 	textTvComposer
 	textTvChineseSubtitles
 	textTvRating
+	textTvQuickSettings
+	textTvQuickSettingsHint
+	textTvMorePlaybackSettings
+	textTvPlayerTrackHint
+	textTvPlayerDanmakuHint
+	textTvPlayerSeekHint
+	textTvPlayerOK
+	textTvPlayerOpacity
 	numTexts
 )
 
@@ -1093,6 +1103,14 @@ var keyOfText = [numTexts]string{
 	"tvComposer",
 	"tvChineseSubtitles",
 	"tvRating",
+	"tvQuickSettings",
+	"tvQuickSettingsHint",
+	"tvMorePlaybackSettings",
+	"tvPlayerTrackHint",
+	"tvPlayerDanmakuHint",
+	"tvPlayerSeekHint",
+	"tvPlayerOK",
+	"tvPlayerOpacity",
 }
 
 // textsEn are the messages without arguments in en.
@@ -1531,7 +1549,15 @@ var textsEn = i18n.NewTexts(""+
 	"Cast and crew"+
 	"Music"+
 	"Chinese subtitles"+
-	"Rating",
+	"Rating"+
+	"Quick settings"+
+	"Use Left and Right to adjust · Back to close"+
+	"More danmaku and playback settings"+
+	"Subtitles / audio"+
+	"Danmaku settings"+
+	"Back / forward 10 seconds"+
+	"OK"+
+	"Danmaku opacity",
 	[]uint16{
 		11,
 		47,
@@ -1968,6 +1994,14 @@ var textsEn = i18n.NewTexts(""+
 		5,
 		17,
 		6,
+		14,
+		45,
+		34,
+		17,
+		16,
+		25,
+		2,
+		15,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -2406,7 +2440,15 @@ var textsZhHans = i18n.NewTexts(""+
 	"演职人员"+
 	"配乐"+
 	"中文字幕"+
-	"评分",
+	"评分"+
+	"快捷设置"+
+	"左右键调整 · 返回键关闭"+
+	"更多弹幕与播放设置"+
+	"字幕 / 音轨"+
+	"弹幕设置"+
+	"快退 / 快进 10 秒"+
+	"OK"+
+	"弹幕透明度",
 	[]uint16{
 		12,
 		45,
@@ -2843,6 +2885,14 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		12,
 		6,
+		12,
+		34,
+		27,
+		15,
+		12,
+		22,
+		2,
+		15,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -3138,6 +3188,9 @@ func Supply(lang string, t Translation) {
 	}
 	if t.TvStarring != nil {
 		s.TvStarring = t.TvStarring
+	}
+	if t.TvPlayerDanmakuCount != nil {
+		s.TvPlayerDanmakuCount = t.TvPlayerDanmakuCount
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -8158,3 +8211,83 @@ func TvRating(cx *core.Scope) string { return For(cx).TvRating() }
 
 // TvRating is the package's TvRating in the language of msgs.
 func (msgs Messages) TvRating() string { return msgs.text(textTvRating) }
+
+// TvQuickSettings says "Quick settings"
+// in the language the app shows under cx.
+func TvQuickSettings(cx *core.Scope) string { return For(cx).TvQuickSettings() }
+
+// TvQuickSettings is the package's TvQuickSettings in the language of msgs.
+func (msgs Messages) TvQuickSettings() string { return msgs.text(textTvQuickSettings) }
+
+// TvQuickSettingsHint says "Use Left and Right to adjust · Back to close"
+// in the language the app shows under cx.
+func TvQuickSettingsHint(cx *core.Scope) string { return For(cx).TvQuickSettingsHint() }
+
+// TvQuickSettingsHint is the package's TvQuickSettingsHint in the language of msgs.
+func (msgs Messages) TvQuickSettingsHint() string { return msgs.text(textTvQuickSettingsHint) }
+
+// TvMorePlaybackSettings says "More danmaku and playback settings"
+// in the language the app shows under cx.
+func TvMorePlaybackSettings(cx *core.Scope) string { return For(cx).TvMorePlaybackSettings() }
+
+// TvMorePlaybackSettings is the package's TvMorePlaybackSettings in the language of msgs.
+func (msgs Messages) TvMorePlaybackSettings() string { return msgs.text(textTvMorePlaybackSettings) }
+
+// TvPlayerTrackHint says "Subtitles / audio"
+// in the language the app shows under cx.
+func TvPlayerTrackHint(cx *core.Scope) string { return For(cx).TvPlayerTrackHint() }
+
+// TvPlayerTrackHint is the package's TvPlayerTrackHint in the language of msgs.
+func (msgs Messages) TvPlayerTrackHint() string { return msgs.text(textTvPlayerTrackHint) }
+
+// TvPlayerDanmakuHint says "Danmaku settings"
+// in the language the app shows under cx.
+func TvPlayerDanmakuHint(cx *core.Scope) string { return For(cx).TvPlayerDanmakuHint() }
+
+// TvPlayerDanmakuHint is the package's TvPlayerDanmakuHint in the language of msgs.
+func (msgs Messages) TvPlayerDanmakuHint() string { return msgs.text(textTvPlayerDanmakuHint) }
+
+// TvPlayerSeekHint says "Back / forward 10 seconds"
+// in the language the app shows under cx.
+func TvPlayerSeekHint(cx *core.Scope) string { return For(cx).TvPlayerSeekHint() }
+
+// TvPlayerSeekHint is the package's TvPlayerSeekHint in the language of msgs.
+func (msgs Messages) TvPlayerSeekHint() string { return msgs.text(textTvPlayerSeekHint) }
+
+// TvPlayerOK says "OK"
+// in the language the app shows under cx.
+func TvPlayerOK(cx *core.Scope) string { return For(cx).TvPlayerOK() }
+
+// TvPlayerOK is the package's TvPlayerOK in the language of msgs.
+func (msgs Messages) TvPlayerOK() string { return msgs.text(textTvPlayerOK) }
+
+// TvPlayerDanmakuCount says "Danmaku {count}"
+// in the language the app shows under cx.
+func TvPlayerDanmakuCount(cx *core.Scope, count string) string {
+	return For(cx).TvPlayerDanmakuCount(count)
+}
+
+// TvPlayerDanmakuCount is the package's TvPlayerDanmakuCount in the language of msgs.
+func (msgs Messages) TvPlayerDanmakuCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.TvPlayerDanmakuCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].TvPlayerDanmakuCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return "Danmaku " + msgs.arg(count)
+		case "zh-Hans":
+			return "弹幕 " + count + " 条"
+		}
+	}
+}
+
+// TvPlayerOpacity says "Danmaku opacity"
+// in the language the app shows under cx.
+func TvPlayerOpacity(cx *core.Scope) string { return For(cx).TvPlayerOpacity() }
+
+// TvPlayerOpacity is the package's TvPlayerOpacity in the language of msgs.
+func (msgs Messages) TvPlayerOpacity() string { return msgs.text(textTvPlayerOpacity) }

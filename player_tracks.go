@@ -31,6 +31,7 @@ type trackControls struct {
 	button, dialog, captions core.Node
 	show                     func(int)
 	panelOpen                func() bool
+	subtitle, audio          func() string
 }
 
 type subtitleSelection struct {
@@ -336,6 +337,39 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		button: ui.Button{Label: locales.PlayerTracks(cx), Icon: lucide.Captions, Variant: ui.ButtonSecondary,
 			TestID: "player-tracks", OnPress: func() { show(trackSubtitleTab) }},
 		dialog: dialog, show: show, panelOpen: open.Get,
+		subtitle: func() string {
+			if active := subtitles.Get(); active.name != "" {
+				return active.name
+			}
+			if d := decoder(); d != nil {
+				current := d.tracks.Get()
+				if index := slices.IndexFunc(current, selectedSubtitle); index >= 0 {
+					return trackLabel(cx, trackFromDecoder(current[index]))
+				}
+			}
+			return locales.SubtitlesOff(cx)
+		},
+		audio: func() string {
+			audio := stream().Tracks
+			if d := decoder(); d != nil {
+				if local := decoderAudio(d.tracks.Get()); len(local) > 0 {
+					audio = local
+				}
+			}
+			var fallback string
+			for _, track := range audio {
+				if track.Type != "audio" {
+					continue
+				}
+				if track.Selected {
+					return trackLabel(cx, track)
+				}
+				if fallback == "" {
+					fallback = trackLabel(cx, track)
+				}
+			}
+			return fallback
+		},
 		captions: core.Show{When: func() bool { return text.Get() != "" }, Then: func(cx *core.Scope) core.Node {
 			return core.View{Class: "absolute inset-x-0 items-center px-8", PointerEvents: core.PointerEventsNone,
 				StyleFunc: func() core.Style {

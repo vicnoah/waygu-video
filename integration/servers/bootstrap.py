@@ -98,8 +98,69 @@ def setup_media_browser(provider, base):
         scan_jellyfin_fixtures(base, user["User"]["Id"], headers)
     else:
         request(base, "/Library/Refresh", method="POST", headers=headers)
-    wait_for_fixture_identity(base, user["User"]["Id"], headers)
+    user_id = user["User"]["Id"]
+    wait_for_fixture_identity(base, user_id, headers)
+    setup_browser_previews(provider, base, user_id, headers)
     print(f"{provider} {info['Version']}: configured fixture libraries")
+
+
+def setup_browser_previews(provider, base, user_id, headers):
+    jellyfin = provider == "jellyfin"
+    if jellyfin:
+        folders = request(base, "/Library/VirtualFolders", headers=headers)
+        settings = {"EnableTrickplayImageExtraction": True}
+        title = "Waygu Track Test"
+    else:
+        folders = request(base, "/Library/VirtualFolders/Query", headers=headers)["Items"]
+        settings = {"EnableChapterImageExtraction": True, "ThumbnailImagesIntervalSeconds": 10}
+        title = "Waygu Resume Test"
+    movies = next(folder for folder in folders if folder["Name"] == "Movies")
+    options = movies["LibraryOptions"]
+    if any(options.get(key) != value for key, value in settings.items()):
+        options.update(settings)
+        request(base, "/Library/VirtualFolders/LibraryOptions", method="POST", headers=headers,
+                body={"Id": movies["ItemId"], "LibraryOptions": options})
+
+    def fixture_item():
+        catalog = request(base, "/Items", headers=headers, params={
+            "UserId": user_id, "Recursive": "true", "IncludeItemTypes": "Movie", "SearchTerm": title,
+        })
+        return next((item["Id"] for item in catalog["Items"] if item["Name"] == title), None)
+
+    item_id = wait_until_ready(fixture_item)
+
+    def preview_ready():
+        if jellyfin:
+            item = request(base, f"/Items/{item_id}", headers=headers,
+                           params={"UserId": user_id, "Fields": "Trickplay"})
+            return True if item.get("Trickplay") else None
+        return indexed_preview(base + f"/Videos/{item_id}/index.bif?Width=320", headers)
+
+    if not preview_ready():
+        start_browser_task(base, headers, "RefreshTrickplayImages" if jellyfin else "RefreshChapterImages")
+        wait_until_ready(preview_ready, timeout=120)
+
+
+def indexed_preview(address, headers=None):
+    try:
+        with urlopen(Request(address, headers=headers or {}), timeout=10) as response:
+            header = response.read(16)
+    except HTTPError as error:
+        if error.code == 404:
+            return None
+        raise
+    if header.startswith(b"\xff\xd8") or (
+        header.startswith(b"\x89BIF\r\n\x1a\n") and int.from_bytes(header[12:16], "little") > 0
+    ):
+        return True
+    return None
+
+
+def start_browser_task(base, headers, identifier):
+    tasks = request(base, "/ScheduledTasks", headers=headers)
+    task = next(task for task in tasks if task.get("Key") == identifier)
+    if task["State"] == "Idle":
+        request(base, f"/ScheduledTasks/Running/{task['Id']}", method="POST", headers=headers)
 
 
 def wait_for_fixture_identity(base, user_id, headers):
@@ -167,7 +228,24 @@ def setup_plex(base):
             request(base, f"/library/sections/{section['key']}/refresh")
         if section["title"] == "Movies":
             group_plex_versions(base, section["key"])
+            setup_plex_previews(base, section["key"])
     print(f"plex {info['version']}: configured fixture libraries")
+
+
+def setup_plex_previews(base, section_id):
+    def fixture_part():
+        catalog = request(base, f"/library/sections/{section_id}/all")["MediaContainer"]
+        for movie in catalog.get("Metadata", []):
+            if movie["title"] == "Waygu Track Test":
+                return movie["Media"][0]["Part"][0]["id"]
+        return None
+
+    part = wait_until_ready(fixture_part)
+    address = base + f"/library/parts/{part}/indexes/sd/0"
+    if not indexed_preview(address):
+        request(base, "/:/prefs", method="PUT", params={"GenerateBIFBehavior": "scheduled"})
+        request(base, "/butler/GenerateMediaIndexFiles", method="POST")
+        wait_until_ready(lambda: indexed_preview(address), timeout=120)
 
 
 def group_plex_versions(base, section_id):

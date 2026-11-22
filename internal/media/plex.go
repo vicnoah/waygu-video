@@ -437,6 +437,9 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			}
 		}
 		stream.Tracks = p.partTracks(part, audio)
+		if stream.Method == DirectPlay {
+			stream.Rendition = version.version()
+		}
 		return stream, nil
 	}
 	return Stream{}, ErrNoStream

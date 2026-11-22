@@ -58,7 +58,7 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [详情 · 深色](../../design/tv-detail.scenra#L165) | dark | `desktop · 1920 × 1640` | — | [Compared](tv-detail.md) |
 | [TV/首页](../../design/tv-home.scenra#L1) | light | `desktop · 1920 × 1760` | — | [Compared](tv-home.md) |
 | [首页 · 深色](../../design/tv-home.scenra#L157) | dark | `desktop · 1920 × 1760` | — | [Compared](tv-home.md) |
-| [TV/播放器](../../design/tv-player.scenra#L1) | default | `desktop · 1920 × 1080` | — | Pending |
+| [TV/播放器](../../design/tv-player.scenra#L1) | default | `desktop · 1920 × 1080` | — | [Compared](tv-player.md) |
 | [TV/设置](../../design/tv-settings.scenra#L1) | light | `desktop · 1920 × 1080` | — | Pending |
 | [设置 · 深色](../../design/tv-settings.scenra#L163) | dark | `desktop · 1920 × 1080` | — | Pending |
 | [主窗口/电影库](../../design/views/desktop-library.scenra#L1) | light | `desktop-main#light/content` | — | Pending |

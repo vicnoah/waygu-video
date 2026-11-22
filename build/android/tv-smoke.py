@@ -138,6 +138,51 @@ def detail_smoke():
     print("Android TV detail passed version, credits and recommendation navigation.")
 
 
+def player_smoke():
+    def label(test_id):
+        node = visible(test_id)
+        return node.get("text") or node.get("content-desc")
+
+    def position():
+        seconds = 0
+        for part in label("player-position").split(":"):
+            seconds = seconds * 60 + int(part)
+        return seconds
+
+    open_featured_details()
+    key("DPAD_CENTER")
+    visible("tv-player")
+    expect_focus("toggle-play")
+    playing = label("toggle-play")
+    key("DPAD_CENTER")
+    if label("toggle-play") == playing:
+        raise RuntimeError("Select did not toggle playback.")
+
+    key("MENU")
+    visible("tv-player-quick-settings")
+    expect_focus("toggle-danmaku")
+    key("DPAD_DOWN")
+    expect_focus("tv-player-opacity")
+    opacity = label("tv-player-opacity-value")
+    key("DPAD_RIGHT" if opacity == "10%" else "DPAD_LEFT")
+    if label("tv-player-opacity-value") == opacity:
+        raise RuntimeError("Left or Right did not adjust danmaku opacity.")
+    key("BACK")
+    expect_focus("toggle-play")
+
+    previous = position()
+    key("DPAD_LEFT" if previous >= 10 else "DPAD_RIGHT")
+    if position() == previous:
+        raise RuntimeError("Left or Right did not change playback position.")
+    key("DPAD_UP")
+    visible("player-tracks-dialog")
+    key("BACK")
+    visible("tv-player")
+    key("BACK")
+    expect_focus("detail-play")
+    print("Android TV player passed Select, Menu, opacity, seeking, tracks and Back.")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
@@ -145,8 +190,12 @@ if __name__ == "__main__":
                       help="test the home screen with a connected media library and two resume bookmarks")
     mode.add_argument("--with-detail", action="store_true",
                       help="test a featured movie with versions, credits and recommendations")
+    mode.add_argument("--with-player", action="store_true",
+                      help="test remote playback against a featured movie")
     args = parser.parse_args()
-    if args.with_detail:
+    if args.with_player:
+        player_smoke()
+    elif args.with_detail:
         detail_smoke()
     elif args.with_library:
         library_smoke()

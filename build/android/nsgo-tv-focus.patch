@@ -39,7 +39,17 @@
 +    private boolean isTelevision() {
 +        return (getResources().getConfiguration().uiMode & Configuration.UI_MODE_TYPE_MASK)
 +                == Configuration.UI_MODE_TYPE_TELEVISION;
-@@ -5114,0 +5144,4 @@
+@@ -4419,4 +4448,9 @@
+         switch (code) {
+             case KeyEvent.KEYCODE_ENTER: case KeyEvent.KEYCODE_NUMPAD_ENTER: return "enter";
++            case KeyEvent.KEYCODE_DPAD_CENTER: return "enter";
++            case KeyEvent.KEYCODE_MENU: return "menu";
++            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE: return "mediaplaypause";
++            case KeyEvent.KEYCODE_MEDIA_REWIND: return "mediarewind";
++            case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD: return "mediafastforward";
+             case KeyEvent.KEYCODE_ESCAPE: return "escape";
+             case KeyEvent.KEYCODE_TAB: return "tab";
+@@ -5114,0 +5149,4 @@
 +        if (n.field == null && isTelevision()) {
 +            view.setOnFocusChangeListener(press ? (v, focused) ->
 +                    report(n, focused ? Protocol.EVENT_FOCUS : Protocol.EVENT_BLUR) : null);

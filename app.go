@@ -39,6 +39,7 @@ const (
 	screenManageLibraries   screen = "manage-libraries"
 	screenDetail            screen = "detail"
 	screenPlayer            screen = "player"
+	screenTVPlayerSettings  screen = "tv-player-settings"
 	screenDownloads         screen = "downloads"
 )
 
@@ -219,6 +220,8 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 				return a.detail(screenScope, current)
 			case screenPlayer:
 				return a.player(screenScope, current)
+			case screenTVPlayerSettings:
+				return pageFrame(pageHeader(screenScope, locales.Settings(screenScope), a.back), a.settings(screenScope))
 			case screenPlaybackSettings:
 				return a.phonePlaybackSettings(screenScope)
 			case screenSubtitleSettings:

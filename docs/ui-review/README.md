@@ -16,6 +16,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Tablet movie detail · light and dark | [Screenshots and playback checks](tablet-detail.md) | Compared on GTK with Docker movie metadata and tracks. Tablet device checks remain pending. |
 | TV home · light and dark | [Design, shelf and remote checks](tv-home.md) | Compared at 1920 × 1760 pt on GTK with three Docker media servers. Android TV D-pad navigation passed at 1920 × 1080. |
 | TV detail · light and dark | [Movie details, resume and remote checks](tv-detail.md) | Compared at 1920 × 1640 pt on GTK. Android TV remote navigation passed at 1920 × 1080. |
+| TV player | [Playback, seek preview and quick settings comparisons](tv-player.md) | Compared at 1920 × 1080 pt on GTK. Android TV remote playback passed against Emby. Buffered progress and tvOS checks remain pending. |
 | Phone settings and source management · light and dark | [Comparison and server checks](phone-source-settings.md) | Compared on GTK with three Docker media servers. Source reordering, sync and removal are tested. Phone device captures remain pending. |
 | Phone landscape player · all seven panel tabs | [Playback and panel comparisons](phone-player.md) | Compared at 844 × 390 pt on GTK with an Emby video and subtitle fixture. Phone rotation and system gestures remain pending. |
 | Phone playback and subtitle settings · light and dark | [Settings comparison and playback checks](phone-player-settings.md) | Compared on GTK. Audio and caption preferences were verified against Emby and Jellyfin. Device captures and several controls remain pending. |
@@ -112,6 +113,15 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
 ```
 
 Use `WAYGU_REVIEW_DESIGN=tv-detail.scenra` to export the reference.
+
+Capture the TV player's full-screen controls, quick settings, seek preview and track picker at 1920 × 1080 pt.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerTVPlayerReview$' -screenshots .nsgo/ui-review/tv-player
+```
+
+Use `WAYGU_REVIEW_DESIGN=tv-player.scenra` to export the reference.
 
 Capture the personal state transitions with the same servers.
 

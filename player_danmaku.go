@@ -27,6 +27,7 @@ type danmakuControls struct {
 	panelOpen  func() bool
 	importFile func()
 	enabled    func() bool
+	count      func() int
 	toggle     func()
 }
 
@@ -37,7 +38,7 @@ type videoSample struct {
 
 func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.Stream,
 	sample *core.Signal[videoSample], size *core.Signal[core.Size], paused, buffering *core.Signal[bool],
-	resize func() core.ResizeMode, rate func() float32, useCanvas func() bool, showOnMPV func(*danmaku.Track)) danmakuControls {
+	resize func() core.ResizeMode, rate func() float32, tvSettings, useCanvas func() bool, showOnMPV func(*danmaku.Track)) danmakuControls {
 	type remoteComments struct {
 		comments []danmaku.Comment
 		shift    float64
@@ -48,6 +49,8 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 		prefs  danmakuPreferences
 		offset time.Duration
 	}
+	tv := appLayoutIdiom(cx) == core.IdiomTV
+	const tvTopInset = 150
 	editor := a.editDanmaku(cx)
 	offset, offsetControls := a.danmakuOffset(cx, current)
 	local := core.NewSignalFunc(cx, []danmaku.Comment(nil), nil)
@@ -80,7 +83,11 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 			comment.At += shift
 			comments = append(comments, comment)
 		}
-		scheduled := danmaku.ScheduleContext(ctx, comments, sources.prefs.rendererSettings(sources.offset))
+		settings := sources.prefs.rendererSettings(sources.offset)
+		if tv {
+			settings.Height -= tvTopInset * settings.Height / 1080
+		}
+		scheduled := danmaku.ScheduleContext(ctx, comments, settings)
 		return &scheduled, ctx.Err()
 	})
 	open := core.NewSignal(cx, a.danmakuPrefs.GetUntracked().Enabled)
@@ -243,6 +250,13 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 	})
 	return danmakuControls{
 		dialog: dialog, openPanel: func() { panel.Set(true) }, panelOpen: panel.Get, importFile: choose,
+		count: func() int {
+			value, _ := track.Get()
+			if value == nil {
+				return 0
+			}
+			return len(value.Events)
+		},
 		enabled: open.Get, toggle: func() { open.Update(func(value bool) bool { return !value }) },
 		buttons: core.View{Class: "flex-row items-center gap-1", Children: []core.Node{
 			ui.Button{Label: locales.Danmaku(cx), Icon: lucide.SlidersHorizontal, Variant: ui.ButtonSecondary,
@@ -262,12 +276,30 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 		}},
 		overlay: core.View{Class: "absolute inset-0", PointerEvents: core.PointerEventsNone, Children: []core.Node{
 			core.Show{When: func() bool { value, _ := track.Get(); return open.Get() && value != nil && useCanvas() }, Then: func(cx *core.Scope) core.Node {
-				return core.Canvas{Class: "absolute inset-0", TestID: "danmaku-canvas", Draw: func(d *core.Drawing, bounds core.Size) {
+				canvas := core.Canvas{Class: "absolute inset-0", TestID: "danmaku-canvas", Draw: func(d *core.Drawing, bounds core.Size) {
 					comments, _ := track.Get()
 					if comments != nil {
-						drawDanmaku(d, bounds, size.Get(), resize(), *comments, clock.Get())
+						var inset core.Points
+						if tv {
+							inset = tvLayoutFor(cx).points(tvTopInset)
+						}
+						drawDanmaku(d, bounds, size.Get(), resize(), *comments, clock.Get(), inset)
 					}
 				}}
+				if !tv {
+					return canvas
+				}
+				canvas.Class = "absolute inset-y-0 left-0"
+				canvas.StyleFunc = func() core.Style {
+					return core.Style{Width: core.Pt(cx.Env().Window().Width)}
+				}
+				return core.View{Class: "absolute inset-0 overflow-hidden", PointerEvents: core.PointerEventsNone,
+					StyleFunc: func() core.Style {
+						if tvSettings() {
+							return core.Style{Right: tvLayoutFor(cx).length(600)}
+						}
+						return core.Style{}
+					}, Children: []core.Node{canvas}}
 			}},
 			core.Show{When: invalid.Get, Then: func(cx *core.Scope) core.Node {
 				return core.View{Class: "absolute inset-0 items-center justify-center", Children: []core.Node{
@@ -328,10 +360,11 @@ func (a *application) danmakuOffset(cx *core.Scope, current route) (*core.Signal
 
 }
 
-func drawDanmaku(d *core.Drawing, bounds, video core.Size, resize core.ResizeMode, track danmaku.Track, at time.Duration) {
+func drawDanmaku(d *core.Drawing, bounds, video core.Size, resize core.ResizeMode, track danmaku.Track, at time.Duration, inset core.Points) {
 	frame := resize.Fit(video, bounds, core.ObjectPosition{})
-	width, height := float32(frame.Size.Width), float32(frame.Size.Height)
-	x, y := float32(frame.Origin.X), float32(frame.Origin.Y)
+	top := min(inset, frame.Size.Height/4)
+	width, height := float32(frame.Size.Width), float32(frame.Size.Height-top)
+	x, y := float32(frame.Origin.X), float32(frame.Origin.Y+top)
 	scaleX, scaleY := width/float32(track.Width), height/float32(track.Height)
 	scale := min(scaleX, scaleY)
 	font := core.Font{Size: core.Points(max(6, float32(track.FontSize)*scale)), Weight: core.FontWeightNormal}

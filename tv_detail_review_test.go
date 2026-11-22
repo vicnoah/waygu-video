@@ -92,7 +92,8 @@ func TestDockerTVDetailReview(t *testing.T) {
 			app.WaitFor("id:tv-detail-trailer", 5*time.Second)
 			app.Press("id:tv-detail-trailer")
 			app.WaitFor("id:video-player", 8*time.Second)
-			app.Press("id:close-player")
+			app.WaitFor("id:tv-player", 3*time.Second)
+			app.Key("escape")
 			app.WaitFor("id:tv-detail-hero", 5*time.Second)
 			app.Press("id:back")
 

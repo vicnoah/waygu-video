@@ -37,6 +37,7 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	if offline {
 		download, _ = a.downloads.find(current.downloadID, a.downloads.entries.GetUntracked())
 	}
+	showTVHints := sync.OnceValue(a.showTVPlayerHints)
 	noServerSubtitles := -1
 	options, remembered := a.initialPlaybackOptions(current)
 	options.SubtitleIndex = &noServerSubtitles
@@ -68,7 +69,7 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	return core.View{Class: "flex-1 bg-black", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
 		core.Dynamic(func(cx *core.Scope) core.Node {
 			if medium, ready := resource.Get(); ready {
-				return a.playerView(cx, current, medium)
+				return a.playerView(cx, current, medium, showTVHints)
 			}
 			var state core.Node = hint(locales.Loading(cx))
 			if err := resource.Err(); err != nil {
@@ -106,7 +107,7 @@ func prepareVideo(lifetime context.Context, client media.Client, stream media.St
 	return medium, nil
 }
 
-func (a *application) playerView(cx *core.Scope, current route, initial playerMedia) core.Node {
+func (a *application) playerView(cx *core.Scope, current route, initial playerMedia, showTVHints func() bool) core.Node {
 	medium := core.NewSignalFunc(cx, initial, nil)
 	ref := &core.Ref{}
 	seekVideo := ref.Seek
@@ -313,7 +314,8 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		}
 		return video
 	})
-	comments := a.playerDanmaku(cx, current, initial.stream, sample, picture, paused, buffering, fit.Get, rate.Get, func() bool {
+	tvSettings := core.NewSignal(cx, false)
+	comments := a.playerDanmaku(cx, current, initial.stream, sample, picture, paused, buffering, fit.Get, rate.Get, tvSettings.Get, func() bool {
 		decoder := desktop.Get()
 		return decoder == nil || !decoder.active()
 	}, func(track *danmaku.Track) {
@@ -387,6 +389,16 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			}},
 	})
 	chrome := core.Dynamic(func(cx *core.Scope) core.Node {
+		if appLayoutIdiom(cx) == core.IdiomTV {
+			return core.Func(func(cx *core.Scope) core.Node {
+				return a.tvPlayer(cx, tvPlayerControls{
+					current: current, position: position, duration: duration, paused: paused,
+					rate: rate, canRate: canChangeRate, bitrate: bitrate.Get, seek: seek, toggle: toggle,
+					stream: activeStream, client: initial.client, tracks: tracks, comments: comments,
+					qualityAvailable: quality != nil, next: nextEpisode.card, hints: showTVHints(),
+				}, tvSettings)
+			})
+		}
 		if !phoneLandscape(cx) {
 			return legacyChrome
 		}

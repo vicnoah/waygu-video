@@ -25,6 +25,7 @@ type browserStream struct {
 
 type browserSource struct {
 	ID                      string
+	ItemID                  string
 	Name                    string
 	Path                    string
 	Container               string
@@ -155,7 +156,8 @@ func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID 
 	original := m.mediaURL("Videos/"+url.PathEscape(item.ID)+"/stream", params)
 	stream := Stream{ItemID: item.ID, SourceID: source.ID, SessionID: sessionID,
 		Position: item.Position, Duration: max(item.Duration, fromTicks(source.RunTimeTicks)),
-		File: SourceFile{Name: videoFileName(source.Path), Size: source.Size, URL: original}}
+		Rendition: source.version(),
+		File:      SourceFile{Name: videoFileName(source.Path), Size: source.Size, URL: original}}
 	if audio != nil {
 		if !slices.ContainsFunc(source.MediaStreams, func(stream browserStream) bool {
 			return stream.Index == *audio && strings.EqualFold(stream.Type, "audio")
