@@ -97,7 +97,50 @@ func TestDockerServers(t *testing.T) {
 			verifyDockerHLS(t, ctx, client, movie)
 			verifyDockerResume(t, ctx, client, movieLibrary, showLibrary)
 			verifyDockerTracks(t, ctx, client, movieLibrary, server.kind)
+			verifyDockerVersions(t, ctx, client, movieLibrary)
 		})
+	}
+}
+
+func verifyDockerVersions(t *testing.T, ctx context.Context, client Client, library string) {
+	t.Helper()
+	item := findDockerItem(t, ctx, client, Query{LibraryID: library}, Movie, "Waygu Version Test")
+	versions, err := client.(VersionClient).Versions(ctx, item)
+	if err != nil || len(versions) != 2 {
+		t.Fatalf("list grouped versions: got %d versions, %v", len(versions), err)
+	}
+	slices.SortFunc(versions, func(a, b Version) int { return a.Height - b.Height })
+	low, high := versions[0], versions[1]
+	if low.Height != 180 || high.Height != 360 || low.ID == high.ID || low.ID == "" || high.ID == "" ||
+		low.Bitrate <= 0 || high.Bitrate <= low.Bitrate {
+		t.Fatalf("incorrect version metadata: %+v", versions)
+	}
+	for _, check := range []struct {
+		options PlaybackOptions
+		want    Version
+	}{
+		{PlaybackOptions{SourceID: low.ID, VersionPolicy: VersionHighest}, low},
+		{PlaybackOptions{SourceID: high.ID}, high},
+		{PlaybackOptions{VersionPolicy: VersionHighest}, high},
+		{PlaybackOptions{VersionPolicy: VersionFitBitrate, MaxBitrate: (low.Bitrate + high.Bitrate) / 2}, low},
+	} {
+		stream, err := client.Playback(ctx, item, check.options)
+		if err != nil || stream.SourceID != check.want.ID {
+			t.Fatalf("open %dp version: %v", check.want.Height, err)
+		}
+		if check.options.SourceID == "" {
+			continue
+		}
+		address, closeProxy, err := playback.Open(stream.URL, stream.Headers)
+		if err != nil {
+			t.Fatal("proxy the selected version:", err)
+		}
+		data, probeErr := exec.CommandContext(ctx, "ffprobe", "-v", "error", "-select_streams", "v:0",
+			"-show_entries", "stream=height", "-of", "csv=p=0", address).Output()
+		closeProxy()
+		if probeErr != nil || strings.TrimSpace(string(data)) != strconv.Itoa(check.want.Height) {
+			t.Fatalf("selected version decoded as %q, want %dp: %v", strings.TrimSpace(string(data)), check.want.Height, probeErr)
+		}
 	}
 }
 

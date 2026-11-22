@@ -32,11 +32,12 @@ const (
 )
 
 type route struct {
-	screen   screen
-	provider media.Provider
-	source   source
-	item     media.Item
-	resume   bool
+	screen    screen
+	provider  media.Provider
+	source    source
+	item      media.Item
+	resume    bool
+	versionID string
 }
 
 type source struct {
@@ -63,19 +64,20 @@ func (s source) credentialKey() string {
 type mediaFactory func(media.Provider, string, media.Device, media.Session) (media.Client, error)
 
 type application struct {
-	scope        *core.Scope
-	device       media.Device
-	storage      core.Storage
-	secrets      core.Secrets
-	newMedia     mediaFactory
-	sources      *core.Signal[[]source]
-	routes       *core.Signal[[]route]
-	tab          *core.Signal[int]
-	sourceFilter *core.Signal[string]
-	mpvPreferred *core.Signal[bool]
-	bitrateLimit *core.Signal[int]
-	autoNext     *core.Signal[bool]
-	tokens       sync.Map
+	scope         *core.Scope
+	device        media.Device
+	storage       core.Storage
+	secrets       core.Secrets
+	newMedia      mediaFactory
+	sources       *core.Signal[[]source]
+	routes        *core.Signal[[]route]
+	tab           *core.Signal[int]
+	sourceFilter  *core.Signal[string]
+	mpvPreferred  *core.Signal[bool]
+	bitrateLimit  *core.Signal[int]
+	versionPolicy *core.Signal[media.VersionPolicy]
+	autoNext      *core.Signal[bool]
+	tokens        sync.Map
 }
 
 const (
@@ -108,6 +110,7 @@ func appRoot(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer) c
 	first := screenWelcome
 	mpvPreference, _ := storage.GetItem(mpvKey)
 	bitrateSetting, _ := storage.GetItem(bitrateKey)
+	policy, _ := storage.GetItem(versionPolicyKey)
 	autoNext, _ := storage.GetItem(autoNextKey)
 	bitrate, _ := strconv.Atoi(bitrateSetting)
 	if !slices.Contains(playbackBitrates, bitrate) {
@@ -121,9 +124,10 @@ func appRoot(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer) c
 		device: media.Device{ID: deviceID, Name: "Waygu Video"}, storage: storage, secrets: cx.Secrets(), newMedia: factory,
 		sources: core.NewSignalFunc(cx, sources, nil), routes: core.NewSignalFunc(cx, []route{{screen: first}}, nil),
 		tab: core.NewSignal(cx, 0), sourceFilter: core.NewSignal(cx, ""),
-		mpvPreferred: core.NewSignal(cx, mpvPreference == "true"),
-		bitrateLimit: core.NewSignal(cx, bitrate),
-		autoNext:     core.NewSignal(cx, autoNext != "false"),
+		mpvPreferred:  core.NewSignal(cx, mpvPreference == "true"),
+		bitrateLimit:  core.NewSignal(cx, bitrate),
+		versionPolicy: core.NewSignal(cx, playbackVersionPolicy(policy)),
+		autoNext:      core.NewSignal(cx, autoNext != "false"),
 	}
 	cx.OnBackPress(func() bool {
 		if len(a.routes.GetUntracked()) <= 1 {

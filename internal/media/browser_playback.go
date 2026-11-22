@@ -15,6 +15,8 @@ type browserStream struct {
 	Codec        string
 	Language     string
 	DisplayTitle string
+	Width        int
+	Height       int
 	IsExternal   bool
 	IsDefault    bool
 	IsForced     bool
@@ -22,7 +24,9 @@ type browserStream struct {
 
 type browserSource struct {
 	ID                      string
+	Name                    string
 	Container               string
+	Size                    int64
 	RunTimeTicks            int64
 	Bitrate                 int
 	DefaultAudioStreamIndex *int
@@ -30,6 +34,36 @@ type browserSource struct {
 	SupportsDirectStream    bool
 	TranscodingUrl          string
 	MediaStreams            []browserStream
+}
+
+type browserPlaybackInfo struct {
+	PlaySessionId string
+	MediaSources  []browserSource
+}
+
+func (m *mediaBrowser) Versions(ctx context.Context, item Item) ([]Version, error) {
+	var dto browserPlaybackInfo
+	if err := m.get(ctx, "Items/"+url.PathEscape(item.ID)+"/PlaybackInfo", m.userQuery(), &dto); err != nil {
+		return nil, err
+	}
+	var versions []Version
+	for _, source := range dto.MediaSources {
+		if source.ID != "" {
+			versions = append(versions, source.version())
+		}
+	}
+	return versions, nil
+}
+
+func (source browserSource) version() Version {
+	version := Version{ID: source.ID, Name: source.Name, Size: source.Size, Bitrate: source.Bitrate}
+	for _, stream := range source.MediaStreams {
+		if strings.EqualFold(stream.Type, "video") {
+			version.Width, version.Height, version.VideoCodec = stream.Width, stream.Height, stream.Codec
+			break
+		}
+	}
+	return version
 }
 
 func (m *mediaBrowser) Playback(ctx context.Context, item Item, options PlaybackOptions) (Stream, error) {
@@ -83,14 +117,16 @@ func (m *mediaBrowser) Playback(ctx context.Context, item Item, options Playback
 		params.Set("SubtitleStreamIndex", strconv.Itoa(*options.SubtitleIndex))
 		body["SubtitleStreamIndex"] = *options.SubtitleIndex
 	}
-	var dto struct {
-		PlaySessionId string
-		MediaSources  []browserSource
-	}
+	var dto browserPlaybackInfo
 	if err := m.post(ctx, "Items/"+url.PathEscape(item.ID)+"/PlaybackInfo", params, body, &dto); err != nil {
 		return Stream{}, err
 	}
-	for _, source := range dto.MediaSources {
+	versions := make([]Version, len(dto.MediaSources))
+	for i, source := range dto.MediaSources {
+		versions[i] = source.version()
+	}
+	for _, index := range versionOrder(versions, options) {
+		source := dto.MediaSources[index]
 		if options.SourceID != "" && options.SourceID != source.ID {
 			continue
 		}

@@ -116,7 +116,7 @@ def scan_jellyfin_fixtures(base, user_id, headers):
             "UserId": user_id, "Recursive": "true", "IncludeItemTypes": "Movie,Series",
         })
         titles = [item["Name"] for item in catalog["Items"]]
-        for title in ("Waygu Test Movie", "Waygu Resume Test", "Waygu Track Test", "Waygu Test Series"):
+        for title in ("Waygu Test Movie", "Waygu Resume Test", "Waygu Track Test", "Waygu Version Test", "Waygu Test Series"):
             if not any(name.startswith(title) for name in titles):
                 raise ValueError(f"Jellyfin scan has not indexed fixture {title!r}")
         return True
@@ -150,7 +150,25 @@ def setup_plex(base):
     for section in sections.get("Directory", []):
         if section["title"] in {"Movies", "Shows"}:
             request(base, f"/library/sections/{section['key']}/refresh")
+        if section["title"] == "Movies":
+            group_plex_versions(base, section["key"])
     print(f"plex {info['version']}: configured fixture libraries")
+
+
+def group_plex_versions(base, section_id):
+    # An unclaimed test server can index variants as two separate items.
+    def fixture_items():
+        section = request(base, f"/library/sections/{section_id}/all")["MediaContainer"]
+        items = [item for item in section.get("Metadata", []) if item["title"] == "Waygu Version Test"]
+        if sum(len(item.get("Media", [])) for item in items) != 2:
+            return None
+        return items
+
+    items = wait_until_ready(fixture_items)
+    if len(items) == 2:
+        ids = sorted((int(item["ratingKey"]) for item in items))
+        request(base, f"/library/metadata/{ids[0]}/merge", method="PUT", params={"ids": str(ids[1])})
+        wait_until_ready(lambda: True if len(fixture_items() or []) == 1 else None)
 
 
 if __name__ == "__main__":

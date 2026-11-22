@@ -131,6 +131,7 @@ const (
 
 type PlaybackOptions struct {
 	SourceID      string
+	VersionPolicy VersionPolicy
 	MaxBitrate    int
 	AudioIndex    *int
 	SubtitleIndex *int

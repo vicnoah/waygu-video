@@ -50,6 +50,8 @@ var Parameters = map[string][]string{
 	"MoveLibraryDown":         {"name"},
 	"SubtitleDelay":           {"seconds"},
 	"TrackNumber":             {"number"},
+	"NumberedPlaybackVersion": {"number"},
+	"EpisodeDetails":          {"episode"},
 	"BitrateMegabits":         {"bitrate"},
 	"NextEpisodeCountdown":    {"seconds"},
 	"EpisodeLabel":            {"number"},
@@ -70,6 +72,8 @@ type Translation struct {
 	MoveLibraryDown         func(name string) string
 	SubtitleDelay           func(seconds string) string
 	TrackNumber             func(number string) string
+	NumberedPlaybackVersion func(number string) string
+	EpisodeDetails          func(episode string) string
 	BitrateMegabits         func(bitrate string) string
 	NextEpisodeCountdown    func(seconds string) string
 	EpisodeLabel            func(number string) string
@@ -159,6 +163,14 @@ const (
 	textNoAudioTracks
 	textAudioSwitchError
 	textPlaybackSpeed
+	textPlaybackVersion
+	textPreferredPlaybackVersion
+	textAutomaticPlaybackVersion
+	textReloadPlaybackVersions
+	textServerVersionOrder
+	textHighestVersionQuality
+	textMatchStreamingBitrate
+	textRememberLastVersion
 	textPlaybackSpeedUnavailable
 	textTracksDone
 	textRetry
@@ -284,6 +296,14 @@ var keyOfText = [numTexts]string{
 	"noAudioTracks",
 	"audioSwitchError",
 	"playbackSpeed",
+	"playbackVersion",
+	"preferredPlaybackVersion",
+	"automaticPlaybackVersion",
+	"reloadPlaybackVersions",
+	"serverVersionOrder",
+	"highestVersionQuality",
+	"matchStreamingBitrate",
+	"rememberLastVersion",
 	"playbackSpeedUnavailable",
 	"tracksDone",
 	"retry",
@@ -407,6 +427,14 @@ var textsEn = i18n.NewTexts(""+
 	"No selectable audio tracks for this source."+
 	"Could not switch audio tracks."+
 	"Speed"+
+	"Playback version"+
+	"Preferred playback version"+
+	"Choose automatically"+
+	"Retry loading versions"+
+	"Server default"+
+	"Highest quality"+
+	"Match streaming bitrate"+
+	"Remember the last version"+
 	"This player cannot change speed for the current stream."+
 	"Done"+
 	"Retry"+
@@ -527,6 +555,14 @@ var textsEn = i18n.NewTexts(""+
 		43,
 		30,
 		5,
+		16,
+		26,
+		20,
+		22,
+		14,
+		15,
+		23,
+		25,
 		55,
 		4,
 		5,
@@ -650,6 +686,14 @@ var textsZhHans = i18n.NewTexts(""+
 	"此媒体源未提供可切换的音轨。"+
 	"无法切换音轨。"+
 	"倍速"+
+	"播放版本"+
+	"首选播放版本"+
+	"自动选择"+
+	"重试读取版本"+
+	"服务器默认"+
+	"最高画质"+
+	"匹配串流码率"+
+	"记住上次播放的版本"+
 	"当前视频流不能调整播放速度。"+
 	"完成"+
 	"重试"+
@@ -770,6 +814,14 @@ var textsZhHans = i18n.NewTexts(""+
 		42,
 		21,
 		6,
+		12,
+		18,
+		12,
+		18,
+		15,
+		12,
+		18,
+		27,
 		42,
 		6,
 		6,
@@ -887,6 +939,12 @@ func Supply(lang string, t Translation) {
 	}
 	if t.TrackNumber != nil {
 		s.TrackNumber = t.TrackNumber
+	}
+	if t.NumberedPlaybackVersion != nil {
+		s.NumberedPlaybackVersion = t.NumberedPlaybackVersion
+	}
+	if t.EpisodeDetails != nil {
+		s.EpisodeDetails = t.EpisodeDetails
 	}
 	if t.BitrateMegabits != nil {
 		s.BitrateMegabits = t.BitrateMegabits
@@ -1629,6 +1687,112 @@ func PlaybackSpeed(cx *core.Scope) string { return For(cx).PlaybackSpeed() }
 
 // PlaybackSpeed is the package's PlaybackSpeed in the language of msgs.
 func (msgs Messages) PlaybackSpeed() string { return msgs.text(textPlaybackSpeed) }
+
+// PlaybackVersion says "Playback version"
+// in the language the app shows under cx.
+func PlaybackVersion(cx *core.Scope) string { return For(cx).PlaybackVersion() }
+
+// PlaybackVersion is the package's PlaybackVersion in the language of msgs.
+func (msgs Messages) PlaybackVersion() string { return msgs.text(textPlaybackVersion) }
+
+// PreferredPlaybackVersion says "Preferred playback version"
+// in the language the app shows under cx.
+func PreferredPlaybackVersion(cx *core.Scope) string { return For(cx).PreferredPlaybackVersion() }
+
+// PreferredPlaybackVersion is the package's PreferredPlaybackVersion in the language of msgs.
+func (msgs Messages) PreferredPlaybackVersion() string {
+	return msgs.text(textPreferredPlaybackVersion)
+}
+
+// AutomaticPlaybackVersion says "Choose automatically"
+// in the language the app shows under cx.
+func AutomaticPlaybackVersion(cx *core.Scope) string { return For(cx).AutomaticPlaybackVersion() }
+
+// AutomaticPlaybackVersion is the package's AutomaticPlaybackVersion in the language of msgs.
+func (msgs Messages) AutomaticPlaybackVersion() string {
+	return msgs.text(textAutomaticPlaybackVersion)
+}
+
+// NumberedPlaybackVersion says "Version {number}"
+// in the language the app shows under cx.
+func NumberedPlaybackVersion(cx *core.Scope, number string) string {
+	return For(cx).NumberedPlaybackVersion(number)
+}
+
+// NumberedPlaybackVersion is the package's NumberedPlaybackVersion in the language of msgs.
+func (msgs Messages) NumberedPlaybackVersion(number string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.NumberedPlaybackVersion(number))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].NumberedPlaybackVersion; f != nil {
+			return f(number)
+		}
+		switch lang {
+		case "", "en":
+			return "Version " + msgs.arg(number)
+		case "zh-Hans":
+			return "版本 " + number
+		}
+	}
+}
+
+// ReloadPlaybackVersions says "Retry loading versions"
+// in the language the app shows under cx.
+func ReloadPlaybackVersions(cx *core.Scope) string { return For(cx).ReloadPlaybackVersions() }
+
+// ReloadPlaybackVersions is the package's ReloadPlaybackVersions in the language of msgs.
+func (msgs Messages) ReloadPlaybackVersions() string { return msgs.text(textReloadPlaybackVersions) }
+
+// ServerVersionOrder says "Server default"
+// in the language the app shows under cx.
+func ServerVersionOrder(cx *core.Scope) string { return For(cx).ServerVersionOrder() }
+
+// ServerVersionOrder is the package's ServerVersionOrder in the language of msgs.
+func (msgs Messages) ServerVersionOrder() string { return msgs.text(textServerVersionOrder) }
+
+// HighestVersionQuality says "Highest quality"
+// in the language the app shows under cx.
+func HighestVersionQuality(cx *core.Scope) string { return For(cx).HighestVersionQuality() }
+
+// HighestVersionQuality is the package's HighestVersionQuality in the language of msgs.
+func (msgs Messages) HighestVersionQuality() string { return msgs.text(textHighestVersionQuality) }
+
+// MatchStreamingBitrate says "Match streaming bitrate"
+// in the language the app shows under cx.
+func MatchStreamingBitrate(cx *core.Scope) string { return For(cx).MatchStreamingBitrate() }
+
+// MatchStreamingBitrate is the package's MatchStreamingBitrate in the language of msgs.
+func (msgs Messages) MatchStreamingBitrate() string { return msgs.text(textMatchStreamingBitrate) }
+
+// RememberLastVersion says "Remember the last version"
+// in the language the app shows under cx.
+func RememberLastVersion(cx *core.Scope) string { return For(cx).RememberLastVersion() }
+
+// RememberLastVersion is the package's RememberLastVersion in the language of msgs.
+func (msgs Messages) RememberLastVersion() string { return msgs.text(textRememberLastVersion) }
+
+// EpisodeDetails says "Details for {episode}"
+// in the language the app shows under cx.
+func EpisodeDetails(cx *core.Scope, episode string) string { return For(cx).EpisodeDetails(episode) }
+
+// EpisodeDetails is the package's EpisodeDetails in the language of msgs.
+func (msgs Messages) EpisodeDetails(episode string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.EpisodeDetails(episode))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].EpisodeDetails; f != nil {
+			return f(episode)
+		}
+		switch lang {
+		case "", "en":
+			return "Details for " + msgs.arg(episode)
+		case "zh-Hans":
+			return "查看" + episode + "详情"
+		}
+	}
+}
 
 // PlaybackSpeedUnavailable says "This player cannot change speed for the current stream."
 // in the language the app shows under cx.

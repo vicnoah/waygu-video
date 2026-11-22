@@ -30,14 +30,15 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	theme.Light = theme.Dark
 	cx.SetTheme(theme)
 	platform := cx.Env().OS()
-	bitrate := a.bitrateLimit.GetUntracked()
 	noServerSubtitles := -1
+	options, remembered := a.initialPlaybackOptions(current)
+	options.SubtitleIndex = &noServerSubtitles
 	resource := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (playerMedia, error) {
 		client, err := a.client(current.source)
 		if err != nil {
 			return playerMedia{}, err
 		}
-		stream, err := client.Playback(ctx, current.item, media.PlaybackOptions{MaxBitrate: bitrate, SubtitleIndex: &noServerSubtitles})
+		stream, err := openPlaybackVersion(ctx, client, current.item, options, remembered)
 		if err != nil {
 			return playerMedia{}, err
 		}
@@ -193,6 +194,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 					duration.Set(info.Duration)
 				}
 				loaded = true
+				a.rememberPlaybackVersion(current, active.client, active.stream.SourceID)
 				buffering.Set(false)
 				canChangeRate.Set(info.RateChangeable)
 				if !info.RateChangeable {

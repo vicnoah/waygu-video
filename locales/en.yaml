@@ -83,6 +83,16 @@ noAudioTracks: No selectable audio tracks for this source.
 audioSwitchError: Could not switch audio tracks.
 trackNumber: "Track {number}"
 playbackSpeed: Speed
+playbackVersion: Playback version
+preferredPlaybackVersion: Preferred playback version
+automaticPlaybackVersion: Choose automatically
+numberedPlaybackVersion: "Version {number}"
+reloadPlaybackVersions: Retry loading versions
+serverVersionOrder: Server default
+highestVersionQuality: Highest quality
+matchStreamingBitrate: Match streaming bitrate
+rememberLastVersion: Remember the last version
+episodeDetails: "Details for {episode}"
 playbackSpeedUnavailable: This player cannot change speed for the current stream.
 tracksDone: Done
 retry: Retry

@@ -6,7 +6,8 @@ movie='media/Movies/Waygu Test Movie (2025)'
 season='media/Shows/Waygu Test Series (2025)/Season 01'
 resume='media/Movies/Waygu Resume Test (2025)'
 tracks='media/Movies/Waygu Track Test (2025)'
-mkdir -p "$movie" "$season" "$resume" "$tracks"
+versions='media/Movies/Waygu Version Test (2025)'
+mkdir -p "$movie" "$season" "$resume" "$tracks" "$versions"
 
 make_clip() {
     picture=$1
@@ -61,3 +62,15 @@ if [ ! -s "$track_base.mp4" ]; then
         -t 24 -c:v libx264 -preset veryfast -pix_fmt yuv420p \
         -c:a aac -c:s mov_text -movflags +faststart "$track_base.mp4"
 fi
+
+for height in 180 360; do
+    version="$versions/Waygu Version Test (2025) - ${height}p.mp4"
+    if [ ! -s "$version" ]; then
+        width=$((height * 16 / 9))
+        ffmpeg -nostdin -hide_banner -loglevel error -y \
+            -f lavfi -i "testsrc2=size=${width}x${height}:rate=24" \
+            -f lavfi -i 'sine=frequency=620:sample_rate=48000' \
+            -t 14 -c:v libx264 -preset veryfast -pix_fmt yuv420p \
+            -c:a aac -movflags +faststart "$version"
+    fi
+done

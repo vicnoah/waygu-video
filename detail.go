@@ -14,9 +14,10 @@ import (
 )
 
 type detailResult struct {
-	item     media.Item
-	children []media.Item
-	failure  error
+	item        media.Item
+	children    []media.Item
+	hasVersions bool
+	failure     error
 }
 
 func (a *application) detail(cx *core.Scope, current route) core.Node {
@@ -27,6 +28,7 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 			result.failure = err
 			return result, nil
 		}
+		_, result.hasVersions = client.(media.VersionClient)
 		item, err := client.Detail(ctx, current.item)
 		if err == nil {
 			result.item = item
@@ -42,6 +44,8 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 		}
 		return result, nil
 	})
+	versionID := core.NewSignal(cx, "")
+	versions := a.versionPicker(cx, current, versionID)
 	return pageFrame(pageHeader(cx, locales.Details(cx), a.back), pageBody(core.Dynamic(func(cx *core.Scope) core.Node {
 		result, ready := loaded.Get()
 		if !ready {
@@ -69,7 +73,7 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 				label = locales.Resume(cx)
 			}
 			start := func(resume bool) {
-				a.push(route{screen: screenPlayer, source: current.source, item: item, resume: resume})
+				a.push(route{screen: screenPlayer, source: current.source, item: item, resume: resume, versionID: versionID.GetUntracked()})
 			}
 			actions := []core.Node{ui.Button{Text: label, Icon: lucide.Play, Size: ui.SizeLarge, TestID: "detail-play",
 				OnPress: func() { start(true) }}}
@@ -78,6 +82,7 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 					OnPress: func() { start(false) }})
 			}
 			rows = append(rows, core.View{Class: "flex-row flex-wrap gap-3", Children: actions})
+			rows = append(rows, versions)
 		}
 		if item.Overview != "" {
 			rows = append(rows, core.Text{Content: item.Overview, Class: "text-base leading-relaxed"})
@@ -108,14 +113,23 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 				if child.Kind == media.Season && label == "" {
 					label = locales.SeasonLabel(cx, strconv.Itoa(child.Season))
 				}
-				rows = append(rows, ui.Button{Text: label, Icon: lucide.ChevronRight, Size: ui.SizeLarge,
+				open := ui.Button{Text: label, Icon: lucide.ChevronRight, Size: ui.SizeLarge,
 					Variant: ui.ButtonOutline, TestID: "child-" + child.ID, OnPress: func() {
 						target := screenDetail
 						if playable(child) {
 							target = screenPlayer
 						}
 						a.push(route{screen: target, source: current.source, item: child, resume: true})
+					}}
+				if result.hasVersions && child.Kind == media.Episode {
+					rows = append(rows, core.View{Class: "flex-row flex-wrap items-center gap-3", Children: []core.Node{
+						open, ui.Button{Label: locales.EpisodeDetails(cx, label), Icon: lucide.Info,
+							Size: ui.SizeLarge, Variant: ui.ButtonOutline, TestID: "child-details-" + child.ID,
+							OnPress: func() { a.push(route{screen: screenDetail, source: current.source, item: child}) }},
 					}})
+				} else {
+					rows = append(rows, open)
+				}
 			}
 		}
 		return core.View{Class: "gap-5", Children: rows}

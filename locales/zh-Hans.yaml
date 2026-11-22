@@ -83,6 +83,16 @@ noAudioTracks: 此媒体源未提供可切换的音轨。
 audioSwitchError: 无法切换音轨。
 trackNumber: "轨道 {number}"
 playbackSpeed: 倍速
+playbackVersion: 播放版本
+preferredPlaybackVersion: 首选播放版本
+automaticPlaybackVersion: 自动选择
+numberedPlaybackVersion: "版本 {number}"
+reloadPlaybackVersions: 重试读取版本
+serverVersionOrder: 服务器默认
+highestVersionQuality: 最高画质
+matchStreamingBitrate: 匹配串流码率
+rememberLastVersion: 记住上次播放的版本
+episodeDetails: "查看{episode}详情"
 playbackSpeedUnavailable: 当前视频流不能调整播放速度。
 tracksDone: 完成
 retry: 重试

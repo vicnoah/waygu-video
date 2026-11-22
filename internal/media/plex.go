@@ -51,6 +51,7 @@ type plexMetadata struct {
 type plexMedia struct {
 	ID                                int
 	Bitrate                           int
+	Width, Height                     int
 	Container, VideoCodec, AudioCodec string
 	Part                              []plexPart
 }
@@ -59,6 +60,7 @@ type plexPart struct {
 	ID       int
 	Key      string
 	Duration int64
+	Size     int64
 	Stream   []plexTrack
 }
 
@@ -291,12 +293,40 @@ func (p *plexClient) mediaURL(route string, params url.Values) string {
 	return link.String()
 }
 
+func (p *plexClient) Versions(ctx context.Context, item Item) ([]Version, error) {
+	entry, err := p.metadata(ctx, item.ID)
+	if err != nil {
+		return nil, err
+	}
+	var versions []Version
+	for _, medium := range entry.Media {
+		if medium.ID > 0 && len(medium.Part) > 0 {
+			versions = append(versions, medium.version())
+		}
+	}
+	return versions, nil
+}
+
+func (m plexMedia) version() Version {
+	version := Version{ID: strconv.Itoa(m.ID), Width: m.Width, Height: m.Height, Bitrate: m.Bitrate * 1000,
+		VideoCodec: m.VideoCodec}
+	for _, part := range m.Part {
+		version.Size += part.Size
+	}
+	return version
+}
+
 func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOptions) (Stream, error) {
 	entry, err := p.metadata(ctx, item.ID)
 	if err != nil {
 		return Stream{}, err
 	}
-	for index, version := range entry.Media {
+	versions := make([]Version, len(entry.Media))
+	for i, medium := range entry.Media {
+		versions[i] = medium.version()
+	}
+	for _, index := range versionOrder(versions, options) {
+		version := entry.Media[index]
 		sourceID := strconv.Itoa(version.ID)
 		if len(version.Part) == 0 || (options.SourceID != "" && options.SourceID != sourceID) {
 			continue

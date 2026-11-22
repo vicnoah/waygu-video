@@ -1,6 +1,6 @@
 # Media server integration tests
 
-The Compose project starts dedicated loopback-only Jellyfin, Emby and Plex servers. Its generated H.264/AAC clips include a movie with two different audio tones and text subtitles. The tests decode the selected audio to check that it matches the requested track. The bootstrap script creates and scans two libraries on each server. Plex runs as an unclaimed local server for these tests.
+The Compose project starts dedicated loopback-only Jellyfin, Emby and Plex servers. Its generated H.264/AAC clips include a movie with two different audio tones and text subtitles and a second movie with 180p and 360p versions. The tests decode the selected audio and check the resolution of the selected version. The bootstrap script creates and scans two libraries on each server. Plex runs as an unclaimed local server, and the bootstrap merges the two version fixtures if Plex indexes them separately.
 
 ```sh
 sh integration/servers/fixtures.sh

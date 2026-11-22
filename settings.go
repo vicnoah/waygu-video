@@ -8,6 +8,7 @@ import (
 	"github.com/nsgo-dev/nsgo/icons/lucide"
 	"github.com/nsgo-dev/nsgo/ui"
 
+	"waygu-video/internal/media"
 	"waygu-video/locales"
 )
 
@@ -32,6 +33,15 @@ func (a *application) settings(cx *core.Scope) core.Node {
 				a.bitrateLimit.Set(bitrate)
 			}},
 		hint(locales.StreamingQualityProviders(cx)),
+		hint(locales.PreferredPlaybackVersion(cx)),
+		playbackChoice(cx, locales.PreferredPlaybackVersion(cx), "playback-version-policy", versionPolicyOptions(cx),
+			a.versionPolicy.Get, func(policy media.VersionPolicy) {
+				if err := a.storage.SetItem(versionPolicyKey, string(policy)); err != nil {
+					failure.Set(err)
+					return
+				}
+				a.versionPolicy.Set(policy)
+			}),
 		ui.Checkbox{Text: locales.AutoNextEpisode(cx), Checked: a.autoNext.Get, OnChange: func(enabled bool) {
 			if err := a.storage.SetItem(autoNextKey, strconv.FormatBool(enabled)); err != nil {
 				failure.Set(err)
