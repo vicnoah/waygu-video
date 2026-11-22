@@ -1,0 +1,10 @@
+component name="手机/状态栏" width=fill
+box class="h-11 flex-row items-center justify-between px-7"
+  text "9:41" name=fg class="text-[15px] font-semibold text-zinc-900"
+  box class="flex-row items-center gap-1.5"
+    icon signal name=fg class="size-4 text-zinc-900"
+    icon wifi name=fg class="size-4 text-zinc-900"
+    icon battery-full name=fg class="size-5 text-zinc-900"
+  end
+end
+variant onmedia fg.class="text-white"

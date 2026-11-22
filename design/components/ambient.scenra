@@ -1,0 +1,4 @@
+component name="背景/页面氛围 · 浅色" width=fill preview=390 backdrop="bg-[#f4f4f7]"
+box class="h-[800px] overflow-hidden" note="极简背景：顶部一层柔和的紫色微光，向下淡入页面底色。整个 app 统一使用同一套背景，不随页面变化"
+  svg "<svg viewBox='0 0 1000 1000' preserveAspectRatio='none'><defs><radialGradient id='ambl' cx='0.5' cy='0' r='0.8'><stop offset='0' stop-color='#8b5cf6' stop-opacity='0.06'/><stop offset='0.5' stop-color='#8b5cf6' stop-opacity='0.02'/><stop offset='1' stop-color='#8b5cf6' stop-opacity='0'/></radialGradient><linearGradient id='fadel' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#f4f4f7' stop-opacity='0'/><stop offset='0.6' stop-color='#f4f4f7' stop-opacity='0.4'/><stop offset='1' stop-color='#f4f4f7' stop-opacity='1'/></linearGradient></defs><rect width='1000' height='1000' fill='url(#ambl)'/><rect width='1000' height='1000' fill='url(#fadel)'/></svg>" class="h-full w-full"
+end

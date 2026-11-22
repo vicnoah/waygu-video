@@ -1,0 +1,323 @@
+design light device=desktop width=1920 height=1080 name="TV/设置" gap=200
+box class="relative flex-1 flex-row bg-[#f4f4f7]" note="按遥控器 返回 键回到上一页（从首页进入时回到首页）。左栏上下键切换分类，右键进入右侧选项。界面跟随系统亮/暗主题"
+  use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="w-[640px] gap-8 border-r border-zinc-900/8 bg-[#e9e9f0]/40 px-16 pt-16 pb-12"
+    box class="flex-row items-center gap-4" tap="close"
+      box class="size-12 items-center justify-center rounded-full border border-zinc-900/8 bg-white shadow-sm shadow-black/5"
+        icon chevron-left class="size-7 text-zinc-900"
+      end
+      text "设置" class="text-5xl font-bold tracking-tight text-zinc-900"
+    end
+    box class="gap-1.5"
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon server class="size-7 text-zinc-500"
+        text "媒体源" class="flex-1 text-2xl text-zinc-900/80"
+        text "3" class="text-xl text-zinc-500/70"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon circle-play class="size-7 text-zinc-500"
+        text "播放" class="text-2xl text-zinc-900/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon captions class="size-7 text-zinc-500"
+        text "字幕" class="text-2xl text-zinc-900/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl bg-violet-500/12 px-6" note="当前分类（焦点已移到右侧选项，左栏保留选中态）"
+        box class="h-7 w-1.5 rounded-full bg-violet-500"
+        end
+        icon message-square class="size-7 text-violet-500"
+        text "弹幕" class="flex-1 text-2xl font-semibold text-violet-500"
+        icon chevron-right class="size-6 text-violet-500"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon palette class="size-7 text-zinc-500"
+        text "外观" class="text-2xl text-zinc-900/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon library class="size-7 text-zinc-500"
+        text "媒体库" class="text-2xl text-zinc-900/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon refresh-cw class="size-7 text-zinc-500"
+        text "同步与账户" class="text-2xl text-zinc-900/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon hard-drive class="size-7 text-zinc-500"
+        text "存储" class="text-2xl text-zinc-900/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon shield class="size-7 text-zinc-500"
+        text "家长控制" class="text-2xl text-zinc-900/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon info class="size-7 text-zinc-500"
+        text "关于" class="flex-1 text-2xl text-zinc-900/80"
+        text "v2.4.0" class="text-xl text-zinc-500/70"
+      end
+    end
+    box class="mt-auto flex-row items-center gap-6 rounded-3xl border border-zinc-900/8 bg-white p-6 shadow-sm shadow-black/5" note="遥控器输入不便时：手机扫码打开配对网页（或 Waygu 手机端），在手机上填写服务器地址、账号密码或弹幕账号，提交后 TV 端自动完成登录。二维码 5 分钟有效"
+      box class="rounded-2xl border border-zinc-900/8 bg-white p-3"
+        svg "<svg viewBox='0 0 29 29' shape-rendering='crispEdges'><rect width='29' height='29' fill='white'/><g fill='#0b0b10'><rect x='1' y='1' width='7' height='7'/><rect x='21' y='1' width='7' height='7'/><rect x='1' y='21' width='7' height='7'/></g><g fill='white'><rect x='2' y='2' width='5' height='5'/><rect x='22' y='2' width='5' height='5'/><rect x='2' y='22' width='5' height='5'/></g><g fill='#0b0b10'><rect x='3' y='3' width='3' height='3'/><rect x='23' y='3' width='3' height='3'/><rect x='3' y='23' width='3' height='3'/><rect x='10' y='1' width='2' height='1'/><rect x='13' y='2' width='1' height='3'/><rect x='16' y='1' width='3' height='1'/><rect x='10' y='4' width='3' height='2'/><rect x='17' y='4' width='2' height='3'/><rect x='10' y='8' width='1' height='2'/><rect x='12' y='9' width='4' height='1'/><rect x='18' y='9' width='2' height='2'/><rect x='1' y='10' width='3' height='1'/><rect x='5' y='11' width='2' height='2'/><rect x='9' y='11' width='3' height='3'/><rect x='14' y='12' width='2' height='4'/><rect x='18' y='13' width='4' height='1'/><rect x='23' y='10' width='2' height='3'/><rect x='26' y='11' width='2' height='1'/><rect x='2' y='14' width='4' height='1'/><rect x='7' y='15' width='1' height='3'/><rect x='10' y='16' width='3' height='1'/><rect x='17' y='16' width='2' height='3'/><rect x='21' y='15' width='3' height='2'/><rect x='26' y='14' width='2' height='4'/><rect x='1' y='17' width='3' height='2'/><rect x='12' y='19' width='4' height='1'/><rect x='20' y='19' width='3' height='1'/><rect x='10' y='21' width='2' height='3'/><rect x='14' y='22' width='3' height='2'/><rect x='19' y='21' width='2' height='2'/><rect x='22' y='22' width='4' height='1'/><rect x='24' y='24' width='2' height='3'/><rect x='11' y='26' width='4' height='1'/><rect x='17' y='25' width='2' height='3'/><rect x='21' y='26' width='2' height='2'/><rect x='27' y='26' width='1' height='2'/></g></svg>" class="size-32"
+      end
+      box class="flex-1 gap-2"
+        text "扫码在手机上登录" class="text-2xl font-semibold text-zinc-900"
+        text "用手机填写服务器地址、账号与密码，免去遥控器打字" class="text-lg leading-relaxed text-zinc-500"
+        box class="flex-row pt-1"
+          box class="rounded-full bg-violet-500/12 px-4 py-1.5"
+            text "配对码 4821 · 5 分钟内有效" class="text-lg font-medium text-violet-500"
+          end
+        end
+      end
+    end
+  end
+  box class="flex-1 gap-6 px-20 pt-16 pb-12"
+    box class="flex-row items-end justify-between"
+      box class="gap-2"
+        text "弹幕" class="text-5xl font-bold tracking-tight text-zinc-900"
+        text "在播放中按 ↓ 键也可快速调整" class="text-xl text-zinc-500"
+      end
+      text "20:30" class="text-3xl font-medium text-zinc-900"
+    end
+    box class="gap-2.5"
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-zinc-900/8 bg-white px-7 shadow-sm shadow-black/5"
+        text "显示弹幕" class="flex-1 text-2xl text-zinc-900"
+        use switch class="h-[40px] w-[68px]" knob.class="size-[34px]"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-zinc-900/8 bg-white px-7 shadow-sm shadow-black/5" note="弹幕来源的启用与优先级在手机或电脑端 设置 › 弹幕 中管理，通过 iCloud / Waygu 账户同步"
+        text "弹幕来源" class="flex-1 text-2xl text-zinc-900"
+        text "弹弹play · B站 · 本地 XML" class="text-2xl text-zinc-500"
+        icon chevron-right class="size-6 text-zinc-500/70"
+      end
+      box class="gap-4 rounded-2xl border border-zinc-900/8 bg-white px-7 py-5 shadow-sm shadow-black/5"
+        box class="flex-row items-center justify-between"
+          text "不透明度" class="text-2xl text-zinc-900"
+          text "80%" class="text-2xl font-semibold text-violet-500"
+        end
+        box class="h-6 flex-row items-center"
+          box class="h-2 w-4/5 rounded-l-full bg-violet-500"
+          end
+          box class="size-6 rounded-full border border-black/5 bg-white shadow-md"
+          end
+          box class="h-2 flex-1 rounded-r-full bg-zinc-900/10"
+          end
+        end
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-zinc-900/8 bg-white px-7 shadow-sm shadow-black/5"
+        text "字号" class="flex-1 text-2xl text-zinc-900"
+        icon chevron-left class="size-6 text-zinc-500/70"
+        text "标准" class="w-24 text-center text-2xl text-zinc-900/80"
+        icon chevron-right class="size-6 text-zinc-500/70"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-zinc-900/8 bg-white px-7 shadow-sm shadow-black/5"
+        text "滚动速度" class="flex-1 text-2xl text-zinc-900"
+        icon chevron-left class="size-6 text-zinc-500/70"
+        text "适中" class="w-24 text-center text-2xl text-zinc-900/80"
+        icon chevron-right class="size-6 text-zinc-500/70"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl bg-zinc-900 px-7 shadow-2xl shadow-violet-500/30 ring-4 ring-violet-500" note="当前焦点项（反色背景 + 紫色描边并轻微放大）：左右键在四档间切换"
+        text "显示区域" class="flex-1 text-2xl font-semibold text-[#f4f4f7]"
+        box class="flex-row gap-1.5 rounded-full bg-[#f4f4f7]/15 p-1"
+          box class="rounded-full px-5 py-1.5"
+            text "1/4 屏" class="text-xl text-[#f4f4f7]/70"
+          end
+          box class="rounded-full bg-violet-500 px-5 py-1.5 shadow-md"
+            text "半屏" class="text-xl font-semibold text-white"
+          end
+          box class="rounded-full px-5 py-1.5"
+            text "3/4 屏" class="text-xl text-[#f4f4f7]/70"
+          end
+          box class="rounded-full px-5 py-1.5"
+            text "全屏" class="text-xl text-[#f4f4f7]/70"
+          end
+        end
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-zinc-900/8 bg-white px-7 shadow-sm shadow-black/5"
+        text "同屏密度" class="flex-1 text-2xl text-zinc-900"
+        icon chevron-left class="size-6 text-zinc-500/70"
+        text "中" class="w-24 text-center text-2xl text-zinc-900/80"
+        icon chevron-right class="size-6 text-zinc-500/70"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-zinc-900/8 bg-white px-7 shadow-sm shadow-black/5"
+        text "合并重复弹幕" class="flex-1 text-2xl text-zinc-900"
+        use switch class="h-[40px] w-[68px]" knob.class="size-[34px]"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-zinc-900/8 bg-white px-7 shadow-sm shadow-black/5"
+        text "屏蔽顶部 / 底部弹幕" class="flex-1 text-2xl text-zinc-900"
+        use switch variant=off class="h-[40px] w-[68px]" knob.class="size-[34px]"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-zinc-900/8 bg-white px-7 shadow-sm shadow-black/5"
+        text "屏蔽关键词" class="flex-1 text-2xl text-zinc-900"
+        text "12 条规则" class="text-2xl text-zinc-500"
+        icon chevron-right class="size-6 text-zinc-500/70"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-zinc-900/8 bg-white px-7 shadow-sm shadow-black/5" note="弹幕与画面不同步时调整，按剧集记忆"
+        text "时间轴偏移" class="flex-1 text-2xl text-zinc-900"
+        icon chevron-left class="size-6 text-zinc-500/70"
+        text "+0.0 秒" class="w-28 text-center text-2xl text-zinc-900/80"
+        icon chevron-right class="size-6 text-zinc-500/70"
+      end
+    end
+  end
+end
+
+design dark device=desktop width=1920 height=1080 name="设置 · 深色"
+box class="relative flex-1 flex-row bg-[#0f1017]" note="按遥控器 返回 键回到上一页（从首页进入时回到首页）。左栏上下键切换分类，右键进入右侧选项。界面跟随系统亮/暗主题"
+  use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="w-[640px] gap-8 border-r border-white/8 bg-[#1a1b25]/40 px-16 pt-16 pb-12"
+    box class="flex-row items-center gap-4" tap="close"
+      box class="size-12 items-center justify-center rounded-full border border-white/8 bg-[#1a1b25] shadow-sm shadow-black/5"
+        icon chevron-left class="size-7 text-zinc-50"
+      end
+      text "设置" class="text-5xl font-bold tracking-tight text-zinc-50"
+    end
+    box class="gap-1.5"
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon server class="size-7 text-zinc-400"
+        text "媒体源" class="flex-1 text-2xl text-zinc-50/80"
+        text "3" class="text-xl text-zinc-400/70"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon circle-play class="size-7 text-zinc-400"
+        text "播放" class="text-2xl text-zinc-50/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon captions class="size-7 text-zinc-400"
+        text "字幕" class="text-2xl text-zinc-50/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl bg-violet-500/12 px-6" note="当前分类（焦点已移到右侧选项，左栏保留选中态）"
+        box class="h-7 w-1.5 rounded-full bg-violet-500"
+        end
+        icon message-square class="size-7 text-violet-400"
+        text "弹幕" class="flex-1 text-2xl font-semibold text-violet-400"
+        icon chevron-right class="size-6 text-violet-400"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon palette class="size-7 text-zinc-400"
+        text "外观" class="text-2xl text-zinc-50/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon library class="size-7 text-zinc-400"
+        text "媒体库" class="text-2xl text-zinc-50/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon refresh-cw class="size-7 text-zinc-400"
+        text "同步与账户" class="text-2xl text-zinc-50/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon hard-drive class="size-7 text-zinc-400"
+        text "存储" class="text-2xl text-zinc-50/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon shield class="size-7 text-zinc-400"
+        text "家长控制" class="text-2xl text-zinc-50/80"
+      end
+      box class="h-14 flex-row items-center gap-5 rounded-2xl px-6"
+        icon info class="size-7 text-zinc-400"
+        text "关于" class="flex-1 text-2xl text-zinc-50/80"
+        text "v2.4.0" class="text-xl text-zinc-400/70"
+      end
+    end
+    box class="mt-auto flex-row items-center gap-6 rounded-3xl border border-white/8 bg-[#1a1b25] p-6 shadow-sm shadow-black/5" note="遥控器输入不便时：手机扫码打开配对网页（或 Waygu 手机端），在手机上填写服务器地址、账号密码或弹幕账号，提交后 TV 端自动完成登录。二维码 5 分钟有效"
+      box class="rounded-2xl border border-white/8 bg-white p-3"
+        svg "<svg viewBox='0 0 29 29' shape-rendering='crispEdges'><rect width='29' height='29' fill='white'/><g fill='#0b0b10'><rect x='1' y='1' width='7' height='7'/><rect x='21' y='1' width='7' height='7'/><rect x='1' y='21' width='7' height='7'/></g><g fill='white'><rect x='2' y='2' width='5' height='5'/><rect x='22' y='2' width='5' height='5'/><rect x='2' y='22' width='5' height='5'/></g><g fill='#0b0b10'><rect x='3' y='3' width='3' height='3'/><rect x='23' y='3' width='3' height='3'/><rect x='3' y='23' width='3' height='3'/><rect x='10' y='1' width='2' height='1'/><rect x='13' y='2' width='1' height='3'/><rect x='16' y='1' width='3' height='1'/><rect x='10' y='4' width='3' height='2'/><rect x='17' y='4' width='2' height='3'/><rect x='10' y='8' width='1' height='2'/><rect x='12' y='9' width='4' height='1'/><rect x='18' y='9' width='2' height='2'/><rect x='1' y='10' width='3' height='1'/><rect x='5' y='11' width='2' height='2'/><rect x='9' y='11' width='3' height='3'/><rect x='14' y='12' width='2' height='4'/><rect x='18' y='13' width='4' height='1'/><rect x='23' y='10' width='2' height='3'/><rect x='26' y='11' width='2' height='1'/><rect x='2' y='14' width='4' height='1'/><rect x='7' y='15' width='1' height='3'/><rect x='10' y='16' width='3' height='1'/><rect x='17' y='16' width='2' height='3'/><rect x='21' y='15' width='3' height='2'/><rect x='26' y='14' width='2' height='4'/><rect x='1' y='17' width='3' height='2'/><rect x='12' y='19' width='4' height='1'/><rect x='20' y='19' width='3' height='1'/><rect x='10' y='21' width='2' height='3'/><rect x='14' y='22' width='3' height='2'/><rect x='19' y='21' width='2' height='2'/><rect x='22' y='22' width='4' height='1'/><rect x='24' y='24' width='2' height='3'/><rect x='11' y='26' width='4' height='1'/><rect x='17' y='25' width='2' height='3'/><rect x='21' y='26' width='2' height='2'/><rect x='27' y='26' width='1' height='2'/></g></svg>" class="size-32"
+      end
+      box class="flex-1 gap-2"
+        text "扫码在手机上登录" class="text-2xl font-semibold text-zinc-50"
+        text "用手机填写服务器地址、账号与密码，免去遥控器打字" class="text-lg leading-relaxed text-zinc-400"
+        box class="flex-row pt-1"
+          box class="rounded-full bg-violet-500/12 px-4 py-1.5"
+            text "配对码 4821 · 5 分钟内有效" class="text-lg font-medium text-violet-400"
+          end
+        end
+      end
+    end
+  end
+  box class="flex-1 gap-6 px-20 pt-16 pb-12"
+    box class="flex-row items-end justify-between"
+      box class="gap-2"
+        text "弹幕" class="text-5xl font-bold tracking-tight text-zinc-50"
+        text "在播放中按 ↓ 键也可快速调整" class="text-xl text-zinc-400"
+      end
+      text "20:30" class="text-3xl font-medium text-zinc-50"
+    end
+    box class="gap-2.5"
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-white/8 bg-[#1a1b25] px-7 shadow-sm shadow-black/5"
+        text "显示弹幕" class="flex-1 text-2xl text-zinc-50"
+        use switch-dark class="h-[40px] w-[68px]" knob.class="size-[34px]"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-white/8 bg-[#1a1b25] px-7 shadow-sm shadow-black/5" note="弹幕来源的启用与优先级在手机或电脑端 设置 › 弹幕 中管理，通过 iCloud / Waygu 账户同步"
+        text "弹幕来源" class="flex-1 text-2xl text-zinc-50"
+        text "弹弹play · B站 · 本地 XML" class="text-2xl text-zinc-400"
+        icon chevron-right class="size-6 text-zinc-400/70"
+      end
+      box class="gap-4 rounded-2xl border border-white/8 bg-[#1a1b25] px-7 py-5 shadow-sm shadow-black/5"
+        box class="flex-row items-center justify-between"
+          text "不透明度" class="text-2xl text-zinc-50"
+          text "80%" class="text-2xl font-semibold text-violet-400"
+        end
+        box class="h-6 flex-row items-center"
+          box class="h-2 w-4/5 rounded-l-full bg-violet-500"
+          end
+          box class="size-6 rounded-full border border-black/5 bg-white shadow-md"
+          end
+          box class="h-2 flex-1 rounded-r-full bg-zinc-50/10"
+          end
+        end
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-white/8 bg-[#1a1b25] px-7 shadow-sm shadow-black/5"
+        text "字号" class="flex-1 text-2xl text-zinc-50"
+        icon chevron-left class="size-6 text-zinc-400/70"
+        text "标准" class="w-24 text-center text-2xl text-zinc-50/80"
+        icon chevron-right class="size-6 text-zinc-400/70"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-white/8 bg-[#1a1b25] px-7 shadow-sm shadow-black/5"
+        text "滚动速度" class="flex-1 text-2xl text-zinc-50"
+        icon chevron-left class="size-6 text-zinc-400/70"
+        text "适中" class="w-24 text-center text-2xl text-zinc-50/80"
+        icon chevron-right class="size-6 text-zinc-400/70"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl bg-zinc-50 px-7 shadow-2xl shadow-violet-500/30 ring-4 ring-violet-500" note="当前焦点项（反色背景 + 紫色描边并轻微放大）：左右键在四档间切换"
+        text "显示区域" class="flex-1 text-2xl font-semibold text-[#0f1017]"
+        box class="flex-row gap-1.5 rounded-full bg-[#0f1017]/15 p-1"
+          box class="rounded-full px-5 py-1.5"
+            text "1/4 屏" class="text-xl text-[#0f1017]/70"
+          end
+          box class="rounded-full bg-violet-500 px-5 py-1.5 shadow-md"
+            text "半屏" class="text-xl font-semibold text-white"
+          end
+          box class="rounded-full px-5 py-1.5"
+            text "3/4 屏" class="text-xl text-[#0f1017]/70"
+          end
+          box class="rounded-full px-5 py-1.5"
+            text "全屏" class="text-xl text-[#0f1017]/70"
+          end
+        end
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-white/8 bg-[#1a1b25] px-7 shadow-sm shadow-black/5"
+        text "同屏密度" class="flex-1 text-2xl text-zinc-50"
+        icon chevron-left class="size-6 text-zinc-400/70"
+        text "中" class="w-24 text-center text-2xl text-zinc-50/80"
+        icon chevron-right class="size-6 text-zinc-400/70"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-white/8 bg-[#1a1b25] px-7 shadow-sm shadow-black/5"
+        text "合并重复弹幕" class="flex-1 text-2xl text-zinc-50"
+        use switch-dark class="h-[40px] w-[68px]" knob.class="size-[34px]"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-white/8 bg-[#1a1b25] px-7 shadow-sm shadow-black/5"
+        text "屏蔽顶部 / 底部弹幕" class="flex-1 text-2xl text-zinc-50"
+        use switch-dark variant=off class="h-[40px] w-[68px]" knob.class="size-[34px]"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-white/8 bg-[#1a1b25] px-7 shadow-sm shadow-black/5"
+        text "屏蔽关键词" class="flex-1 text-2xl text-zinc-50"
+        text "12 条规则" class="text-2xl text-zinc-400"
+        icon chevron-right class="size-6 text-zinc-400/70"
+      end
+      box class="h-[68px] flex-row items-center gap-5 rounded-2xl border border-white/8 bg-[#1a1b25] px-7 shadow-sm shadow-black/5" note="弹幕与画面不同步时调整，按剧集记忆"
+        text "时间轴偏移" class="flex-1 text-2xl text-zinc-50"
+        icon chevron-left class="size-6 text-zinc-400/70"
+        text "+0.0 秒" class="w-28 text-center text-2xl text-zinc-50/80"
+        icon chevron-right class="size-6 text-zinc-400/70"
+      end
+    end
+  end
+end

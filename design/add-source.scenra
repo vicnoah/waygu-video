@@ -1,0 +1,153 @@
+design light device=phone height=1180 name="引导/添加媒体源" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar
+  box class="h-11 flex-row items-center px-3"
+    box class="flex-row items-center gap-0.5" tap="close"
+      icon chevron-left class="size-6 text-violet-500"
+      text "返回" class="text-base text-violet-500"
+    end
+  end
+  box class="gap-1 px-5 pt-1 pb-5"
+    text "添加媒体源" class="text-[28px] font-bold tracking-tight text-zinc-900"
+    text "选择你的影片存放位置，可随时在设置中添加更多。" class="text-sm text-zinc-500"
+  end
+  box class="flex-1 gap-6"
+    box class="mx-4 gap-3 rounded-2xl border border-violet-500/30 bg-violet-500/10 p-4" note="通过 mDNS / SSDP 扫描局域网，发现 Emby、Jellyfin、飞牛 fnOS 与 SMB 主机"
+      box class="flex-row items-center gap-2"
+        icon radar class="size-4 text-violet-500"
+        text "局域网自动发现" class="flex-1 text-sm font-semibold text-zinc-900"
+        text "正在扫描…" class="text-xs text-violet-500"
+      end
+      box class="flex-row items-center gap-3 rounded-xl border border-zinc-900/8 bg-white p-3 shadow-sm shadow-black/5"
+        box class="size-9 items-center justify-center rounded-lg bg-sky-500/15"
+          icon server class="size-4 text-sky-500"
+        end
+        box class="flex-1"
+          text "书房 NAS" class="text-sm font-medium text-zinc-900"
+          text "Jellyfin 10.9 · 192.168.1.20:8096" class="text-xs text-zinc-500"
+        end
+        box class="rounded-full bg-violet-500 px-3.5 py-1.5 shadow-md shadow-violet-500/30" tap="open source-login"
+          text "添加" class="text-xs font-semibold text-white"
+        end
+      end
+      box class="flex-row items-center gap-3 rounded-xl border border-zinc-900/8 bg-white p-3 shadow-sm shadow-black/5"
+        box class="size-9 items-center justify-center rounded-lg bg-blue-500/15"
+          icon hard-drive class="size-4 text-blue-500"
+        end
+        box class="flex-1"
+          text "fnOS 飞牛 NAS" class="text-sm font-medium text-zinc-900"
+          text "飞牛影视 · 192.168.1.8:5666" class="text-xs text-zinc-500"
+        end
+        box class="rounded-full bg-violet-500 px-3.5 py-1.5 shadow-md shadow-violet-500/30" tap="open source-login"
+          text "添加" class="text-xs font-semibold text-white"
+        end
+      end
+    end
+    use settings-group header="媒体服务器"
+      fill
+        use settings-row title="Emby" icon=server badge.class="bg-emerald-500" value.class="hidden" row.tap="open source-login"
+        use settings-row title="Jellyfin" icon=server badge.class="bg-sky-500" value.class="hidden" row.tap="open source-login"
+        use settings-row title="飞牛影视" icon=hard-drive badge.class="bg-blue-500" value="fnOS" row.tap="open source-login"
+        use settings-row title="Plex" icon=server badge.class="bg-amber-500" value.class="hidden" row.tap="open source-login"
+      end
+    end
+    use settings-group header="网络共享"
+      fill
+        use settings-row title="SMB / Windows 共享" icon=folder-tree badge.class="bg-slate-500" value.class="hidden"
+        use settings-row title="WebDAV" icon=globe badge.class="bg-slate-500" value.class="hidden"
+        use settings-row title="NFS" icon=network badge.class="bg-slate-500" value.class="hidden"
+        use settings-row title="FTP / SFTP" icon=folder-up badge.class="bg-slate-500" value.class="hidden"
+      end
+    end
+    use settings-group header="网盘" variant=footer footer="网盘通过官方开放接口或 Alist / WebDAV 挂载接入，播放直连网盘原画链接。"
+      fill
+        use settings-row title="阿里云盘" icon=cloud badge.class="bg-orange-500" value.class="hidden"
+        use settings-row title="115 网盘" icon=cloud badge.class="bg-sky-600" value.class="hidden"
+        use settings-row title="百度网盘" icon=cloud badge.class="bg-blue-600" value="Alist"
+      end
+    end
+    use settings-group variant=noheader class="pb-10"
+      fill
+        use settings-row title="本机文件" icon=smartphone badge.class="bg-slate-500" value="文件 App"
+      end
+    end
+  end
+end
+
+design dark device=phone height=1180 name="添加媒体源 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar-dark
+  box class="h-11 flex-row items-center px-3"
+    box class="flex-row items-center gap-0.5" tap="close"
+      icon chevron-left class="size-6 text-violet-400"
+      text "返回" class="text-base text-violet-400"
+    end
+  end
+  box class="gap-1 px-5 pt-1 pb-5"
+    text "添加媒体源" class="text-[28px] font-bold tracking-tight text-zinc-50"
+    text "选择你的影片存放位置，可随时在设置中添加更多。" class="text-sm text-zinc-400"
+  end
+  box class="flex-1 gap-6"
+    box class="mx-4 gap-3 rounded-2xl border border-violet-500/30 bg-violet-500/10 p-4" note="通过 mDNS / SSDP 扫描局域网，发现 Emby、Jellyfin、飞牛 fnOS 与 SMB 主机"
+      box class="flex-row items-center gap-2"
+        icon radar class="size-4 text-violet-400"
+        text "局域网自动发现" class="flex-1 text-sm font-semibold text-zinc-50"
+        text "正在扫描…" class="text-xs text-violet-400"
+      end
+      box class="flex-row items-center gap-3 rounded-xl border border-white/8 bg-[#1a1b25] p-3 shadow-sm shadow-black/5"
+        box class="size-9 items-center justify-center rounded-lg bg-sky-500/15"
+          icon server class="size-4 text-sky-500"
+        end
+        box class="flex-1"
+          text "书房 NAS" class="text-sm font-medium text-zinc-50"
+          text "Jellyfin 10.9 · 192.168.1.20:8096" class="text-xs text-zinc-400"
+        end
+        box class="rounded-full bg-violet-500 px-3.5 py-1.5 shadow-md shadow-violet-500/30" tap="open source-login#dark"
+          text "添加" class="text-xs font-semibold text-white"
+        end
+      end
+      box class="flex-row items-center gap-3 rounded-xl border border-white/8 bg-[#1a1b25] p-3 shadow-sm shadow-black/5"
+        box class="size-9 items-center justify-center rounded-lg bg-blue-500/15"
+          icon hard-drive class="size-4 text-blue-500"
+        end
+        box class="flex-1"
+          text "fnOS 飞牛 NAS" class="text-sm font-medium text-zinc-50"
+          text "飞牛影视 · 192.168.1.8:5666" class="text-xs text-zinc-400"
+        end
+        box class="rounded-full bg-violet-500 px-3.5 py-1.5 shadow-md shadow-violet-500/30" tap="open source-login#dark"
+          text "添加" class="text-xs font-semibold text-white"
+        end
+      end
+    end
+    use settings-group-dark header="媒体服务器"
+      fill
+        use settings-row-dark title="Emby" icon=server badge.class="bg-emerald-500" value.class="hidden" row.tap="open source-login#dark"
+        use settings-row-dark title="Jellyfin" icon=server badge.class="bg-sky-500" value.class="hidden" row.tap="open source-login#dark"
+        use settings-row-dark title="飞牛影视" icon=hard-drive badge.class="bg-blue-500" value="fnOS" row.tap="open source-login#dark"
+        use settings-row-dark title="Plex" icon=server badge.class="bg-amber-500" value.class="hidden" row.tap="open source-login#dark"
+      end
+    end
+    use settings-group-dark header="网络共享"
+      fill
+        use settings-row-dark title="SMB / Windows 共享" icon=folder-tree badge.class="bg-slate-500" value.class="hidden"
+        use settings-row-dark title="WebDAV" icon=globe badge.class="bg-slate-500" value.class="hidden"
+        use settings-row-dark title="NFS" icon=network badge.class="bg-slate-500" value.class="hidden"
+        use settings-row-dark title="FTP / SFTP" icon=folder-up badge.class="bg-slate-500" value.class="hidden"
+      end
+    end
+    use settings-group-dark header="网盘" variant=footer footer="网盘通过官方开放接口或 Alist / WebDAV 挂载接入，播放直连网盘原画链接。"
+      fill
+        use settings-row-dark title="阿里云盘" icon=cloud badge.class="bg-orange-500" value.class="hidden"
+        use settings-row-dark title="115 网盘" icon=cloud badge.class="bg-sky-600" value.class="hidden"
+        use settings-row-dark title="百度网盘" icon=cloud badge.class="bg-blue-600" value="Alist"
+      end
+    end
+    use settings-group-dark variant=noheader class="pb-10"
+      fill
+        use settings-row-dark title="本机文件" icon=smartphone badge.class="bg-slate-500" value="文件 App"
+      end
+    end
+  end
+end

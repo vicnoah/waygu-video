@@ -1,0 +1,95 @@
+design light device=phone height=1320 name="设置/关于与帮助" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar
+  use nav-bar title="关于与帮助" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    box class="items-center gap-2 py-4"
+      box class="size-20 items-center justify-center rounded-[22px] bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-xl shadow-violet-500/30"
+        icon play class="size-9 text-white"
+      end
+      text "Waygu" class="mt-1 text-xl font-bold text-zinc-900"
+      text "版本 1.0.0（100）" class="text-sm text-zinc-500"
+      box class="mt-1 h-8 items-center justify-center rounded-full bg-violet-500/12 px-4"
+        text "检查更新" class="text-sm font-medium text-violet-500"
+      end
+    end
+    use settings-group header="帮助"
+      fill
+        use settings-row icon=book-open title="使用帮助" value.class="hidden" badge.class="bg-blue-500"
+        use settings-row icon=file-video title="支持的格式" value="MKV · MP4 · ISO …" badge.class="bg-violet-500" note="视频：MKV、MP4、AVI、TS、ISO、BDMV 等；字幕：ASS、SRT、PGS、VobSub；弹幕：XML、JSON"
+        use settings-row icon=message-circle title="反馈问题" value.class="hidden" badge.class="bg-emerald-500"
+        use settings-row icon=file-down title="导出日志" value.class="hidden" badge.class="bg-zinc-500" note="打包最近 7 天的日志，可分享给开发者，已去除密码与令牌"
+      end
+    end
+    use settings-group header="调试"
+      fill
+        use settings-row variant=toggle-off icon=activity title="记录网络日志" badge.class="bg-orange-500"
+        use settings-row variant=toggle-off icon=gauge title="播放器信息覆盖层" badge.class="bg-orange-500" note="播放时显示编码、码率、丢帧、缓冲等实时信息"
+      end
+    end
+    use settings-group header="更多"
+      fill
+        use settings-row icon=star title="去 App Store 评分" value.class="hidden" badge.class="bg-amber-500"
+        use settings-row icon=lock title="隐私政策" value.class="hidden" badge.class="bg-zinc-500"
+        use settings-row icon=scroll-text title="开源许可" value.class="hidden" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group variant=noheader
+      fill
+        box class="h-12 items-center justify-center bg-white"
+          text "重置所有设置" class="text-[15px] text-rose-500"
+        end
+      end
+    end
+    text "© 2026 Waygu · 用心看好每一部片" class="text-center text-xs text-zinc-500/70"
+  end
+end
+
+design dark device=phone height=1320 name="关于与帮助 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar-dark
+  use nav-bar-dark title="关于与帮助" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    box class="items-center gap-2 py-4"
+      box class="size-20 items-center justify-center rounded-[22px] bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-xl shadow-violet-500/30"
+        icon play class="size-9 text-white"
+      end
+      text "Waygu" class="mt-1 text-xl font-bold text-zinc-50"
+      text "版本 1.0.0（100）" class="text-sm text-zinc-400"
+      box class="mt-1 h-8 items-center justify-center rounded-full bg-violet-500/12 px-4"
+        text "检查更新" class="text-sm font-medium text-violet-400"
+      end
+    end
+    use settings-group-dark header="帮助"
+      fill
+        use settings-row-dark icon=book-open title="使用帮助" value.class="hidden" badge.class="bg-blue-500"
+        use settings-row-dark icon=file-video title="支持的格式" value="MKV · MP4 · ISO …" badge.class="bg-violet-500" note="视频：MKV、MP4、AVI、TS、ISO、BDMV 等；字幕：ASS、SRT、PGS、VobSub；弹幕：XML、JSON"
+        use settings-row-dark icon=message-circle title="反馈问题" value.class="hidden" badge.class="bg-emerald-500"
+        use settings-row-dark icon=file-down title="导出日志" value.class="hidden" badge.class="bg-zinc-500" note="打包最近 7 天的日志，可分享给开发者，已去除密码与令牌"
+      end
+    end
+    use settings-group-dark header="调试"
+      fill
+        use settings-row-dark variant=toggle-off icon=activity title="记录网络日志" badge.class="bg-orange-500"
+        use settings-row-dark variant=toggle-off icon=gauge title="播放器信息覆盖层" badge.class="bg-orange-500" note="播放时显示编码、码率、丢帧、缓冲等实时信息"
+      end
+    end
+    use settings-group-dark header="更多"
+      fill
+        use settings-row-dark icon=star title="去 App Store 评分" value.class="hidden" badge.class="bg-amber-500"
+        use settings-row-dark icon=lock title="隐私政策" value.class="hidden" badge.class="bg-zinc-500"
+        use settings-row-dark icon=scroll-text title="开源许可" value.class="hidden" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group-dark variant=noheader
+      fill
+        box class="h-12 items-center justify-center bg-[#1a1b25]"
+          text "重置所有设置" class="text-[15px] text-rose-500"
+        end
+      end
+    end
+    text "© 2026 Waygu · 用心看好每一部片" class="text-center text-xs text-zinc-400/70"
+  end
+end

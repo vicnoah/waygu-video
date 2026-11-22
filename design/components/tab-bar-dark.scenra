@@ -1,0 +1,21 @@
+component name="手机/标签栏 · 深色" width=fill backdrop="bg-[#0f1017]"
+box class="px-5 pt-2 pb-7" note="悬浮胶囊标签栏，半透明磨砂背景，内容从其下方滚过"
+  box class="h-16 flex-row items-center rounded-full border border-white/8 bg-[#1a1b25]/90 px-2 shadow-xl shadow-black/10"
+    box name=home class="group h-12 flex-1 items-center justify-center gap-0.5 rounded-full selected:bg-violet-500/12"
+      icon house class="size-[22px] text-zinc-400 group-selected:text-violet-400"
+      text "首页" class="text-[10px] font-medium text-zinc-400 group-selected:text-violet-400"
+    end
+    box name=library class="group h-12 flex-1 items-center justify-center gap-0.5 rounded-full selected:bg-violet-500/12"
+      icon clapperboard class="size-[22px] text-zinc-400 group-selected:text-violet-400"
+      text "媒体库" class="text-[10px] font-medium text-zinc-400 group-selected:text-violet-400"
+    end
+    box name=search class="group h-12 flex-1 items-center justify-center gap-0.5 rounded-full selected:bg-violet-500/12"
+      icon search class="size-[22px] text-zinc-400 group-selected:text-violet-400"
+      text "搜索" class="text-[10px] font-medium text-zinc-400 group-selected:text-violet-400"
+    end
+    box name=settings class="group h-12 flex-1 items-center justify-center gap-0.5 rounded-full selected:bg-violet-500/12"
+      icon settings class="size-[22px] text-zinc-400 group-selected:text-violet-400"
+      text "设置" class="text-[10px] font-medium text-zinc-400 group-selected:text-violet-400"
+    end
+  end
+end

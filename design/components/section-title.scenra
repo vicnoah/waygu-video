@@ -1,0 +1,9 @@
+component name="媒体/分区标题" width=fill backdrop="bg-[#f4f4f7]"
+box class="flex-row items-center justify-between px-5"
+  text "继续观看" name=title class="text-lg font-bold text-zinc-900"
+  box name=more class="flex-row items-center gap-0.5"
+    text "全部" name=moretext class="text-sm text-zinc-500"
+    icon chevron-right class="size-4 text-zinc-500"
+  end
+end
+variant bare more.class="hidden"

@@ -1,0 +1,329 @@
+design device=desktop width=1440 height=810 name="桌面/播放器"
+box class="flex-1 flex-row bg-zinc-950" note="播放器界面始终为深色，不随亮/暗主题切换。快捷键：空格 播放/暂停 · ←/→ 快退/快进 10 秒 · ↑/↓ 音量 · D 弹幕开关 · S 字幕切换 · A 音轨切换 · [ / ] 倍速 · N 下一集 · F 全屏 · Esc 退出全屏 · Tab 侧边面板"
+  box class="relative flex-1 overflow-hidden"
+    image "漫长的季节 播放画面：秋日东北工厂旁的铁路与骑自行车的中年人" class="absolute top-0 right-0 bottom-0 left-0"
+    box class="absolute top-24 right-0 left-0 gap-4" note="弹幕层：滚动弹幕从右向左，顶部/底部弹幕居中固定；按设置中的显示区域、不透明度、字号、速度、密度渲染，并实时过滤屏蔽词"
+      box class="flex-row gap-40 pl-[620px]"
+        text "这一段的配乐绝了" class="text-xl font-semibold text-white/90"
+        text "前方高能" class="text-xl font-semibold text-amber-300/90"
+      end
+      box class="flex-row gap-48 pl-[180px]"
+        text "范伟老师演技太好了" class="text-xl font-semibold text-white/90"
+        text "打个车吧" class="text-xl font-semibold text-white/90"
+      end
+      box class="flex-row gap-36 pl-[420px]"
+        text "二刷了，细节全在这里" class="text-xl font-semibold text-sky-300/90"
+        text "哈哈哈哈哈哈" class="text-xl font-semibold text-white/90"
+      end
+      box class="flex-row pl-[760px]"
+        text "这光影太有年代感了" class="text-xl font-semibold text-white/90"
+      end
+    end
+    box class="absolute top-0 right-0 left-0 h-32 flex-row items-start gap-4 bg-linear-to-b from-black/75 via-black/35 to-transparent px-6 pt-5"
+      box class="size-10 items-center justify-center rounded-full border border-white/10 bg-white/15" tap="close"
+        icon chevron-left class="size-5 text-white"
+      end
+      box class="flex-1 gap-0.5"
+        text "漫长的季节" class="text-lg font-semibold text-white"
+        box class="flex-row items-center gap-2"
+          text "第 1 季 · 第 6 集" class="text-sm text-zinc-300"
+          text "家庭 Emby" class="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] text-emerald-300"
+          text "直接播放" class="rounded bg-white/15 px-1.5 py-0.5 text-[10px] text-white"
+          text "4K HDR10" class="rounded bg-white/15 px-1.5 py-0.5 text-[10px] text-white"
+        end
+      end
+      box class="size-10 items-center justify-center rounded-full border border-white/10 bg-white/15" note="投屏到 AirPlay / DLNA 设备"
+        icon cast class="size-5 text-white"
+      end
+      box class="size-10 items-center justify-center rounded-full border border-white/10 bg-white/15" note="展开/收起右侧面板（Tab）"
+        icon panel-right class="size-5 text-white"
+      end
+    end
+    box class="absolute right-0 bottom-0 left-0 gap-2 bg-linear-to-t from-black/85 via-black/50 to-transparent px-6 pt-24 pb-5"
+      box class="relative gap-1"
+        box class="absolute bottom-9 left-[560px] w-44 items-center gap-1" note="悬停进度条时显示缩略图预览（由媒体源 Trickplay / BIF 提供）"
+          image "预览缩略图：工厂车间内的对峙" class="h-24 w-44 rounded-lg border border-white/20"
+          text "31:42" class="rounded bg-black/70 px-1.5 text-xs font-medium text-white"
+        end
+        svg "<svg viewBox='0 0 1000 24' preserveAspectRatio='none'><path d='M0 24 L0 20 C60 18 90 12 140 16 S220 22 280 14 S360 4 420 10 S500 22 560 6 S640 2 700 14 S800 20 860 12 S940 18 1000 16 L1000 24 Z' fill='rgba(217,70,239,0.35)'/></svg>" class="h-6 w-full" note="弹幕热度曲线：标出弹幕密集的高能片段"
+        box class="h-4 flex-row items-center"
+          box class="h-1.5 w-[61%] rounded-l-full bg-linear-to-r from-violet-500 to-fuchsia-500"
+          end
+          box class="size-4 rounded-full bg-white shadow-md shadow-violet-500/50"
+          end
+          box class="h-1.5 w-[12%] bg-white/45"
+          end
+          box class="h-1.5 flex-1 rounded-r-full bg-white/20"
+          end
+        end
+      end
+      box class="flex-row items-center gap-5 pt-1"
+        icon pause class="size-7 text-white"
+        icon rotate-ccw class="size-5 text-white"
+        icon rotate-cw class="size-5 text-white"
+        icon skip-forward class="size-5 text-white"
+        box class="flex-row items-center gap-2"
+          icon volume-2 class="size-5 text-white"
+          box class="h-1 w-24 flex-row rounded-full bg-white/20"
+            box class="h-1 w-3/4 rounded-full bg-white"
+            end
+          end
+        end
+        text "28:14 / 46:02" class="text-sm text-zinc-300"
+        box class="flex-1"
+        end
+        box class="h-9 flex-row items-center gap-2 rounded-full border border-white/10 bg-white/15 pr-1 pl-3" note="弹幕开关（D）；输入框回车发送，发送前可选颜色与位置"
+          box class="size-5 items-center justify-center rounded bg-linear-to-br from-violet-500 to-fuchsia-500"
+            text "弹" class="text-[11px] font-bold text-white"
+          end
+          text "发个友善的弹幕见证当下" class="w-56 text-sm text-zinc-400"
+          icon palette class="size-4 text-zinc-400"
+          box class="h-7 items-center justify-center rounded-full bg-violet-500 px-3.5 shadow-md shadow-violet-500/40"
+            text "发送" class="text-xs font-semibold text-white"
+          end
+        end
+        box class="size-9 items-center justify-center rounded-full border border-white/10 bg-white/15" tap="open desktop-settings-danmaku#dark"
+          icon sliders-horizontal class="size-4 text-white"
+        end
+        box class="flex-1"
+        end
+        icon captions class="size-5 text-white"
+        icon audio-lines class="size-5 text-white"
+        text "1.0x" class="text-sm font-semibold text-white"
+        icon picture-in-picture-2 class="size-5 text-white"
+        icon maximize class="size-5 text-white"
+      end
+    end
+  end
+  box class="w-80 border-l border-white/10 bg-zinc-900" note="右侧面板可收起，收起后视频铺满窗口"
+    box class="m-3 mb-0 h-10 flex-row items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-1"
+      box class="group h-8 flex-1 items-center justify-center rounded-lg selected:bg-violet-500 selected:shadow-md selected:shadow-violet-500/30" tap="tab episodes"
+        text "选集" class="text-sm text-zinc-400 group-selected:font-semibold group-selected:text-white"
+      end
+      box class="group h-8 flex-1 items-center justify-center rounded-lg selected:bg-violet-500 selected:shadow-md selected:shadow-violet-500/30" tap="tab danmaku"
+        text "弹幕" class="text-sm text-zinc-400 group-selected:font-semibold group-selected:text-white"
+      end
+      box class="group h-8 flex-1 items-center justify-center rounded-lg selected:bg-violet-500 selected:shadow-md selected:shadow-violet-500/30" tap="tab info"
+        text "信息" class="text-sm text-zinc-400 group-selected:font-semibold group-selected:text-white"
+      end
+    end
+    box class="flex-1 gap-1 overflow-hidden p-3" panel=episodes
+      box class="flex-row items-center justify-between px-1 pb-2"
+        box class="flex-row items-center gap-1"
+          text "第 1 季" class="text-sm font-semibold text-white"
+          icon chevron-down class="size-4 text-zinc-500"
+        end
+        text "共 12 集" class="text-xs text-zinc-500"
+      end
+      box class="flex-row items-center gap-3 rounded-xl p-2"
+        image "第 4 集剧照" class="h-14 w-24 rounded-lg"
+        box class="flex-1 gap-0.5"
+          text "第 4 集" class="text-sm text-zinc-400"
+          text "已看完 · 47 分钟" class="text-xs text-zinc-500"
+        end
+        icon circle-check class="size-4 text-violet-400"
+      end
+      box class="flex-row items-center gap-3 rounded-xl p-2"
+        image "第 5 集剧照" class="h-14 w-24 rounded-lg"
+        box class="flex-1 gap-0.5"
+          text "第 5 集" class="text-sm text-zinc-400"
+          text "已看完 · 45 分钟" class="text-xs text-zinc-500"
+        end
+        icon circle-check class="size-4 text-violet-400"
+      end
+      box class="flex-row items-center gap-3 rounded-xl border border-violet-500/30 bg-violet-500/15 p-2"
+        box class="relative"
+          image "第 6 集剧照" class="h-14 w-24 rounded-lg"
+          box class="absolute top-0 right-0 bottom-0 left-0 items-center justify-center rounded-lg bg-black/40"
+            icon audio-lines class="size-5 text-violet-300"
+          end
+        end
+        box class="flex-1 gap-1"
+          text "第 6 集" class="text-sm font-semibold text-white"
+          text "正在播放 · 46 分钟" class="text-xs text-violet-300"
+          box class="h-1 rounded-full bg-white/15"
+            box class="h-1 w-[61%] rounded-full bg-linear-to-r from-violet-500 to-fuchsia-500"
+            end
+          end
+        end
+      end
+      box class="flex-row items-center gap-3 rounded-xl p-2"
+        image "第 7 集剧照" class="h-14 w-24 rounded-lg"
+        box class="flex-1 gap-0.5"
+          text "第 7 集" class="text-sm text-white"
+          text "48 分钟" class="text-xs text-zinc-500"
+        end
+      end
+      box class="flex-row items-center gap-3 rounded-xl p-2"
+        image "第 8 集剧照" class="h-14 w-24 rounded-lg"
+        box class="flex-1 gap-0.5"
+          text "第 8 集" class="text-sm text-white"
+          text "45 分钟" class="text-xs text-zinc-500"
+        end
+      end
+      box class="flex-row items-center gap-3 rounded-xl p-2"
+        image "第 9 集剧照" class="h-14 w-24 rounded-lg"
+        box class="flex-1 gap-0.5"
+          text "第 9 集" class="text-sm text-white"
+          text "46 分钟" class="text-xs text-zinc-500"
+        end
+      end
+      box class="flex-row items-center gap-3 rounded-xl p-2"
+        image "第 10 集剧照" class="h-14 w-24 rounded-lg"
+        box class="flex-1 gap-0.5"
+          text "第 10 集" class="text-sm text-white"
+          text "47 分钟" class="text-xs text-zinc-500"
+        end
+      end
+      box class="flex-row items-center gap-3 rounded-xl p-2"
+        image "第 11 集剧照" class="h-14 w-24 rounded-lg"
+        box class="flex-1 gap-0.5"
+          text "第 11 集" class="text-sm text-white"
+          text "44 分钟" class="text-xs text-zinc-500"
+        end
+      end
+    end
+    box class="flex-1 gap-4 overflow-hidden p-4" panel=danmaku
+      box class="gap-1 rounded-xl border border-white/10 bg-white/5 p-3"
+        box class="flex-row items-center justify-between"
+          text "已加载 12,486 条" class="text-sm font-semibold text-white"
+          text "重新匹配" class="text-xs text-violet-400"
+        end
+        text "弹弹play 9,204 · 哔哩哔哩 3,282 · 已屏蔽 316" class="text-xs text-zinc-500"
+      end
+      box class="flex-row gap-2"
+        box class="h-8 flex-1 items-center justify-center rounded-lg border border-violet-500/40 bg-violet-500/20"
+          text "滚动" class="text-xs font-medium text-violet-200"
+        end
+        box class="h-8 flex-1 items-center justify-center rounded-lg border border-violet-500/40 bg-violet-500/20"
+          text "顶部" class="text-xs font-medium text-violet-200"
+        end
+        box class="h-8 flex-1 items-center justify-center rounded-lg border border-white/10 bg-white/5"
+          text "底部" class="text-xs text-zinc-400"
+        end
+        box class="h-8 flex-1 items-center justify-center rounded-lg border border-violet-500/40 bg-violet-500/20"
+          text "彩色" class="text-xs font-medium text-violet-200"
+        end
+      end
+      box class="gap-3"
+        box class="gap-1.5"
+          box class="flex-row justify-between"
+            text "不透明度" class="text-xs text-zinc-400"
+            text "80%" class="text-xs text-violet-400"
+          end
+          box class="h-1 rounded-full bg-white/10"
+            box class="h-1 w-4/5 rounded-full bg-linear-to-r from-violet-500 to-fuchsia-500"
+            end
+          end
+        end
+        box class="gap-1.5"
+          box class="flex-row justify-between"
+            text "显示区域" class="text-xs text-zinc-400"
+            text "半屏" class="text-xs text-violet-400"
+          end
+          box class="h-1 rounded-full bg-white/10"
+            box class="h-1 w-1/2 rounded-full bg-linear-to-r from-violet-500 to-fuchsia-500"
+            end
+          end
+        end
+        box class="gap-1.5"
+          box class="flex-row justify-between"
+            text "时间偏移" class="text-xs text-zinc-400"
+            text "+0.5 秒" class="text-xs text-violet-400"
+          end
+          box class="h-1 rounded-full bg-white/10"
+            box class="h-1 w-[55%] rounded-full bg-linear-to-r from-violet-500 to-fuchsia-500"
+            end
+          end
+        end
+      end
+      box class="flex-row items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2" tap="open desktop-settings-danmaku#dark"
+        text "更多弹幕设置" class="text-sm text-white"
+        icon chevron-right class="size-4 text-zinc-500"
+      end
+      text "弹幕列表" class="pt-1 text-xs font-medium text-zinc-500"
+      box class="gap-2.5"
+        box class="flex-row gap-3"
+          text "28:02" class="w-10 text-xs text-zinc-500"
+          text "这一段的配乐绝了" class="flex-1 truncate text-xs text-zinc-300"
+        end
+        box class="flex-row gap-3"
+          text "28:05" class="w-10 text-xs text-zinc-500"
+          text "范伟老师演技太好了" class="flex-1 truncate text-xs text-zinc-300"
+        end
+        box class="flex-row gap-3"
+          text "28:07" class="w-10 text-xs text-zinc-500"
+          text "前方高能" class="flex-1 truncate text-xs text-amber-300"
+        end
+        box class="flex-row gap-3"
+          text "28:09" class="w-10 text-xs text-zinc-500"
+          text "二刷了，细节全在这里" class="flex-1 truncate text-xs text-sky-300"
+        end
+        box class="flex-row gap-3"
+          text "28:12" class="w-10 text-xs text-zinc-500"
+          text "打个车吧" class="flex-1 truncate text-xs text-zinc-300"
+        end
+        box class="flex-row gap-3"
+          text "28:13" class="w-10 text-xs text-zinc-500"
+          text "这光影太有年代感了" class="flex-1 truncate text-xs text-zinc-300"
+        end
+      end
+    end
+    box class="flex-1 gap-4 overflow-hidden p-4" panel=info note="实时播放统计，每秒刷新"
+      box class="gap-2.5 rounded-xl border border-white/10 bg-white/5 p-4"
+        text "播放方式" class="text-xs font-medium text-zinc-500"
+        box class="flex-row items-center gap-2"
+          box class="size-2 rounded-full bg-emerald-400"
+          end
+          text "直接播放 · 无转码" class="text-sm font-semibold text-white"
+        end
+        text "播放器内核：内置 mpv · 硬件解码 VideoToolbox" class="text-xs text-zinc-400"
+      end
+      box class="gap-2.5 rounded-xl border border-white/10 bg-white/5 p-4"
+        text "视频" class="text-xs font-medium text-zinc-500"
+        box class="flex-row justify-between"
+          text "编码" class="text-xs text-zinc-400"
+          text "HEVC Main10" class="text-xs text-white"
+        end
+        box class="flex-row justify-between"
+          text "分辨率" class="text-xs text-zinc-400"
+          text "3840×2160 · 23.976 fps" class="text-xs text-white"
+        end
+        box class="flex-row justify-between"
+          text "动态范围" class="text-xs text-zinc-400"
+          text "HDR10 · 色调映射关闭" class="text-xs text-white"
+        end
+        box class="flex-row justify-between"
+          text "码率" class="text-xs text-zinc-400"
+          text "38.4 Mbps" class="text-xs text-white"
+        end
+        box class="flex-row justify-between"
+          text "丢帧" class="text-xs text-zinc-400"
+          text "0" class="text-xs text-emerald-400"
+        end
+      end
+      box class="gap-2.5 rounded-xl border border-white/10 bg-white/5 p-4"
+        text "音频" class="text-xs font-medium text-zinc-500"
+        box class="flex-row justify-between"
+          text "编码" class="text-xs text-zinc-400"
+          text "TrueHD 7.1 Atmos" class="text-xs text-white"
+        end
+        box class="flex-row justify-between"
+          text "输出" class="text-xs text-zinc-400"
+          text "HDMI 直通" class="text-xs text-white"
+        end
+      end
+      box class="gap-2.5 rounded-xl border border-white/10 bg-white/5 p-4"
+        text "网络" class="text-xs font-medium text-zinc-500"
+        box class="flex-row justify-between"
+          text "缓冲" class="text-xs text-zinc-400"
+          text "已缓冲 1 分 48 秒" class="text-xs text-white"
+        end
+        box class="flex-row justify-between"
+          text "下载速度" class="text-xs text-zinc-400"
+          text "92.6 MB/s · 局域网" class="text-xs text-white"
+        end
+      end
+    end
+  end
+end

@@ -1,0 +1,159 @@
+design light device=phone name="引导/欢迎" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="relative h-[250px] overflow-hidden" note="欢迎页海报墙：内置固定图片，不依赖媒体源"
+    box class="absolute top-0 left-0 flex-row gap-3"
+      box class="gap-3 pt-10"
+        image src="assets/posters/wandering-earth-2.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="流浪地球2"
+        image src="assets/posters/three-body.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="三体"
+      end
+      box class="gap-3"
+        image src="assets/posters/suzume.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="铃芽之旅"
+        image src="assets/posters/our-planet.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="我们的星球"
+      end
+      box class="gap-3 pt-16"
+        image src="assets/posters/hero.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="英雄"
+        image src="assets/posters/dune-2.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="沙丘2"
+      end
+      box class="gap-3 pt-4"
+        image src="assets/posters/past-lives.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="过往人生"
+        image src="assets/posters/john-wick-4.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="疾速追杀4"
+      end
+    end
+    box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-b from-transparent via-[#f4f4f7]/40 to-[#f4f4f7]"
+    end
+    use status-bar class="absolute top-0 right-0 left-0" variant=onmedia
+  end
+  box class="flex-1 gap-5 px-7"
+    box class="gap-3"
+      use logo mark.class="size-10" word.class="text-3xl"
+      text "你的私人影院，\n在每一块屏幕上。" class="text-[26px] leading-tight font-bold tracking-tight text-zinc-900"
+      text "连接家里的媒体服务器与 NAS，自动整理海报墙，手机、平板、电脑、电视无缝续播。" class="text-sm leading-relaxed text-zinc-500"
+    end
+    box class="gap-px overflow-hidden rounded-2xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5"
+      box class="flex-row items-center gap-3 bg-white px-4 py-2.5"
+        box class="size-9 items-center justify-center rounded-xl bg-violet-500/12"
+          icon server class="size-4 text-violet-500"
+        end
+        box class="flex-1"
+          text "多平台媒体源" class="text-sm font-medium text-zinc-900"
+          text "Emby · Jellyfin · 飞牛影视 · Plex · SMB · WebDAV" class="text-xs text-zinc-500"
+        end
+      end
+      box class="flex-row items-center gap-3 bg-white px-4 py-2.5"
+        box class="size-9 items-center justify-center rounded-xl bg-fuchsia-500/12"
+          icon message-square-text class="size-4 text-fuchsia-500"
+        end
+        box class="flex-1"
+          text "弹幕同看" class="text-sm font-medium text-zinc-900"
+          text "自动匹配弹弹play、B站等弹幕源" class="text-xs text-zinc-500"
+        end
+      end
+      box class="flex-row items-center gap-3 bg-white px-4 py-2.5"
+        box class="size-9 items-center justify-center rounded-xl bg-amber-500/12"
+          icon sparkles class="size-4 text-amber-500"
+        end
+        box class="flex-1"
+          text "4K HDR · 杜比视界 · 全景声" class="text-sm font-medium text-zinc-900"
+          text "原画直通，无需服务器转码" class="text-xs text-zinc-500"
+        end
+      end
+      box class="flex-row items-center gap-3 bg-white px-4 py-2.5"
+        box class="size-9 items-center justify-center rounded-xl bg-sky-500/12"
+          icon cloud class="size-4 text-sky-500"
+        end
+        box class="flex-1"
+          text "iCloud 同步" class="text-sm font-medium text-zinc-900"
+          text "媒体源、进度与设置跨设备同步" class="text-xs text-zinc-500"
+        end
+      end
+    end
+    box class="mt-auto gap-1 pb-6"
+      box class="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30" tap="open add-source"
+        icon plus class="size-5 text-white"
+        text "添加媒体源" class="text-base font-semibold text-white"
+      end
+      text "稍后设置" class="py-2 text-center text-sm font-medium text-zinc-500" tap="open home" note="跳过引导，进入空首页，首页会提示添加媒体源"
+    end
+  end
+end
+
+design dark device=phone name="欢迎 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="relative h-[250px] overflow-hidden" note="欢迎页海报墙：内置固定图片，不依赖媒体源"
+    box class="absolute top-0 left-0 flex-row gap-3"
+      box class="gap-3 pt-10"
+        image src="assets/posters/wandering-earth-2.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="流浪地球2"
+        image src="assets/posters/three-body.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="三体"
+      end
+      box class="gap-3"
+        image src="assets/posters/suzume.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="铃芽之旅"
+        image src="assets/posters/our-planet.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="我们的星球"
+      end
+      box class="gap-3 pt-16"
+        image src="assets/posters/hero.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="英雄"
+        image src="assets/posters/dune-2.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="沙丘2"
+      end
+      box class="gap-3 pt-4"
+        image src="assets/posters/past-lives.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="过往人生"
+        image src="assets/posters/john-wick-4.jpg" class="h-44 w-28 rounded-2xl shadow-lg shadow-black/20" note="疾速追杀4"
+      end
+    end
+    box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-b from-transparent via-[#0f1017]/40 to-[#0f1017]"
+    end
+    use status-bar-dark class="absolute top-0 right-0 left-0" variant=onmedia
+  end
+  box class="flex-1 gap-5 px-7"
+    box class="gap-3"
+      use logo-dark mark.class="size-10" word.class="text-3xl"
+      text "你的私人影院，\n在每一块屏幕上。" class="text-[26px] leading-tight font-bold tracking-tight text-zinc-50"
+      text "连接家里的媒体服务器与 NAS，自动整理海报墙，手机、平板、电脑、电视无缝续播。" class="text-sm leading-relaxed text-zinc-400"
+    end
+    box class="gap-px overflow-hidden rounded-2xl border border-white/8 bg-white/7 shadow-sm shadow-black/5"
+      box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-2.5"
+        box class="size-9 items-center justify-center rounded-xl bg-violet-500/12"
+          icon server class="size-4 text-violet-400"
+        end
+        box class="flex-1"
+          text "多平台媒体源" class="text-sm font-medium text-zinc-50"
+          text "Emby · Jellyfin · 飞牛影视 · Plex · SMB · WebDAV" class="text-xs text-zinc-400"
+        end
+      end
+      box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-2.5"
+        box class="size-9 items-center justify-center rounded-xl bg-fuchsia-500/12"
+          icon message-square-text class="size-4 text-fuchsia-500"
+        end
+        box class="flex-1"
+          text "弹幕同看" class="text-sm font-medium text-zinc-50"
+          text "自动匹配弹弹play、B站等弹幕源" class="text-xs text-zinc-400"
+        end
+      end
+      box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-2.5"
+        box class="size-9 items-center justify-center rounded-xl bg-amber-500/12"
+          icon sparkles class="size-4 text-amber-500"
+        end
+        box class="flex-1"
+          text "4K HDR · 杜比视界 · 全景声" class="text-sm font-medium text-zinc-50"
+          text "原画直通，无需服务器转码" class="text-xs text-zinc-400"
+        end
+      end
+      box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-2.5"
+        box class="size-9 items-center justify-center rounded-xl bg-sky-500/12"
+          icon cloud class="size-4 text-sky-500"
+        end
+        box class="flex-1"
+          text "iCloud 同步" class="text-sm font-medium text-zinc-50"
+          text "媒体源、进度与设置跨设备同步" class="text-xs text-zinc-400"
+        end
+      end
+    end
+    box class="mt-auto gap-1 pb-6"
+      box class="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30" tap="open add-source#dark"
+        icon plus class="size-5 text-white"
+        text "添加媒体源" class="text-base font-semibold text-white"
+      end
+      text "稍后设置" class="py-2 text-center text-sm font-medium text-zinc-400" tap="open home#dark" note="跳过引导，进入空首页，首页会提示添加媒体源"
+    end
+  end
+end

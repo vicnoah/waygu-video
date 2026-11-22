@@ -1,0 +1,12 @@
+component name="手机/导航栏" width=fill backdrop="bg-[#f4f4f7]"
+box class="gap-1 pb-2"
+  box class="h-11 flex-row items-center justify-between px-2"
+    box name=back class="flex-row items-center gap-0.5 px-2"
+      icon chevron-left class="size-6 text-violet-500"
+      text "设置" name=backlabel class="text-[17px] text-violet-500"
+    end
+    text "编辑" name=action class="hidden px-3 text-[17px] text-violet-500"
+  end
+  text "播放" name=title class="px-5 text-3xl font-bold text-zinc-900"
+end
+variant action action.class="flex"

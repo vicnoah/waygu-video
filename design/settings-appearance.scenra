@@ -1,0 +1,391 @@
+design light device=phone height=1700 name="设置/外观" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar
+  use nav-bar title="外观" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    box class="gap-2 px-4"
+      text "主题" class="px-4 text-xs font-medium tracking-wide text-zinc-500 uppercase"
+      box class="flex-row gap-3 rounded-2xl border border-zinc-900/8 bg-white p-4 shadow-sm shadow-black/5" note="预览图以固定颜色描绘各主题的样子；选择“跟随系统”时随 iOS / macOS / Android 的深浅色自动切换，播放器始终为深色"
+        box class="flex-1 items-center gap-2.5"
+          box class="h-32 w-full gap-1.5 overflow-hidden rounded-xl border border-zinc-200 bg-white p-2 shadow-sm"
+            box class="flex-row items-center gap-1"
+              box class="size-2.5 rounded-[3px] bg-linear-to-br from-violet-500 to-fuchsia-500"
+              end
+              box class="h-1.5 w-8 rounded-full bg-zinc-300"
+              end
+            end
+            box class="h-9 rounded-md bg-linear-to-br from-violet-200 via-fuchsia-100 to-sky-100"
+            end
+            box class="flex-row gap-1"
+              box class="h-8 flex-1 rounded-[4px] bg-zinc-200"
+              end
+              box class="h-8 flex-1 rounded-[4px] bg-zinc-200"
+              end
+              box class="h-8 flex-1 rounded-[4px] bg-zinc-200"
+              end
+            end
+            box class="mt-auto h-3 flex-row items-center justify-around rounded-full border border-zinc-200 bg-zinc-50"
+              box class="size-1 rounded-full bg-violet-500"
+              end
+              box class="size-1 rounded-full bg-zinc-300"
+              end
+              box class="size-1 rounded-full bg-zinc-300"
+              end
+            end
+          end
+          text "浅色" class="text-sm text-zinc-500"
+          box class="size-5 rounded-full border-2 border-zinc-900/8"
+          end
+        end
+        box class="flex-1 items-center gap-2.5"
+          box class="h-32 w-full gap-1.5 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 p-2 shadow-sm"
+            box class="flex-row items-center gap-1"
+              box class="size-2.5 rounded-[3px] bg-linear-to-br from-violet-500 to-fuchsia-500"
+              end
+              box class="h-1.5 w-8 rounded-full bg-zinc-700"
+              end
+            end
+            box class="h-9 rounded-md bg-linear-to-br from-violet-900 via-fuchsia-950 to-zinc-900"
+            end
+            box class="flex-row gap-1"
+              box class="h-8 flex-1 rounded-[4px] bg-zinc-800"
+              end
+              box class="h-8 flex-1 rounded-[4px] bg-zinc-800"
+              end
+              box class="h-8 flex-1 rounded-[4px] bg-zinc-800"
+              end
+            end
+            box class="mt-auto h-3 flex-row items-center justify-around rounded-full border border-zinc-800 bg-zinc-900"
+              box class="size-1 rounded-full bg-violet-400"
+              end
+              box class="size-1 rounded-full bg-zinc-600"
+              end
+              box class="size-1 rounded-full bg-zinc-600"
+              end
+            end
+          end
+          text "深色" class="text-sm text-zinc-500"
+          box class="size-5 rounded-full border-2 border-zinc-900/8"
+          end
+        end
+        box class="flex-1 items-center gap-2.5"
+          box class="h-32 w-full flex-row overflow-hidden rounded-xl ring-2 ring-violet-500 ring-offset-2 ring-offset-card shadow-md shadow-violet-500/20"
+            box class="flex-1 gap-1.5 bg-white py-2 pl-2"
+              box class="flex-row items-center gap-1"
+                box class="size-2.5 rounded-[3px] bg-linear-to-br from-violet-500 to-fuchsia-500"
+                end
+                box class="h-1.5 flex-1 rounded-l-full bg-zinc-300"
+                end
+              end
+              box class="h-9 rounded-l-md bg-linear-to-br from-violet-200 via-fuchsia-100 to-sky-100"
+              end
+              box class="flex-row gap-1"
+                box class="h-8 flex-1 rounded-[4px] bg-zinc-200"
+                end
+                box class="h-8 flex-1 rounded-l-[4px] bg-zinc-200"
+                end
+              end
+              box class="mt-auto h-3 rounded-l-full border-y border-l border-zinc-200 bg-zinc-50"
+              end
+            end
+            box class="flex-1 gap-1.5 bg-zinc-950 py-2 pr-2"
+              box class="flex-row items-center"
+                box class="h-1.5 w-3 rounded-r-full bg-zinc-700"
+                end
+              end
+              box class="h-9 rounded-r-md bg-linear-to-br from-fuchsia-950 to-zinc-900"
+              end
+              box class="flex-row gap-1"
+                box class="h-8 flex-1 rounded-r-[4px] bg-zinc-800"
+                end
+                box class="h-8 flex-1 rounded-[4px] bg-zinc-800"
+                end
+              end
+              box class="mt-auto h-3 rounded-r-full border-y border-r border-zinc-800 bg-zinc-900"
+              end
+            end
+          end
+          text "跟随系统" class="text-sm font-semibold text-zinc-900"
+          box class="size-5 items-center justify-center rounded-full bg-violet-500 shadow-sm shadow-violet-500/40"
+            icon check class="size-3 text-white"
+          end
+        end
+      end
+    end
+    use settings-group variant=noheader
+      fill
+        use settings-row variant="toggle desc" icon=moon-star title="夜间自动切换深色" desc="跟随系统关闭时，日落后自动使用深色主题" badge.class="bg-indigo-500"
+        use settings-row variant="toggle-off desc" icon=contrast title="纯黑背景（OLED）" desc="深色模式下使用纯黑背景以节省电量" badge.class="bg-zinc-800"
+      end
+    end
+    box class="gap-2 px-4"
+      text "强调色" class="px-4 text-xs font-medium tracking-wide text-zinc-500 uppercase"
+      box class="flex-row justify-between rounded-2xl border border-zinc-900/8 bg-white px-5 py-4 shadow-sm shadow-black/5"
+        box class="size-9 items-center justify-center rounded-full bg-violet-500 shadow-md shadow-violet-500/40 ring-2 ring-violet-500/50 ring-offset-2 ring-offset-card"
+          icon check class="size-4 text-white"
+        end
+        box class="size-9 rounded-full bg-sky-500 shadow-sm"
+        end
+        box class="size-9 rounded-full bg-emerald-500 shadow-sm"
+        end
+        box class="size-9 rounded-full bg-amber-500 shadow-sm"
+        end
+        box class="size-9 rounded-full bg-rose-500 shadow-sm"
+        end
+        box class="size-9 rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-sm"
+        end
+      end
+    end
+    box class="gap-2 px-4"
+      text "App 图标" class="px-4 text-xs font-medium tracking-wide text-zinc-500 uppercase"
+      box class="flex-row justify-between rounded-2xl border border-zinc-900/8 bg-white px-5 py-4 shadow-sm shadow-black/5"
+        box class="items-center gap-1.5"
+          box class="size-14 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-md shadow-violet-500/30 ring-2 ring-violet-500 ring-offset-2 ring-offset-card"
+            icon play class="size-6 text-white"
+          end
+          text "默认" class="text-xs font-medium text-zinc-900"
+        end
+        box class="items-center gap-1.5"
+          box class="size-14 items-center justify-center rounded-2xl bg-zinc-950 shadow-md ring-1 ring-zinc-900/8"
+            icon play class="size-6 text-violet-400"
+          end
+          text "午夜" class="text-xs text-zinc-500"
+        end
+        box class="items-center gap-1.5"
+          box class="size-14 items-center justify-center rounded-2xl bg-white shadow-md ring-1 ring-black/10"
+            icon play class="size-6 text-violet-600"
+          end
+          text "纯白" class="text-xs text-zinc-500"
+        end
+        box class="items-center gap-1.5"
+          box class="size-14 items-center justify-center rounded-2xl bg-linear-to-br from-amber-400 to-rose-500 shadow-md"
+            icon play class="size-6 text-white"
+          end
+          text "落日" class="text-xs text-zinc-500"
+        end
+      end
+    end
+    use settings-group header="首页模块" variant=footer footer="拖动右侧把手调整首页模块顺序。"
+      fill
+        use settings-row variant="plain toggle" title="继续观看" note="每行右侧带拖动把手，可排序"
+        use settings-row variant="plain toggle" title="最近添加"
+        use settings-row variant="plain toggle" title="剧集更新"
+        use settings-row variant="plain toggle" title="我的收藏"
+        use settings-row variant="plain toggle-off" title="按媒体源分组"
+        use settings-row variant="plain toggle-off" title="随机推荐"
+      end
+    end
+    use settings-group header="媒体库显示"
+      fill
+        use settings-row icon=layout-grid title="海报样式" value="竖版海报" badge.class="bg-orange-500" note="竖版海报 / 横版剧照 / 列表"
+        use settings-row icon=star title="评分来源" value="豆瓣" badge.class="bg-amber-500" note="豆瓣 / IMDb / TMDB / 烂番茄"
+        use settings-row variant=toggle icon=circle-check title="显示已观看标记" badge.class="bg-emerald-500"
+        use settings-row variant=toggle icon=badge-info title="显示画质角标" badge.class="bg-sky-500"
+        use settings-row variant=toggle-off icon=eye-off title="隐藏已看完的剧集" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group header="通用"
+      fill
+        use settings-row icon=languages title="语言" value="简体中文" badge.class="bg-blue-500"
+        use settings-row variant=toggle icon=film title="海报动态背景" badge.class="bg-violet-500" note="页面顶部氛围光取当前海报的主色"
+      end
+    end
+  end
+end
+
+design dark device=phone height=1700 name="外观 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar-dark
+  use nav-bar-dark title="外观" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    box class="gap-2 px-4"
+      text "主题" class="px-4 text-xs font-medium tracking-wide text-zinc-400 uppercase"
+      box class="flex-row gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] p-4 shadow-sm shadow-black/5" note="预览图以固定颜色描绘各主题的样子；选择“跟随系统”时随 iOS / macOS / Android 的深浅色自动切换，播放器始终为深色"
+        box class="flex-1 items-center gap-2.5"
+          box class="h-32 w-full gap-1.5 overflow-hidden rounded-xl border border-zinc-200 bg-white p-2 shadow-sm"
+            box class="flex-row items-center gap-1"
+              box class="size-2.5 rounded-[3px] bg-linear-to-br from-violet-500 to-fuchsia-500"
+              end
+              box class="h-1.5 w-8 rounded-full bg-zinc-300"
+              end
+            end
+            box class="h-9 rounded-md bg-linear-to-br from-violet-200 via-fuchsia-100 to-sky-100"
+            end
+            box class="flex-row gap-1"
+              box class="h-8 flex-1 rounded-[4px] bg-zinc-200"
+              end
+              box class="h-8 flex-1 rounded-[4px] bg-zinc-200"
+              end
+              box class="h-8 flex-1 rounded-[4px] bg-zinc-200"
+              end
+            end
+            box class="mt-auto h-3 flex-row items-center justify-around rounded-full border border-zinc-200 bg-zinc-50"
+              box class="size-1 rounded-full bg-violet-500"
+              end
+              box class="size-1 rounded-full bg-zinc-300"
+              end
+              box class="size-1 rounded-full bg-zinc-300"
+              end
+            end
+          end
+          text "浅色" class="text-sm text-zinc-400"
+          box class="size-5 rounded-full border-2 border-white/8"
+          end
+        end
+        box class="flex-1 items-center gap-2.5"
+          box class="h-32 w-full gap-1.5 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 p-2 shadow-sm"
+            box class="flex-row items-center gap-1"
+              box class="size-2.5 rounded-[3px] bg-linear-to-br from-violet-500 to-fuchsia-500"
+              end
+              box class="h-1.5 w-8 rounded-full bg-zinc-700"
+              end
+            end
+            box class="h-9 rounded-md bg-linear-to-br from-violet-900 via-fuchsia-950 to-zinc-900"
+            end
+            box class="flex-row gap-1"
+              box class="h-8 flex-1 rounded-[4px] bg-zinc-800"
+              end
+              box class="h-8 flex-1 rounded-[4px] bg-zinc-800"
+              end
+              box class="h-8 flex-1 rounded-[4px] bg-zinc-800"
+              end
+            end
+            box class="mt-auto h-3 flex-row items-center justify-around rounded-full border border-zinc-800 bg-zinc-900"
+              box class="size-1 rounded-full bg-violet-400"
+              end
+              box class="size-1 rounded-full bg-zinc-600"
+              end
+              box class="size-1 rounded-full bg-zinc-600"
+              end
+            end
+          end
+          text "深色" class="text-sm text-zinc-400"
+          box class="size-5 rounded-full border-2 border-white/8"
+          end
+        end
+        box class="flex-1 items-center gap-2.5"
+          box class="h-32 w-full flex-row overflow-hidden rounded-xl ring-2 ring-violet-500 ring-offset-2 ring-offset-card shadow-md shadow-violet-500/20"
+            box class="flex-1 gap-1.5 bg-white py-2 pl-2"
+              box class="flex-row items-center gap-1"
+                box class="size-2.5 rounded-[3px] bg-linear-to-br from-violet-500 to-fuchsia-500"
+                end
+                box class="h-1.5 flex-1 rounded-l-full bg-zinc-300"
+                end
+              end
+              box class="h-9 rounded-l-md bg-linear-to-br from-violet-200 via-fuchsia-100 to-sky-100"
+              end
+              box class="flex-row gap-1"
+                box class="h-8 flex-1 rounded-[4px] bg-zinc-200"
+                end
+                box class="h-8 flex-1 rounded-l-[4px] bg-zinc-200"
+                end
+              end
+              box class="mt-auto h-3 rounded-l-full border-y border-l border-zinc-200 bg-zinc-50"
+              end
+            end
+            box class="flex-1 gap-1.5 bg-zinc-950 py-2 pr-2"
+              box class="flex-row items-center"
+                box class="h-1.5 w-3 rounded-r-full bg-zinc-700"
+                end
+              end
+              box class="h-9 rounded-r-md bg-linear-to-br from-fuchsia-950 to-zinc-900"
+              end
+              box class="flex-row gap-1"
+                box class="h-8 flex-1 rounded-r-[4px] bg-zinc-800"
+                end
+                box class="h-8 flex-1 rounded-[4px] bg-zinc-800"
+                end
+              end
+              box class="mt-auto h-3 rounded-r-full border-y border-r border-zinc-800 bg-zinc-900"
+              end
+            end
+          end
+          text "跟随系统" class="text-sm font-semibold text-zinc-50"
+          box class="size-5 items-center justify-center rounded-full bg-violet-500 shadow-sm shadow-violet-500/40"
+            icon check class="size-3 text-white"
+          end
+        end
+      end
+    end
+    use settings-group-dark variant=noheader
+      fill
+        use settings-row-dark variant="toggle desc" icon=moon-star title="夜间自动切换深色" desc="跟随系统关闭时，日落后自动使用深色主题" badge.class="bg-indigo-500"
+        use settings-row-dark variant="toggle-off desc" icon=contrast title="纯黑背景（OLED）" desc="深色模式下使用纯黑背景以节省电量" badge.class="bg-zinc-800"
+      end
+    end
+    box class="gap-2 px-4"
+      text "强调色" class="px-4 text-xs font-medium tracking-wide text-zinc-400 uppercase"
+      box class="flex-row justify-between rounded-2xl border border-white/8 bg-[#1a1b25] px-5 py-4 shadow-sm shadow-black/5"
+        box class="size-9 items-center justify-center rounded-full bg-violet-500 shadow-md shadow-violet-500/40 ring-2 ring-violet-500/50 ring-offset-2 ring-offset-card"
+          icon check class="size-4 text-white"
+        end
+        box class="size-9 rounded-full bg-sky-500 shadow-sm"
+        end
+        box class="size-9 rounded-full bg-emerald-500 shadow-sm"
+        end
+        box class="size-9 rounded-full bg-amber-500 shadow-sm"
+        end
+        box class="size-9 rounded-full bg-rose-500 shadow-sm"
+        end
+        box class="size-9 rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-sm"
+        end
+      end
+    end
+    box class="gap-2 px-4"
+      text "App 图标" class="px-4 text-xs font-medium tracking-wide text-zinc-400 uppercase"
+      box class="flex-row justify-between rounded-2xl border border-white/8 bg-[#1a1b25] px-5 py-4 shadow-sm shadow-black/5"
+        box class="items-center gap-1.5"
+          box class="size-14 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-md shadow-violet-500/30 ring-2 ring-violet-500 ring-offset-2 ring-offset-card"
+            icon play class="size-6 text-white"
+          end
+          text "默认" class="text-xs font-medium text-zinc-50"
+        end
+        box class="items-center gap-1.5"
+          box class="size-14 items-center justify-center rounded-2xl bg-zinc-950 shadow-md ring-1 ring-white/8"
+            icon play class="size-6 text-violet-400"
+          end
+          text "午夜" class="text-xs text-zinc-400"
+        end
+        box class="items-center gap-1.5"
+          box class="size-14 items-center justify-center rounded-2xl bg-white shadow-md ring-1 ring-black/10"
+            icon play class="size-6 text-violet-600"
+          end
+          text "纯白" class="text-xs text-zinc-400"
+        end
+        box class="items-center gap-1.5"
+          box class="size-14 items-center justify-center rounded-2xl bg-linear-to-br from-amber-400 to-rose-500 shadow-md"
+            icon play class="size-6 text-white"
+          end
+          text "落日" class="text-xs text-zinc-400"
+        end
+      end
+    end
+    use settings-group-dark header="首页模块" variant=footer footer="拖动右侧把手调整首页模块顺序。"
+      fill
+        use settings-row-dark variant="plain toggle" title="继续观看" note="每行右侧带拖动把手，可排序"
+        use settings-row-dark variant="plain toggle" title="最近添加"
+        use settings-row-dark variant="plain toggle" title="剧集更新"
+        use settings-row-dark variant="plain toggle" title="我的收藏"
+        use settings-row-dark variant="plain toggle-off" title="按媒体源分组"
+        use settings-row-dark variant="plain toggle-off" title="随机推荐"
+      end
+    end
+    use settings-group-dark header="媒体库显示"
+      fill
+        use settings-row-dark icon=layout-grid title="海报样式" value="竖版海报" badge.class="bg-orange-500" note="竖版海报 / 横版剧照 / 列表"
+        use settings-row-dark icon=star title="评分来源" value="豆瓣" badge.class="bg-amber-500" note="豆瓣 / IMDb / TMDB / 烂番茄"
+        use settings-row-dark variant=toggle icon=circle-check title="显示已观看标记" badge.class="bg-emerald-500"
+        use settings-row-dark variant=toggle icon=badge-info title="显示画质角标" badge.class="bg-sky-500"
+        use settings-row-dark variant=toggle-off icon=eye-off title="隐藏已看完的剧集" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group-dark header="通用"
+      fill
+        use settings-row-dark icon=languages title="语言" value="简体中文" badge.class="bg-blue-500"
+        use settings-row-dark variant=toggle icon=film title="海报动态背景" badge.class="bg-violet-500" note="页面顶部氛围光取当前海报的主色"
+      end
+    end
+  end
+end

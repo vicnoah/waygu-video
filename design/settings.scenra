@@ -1,0 +1,111 @@
+design light device=phone height=1160 name="设置/设置" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar
+  box class="flex-1 gap-6 pt-2 pb-28"
+    text "设置" class="px-5 text-3xl font-bold tracking-tight text-zinc-900"
+    box class="mx-4 flex-row items-center gap-3.5 rounded-2xl border border-violet-500/20 bg-linear-to-br from-violet-500/15 via-white to-fuchsia-500/10 p-4 shadow-lg shadow-violet-500/10"
+      box class="size-14 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-md shadow-violet-500/30"
+        text "林" class="text-xl font-semibold text-white"
+      end
+      box class="flex-1 gap-1"
+        text "林小雨" class="text-lg font-semibold text-zinc-900"
+        box class="flex-row items-center gap-1.5"
+          box class="rounded bg-linear-to-r from-amber-400 to-orange-400 px-1.5 py-0.5"
+            text "PRO" class="text-[10px] font-bold text-black"
+          end
+          text "Waygu Pro 已解锁 · 4 台设备" class="text-xs text-zinc-500"
+        end
+      end
+      icon chevron-right class="size-5 text-zinc-500" tap="open settings-sync"
+    end
+    use settings-group header="媒体源"
+      fill
+        use settings-row icon=server title="媒体源管理" value="3 个在线" badge.class="bg-emerald-500" row.tap="open settings-sources"
+        use settings-row icon=circle-plus title="添加媒体源" value="Emby · Jellyfin · 飞牛" badge.class="bg-teal-500" row.tap="open add-source"
+      end
+    end
+    use settings-group header="播放体验"
+      fill
+        use settings-row icon=play title="播放" value="原画 · 硬解" badge.class="bg-violet-500" row.tap="open settings-playback"
+        use settings-row icon=captions title="字幕" value="简体中文" badge.class="bg-sky-500" row.tap="open settings-subtitles"
+        use settings-row icon=message-square-text title="弹幕" value="已开启" badge.class="bg-pink-500" row.tap="open settings-danmaku"
+      end
+    end
+    use settings-group header="界面与媒体库"
+      fill
+        use settings-row icon=palette title="外观" value="跟随系统" badge.class="bg-orange-500" row.tap="open settings-appearance"
+        use settings-row icon=database title="媒体库与元数据" value="TMDB · 豆瓣" badge.class="bg-indigo-500" row.tap="open settings-library"
+      end
+    end
+    use settings-group header="账户与数据"
+      fill
+        use settings-row icon=refresh-cw title="同步与账户" value="已同步" badge.class="bg-blue-500" row.tap="open settings-sync"
+        use settings-row icon=hard-drive title="存储与下载" value="13.6 GB" badge.class="bg-zinc-500" row.tap="open settings-storage"
+        use settings-row icon=shield title="家长控制" value="关闭" badge.class="bg-amber-500" row.tap="open settings-parental"
+      end
+    end
+    use settings-group header="其他" variant=footer footer="Waygu 1.0.0 · 支持 Emby、Jellyfin、飞牛影视、Plex、SMB、WebDAV、NFS"
+      fill
+        use settings-row icon=info title="关于与帮助" value="1.0.0" badge.class="bg-slate-500" row.tap="open settings-about"
+      end
+    end
+  end
+  use tab-bar class="absolute right-0 bottom-0 left-0" home.tap="open home" library.tap="open library" search.tap="open search" settings.tap="open settings"
+end
+
+design dark device=phone height=1160 name="设置 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar-dark
+  box class="flex-1 gap-6 pt-2 pb-28"
+    text "设置" class="px-5 text-3xl font-bold tracking-tight text-zinc-50"
+    box class="mx-4 flex-row items-center gap-3.5 rounded-2xl border border-violet-500/20 bg-linear-to-br from-violet-500/15 via-[#1a1b25] to-fuchsia-500/10 p-4 shadow-lg shadow-violet-500/10"
+      box class="size-14 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-md shadow-violet-500/30"
+        text "林" class="text-xl font-semibold text-white"
+      end
+      box class="flex-1 gap-1"
+        text "林小雨" class="text-lg font-semibold text-zinc-50"
+        box class="flex-row items-center gap-1.5"
+          box class="rounded bg-linear-to-r from-amber-400 to-orange-400 px-1.5 py-0.5"
+            text "PRO" class="text-[10px] font-bold text-black"
+          end
+          text "Waygu Pro 已解锁 · 4 台设备" class="text-xs text-zinc-400"
+        end
+      end
+      icon chevron-right class="size-5 text-zinc-400" tap="open settings-sync#dark"
+    end
+    use settings-group-dark header="媒体源"
+      fill
+        use settings-row-dark icon=server title="媒体源管理" value="3 个在线" badge.class="bg-emerald-500" row.tap="open settings-sources#dark"
+        use settings-row-dark icon=circle-plus title="添加媒体源" value="Emby · Jellyfin · 飞牛" badge.class="bg-teal-500" row.tap="open add-source#dark"
+      end
+    end
+    use settings-group-dark header="播放体验"
+      fill
+        use settings-row-dark icon=play title="播放" value="原画 · 硬解" badge.class="bg-violet-500" row.tap="open settings-playback#dark"
+        use settings-row-dark icon=captions title="字幕" value="简体中文" badge.class="bg-sky-500" row.tap="open settings-subtitles#dark"
+        use settings-row-dark icon=message-square-text title="弹幕" value="已开启" badge.class="bg-pink-500" row.tap="open settings-danmaku#dark"
+      end
+    end
+    use settings-group-dark header="界面与媒体库"
+      fill
+        use settings-row-dark icon=palette title="外观" value="跟随系统" badge.class="bg-orange-500" row.tap="open settings-appearance#dark"
+        use settings-row-dark icon=database title="媒体库与元数据" value="TMDB · 豆瓣" badge.class="bg-indigo-500" row.tap="open settings-library#dark"
+      end
+    end
+    use settings-group-dark header="账户与数据"
+      fill
+        use settings-row-dark icon=refresh-cw title="同步与账户" value="已同步" badge.class="bg-blue-500" row.tap="open settings-sync#dark"
+        use settings-row-dark icon=hard-drive title="存储与下载" value="13.6 GB" badge.class="bg-zinc-500" row.tap="open settings-storage#dark"
+        use settings-row-dark icon=shield title="家长控制" value="关闭" badge.class="bg-amber-500" row.tap="open settings-parental#dark"
+      end
+    end
+    use settings-group-dark header="其他" variant=footer footer="Waygu 1.0.0 · 支持 Emby、Jellyfin、飞牛影视、Plex、SMB、WebDAV、NFS"
+      fill
+        use settings-row-dark icon=info title="关于与帮助" value="1.0.0" badge.class="bg-slate-500" row.tap="open settings-about#dark"
+      end
+    end
+  end
+  use tab-bar-dark class="absolute right-0 bottom-0 left-0" home.tap="open home#dark" library.tap="open library#dark" search.tap="open search#dark" settings.tap="open settings#dark"
+end

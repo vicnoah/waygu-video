@@ -1,0 +1,283 @@
+design light device=phone height=1480 name="手机/首页" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  box class="flex-1 gap-8 pb-28"
+    box class="gap-3"
+      use status-bar
+      box class="flex-row items-center justify-between px-5"
+        use logo
+        box class="flex-row items-center gap-2"
+          box class="h-8 flex-row items-center gap-1.5 rounded-full border border-zinc-900/8 bg-white/80 px-3 shadow-sm shadow-black/5" note="切换只看某一媒体源，或合并显示全部媒体源的内容"
+            box class="size-1.5 rounded-full bg-emerald-500"
+            end
+            text "全部媒体源" class="text-xs font-medium text-zinc-900"
+            icon chevron-down class="size-3.5 text-zinc-500"
+          end
+          box class="size-8 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-md shadow-violet-500/30"
+            text "林" class="text-xs font-semibold text-white"
+          end
+        end
+      end
+      box class="px-5 pt-1"
+        text "晚上好，小雨" class="text-3xl font-bold tracking-tight text-zinc-900"
+        text "3 个媒体源在线 · 今日新入库 12 部" class="text-sm text-zinc-500"
+      end
+    end
+    box class="gap-3"
+      box class="relative mx-5 h-[440px] overflow-hidden rounded-3xl shadow-xl shadow-black/20"
+        image "《沙丘2》剧照：沙漠中的主角与巨型沙虫，金色逆光" class="absolute top-0 right-0 bottom-0 left-0"
+        box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-t from-black/85 via-black/25 to-transparent"
+        end
+        box class="absolute top-4 left-4 flex-row items-center gap-1.5 rounded-full bg-black/40 px-2.5 py-1"
+          icon sparkles class="size-3 text-amber-300"
+          text "今日推荐" class="text-[11px] font-medium text-white"
+        end
+        box class="absolute right-0 bottom-0 left-0 gap-3 p-5"
+          box class="flex-row items-center gap-2"
+            text "新入库" class="rounded-md bg-violet-500 px-1.5 py-0.5 text-[10px] font-bold text-white"
+            text "家庭 Emby" class="text-xs text-white/80"
+          end
+          text "沙丘2" class="text-4xl font-bold tracking-tight text-white"
+          text "2024 · 166 分钟 · 科幻 / 冒险 · 豆瓣 8.3" class="text-xs text-white/75"
+          box class="flex-row gap-1.5"
+            text "4K" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+            text "Dolby Vision" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+            text "Atmos" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+          end
+          box class="flex-row gap-3 pt-1"
+            box class="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-white" tap="open player"
+              icon play class="size-4 text-black"
+              text "播放" class="text-sm font-semibold text-black"
+            end
+            box class="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-white/20" tap="open movie-detail"
+              icon info class="size-4 text-white"
+              text "详情" class="text-sm font-semibold text-white"
+            end
+          end
+        end
+      end
+      box class="flex-row justify-center gap-1.5" note="首页大图每 8 秒轮播最近入库的高分影片"
+        box class="h-1.5 w-5 rounded-full bg-violet-500"
+        end
+        box class="size-1.5 rounded-full bg-zinc-900/20"
+        end
+        box class="size-1.5 rounded-full bg-zinc-900/20"
+        end
+        box class="size-1.5 rounded-full bg-zinc-900/20"
+        end
+      end
+    end
+    box class="gap-3"
+      use section-title title="继续观看"
+      box class="flex-row gap-3 overflow-hidden px-5" note="合并所有媒体源的观看进度，进度来自服务器并在本地缓存"
+        use backdrop-card card.tap="open player"
+        use backdrop-card title="奥本海默" sub="电影 · 已看 64%" remain="剩余 1 小时 2 分" cover="《奥本海默》剧照：火光中的科学家侧脸" progress.class="w-2/3" card.tap="open player"
+      end
+    end
+    box class="gap-3"
+      use section-title title="最近添加"
+      box class="flex-row gap-3 overflow-hidden px-5"
+        use poster variant=fresh card.tap="open movie-detail"
+        use poster title="周处除三害" sub="2023 · 8.0" quality="1080P" cover="《周处除三害》海报：持枪男子的侧影" variant=fresh card.tap="open movie-detail"
+        use poster title="坠落的审判" sub="2023 · 8.6" cover="《坠落的审判》海报：雪山木屋前的女人" quality="HDR" variant=fresh card.tap="open movie-detail"
+        use poster title="可怜的东西" sub="2023 · 7.8" cover="《可怜的东西》海报：奇幻色彩中的女主角" variant=fresh card.tap="open movie-detail"
+      end
+    end
+    box class="gap-3"
+      use section-title title="剧集更新"
+      box class="flex-row gap-3 overflow-hidden px-5"
+        use poster title="繁花" sub="第 30 集 · 今天" cover="《繁花》海报：上海外滩夜景中的男人" quality="新" badge.class="bg-violet-500" variant=fresh card.tap="open series-detail"
+        use poster title="三体" sub="第 1 季全集" cover="《三体》海报：倒计时数字与星空" quality="4K" variant=watched card.tap="open series-detail"
+        use poster title="漫长的季节" sub="S1 · E6" cover="《漫长的季节》海报：东北秋天的铁轨" quality="1080P" card.tap="open series-detail"
+        use poster title="黑镜" sub="第 6 季" cover="《黑镜》海报：碎裂的手机屏幕" quality="4K" variant=fresh card.tap="open series-detail"
+      end
+    end
+    box class="gap-3"
+      use section-title title="按媒体源" variant=bare
+      box class="flex-row gap-2.5 overflow-hidden px-5"
+        box class="w-36 gap-3 rounded-2xl border border-zinc-900/8 bg-white p-3.5 shadow-sm shadow-black/5"
+          box class="flex-row items-center justify-between"
+            box class="size-9 items-center justify-center rounded-xl bg-emerald-500/15"
+              icon server class="size-4 text-emerald-500"
+            end
+            box class="size-2 rounded-full bg-emerald-500"
+            end
+          end
+          box class="gap-0.5"
+            text "家庭 Emby" class="text-sm font-semibold text-zinc-900"
+            text "Emby · 1,620 项" class="text-[11px] text-zinc-500"
+          end
+        end
+        box class="w-36 gap-3 rounded-2xl border border-zinc-900/8 bg-white p-3.5 shadow-sm shadow-black/5"
+          box class="flex-row items-center justify-between"
+            box class="size-9 items-center justify-center rounded-xl bg-sky-500/15"
+              icon hard-drive class="size-4 text-sky-500"
+            end
+            box class="size-2 rounded-full bg-emerald-500"
+            end
+          end
+          box class="gap-0.5"
+            text "书房 NAS" class="text-sm font-semibold text-zinc-900"
+            text "Jellyfin · 842 项" class="text-[11px] text-zinc-500"
+          end
+        end
+        box class="w-36 gap-3 rounded-2xl border border-zinc-900/8 bg-white p-3.5 shadow-sm shadow-black/5"
+          box class="flex-row items-center justify-between"
+            box class="size-9 items-center justify-center rounded-xl bg-blue-500/15"
+              icon database class="size-4 text-blue-500"
+            end
+            box class="size-2 rounded-full bg-amber-500"
+            end
+          end
+          box class="gap-0.5"
+            text "飞牛影视" class="text-sm font-semibold text-zinc-900"
+            text "fnOS · 同步中" class="text-[11px] text-zinc-500"
+          end
+        end
+      end
+    end
+  end
+  use tab-bar class="absolute right-0 bottom-0 left-0" home.tap="open home" library.tap="open library" search.tap="open search" settings.tap="open settings"
+end
+
+design dark device=phone height=1480 name="首页 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  box class="flex-1 gap-8 pb-28"
+    box class="gap-3"
+      use status-bar-dark
+      box class="flex-row items-center justify-between px-5"
+        use logo-dark
+        box class="flex-row items-center gap-2"
+          box class="h-8 flex-row items-center gap-1.5 rounded-full border border-white/8 bg-[#1a1b25]/80 px-3 shadow-sm shadow-black/5" note="切换只看某一媒体源，或合并显示全部媒体源的内容"
+            box class="size-1.5 rounded-full bg-emerald-500"
+            end
+            text "全部媒体源" class="text-xs font-medium text-zinc-50"
+            icon chevron-down class="size-3.5 text-zinc-400"
+          end
+          box class="size-8 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-md shadow-violet-500/30"
+            text "林" class="text-xs font-semibold text-white"
+          end
+        end
+      end
+      box class="px-5 pt-1"
+        text "晚上好，小雨" class="text-3xl font-bold tracking-tight text-zinc-50"
+        text "3 个媒体源在线 · 今日新入库 12 部" class="text-sm text-zinc-400"
+      end
+    end
+    box class="gap-3"
+      box class="relative mx-5 h-[440px] overflow-hidden rounded-3xl shadow-xl shadow-black/20"
+        image "《沙丘2》剧照：沙漠中的主角与巨型沙虫，金色逆光" class="absolute top-0 right-0 bottom-0 left-0"
+        box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-t from-black/85 via-black/25 to-transparent"
+        end
+        box class="absolute top-4 left-4 flex-row items-center gap-1.5 rounded-full bg-black/40 px-2.5 py-1"
+          icon sparkles class="size-3 text-amber-300"
+          text "今日推荐" class="text-[11px] font-medium text-white"
+        end
+        box class="absolute right-0 bottom-0 left-0 gap-3 p-5"
+          box class="flex-row items-center gap-2"
+            text "新入库" class="rounded-md bg-violet-500 px-1.5 py-0.5 text-[10px] font-bold text-white"
+            text "家庭 Emby" class="text-xs text-white/80"
+          end
+          text "沙丘2" class="text-4xl font-bold tracking-tight text-white"
+          text "2024 · 166 分钟 · 科幻 / 冒险 · 豆瓣 8.3" class="text-xs text-white/75"
+          box class="flex-row gap-1.5"
+            text "4K" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+            text "Dolby Vision" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+            text "Atmos" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+          end
+          box class="flex-row gap-3 pt-1"
+            box class="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-white" tap="open player"
+              icon play class="size-4 text-black"
+              text "播放" class="text-sm font-semibold text-black"
+            end
+            box class="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-white/20" tap="open movie-detail#dark"
+              icon info class="size-4 text-white"
+              text "详情" class="text-sm font-semibold text-white"
+            end
+          end
+        end
+      end
+      box class="flex-row justify-center gap-1.5" note="首页大图每 8 秒轮播最近入库的高分影片"
+        box class="h-1.5 w-5 rounded-full bg-violet-500"
+        end
+        box class="size-1.5 rounded-full bg-zinc-50/20"
+        end
+        box class="size-1.5 rounded-full bg-zinc-50/20"
+        end
+        box class="size-1.5 rounded-full bg-zinc-50/20"
+        end
+      end
+    end
+    box class="gap-3"
+      use section-title-dark title="继续观看"
+      box class="flex-row gap-3 overflow-hidden px-5" note="合并所有媒体源的观看进度，进度来自服务器并在本地缓存"
+        use backdrop-card-dark card.tap="open player"
+        use backdrop-card-dark title="奥本海默" sub="电影 · 已看 64%" remain="剩余 1 小时 2 分" cover="《奥本海默》剧照：火光中的科学家侧脸" progress.class="w-2/3" card.tap="open player"
+      end
+    end
+    box class="gap-3"
+      use section-title-dark title="最近添加"
+      box class="flex-row gap-3 overflow-hidden px-5"
+        use poster-dark variant=fresh card.tap="open movie-detail#dark"
+        use poster-dark title="周处除三害" sub="2023 · 8.0" quality="1080P" cover="《周处除三害》海报：持枪男子的侧影" variant=fresh card.tap="open movie-detail#dark"
+        use poster-dark title="坠落的审判" sub="2023 · 8.6" cover="《坠落的审判》海报：雪山木屋前的女人" quality="HDR" variant=fresh card.tap="open movie-detail#dark"
+        use poster-dark title="可怜的东西" sub="2023 · 7.8" cover="《可怜的东西》海报：奇幻色彩中的女主角" variant=fresh card.tap="open movie-detail#dark"
+      end
+    end
+    box class="gap-3"
+      use section-title-dark title="剧集更新"
+      box class="flex-row gap-3 overflow-hidden px-5"
+        use poster-dark title="繁花" sub="第 30 集 · 今天" cover="《繁花》海报：上海外滩夜景中的男人" quality="新" badge.class="bg-violet-500" variant=fresh card.tap="open series-detail#dark"
+        use poster-dark title="三体" sub="第 1 季全集" cover="《三体》海报：倒计时数字与星空" quality="4K" variant=watched card.tap="open series-detail#dark"
+        use poster-dark title="漫长的季节" sub="S1 · E6" cover="《漫长的季节》海报：东北秋天的铁轨" quality="1080P" card.tap="open series-detail#dark"
+        use poster-dark title="黑镜" sub="第 6 季" cover="《黑镜》海报：碎裂的手机屏幕" quality="4K" variant=fresh card.tap="open series-detail#dark"
+      end
+    end
+    box class="gap-3"
+      use section-title-dark title="按媒体源" variant=bare
+      box class="flex-row gap-2.5 overflow-hidden px-5"
+        box class="w-36 gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] p-3.5 shadow-sm shadow-black/5"
+          box class="flex-row items-center justify-between"
+            box class="size-9 items-center justify-center rounded-xl bg-emerald-500/15"
+              icon server class="size-4 text-emerald-500"
+            end
+            box class="size-2 rounded-full bg-emerald-500"
+            end
+          end
+          box class="gap-0.5"
+            text "家庭 Emby" class="text-sm font-semibold text-zinc-50"
+            text "Emby · 1,620 项" class="text-[11px] text-zinc-400"
+          end
+        end
+        box class="w-36 gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] p-3.5 shadow-sm shadow-black/5"
+          box class="flex-row items-center justify-between"
+            box class="size-9 items-center justify-center rounded-xl bg-sky-500/15"
+              icon hard-drive class="size-4 text-sky-500"
+            end
+            box class="size-2 rounded-full bg-emerald-500"
+            end
+          end
+          box class="gap-0.5"
+            text "书房 NAS" class="text-sm font-semibold text-zinc-50"
+            text "Jellyfin · 842 项" class="text-[11px] text-zinc-400"
+          end
+        end
+        box class="w-36 gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] p-3.5 shadow-sm shadow-black/5"
+          box class="flex-row items-center justify-between"
+            box class="size-9 items-center justify-center rounded-xl bg-blue-500/15"
+              icon database class="size-4 text-blue-500"
+            end
+            box class="size-2 rounded-full bg-amber-500"
+            end
+          end
+          box class="gap-0.5"
+            text "飞牛影视" class="text-sm font-semibold text-zinc-50"
+            text "fnOS · 同步中" class="text-[11px] text-zinc-400"
+          end
+        end
+      end
+    end
+  end
+  use tab-bar-dark class="absolute right-0 bottom-0 left-0" home.tap="open home#dark" library.tap="open library#dark" search.tap="open search#dark" settings.tap="open settings#dark"
+end

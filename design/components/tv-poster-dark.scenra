@@ -1,0 +1,13 @@
+component name="TV/竖版海报 · 深色" width=220 backdrop="bg-[#0f1017]"
+box name=card class="group w-[220px] gap-3"
+  box name=frame class="relative overflow-hidden rounded-2xl shadow-lg shadow-black/20 group-selected:shadow-2xl group-selected:ring-4 group-selected:ring-violet-500"
+    image "电影竖版海报" name=cover class="h-[330px] w-full"
+    box name=badge class="absolute top-3 left-3 rounded-md bg-black/55 px-2 py-1"
+      text "4K" name=quality class="text-sm font-bold text-white"
+    end
+  end
+  text "流浪地球2" name=title class="truncate text-xl font-medium text-zinc-50/70 group-selected:text-zinc-50"
+  text "2023 · 豆瓣 8.3" name=sub class="truncate text-base text-zinc-400"
+end
+variant focused state=selected
+variant plain badge.class="hidden"

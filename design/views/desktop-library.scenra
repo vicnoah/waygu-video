@@ -1,0 +1,271 @@
+design light in="desktop-main#light/content" name="主窗口/电影库" gap=160
+box class="relative flex-1 gap-5 bg-[#f4f4f7] px-8 pt-6 pb-8"
+  use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="flex-row items-center gap-4"
+    box class="flex-1 gap-1"
+      text "电影" class="text-3xl font-bold text-zinc-900"
+      text "1,284 部 · 来自 3 个媒体源 · 共 18.6 TB" class="text-sm text-zinc-500"
+    end
+    box class="h-9 flex-row items-center gap-2 rounded-lg border border-zinc-900/8 bg-white px-3 shadow-sm shadow-black/5" note="排序：最近添加、片名、上映日期、评分、时长、文件大小、最近播放"
+      icon arrow-down-wide-narrow class="size-4 text-zinc-500"
+      text "最近添加" class="text-sm text-zinc-900"
+      icon chevron-down class="size-4 text-zinc-500"
+    end
+    box class="h-9 flex-row rounded-lg border border-zinc-900/8 bg-zinc-900/5 p-1" note="网格 / 列表 / 海报墙三种视图"
+      box class="w-9 items-center justify-center rounded-md bg-white shadow-sm"
+        icon layout-grid class="size-4 text-zinc-900"
+      end
+      box class="w-9 items-center justify-center rounded-md"
+        icon list class="size-4 text-zinc-500"
+      end
+      box class="w-9 items-center justify-center rounded-md"
+        icon gallery-horizontal class="size-4 text-zinc-500"
+      end
+    end
+    box class="h-9 flex-row items-center gap-2 rounded-lg bg-violet-500 px-3.5 shadow-lg shadow-violet-500/30"
+      icon shuffle class="size-4 text-white"
+      text "随机播放" class="text-sm font-medium text-white"
+    end
+  end
+  box class="flex-row items-center gap-2" note="筛选条件可叠加，保存为“智能合集”后显示在侧边栏"
+    box class="h-8 flex-row items-center gap-1.5 rounded-full border border-violet-500/50 bg-violet-500/15 px-3"
+      icon funnel class="size-3.5 text-violet-500"
+      text "筛选 · 2" class="text-[13px] font-medium text-violet-500"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full border border-zinc-900/8 bg-white px-3"
+      text "类型" class="text-[13px] text-zinc-900/80"
+      icon chevron-down class="size-3.5 text-zinc-500"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full border border-zinc-900/8 bg-white px-3"
+      text "年份" class="text-[13px] text-zinc-900/80"
+      icon chevron-down class="size-3.5 text-zinc-500"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full bg-violet-500/15 px-3"
+      text "分辨率：4K" class="text-[13px] text-violet-500"
+      icon x class="size-3.5 text-violet-500"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full bg-violet-500/15 px-3"
+      text "HDR / 杜比视界" class="text-[13px] text-violet-500"
+      icon x class="size-3.5 text-violet-500"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full border border-zinc-900/8 bg-white px-3"
+      text "来源" class="text-[13px] text-zinc-900/80"
+      icon chevron-down class="size-3.5 text-zinc-500"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full border border-zinc-900/8 bg-white px-3"
+      text "未观看" class="text-[13px] text-zinc-900/80"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full border border-zinc-900/8 bg-white px-3"
+      text "收藏" class="text-[13px] text-zinc-900/80"
+    end
+    box class="flex-1"
+    end
+    text "清除全部" class="text-[13px] text-zinc-500"
+  end
+  box class="flex-1 flex-row gap-3"
+    box class="flex-1 gap-8"
+      box class="flex-row justify-between"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="沙丘2 海报：沙漠中的主角剪影" title="沙丘2" sub="2024 · 科幻" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" cover="奥本海默 海报：火光中的科学家" title="奥本海默" sub="2023 · 传记" progress.class="w-1/3" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="哥斯拉-1.0 海报：怪兽在废墟中咆哮" title="哥斯拉-1.0" sub="2023 · 科幻" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=watched cover="流浪地球2 海报：太空电梯与宇航员" title="流浪地球2" sub="2023 · 科幻" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="蜘蛛侠：纵横宇宙 海报：多元宇宙中的蜘蛛侠" title="蜘蛛侠：纵横宇宙" sub="2023 · 动画" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="封神第一部 海报：金甲战士与火焰" title="封神第一部" sub="2023 · 奇幻" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="碟中谍7 海报：摩托车飞跃悬崖" title="碟中谍7：致命清算" sub="2023 · 动作" card.tap="open desktop-movie"
+      end
+      box class="flex-row justify-between"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="银河护卫队3 海报：太空小队群像" title="银河护卫队3" sub="2023 · 科幻" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=watched cover="长安三万里 海报：骑马的诗人与长安城" title="长安三万里" sub="2023 · 动画" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" cover="芭比 海报：粉色梦幻屋前的女孩" title="芭比" sub="2023 · 喜剧" progress.class="w-3/4" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="你想活出怎样的人生 海报：少年与苍鹭" title="你想活出怎样的人生" sub="2023 · 动画" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="满江红 海报：古城墙下的群像" title="满江红" sub="2023 · 悬疑" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="坚如磐石 海报：雨夜中的警察" title="坚如磐石" sub="2023 · 犯罪" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="周处除三害 海报：持枪男子侧脸" title="周处除三害" sub="2023 · 犯罪" card.tap="open desktop-movie"
+      end
+      box class="flex-row justify-between"
+        use poster class="w-36" cover.class="h-52" variant=watched cover="宇宙探索编辑部 海报：戴锅盖天线的中年人" title="宇宙探索编辑部" sub="2023 · 喜剧" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="热辣滚烫 海报：拳击台上的女主角" title="热辣滚烫" sub="2024 · 剧情" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="第二十条 海报：法庭前的人群" title="第二十条" sub="2024 · 剧情" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" cover="飞驰人生2 海报：赛车与车手" title="飞驰人生2" sub="2024 · 喜剧" progress.class="w-1/4" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="年会不能停 海报：西装职员在办公室" title="年会不能停！" sub="2023 · 喜剧" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="涉过愤怒的海 海报：海边的父亲背影" title="涉过愤怒的海" sub="2023 · 犯罪" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=watched cover="孤注一掷 海报：电脑屏幕前的年轻人" title="孤注一掷" sub="2023 · 犯罪" card.tap="open desktop-movie"
+      end
+      box class="flex-row justify-between"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="无名 海报：民国街头的特工" title="无名" sub="2023 · 谍战" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="消失的她 海报：海岛上的女子" title="消失的她" sub="2023 · 悬疑" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=watched cover="独行月球 海报：月球上的宇航员与袋鼠" title="独行月球" sub="2022 · 喜剧" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="万里归途 海报：沙漠公路上的车队" title="万里归途" sub="2022 · 剧情" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=watched cover="隐入尘烟 海报：农田里的一对夫妻" title="隐入尘烟" sub="2022 · 剧情" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="人生大事 海报：殡葬店门口的大人与小孩" title="人生大事" sub="2022 · 剧情" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="奇迹·笨小孩 海报：城市高楼前的青年" title="奇迹·笨小孩" sub="2022 · 剧情" card.tap="open desktop-movie"
+      end
+      box class="flex-row justify-between"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="怒火·重案 海报：对峙的两名警察" title="怒火·重案" sub="2021 · 动作" quality="1080P" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="爱情神话 海报：上海弄堂里的男女" title="爱情神话" sub="2021 · 喜剧" quality="1080P" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="我不是药神 海报：男子手握药瓶" title="我不是药神" sub="2018 · 剧情" quality="1080P" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=watched cover="让子弹飞 海报：三位主角持枪" title="让子弹飞" sub="2010 · 喜剧" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="霸王别姬 海报：京剧扮相的两人" title="霸王别姬" sub="1993 · 剧情" quality="1080P" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="星际穿越 海报：宇航员站在冰原上" title="星际穿越" sub="2014 · 科幻" card.tap="open desktop-movie"
+        use poster class="w-36" cover.class="h-52" variant=fresh cover="盗梦空间 海报：折叠的城市街道" title="盗梦空间" sub="2010 · 科幻" card.tap="open desktop-movie"
+      end
+    end
+    box class="w-5 items-center gap-1 pt-2" note="按片名拼音首字母快速定位"
+      text "#" class="text-[10px] text-zinc-500"
+      text "A" class="text-[10px] text-zinc-500"
+      text "B" class="text-[10px] font-bold text-violet-500"
+      text "C" class="text-[10px] text-zinc-500"
+      text "D" class="text-[10px] text-zinc-500"
+      text "F" class="text-[10px] text-zinc-500"
+      text "G" class="text-[10px] text-zinc-500"
+      text "H" class="text-[10px] text-zinc-500"
+      text "J" class="text-[10px] text-zinc-500"
+      text "L" class="text-[10px] text-zinc-500"
+      text "M" class="text-[10px] text-zinc-500"
+      text "N" class="text-[10px] text-zinc-500"
+      text "Q" class="text-[10px] text-zinc-500"
+      text "R" class="text-[10px] text-zinc-500"
+      text "S" class="text-[10px] text-zinc-500"
+      text "W" class="text-[10px] text-zinc-500"
+      text "X" class="text-[10px] text-zinc-500"
+      text "Y" class="text-[10px] text-zinc-500"
+      text "Z" class="text-[10px] text-zinc-500"
+    end
+  end
+end
+
+design dark in="desktop-main#dark/content" name="电影库 · 深色"
+box class="relative flex-1 gap-5 bg-[#0f1017] px-8 pt-6 pb-8"
+  use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="flex-row items-center gap-4"
+    box class="flex-1 gap-1"
+      text "电影" class="text-3xl font-bold text-zinc-50"
+      text "1,284 部 · 来自 3 个媒体源 · 共 18.6 TB" class="text-sm text-zinc-400"
+    end
+    box class="h-9 flex-row items-center gap-2 rounded-lg border border-white/8 bg-[#1a1b25] px-3 shadow-sm shadow-black/5" note="排序：最近添加、片名、上映日期、评分、时长、文件大小、最近播放"
+      icon arrow-down-wide-narrow class="size-4 text-zinc-400"
+      text "最近添加" class="text-sm text-zinc-50"
+      icon chevron-down class="size-4 text-zinc-400"
+    end
+    box class="h-9 flex-row rounded-lg border border-white/8 bg-zinc-50/5 p-1" note="网格 / 列表 / 海报墙三种视图"
+      box class="w-9 items-center justify-center rounded-md bg-[#1a1b25] shadow-sm"
+        icon layout-grid class="size-4 text-zinc-50"
+      end
+      box class="w-9 items-center justify-center rounded-md"
+        icon list class="size-4 text-zinc-400"
+      end
+      box class="w-9 items-center justify-center rounded-md"
+        icon gallery-horizontal class="size-4 text-zinc-400"
+      end
+    end
+    box class="h-9 flex-row items-center gap-2 rounded-lg bg-violet-500 px-3.5 shadow-lg shadow-violet-500/30"
+      icon shuffle class="size-4 text-white"
+      text "随机播放" class="text-sm font-medium text-white"
+    end
+  end
+  box class="flex-row items-center gap-2" note="筛选条件可叠加，保存为“智能合集”后显示在侧边栏"
+    box class="h-8 flex-row items-center gap-1.5 rounded-full border border-violet-500/50 bg-violet-500/15 px-3"
+      icon funnel class="size-3.5 text-violet-400"
+      text "筛选 · 2" class="text-[13px] font-medium text-violet-400"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full border border-white/8 bg-[#1a1b25] px-3"
+      text "类型" class="text-[13px] text-zinc-50/80"
+      icon chevron-down class="size-3.5 text-zinc-400"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full border border-white/8 bg-[#1a1b25] px-3"
+      text "年份" class="text-[13px] text-zinc-50/80"
+      icon chevron-down class="size-3.5 text-zinc-400"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full bg-violet-500/15 px-3"
+      text "分辨率：4K" class="text-[13px] text-violet-400"
+      icon x class="size-3.5 text-violet-400"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full bg-violet-500/15 px-3"
+      text "HDR / 杜比视界" class="text-[13px] text-violet-400"
+      icon x class="size-3.5 text-violet-400"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full border border-white/8 bg-[#1a1b25] px-3"
+      text "来源" class="text-[13px] text-zinc-50/80"
+      icon chevron-down class="size-3.5 text-zinc-400"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full border border-white/8 bg-[#1a1b25] px-3"
+      text "未观看" class="text-[13px] text-zinc-50/80"
+    end
+    box class="h-8 flex-row items-center gap-1 rounded-full border border-white/8 bg-[#1a1b25] px-3"
+      text "收藏" class="text-[13px] text-zinc-50/80"
+    end
+    box class="flex-1"
+    end
+    text "清除全部" class="text-[13px] text-zinc-400"
+  end
+  box class="flex-1 flex-row gap-3"
+    box class="flex-1 gap-8"
+      box class="flex-row justify-between"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="沙丘2 海报：沙漠中的主角剪影" title="沙丘2" sub="2024 · 科幻" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" cover="奥本海默 海报：火光中的科学家" title="奥本海默" sub="2023 · 传记" progress.class="w-1/3" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="哥斯拉-1.0 海报：怪兽在废墟中咆哮" title="哥斯拉-1.0" sub="2023 · 科幻" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=watched cover="流浪地球2 海报：太空电梯与宇航员" title="流浪地球2" sub="2023 · 科幻" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="蜘蛛侠：纵横宇宙 海报：多元宇宙中的蜘蛛侠" title="蜘蛛侠：纵横宇宙" sub="2023 · 动画" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="封神第一部 海报：金甲战士与火焰" title="封神第一部" sub="2023 · 奇幻" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="碟中谍7 海报：摩托车飞跃悬崖" title="碟中谍7：致命清算" sub="2023 · 动作" card.tap="open desktop-movie#dark"
+      end
+      box class="flex-row justify-between"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="银河护卫队3 海报：太空小队群像" title="银河护卫队3" sub="2023 · 科幻" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=watched cover="长安三万里 海报：骑马的诗人与长安城" title="长安三万里" sub="2023 · 动画" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" cover="芭比 海报：粉色梦幻屋前的女孩" title="芭比" sub="2023 · 喜剧" progress.class="w-3/4" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="你想活出怎样的人生 海报：少年与苍鹭" title="你想活出怎样的人生" sub="2023 · 动画" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="满江红 海报：古城墙下的群像" title="满江红" sub="2023 · 悬疑" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="坚如磐石 海报：雨夜中的警察" title="坚如磐石" sub="2023 · 犯罪" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="周处除三害 海报：持枪男子侧脸" title="周处除三害" sub="2023 · 犯罪" card.tap="open desktop-movie#dark"
+      end
+      box class="flex-row justify-between"
+        use poster-dark class="w-36" cover.class="h-52" variant=watched cover="宇宙探索编辑部 海报：戴锅盖天线的中年人" title="宇宙探索编辑部" sub="2023 · 喜剧" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="热辣滚烫 海报：拳击台上的女主角" title="热辣滚烫" sub="2024 · 剧情" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="第二十条 海报：法庭前的人群" title="第二十条" sub="2024 · 剧情" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" cover="飞驰人生2 海报：赛车与车手" title="飞驰人生2" sub="2024 · 喜剧" progress.class="w-1/4" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="年会不能停 海报：西装职员在办公室" title="年会不能停！" sub="2023 · 喜剧" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="涉过愤怒的海 海报：海边的父亲背影" title="涉过愤怒的海" sub="2023 · 犯罪" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=watched cover="孤注一掷 海报：电脑屏幕前的年轻人" title="孤注一掷" sub="2023 · 犯罪" card.tap="open desktop-movie#dark"
+      end
+      box class="flex-row justify-between"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="无名 海报：民国街头的特工" title="无名" sub="2023 · 谍战" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="消失的她 海报：海岛上的女子" title="消失的她" sub="2023 · 悬疑" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=watched cover="独行月球 海报：月球上的宇航员与袋鼠" title="独行月球" sub="2022 · 喜剧" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="万里归途 海报：沙漠公路上的车队" title="万里归途" sub="2022 · 剧情" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=watched cover="隐入尘烟 海报：农田里的一对夫妻" title="隐入尘烟" sub="2022 · 剧情" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="人生大事 海报：殡葬店门口的大人与小孩" title="人生大事" sub="2022 · 剧情" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="奇迹·笨小孩 海报：城市高楼前的青年" title="奇迹·笨小孩" sub="2022 · 剧情" card.tap="open desktop-movie#dark"
+      end
+      box class="flex-row justify-between"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="怒火·重案 海报：对峙的两名警察" title="怒火·重案" sub="2021 · 动作" quality="1080P" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="爱情神话 海报：上海弄堂里的男女" title="爱情神话" sub="2021 · 喜剧" quality="1080P" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="我不是药神 海报：男子手握药瓶" title="我不是药神" sub="2018 · 剧情" quality="1080P" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=watched cover="让子弹飞 海报：三位主角持枪" title="让子弹飞" sub="2010 · 喜剧" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="霸王别姬 海报：京剧扮相的两人" title="霸王别姬" sub="1993 · 剧情" quality="1080P" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="星际穿越 海报：宇航员站在冰原上" title="星际穿越" sub="2014 · 科幻" card.tap="open desktop-movie#dark"
+        use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="盗梦空间 海报：折叠的城市街道" title="盗梦空间" sub="2010 · 科幻" card.tap="open desktop-movie#dark"
+      end
+    end
+    box class="w-5 items-center gap-1 pt-2" note="按片名拼音首字母快速定位"
+      text "#" class="text-[10px] text-zinc-400"
+      text "A" class="text-[10px] text-zinc-400"
+      text "B" class="text-[10px] font-bold text-violet-400"
+      text "C" class="text-[10px] text-zinc-400"
+      text "D" class="text-[10px] text-zinc-400"
+      text "F" class="text-[10px] text-zinc-400"
+      text "G" class="text-[10px] text-zinc-400"
+      text "H" class="text-[10px] text-zinc-400"
+      text "J" class="text-[10px] text-zinc-400"
+      text "L" class="text-[10px] text-zinc-400"
+      text "M" class="text-[10px] text-zinc-400"
+      text "N" class="text-[10px] text-zinc-400"
+      text "Q" class="text-[10px] text-zinc-400"
+      text "R" class="text-[10px] text-zinc-400"
+      text "S" class="text-[10px] text-zinc-400"
+      text "W" class="text-[10px] text-zinc-400"
+      text "X" class="text-[10px] text-zinc-400"
+      text "Y" class="text-[10px] text-zinc-400"
+      text "Z" class="text-[10px] text-zinc-400"
+    end
+  end
+end

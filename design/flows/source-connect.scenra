@@ -1,0 +1,40 @@
+flow name="连接媒体源" direction=down
+node start "添加媒体源" kind=start note="入口：首次启动引导、设置 › 媒体源 › 添加、TV 端扫码配对"
+node type "选择类型" kind=decision
+node discover "局域网发现或手动输入地址" note="UDP 7359 广播发现 Emby/Jellyfin；mDNS 发现飞牛 fnOS 与 SMB；支持 http(s)://域名:端口 与 IPv6"
+node test "测试连接" kind=decision note="GET /System/Info/Public（Emby/Jellyfin）或飞牛影视公开信息接口，超时 8 秒"
+node fail "提示原因：证书无效 / 端口不通 / 需外网地址" note="可选择信任自签名证书，或为同一服务器添加内网与外网两个地址，自动按网络切换"
+node auth "认证" kind=decision
+node pwd "用户名 + 密码登录" note="Emby/Jellyfin：调用 AuthenticateByName 登录接口，保存 AccessToken 与 UserId"
+node quick "Quick Connect 验证码" note="Jellyfin 10.8+：在已登录设备上输入 6 位码授权"
+node fn "飞牛账号登录获取 Token" note="飞牛影视 API：账号密码或 fnOS 远程访问 FN Connect，保存 Token 与设备 ID"
+node file "文件协议凭据" note="SMB / WebDAV / NFS / FTP 用户名密码；网盘使用扫码授权 OAuth"
+node libs "拉取媒体库列表" note="Emby/Jellyfin：GET /Users/{UserId}/Views；飞牛影视：媒体库列表接口；文件源：浏览目录"
+node pick "选择导入的媒体库" note="可按库设置类型（电影 / 剧集 / 动漫 / 纪录片）与是否显示在首页"
+node meta "首次同步" kind=decision
+node server "直接读取服务器元数据" note="海报、简介、演职人员、观看进度、收藏均以服务器为准，增量同步按 DateLastSaved"
+node scrape "本地刮削 TMDB / 豆瓣 / Bangumi" note="按文件名与目录解析标题、年份、季集；动漫优先 Bangumi，失败时进入手动匹配"
+node merge "合并多源中的同一影片" note="按 TMDB / IMDb ID 合并，详情页显示多个版本与来源"
+node save "写入本地索引，同步配置到 iCloud" kind=data note="密码与 Token 存钥匙串，不随配置同步；其它设备需重新认证或扫码授权"
+node done "进入首页" kind=end
+start -> type
+type -> discover "服务器 / 文件协议"
+type -> file "网盘"
+discover -> test
+test -> fail "失败"
+fail ..> discover "重新输入"
+test -> auth "成功"
+auth -> pwd "Emby / Jellyfin"
+auth -> quick "Jellyfin 快速连接"
+auth -> fn "飞牛影视"
+auth -> file "文件协议"
+pwd -> libs
+quick -> libs
+fn -> libs
+file -> libs
+libs -> pick -> meta
+meta -> server "服务器源"
+meta -> scrape "文件源"
+server -> merge
+scrape -> merge
+merge -> save -> done

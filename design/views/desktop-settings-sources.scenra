@@ -1,0 +1,359 @@
+design light in="desktop-settings#light/page" name="设置窗口/媒体源" gap=160
+box class="relative flex-1 gap-5 bg-[#f4f4f7] p-8"
+  use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="flex-row items-center gap-4"
+    box class="flex-1 gap-1"
+      text "媒体源" class="text-2xl font-bold text-zinc-900"
+      text "连接 Emby、Jellyfin、飞牛影视、Plex 服务器或 SMB / WebDAV / NFS 共享" class="text-sm text-zinc-500"
+    end
+    box class="h-9 flex-row items-center gap-1.5 rounded-lg bg-violet-500 px-3.5 shadow-lg shadow-violet-500/30" note="打开添加媒体源向导：自动发现局域网服务器，或手动输入地址"
+      icon plus class="size-4 text-white"
+      text "添加媒体源" class="text-sm font-medium text-white"
+    end
+  end
+  box class="overflow-hidden rounded-xl border border-zinc-900/8 bg-white shadow-sm shadow-black/5"
+    box class="h-9 flex-row items-center gap-3 border-b border-zinc-900/8 bg-[#e9e9f0]/40 px-4"
+      text "名称" class="w-40 text-xs text-zinc-500"
+      text "类型" class="w-20 text-xs text-zinc-500"
+      text "地址" class="flex-1 text-xs text-zinc-500"
+      text "媒体库" class="w-14 text-xs text-zinc-500"
+      text "状态" class="w-16 text-xs text-zinc-500"
+      box class="w-14"
+      end
+    end
+    box class="h-10 flex-row items-center gap-3 border-l-2 border-violet-500 bg-violet-500/10 px-4"
+      text "家庭 Emby" class="w-40 text-sm font-medium text-zinc-900"
+      box class="w-20 flex-row"
+        text "Emby" class="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[11px] text-emerald-500"
+      end
+      text "http://192.168.1.10:8096" class="flex-1 truncate text-sm text-zinc-900/80"
+      text "6" class="w-14 text-sm text-zinc-900/80"
+      box class="w-16 flex-row items-center gap-1.5"
+        box class="size-1.5 rounded-full bg-emerald-500"
+        end
+        text "在线" class="text-xs text-emerald-500"
+      end
+      box class="w-14 flex-row justify-end gap-3"
+        icon pencil class="size-4 text-zinc-500"
+        icon trash class="size-4 text-zinc-500"
+      end
+    end
+    box class="h-10 flex-row items-center gap-3 border-t border-zinc-900/8 px-4"
+      text "书房 NAS" class="w-40 text-sm text-zinc-900"
+      box class="w-20 flex-row"
+        text "Jellyfin" class="rounded bg-sky-500/15 px-1.5 py-0.5 text-[11px] text-sky-500"
+      end
+      text "https://jf.home.lan" class="flex-1 truncate text-sm text-zinc-900/80"
+      text "4" class="w-14 text-sm text-zinc-900/80"
+      box class="w-16 flex-row items-center gap-1.5"
+        box class="size-1.5 rounded-full bg-emerald-500"
+        end
+        text "在线" class="text-xs text-emerald-500"
+      end
+      box class="w-14 flex-row justify-end gap-3"
+        icon pencil class="size-4 text-zinc-500"
+        icon trash class="size-4 text-zinc-500"
+      end
+    end
+    box class="h-10 flex-row items-center gap-3 border-t border-zinc-900/8 px-4"
+      text "飞牛影视" class="w-40 text-sm text-zinc-900"
+      box class="w-20 flex-row"
+        text "fnOS" class="rounded bg-blue-500/15 px-1.5 py-0.5 text-[11px] text-blue-500"
+      end
+      text "http://fnos.local:5666" class="flex-1 truncate text-sm text-zinc-900/80"
+      text "3" class="w-14 text-sm text-zinc-900/80"
+      box class="w-16 flex-row items-center gap-1.5"
+        box class="size-1.5 rounded-full bg-amber-500"
+        end
+        text "外网" class="text-xs text-amber-500"
+      end
+      box class="w-14 flex-row justify-end gap-3"
+        icon pencil class="size-4 text-zinc-500"
+        icon trash class="size-4 text-zinc-500"
+      end
+    end
+    box class="h-10 flex-row items-center gap-3 border-t border-zinc-900/8 px-4"
+      text "客厅 NAS" class="w-40 text-sm text-zinc-900"
+      box class="w-20 flex-row"
+        text "SMB" class="rounded bg-zinc-900/10 px-1.5 py-0.5 text-[11px] text-zinc-900/80"
+      end
+      text "smb://192.168.1.20/Movies" class="flex-1 truncate text-sm text-zinc-900/80"
+      text "2" class="w-14 text-sm text-zinc-900/80"
+      box class="w-16 flex-row items-center gap-1.5"
+        box class="size-1.5 rounded-full bg-emerald-500"
+        end
+        text "在线" class="text-xs text-emerald-500"
+      end
+      box class="w-14 flex-row justify-end gap-3"
+        icon pencil class="size-4 text-zinc-500"
+        icon trash class="size-4 text-zinc-500"
+      end
+    end
+    box class="h-10 flex-row items-center gap-3 border-t border-zinc-900/8 px-4"
+      text "Alist 阿里云盘" class="w-40 text-sm text-zinc-900"
+      box class="w-20 flex-row"
+        text "WebDAV" class="rounded bg-zinc-900/10 px-1.5 py-0.5 text-[11px] text-zinc-900/80"
+      end
+      text "https://alist.example.com/dav" class="flex-1 truncate text-sm text-zinc-900/80"
+      text "1" class="w-14 text-sm text-zinc-900/80"
+      box class="w-16 flex-row items-center gap-1.5"
+        box class="size-1.5 rounded-full bg-zinc-500/50"
+        end
+        text "离线" class="text-xs text-zinc-500"
+      end
+      box class="w-14 flex-row justify-end gap-3"
+        icon pencil class="size-4 text-zinc-500"
+        icon trash class="size-4 text-zinc-500"
+      end
+    end
+  end
+  box class="gap-2"
+    text "家庭 Emby · 连接与同步" class="px-1 text-xs font-medium text-zinc-500"
+    box class="flex-row gap-4"
+      box class="flex-1 gap-px overflow-hidden rounded-xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5"
+        box class="h-10 flex-row items-center gap-3 bg-white px-4"
+          text "内网地址" class="w-20 text-sm text-zinc-500"
+          text "http://192.168.1.10:8096" class="flex-1 truncate text-sm text-zinc-900"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-white px-4"
+          text "外网地址" class="w-20 text-sm text-zinc-500"
+          text "https://emby.example.com" class="flex-1 truncate text-sm text-zinc-900"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-white px-4" note="根据网络环境在内网 / 外网地址间自动选择延迟最低的一个"
+          text "自动切换线路" class="flex-1 text-sm text-zinc-900"
+          use switch class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-white px-4"
+          text "用户" class="w-20 text-sm text-zinc-500"
+          text "xiaoyu" class="flex-1 text-sm text-zinc-900"
+          text "切换用户" class="text-xs text-violet-500"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-white px-4"
+          text "同步观看进度" class="flex-1 text-sm text-zinc-900"
+          use switch class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-white px-4"
+          text "外网最大码率" class="flex-1 text-sm text-zinc-900"
+          use select label="20 Mbps · 1080p 转码"
+        end
+      end
+      box class="w-60 gap-1 rounded-xl border border-zinc-900/8 bg-white shadow-sm shadow-black/5 p-4" note="取消勾选的媒体库不出现在首页、搜索与推荐中"
+        text "显示的媒体库" class="pb-2 text-sm font-medium text-zinc-900"
+        box class="h-8 flex-row items-center gap-2.5"
+          box class="size-4 items-center justify-center rounded bg-violet-500"
+            icon check class="size-3 text-white"
+          end
+          text "电影" class="text-sm text-zinc-900/80"
+        end
+        box class="h-8 flex-row items-center gap-2.5"
+          box class="size-4 items-center justify-center rounded bg-violet-500"
+            icon check class="size-3 text-white"
+          end
+          text "电视剧" class="text-sm text-zinc-900/80"
+        end
+        box class="h-8 flex-row items-center gap-2.5"
+          box class="size-4 items-center justify-center rounded bg-violet-500"
+            icon check class="size-3 text-white"
+          end
+          text "动漫" class="text-sm text-zinc-900/80"
+        end
+        box class="h-8 flex-row items-center gap-2.5"
+          box class="size-4 items-center justify-center rounded bg-violet-500"
+            icon check class="size-3 text-white"
+          end
+          text "纪录片" class="text-sm text-zinc-900/80"
+        end
+        box class="h-8 flex-row items-center gap-2.5"
+          box class="size-4 rounded border border-zinc-900/25"
+          end
+          text "演唱会" class="text-sm text-zinc-900/80"
+        end
+        box class="h-8 flex-row items-center gap-2.5"
+          box class="size-4 rounded border border-zinc-900/25"
+          end
+          text "家庭录像" class="text-sm text-zinc-900/80"
+        end
+      end
+    end
+  end
+end
+
+design dark in="desktop-settings#dark/page" name="媒体源 · 深色"
+box class="relative flex-1 gap-5 bg-[#0f1017] p-8"
+  use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="flex-row items-center gap-4"
+    box class="flex-1 gap-1"
+      text "媒体源" class="text-2xl font-bold text-zinc-50"
+      text "连接 Emby、Jellyfin、飞牛影视、Plex 服务器或 SMB / WebDAV / NFS 共享" class="text-sm text-zinc-400"
+    end
+    box class="h-9 flex-row items-center gap-1.5 rounded-lg bg-violet-500 px-3.5 shadow-lg shadow-violet-500/30" note="打开添加媒体源向导：自动发现局域网服务器，或手动输入地址"
+      icon plus class="size-4 text-white"
+      text "添加媒体源" class="text-sm font-medium text-white"
+    end
+  end
+  box class="overflow-hidden rounded-xl border border-white/8 bg-[#1a1b25] shadow-sm shadow-black/5"
+    box class="h-9 flex-row items-center gap-3 border-b border-white/8 bg-[#1a1b25]/40 px-4"
+      text "名称" class="w-40 text-xs text-zinc-400"
+      text "类型" class="w-20 text-xs text-zinc-400"
+      text "地址" class="flex-1 text-xs text-zinc-400"
+      text "媒体库" class="w-14 text-xs text-zinc-400"
+      text "状态" class="w-16 text-xs text-zinc-400"
+      box class="w-14"
+      end
+    end
+    box class="h-10 flex-row items-center gap-3 border-l-2 border-violet-500 bg-violet-500/10 px-4"
+      text "家庭 Emby" class="w-40 text-sm font-medium text-zinc-50"
+      box class="w-20 flex-row"
+        text "Emby" class="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[11px] text-emerald-500"
+      end
+      text "http://192.168.1.10:8096" class="flex-1 truncate text-sm text-zinc-50/80"
+      text "6" class="w-14 text-sm text-zinc-50/80"
+      box class="w-16 flex-row items-center gap-1.5"
+        box class="size-1.5 rounded-full bg-emerald-500"
+        end
+        text "在线" class="text-xs text-emerald-500"
+      end
+      box class="w-14 flex-row justify-end gap-3"
+        icon pencil class="size-4 text-zinc-400"
+        icon trash class="size-4 text-zinc-400"
+      end
+    end
+    box class="h-10 flex-row items-center gap-3 border-t border-white/8 px-4"
+      text "书房 NAS" class="w-40 text-sm text-zinc-50"
+      box class="w-20 flex-row"
+        text "Jellyfin" class="rounded bg-sky-500/15 px-1.5 py-0.5 text-[11px] text-sky-500"
+      end
+      text "https://jf.home.lan" class="flex-1 truncate text-sm text-zinc-50/80"
+      text "4" class="w-14 text-sm text-zinc-50/80"
+      box class="w-16 flex-row items-center gap-1.5"
+        box class="size-1.5 rounded-full bg-emerald-500"
+        end
+        text "在线" class="text-xs text-emerald-500"
+      end
+      box class="w-14 flex-row justify-end gap-3"
+        icon pencil class="size-4 text-zinc-400"
+        icon trash class="size-4 text-zinc-400"
+      end
+    end
+    box class="h-10 flex-row items-center gap-3 border-t border-white/8 px-4"
+      text "飞牛影视" class="w-40 text-sm text-zinc-50"
+      box class="w-20 flex-row"
+        text "fnOS" class="rounded bg-blue-500/15 px-1.5 py-0.5 text-[11px] text-blue-500"
+      end
+      text "http://fnos.local:5666" class="flex-1 truncate text-sm text-zinc-50/80"
+      text "3" class="w-14 text-sm text-zinc-50/80"
+      box class="w-16 flex-row items-center gap-1.5"
+        box class="size-1.5 rounded-full bg-amber-500"
+        end
+        text "外网" class="text-xs text-amber-500"
+      end
+      box class="w-14 flex-row justify-end gap-3"
+        icon pencil class="size-4 text-zinc-400"
+        icon trash class="size-4 text-zinc-400"
+      end
+    end
+    box class="h-10 flex-row items-center gap-3 border-t border-white/8 px-4"
+      text "客厅 NAS" class="w-40 text-sm text-zinc-50"
+      box class="w-20 flex-row"
+        text "SMB" class="rounded bg-zinc-50/10 px-1.5 py-0.5 text-[11px] text-zinc-50/80"
+      end
+      text "smb://192.168.1.20/Movies" class="flex-1 truncate text-sm text-zinc-50/80"
+      text "2" class="w-14 text-sm text-zinc-50/80"
+      box class="w-16 flex-row items-center gap-1.5"
+        box class="size-1.5 rounded-full bg-emerald-500"
+        end
+        text "在线" class="text-xs text-emerald-500"
+      end
+      box class="w-14 flex-row justify-end gap-3"
+        icon pencil class="size-4 text-zinc-400"
+        icon trash class="size-4 text-zinc-400"
+      end
+    end
+    box class="h-10 flex-row items-center gap-3 border-t border-white/8 px-4"
+      text "Alist 阿里云盘" class="w-40 text-sm text-zinc-50"
+      box class="w-20 flex-row"
+        text "WebDAV" class="rounded bg-zinc-50/10 px-1.5 py-0.5 text-[11px] text-zinc-50/80"
+      end
+      text "https://alist.example.com/dav" class="flex-1 truncate text-sm text-zinc-50/80"
+      text "1" class="w-14 text-sm text-zinc-50/80"
+      box class="w-16 flex-row items-center gap-1.5"
+        box class="size-1.5 rounded-full bg-zinc-400/50"
+        end
+        text "离线" class="text-xs text-zinc-400"
+      end
+      box class="w-14 flex-row justify-end gap-3"
+        icon pencil class="size-4 text-zinc-400"
+        icon trash class="size-4 text-zinc-400"
+      end
+    end
+  end
+  box class="gap-2"
+    text "家庭 Emby · 连接与同步" class="px-1 text-xs font-medium text-zinc-400"
+    box class="flex-row gap-4"
+      box class="flex-1 gap-px overflow-hidden rounded-xl border border-white/8 bg-white/7 shadow-sm shadow-black/5"
+        box class="h-10 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "内网地址" class="w-20 text-sm text-zinc-400"
+          text "http://192.168.1.10:8096" class="flex-1 truncate text-sm text-zinc-50"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "外网地址" class="w-20 text-sm text-zinc-400"
+          text "https://emby.example.com" class="flex-1 truncate text-sm text-zinc-50"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-[#1a1b25] px-4" note="根据网络环境在内网 / 外网地址间自动选择延迟最低的一个"
+          text "自动切换线路" class="flex-1 text-sm text-zinc-50"
+          use switch-dark class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "用户" class="w-20 text-sm text-zinc-400"
+          text "xiaoyu" class="flex-1 text-sm text-zinc-50"
+          text "切换用户" class="text-xs text-violet-400"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "同步观看进度" class="flex-1 text-sm text-zinc-50"
+          use switch-dark class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "外网最大码率" class="flex-1 text-sm text-zinc-50"
+          use select-dark label="20 Mbps · 1080p 转码"
+        end
+      end
+      box class="w-60 gap-1 rounded-xl border border-white/8 bg-[#1a1b25] shadow-sm shadow-black/5 p-4" note="取消勾选的媒体库不出现在首页、搜索与推荐中"
+        text "显示的媒体库" class="pb-2 text-sm font-medium text-zinc-50"
+        box class="h-8 flex-row items-center gap-2.5"
+          box class="size-4 items-center justify-center rounded bg-violet-500"
+            icon check class="size-3 text-white"
+          end
+          text "电影" class="text-sm text-zinc-50/80"
+        end
+        box class="h-8 flex-row items-center gap-2.5"
+          box class="size-4 items-center justify-center rounded bg-violet-500"
+            icon check class="size-3 text-white"
+          end
+          text "电视剧" class="text-sm text-zinc-50/80"
+        end
+        box class="h-8 flex-row items-center gap-2.5"
+          box class="size-4 items-center justify-center rounded bg-violet-500"
+            icon check class="size-3 text-white"
+          end
+          text "动漫" class="text-sm text-zinc-50/80"
+        end
+        box class="h-8 flex-row items-center gap-2.5"
+          box class="size-4 items-center justify-center rounded bg-violet-500"
+            icon check class="size-3 text-white"
+          end
+          text "纪录片" class="text-sm text-zinc-50/80"
+        end
+        box class="h-8 flex-row items-center gap-2.5"
+          box class="size-4 rounded border border-zinc-50/25"
+          end
+          text "演唱会" class="text-sm text-zinc-50/80"
+        end
+        box class="h-8 flex-row items-center gap-2.5"
+          box class="size-4 rounded border border-zinc-50/25"
+          end
+          text "家庭录像" class="text-sm text-zinc-50/80"
+        end
+      end
+    end
+  end
+end

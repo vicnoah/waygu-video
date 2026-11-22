@@ -1,0 +1,199 @@
+design light device=phone height=1560 name="设置/同步与账户" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar
+  use nav-bar title="同步与账户" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    box class="mx-4 gap-4 rounded-2xl border border-violet-500/20 bg-linear-to-br from-violet-500/15 via-white to-fuchsia-500/10 p-4 shadow-lg shadow-violet-500/10"
+      box class="flex-row items-center gap-3.5"
+        box class="size-14 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-md shadow-violet-500/30"
+          text "林" class="text-xl font-semibold text-white"
+        end
+        box class="flex-1 gap-0.5"
+          text "林小雨" class="text-lg font-semibold text-zinc-900"
+          text "lin.xiaoyu@icloud.com" class="text-xs text-zinc-500"
+        end
+        box class="rounded bg-linear-to-r from-amber-400 to-orange-400 px-2 py-0.5"
+          text "PRO" class="text-[11px] font-bold text-black"
+        end
+      end
+      box class="flex-row items-center justify-between border-t border-zinc-900/8 pt-3"
+        text "Waygu Pro · 永久版" class="text-sm text-zinc-900/90"
+        text "恢复购买" class="text-sm text-violet-500"
+      end
+    end
+    use settings-group header="云同步" variant=footer footer="通过 iCloud 在你的设备间同步设置、媒体源（含加密的登录凭据）与屏蔽词。"
+      fill
+        use settings-row variant=toggle icon=cloud title="iCloud 同步" badge.class="bg-sky-500"
+        use settings-row variant=toggle icon=settings title="同步设置" badge.class="bg-zinc-500"
+        use settings-row variant=toggle icon=server title="同步媒体源" badge.class="bg-emerald-500"
+        use settings-row variant=toggle-off icon=hard-drive title="同步本地播放记录" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group header="观看进度回写" variant=footer footer="播放进度、已观看标记会实时写回对应服务器，其它客户端也能看到。"
+      fill
+        use settings-row variant=toggle icon=server title="家庭 Emby" badge.class="bg-emerald-500"
+        use settings-row variant=toggle icon=database title="书房 NAS · Jellyfin" badge.class="bg-sky-500"
+        use settings-row variant=toggle icon=hard-drive title="飞牛影视" badge.class="bg-blue-600"
+      end
+    end
+    use settings-group header="第三方账号"
+      fill
+        use settings-row icon=check-check title="Trakt" value="已连接" badge.class="bg-rose-600" note="同步观看历史、评分与想看清单（Scrobble）"
+        use settings-row icon=play title="弹弹play" value="lin_xy" badge.class="bg-violet-500"
+        use settings-row icon=sparkles title="Bangumi 番组计划" value="已连接" badge.class="bg-pink-500" note="看完一集自动在 Bangumi 标记进度"
+        use settings-row icon=bookmark title="豆瓣" value="未连接" badge.class="bg-green-600" note="同步“想看 / 看过”标记"
+      end
+    end
+    box class="gap-2 px-4"
+      text "我的设备" class="px-4 text-xs font-medium tracking-wide text-zinc-500 uppercase"
+      box class="gap-px overflow-hidden rounded-2xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5"
+        box class="flex-row items-center gap-3 bg-white px-4 py-3"
+          box class="size-9 items-center justify-center rounded-xl bg-zinc-900/5"
+            icon smartphone class="size-[18px] text-zinc-900/80"
+          end
+          box class="flex-1 gap-0.5"
+            text "林小雨的 iPhone" class="text-[15px] text-zinc-900"
+            text "本机" class="text-xs text-emerald-500"
+          end
+        end
+        box class="flex-row items-center gap-3 bg-white px-4 py-3"
+          box class="size-9 items-center justify-center rounded-xl bg-zinc-900/5"
+            icon tablet class="size-[18px] text-zinc-900/80"
+          end
+          box class="flex-1 gap-0.5"
+            text "iPad Pro" class="text-[15px] text-zinc-900"
+            text "2 小时前 · 正在看《漫长的季节》" class="text-xs text-zinc-500"
+          end
+        end
+        box class="flex-row items-center gap-3 bg-white px-4 py-3"
+          box class="size-9 items-center justify-center rounded-xl bg-zinc-900/5"
+            icon monitor class="size-[18px] text-zinc-900/80"
+          end
+          box class="flex-1 gap-0.5"
+            text "MacBook Pro" class="text-[15px] text-zinc-900"
+            text "昨天 22:40" class="text-xs text-zinc-500"
+          end
+        end
+        box class="flex-row items-center gap-3 bg-white px-4 py-3"
+          box class="size-9 items-center justify-center rounded-xl bg-zinc-900/5"
+            icon tv class="size-[18px] text-zinc-900/80"
+          end
+          box class="flex-1 gap-0.5"
+            text "客厅 Apple TV 4K" class="text-[15px] text-zinc-900"
+            text "3 天前" class="text-xs text-zinc-500"
+          end
+        end
+        box class="flex-row items-center gap-3 bg-white px-4 py-3"
+          box class="size-9 items-center justify-center rounded-xl bg-zinc-900/5"
+            icon tv-minimal class="size-[18px] text-zinc-900/80"
+          end
+          box class="flex-1 gap-0.5"
+            text "卧室 Android TV" class="text-[15px] text-zinc-900"
+            text "上周" class="text-xs text-zinc-500"
+          end
+        end
+      end
+    end
+  end
+end
+
+design dark device=phone height=1560 name="同步与账户 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar-dark
+  use nav-bar-dark title="同步与账户" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    box class="mx-4 gap-4 rounded-2xl border border-violet-500/20 bg-linear-to-br from-violet-500/15 via-[#1a1b25] to-fuchsia-500/10 p-4 shadow-lg shadow-violet-500/10"
+      box class="flex-row items-center gap-3.5"
+        box class="size-14 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-md shadow-violet-500/30"
+          text "林" class="text-xl font-semibold text-white"
+        end
+        box class="flex-1 gap-0.5"
+          text "林小雨" class="text-lg font-semibold text-zinc-50"
+          text "lin.xiaoyu@icloud.com" class="text-xs text-zinc-400"
+        end
+        box class="rounded bg-linear-to-r from-amber-400 to-orange-400 px-2 py-0.5"
+          text "PRO" class="text-[11px] font-bold text-black"
+        end
+      end
+      box class="flex-row items-center justify-between border-t border-white/8 pt-3"
+        text "Waygu Pro · 永久版" class="text-sm text-zinc-50/90"
+        text "恢复购买" class="text-sm text-violet-400"
+      end
+    end
+    use settings-group-dark header="云同步" variant=footer footer="通过 iCloud 在你的设备间同步设置、媒体源（含加密的登录凭据）与屏蔽词。"
+      fill
+        use settings-row-dark variant=toggle icon=cloud title="iCloud 同步" badge.class="bg-sky-500"
+        use settings-row-dark variant=toggle icon=settings title="同步设置" badge.class="bg-zinc-500"
+        use settings-row-dark variant=toggle icon=server title="同步媒体源" badge.class="bg-emerald-500"
+        use settings-row-dark variant=toggle-off icon=hard-drive title="同步本地播放记录" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group-dark header="观看进度回写" variant=footer footer="播放进度、已观看标记会实时写回对应服务器，其它客户端也能看到。"
+      fill
+        use settings-row-dark variant=toggle icon=server title="家庭 Emby" badge.class="bg-emerald-500"
+        use settings-row-dark variant=toggle icon=database title="书房 NAS · Jellyfin" badge.class="bg-sky-500"
+        use settings-row-dark variant=toggle icon=hard-drive title="飞牛影视" badge.class="bg-blue-600"
+      end
+    end
+    use settings-group-dark header="第三方账号"
+      fill
+        use settings-row-dark icon=check-check title="Trakt" value="已连接" badge.class="bg-rose-600" note="同步观看历史、评分与想看清单（Scrobble）"
+        use settings-row-dark icon=play title="弹弹play" value="lin_xy" badge.class="bg-violet-500"
+        use settings-row-dark icon=sparkles title="Bangumi 番组计划" value="已连接" badge.class="bg-pink-500" note="看完一集自动在 Bangumi 标记进度"
+        use settings-row-dark icon=bookmark title="豆瓣" value="未连接" badge.class="bg-green-600" note="同步“想看 / 看过”标记"
+      end
+    end
+    box class="gap-2 px-4"
+      text "我的设备" class="px-4 text-xs font-medium tracking-wide text-zinc-400 uppercase"
+      box class="gap-px overflow-hidden rounded-2xl border border-white/8 bg-white/7 shadow-sm shadow-black/5"
+        box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-3"
+          box class="size-9 items-center justify-center rounded-xl bg-zinc-50/5"
+            icon smartphone class="size-[18px] text-zinc-50/80"
+          end
+          box class="flex-1 gap-0.5"
+            text "林小雨的 iPhone" class="text-[15px] text-zinc-50"
+            text "本机" class="text-xs text-emerald-500"
+          end
+        end
+        box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-3"
+          box class="size-9 items-center justify-center rounded-xl bg-zinc-50/5"
+            icon tablet class="size-[18px] text-zinc-50/80"
+          end
+          box class="flex-1 gap-0.5"
+            text "iPad Pro" class="text-[15px] text-zinc-50"
+            text "2 小时前 · 正在看《漫长的季节》" class="text-xs text-zinc-400"
+          end
+        end
+        box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-3"
+          box class="size-9 items-center justify-center rounded-xl bg-zinc-50/5"
+            icon monitor class="size-[18px] text-zinc-50/80"
+          end
+          box class="flex-1 gap-0.5"
+            text "MacBook Pro" class="text-[15px] text-zinc-50"
+            text "昨天 22:40" class="text-xs text-zinc-400"
+          end
+        end
+        box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-3"
+          box class="size-9 items-center justify-center rounded-xl bg-zinc-50/5"
+            icon tv class="size-[18px] text-zinc-50/80"
+          end
+          box class="flex-1 gap-0.5"
+            text "客厅 Apple TV 4K" class="text-[15px] text-zinc-50"
+            text "3 天前" class="text-xs text-zinc-400"
+          end
+        end
+        box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-3"
+          box class="size-9 items-center justify-center rounded-xl bg-zinc-50/5"
+            icon tv-minimal class="size-[18px] text-zinc-50/80"
+          end
+          box class="flex-1 gap-0.5"
+            text "卧室 Android TV" class="text-[15px] text-zinc-50"
+            text "上周" class="text-xs text-zinc-400"
+          end
+        end
+      end
+    end
+  end
+end

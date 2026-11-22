@@ -1,0 +1,317 @@
+design light device=tablet width=1180 height=820 name="平板/电影详情" gap=140
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="h-6 flex-row items-center justify-between px-6"
+    text "9:41  11月19日 周四" class="text-xs font-semibold text-zinc-900"
+    box class="flex-row items-center gap-1.5"
+      icon wifi class="size-3.5 text-zinc-900"
+      text "86%" class="text-xs font-semibold text-zinc-900"
+      icon battery-full class="size-4 text-zinc-900"
+    end
+  end
+  box class="flex-1 flex-row gap-2 p-4 pt-2"
+    box class="relative w-[420px] overflow-hidden rounded-3xl shadow-2xl shadow-black/30"
+      image "沙丘2 竖版海报：沙漠中的保罗剪影，橙色天空" class="absolute top-0 right-0 bottom-0 left-0"
+      box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-t from-black/90 via-black/30 to-black/10"
+      end
+      box class="absolute top-4 left-4 size-10 items-center justify-center rounded-full bg-black/40" tap="close"
+        icon chevron-left class="size-5 text-white"
+      end
+      box class="absolute top-4 right-4 flex-row items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5"
+        box class="size-2 rounded-full bg-emerald-400"
+        end
+        text "家庭 Emby" class="text-xs font-medium text-white"
+      end
+      box class="absolute right-7 bottom-7 left-7 gap-4"
+        box class="h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/40" tap="open player"
+          icon play class="size-5 text-white"
+          text "继续播放 1:12:30" class="font-semibold text-white"
+        end
+        box class="h-1 rounded-full bg-white/25"
+          box class="h-1 w-[43%] rounded-full bg-violet-400"
+          end
+        end
+        box class="flex-row gap-3"
+          box class="h-14 flex-1 items-center justify-center gap-1 rounded-xl bg-white/15"
+            icon rotate-ccw class="size-4 text-white"
+            text "从头播放" class="text-[11px] text-white/80"
+          end
+          box class="h-14 flex-1 items-center justify-center gap-1 rounded-xl bg-white/15"
+            icon heart class="size-4 text-white"
+            text "收藏" class="text-[11px] text-white/80"
+          end
+          box class="h-14 flex-1 items-center justify-center gap-1 rounded-xl bg-white/15"
+            icon circle-check class="size-4 text-white"
+            text "标记已看" class="text-[11px] text-white/80"
+          end
+          box class="h-14 flex-1 items-center justify-center gap-1 rounded-xl bg-white/15" note="下载到本机离线观看，可选原画或转码画质"
+            icon download class="size-4 text-white"
+            text "下载" class="text-[11px] text-white/80"
+          end
+        end
+      end
+    end
+    box class="flex-1 gap-5 overflow-hidden px-8 pt-6 pb-2"
+      box class="gap-1.5"
+        text "沙丘2" class="text-4xl font-bold tracking-tight text-zinc-900"
+        text "Dune: Part Two" class="text-base text-zinc-500"
+      end
+      text "2024 · 科幻 / 冒险 · 2 小时 46 分 · PG-13" class="text-sm text-zinc-900/80"
+      box class="flex-row flex-wrap items-center gap-2"
+        box class="flex-row items-center gap-1.5 rounded-md bg-emerald-500/15 px-2 py-1"
+          text "豆瓣" class="text-xs font-semibold text-emerald-500"
+          text "8.3" class="text-xs font-bold text-zinc-900"
+        end
+        box class="flex-row items-center gap-1.5 rounded-md bg-amber-500/15 px-2 py-1"
+          text "IMDb" class="text-xs font-bold text-amber-500"
+          text "8.5" class="text-xs font-bold text-zinc-900"
+        end
+        box class="flex-row items-center gap-1.5 rounded-md bg-sky-500/15 px-2 py-1"
+          text "TMDB" class="text-xs font-bold text-sky-500"
+          text "82%" class="text-xs font-bold text-zinc-900"
+        end
+        text "4K" class="rounded-md border border-zinc-900/8 bg-zinc-900/5 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-900"
+        text "杜比视界" class="rounded-md border border-zinc-900/8 bg-zinc-900/5 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-900"
+        text "Atmos" class="rounded-md border border-zinc-900/8 bg-zinc-900/5 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-900"
+        text "中字" class="rounded-md border border-zinc-900/8 bg-zinc-900/5 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-900"
+      end
+      box class="flex-row gap-3" note="多版本由媒体源合并；选择会记住到下次播放"
+        box class="flex-1 gap-1 rounded-xl border border-zinc-900/8 bg-white px-3.5 py-2.5 shadow-sm shadow-black/5"
+          text "版本" class="text-[11px] text-zinc-500"
+          box class="flex-row items-center gap-1"
+            text "2160p Remux" class="flex-1 truncate text-sm font-medium text-zinc-900"
+            icon chevron-down class="size-4 text-zinc-500"
+          end
+        end
+        box class="flex-1 gap-1 rounded-xl border border-zinc-900/8 bg-white px-3.5 py-2.5 shadow-sm shadow-black/5"
+          text "音轨" class="text-[11px] text-zinc-500"
+          box class="flex-row items-center gap-1"
+            text "英语 TrueHD 7.1" class="flex-1 truncate text-sm font-medium text-zinc-900"
+            icon chevron-down class="size-4 text-zinc-500"
+          end
+        end
+        box class="flex-1 gap-1 rounded-xl border border-zinc-900/8 bg-white px-3.5 py-2.5 shadow-sm shadow-black/5"
+          text "字幕" class="text-[11px] text-zinc-500"
+          box class="flex-row items-center gap-1"
+            text "简体中文 ASS" class="flex-1 truncate text-sm font-medium text-zinc-900"
+            icon chevron-down class="size-4 text-zinc-500"
+          end
+        end
+      end
+      box class="gap-2"
+        text "简介" class="text-base font-bold text-zinc-900"
+        text "保罗·厄崔迪与契妮及弗雷曼人联手，踏上向毁灭其家族的阴谋者复仇之路。在挚爱与已知宇宙的命运之间，他必须做出抉择，并竭力阻止一个只有他能预见的可怕未来。" class="line-clamp-3 text-sm leading-relaxed text-zinc-900/80"
+      end
+      box class="gap-3"
+        text "演职人员" class="text-base font-bold text-zinc-900"
+        box class="flex-row gap-4 overflow-hidden"
+          box class="w-20 items-center gap-1.5"
+            image "丹尼斯·维伦纽瓦 头像" class="size-16 rounded-full shadow-md"
+            text "维伦纽瓦" class="truncate text-xs text-zinc-900"
+            text "导演" class="text-[11px] text-zinc-500"
+          end
+          box class="w-20 items-center gap-1.5"
+            image "提莫西·查拉梅 头像" class="size-16 rounded-full shadow-md"
+            text "查拉梅" class="truncate text-xs text-zinc-900"
+            text "保罗" class="text-[11px] text-zinc-500"
+          end
+          box class="w-20 items-center gap-1.5"
+            image "赞达亚 头像" class="size-16 rounded-full shadow-md"
+            text "赞达亚" class="truncate text-xs text-zinc-900"
+            text "契妮" class="text-[11px] text-zinc-500"
+          end
+          box class="w-20 items-center gap-1.5"
+            image "丽贝卡·弗格森 头像" class="size-16 rounded-full shadow-md"
+            text "弗格森" class="truncate text-xs text-zinc-900"
+            text "杰西卡" class="text-[11px] text-zinc-500"
+          end
+          box class="w-20 items-center gap-1.5"
+            image "奥斯汀·巴特勒 头像" class="size-16 rounded-full shadow-md"
+            text "巴特勒" class="truncate text-xs text-zinc-900"
+            text "菲德-罗萨" class="text-[11px] text-zinc-500"
+          end
+          box class="w-20 items-center gap-1.5"
+            image "哈维尔·巴登 头像" class="size-16 rounded-full shadow-md"
+            text "巴登" class="truncate text-xs text-zinc-900"
+            text "斯第尔格" class="text-[11px] text-zinc-500"
+          end
+        end
+      end
+      box class="gap-2 rounded-2xl border border-zinc-900/8 bg-white p-4 shadow-sm shadow-black/5"
+        box class="flex-row items-center justify-between"
+          text "文件信息" class="text-sm font-semibold text-zinc-900"
+          text "直接播放" class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-500"
+        end
+        box class="flex-row gap-6"
+          box class="flex-1 gap-1"
+            text "来源 · 家庭 Emby" class="text-xs text-zinc-500"
+            text "MKV · 58.2 GB · 46.8 Mbps" class="text-xs text-zinc-500"
+          end
+          box class="flex-1 gap-1"
+            text "HEVC 3840×2160 · 杜比视界 P7" class="text-xs text-zinc-500"
+            text "TrueHD 7.1 Atmos · 字幕 14 条" class="text-xs text-zinc-500"
+          end
+        end
+      end
+    end
+  end
+end
+
+design dark device=tablet width=1180 height=820 name="电影详情 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="h-6 flex-row items-center justify-between px-6"
+    text "9:41  11月19日 周四" class="text-xs font-semibold text-zinc-50"
+    box class="flex-row items-center gap-1.5"
+      icon wifi class="size-3.5 text-zinc-50"
+      text "86%" class="text-xs font-semibold text-zinc-50"
+      icon battery-full class="size-4 text-zinc-50"
+    end
+  end
+  box class="flex-1 flex-row gap-2 p-4 pt-2"
+    box class="relative w-[420px] overflow-hidden rounded-3xl shadow-2xl shadow-black/30"
+      image "沙丘2 竖版海报：沙漠中的保罗剪影，橙色天空" class="absolute top-0 right-0 bottom-0 left-0"
+      box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-t from-black/90 via-black/30 to-black/10"
+      end
+      box class="absolute top-4 left-4 size-10 items-center justify-center rounded-full bg-black/40" tap="close"
+        icon chevron-left class="size-5 text-white"
+      end
+      box class="absolute top-4 right-4 flex-row items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5"
+        box class="size-2 rounded-full bg-emerald-400"
+        end
+        text "家庭 Emby" class="text-xs font-medium text-white"
+      end
+      box class="absolute right-7 bottom-7 left-7 gap-4"
+        box class="h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/40" tap="open player"
+          icon play class="size-5 text-white"
+          text "继续播放 1:12:30" class="font-semibold text-white"
+        end
+        box class="h-1 rounded-full bg-white/25"
+          box class="h-1 w-[43%] rounded-full bg-violet-400"
+          end
+        end
+        box class="flex-row gap-3"
+          box class="h-14 flex-1 items-center justify-center gap-1 rounded-xl bg-white/15"
+            icon rotate-ccw class="size-4 text-white"
+            text "从头播放" class="text-[11px] text-white/80"
+          end
+          box class="h-14 flex-1 items-center justify-center gap-1 rounded-xl bg-white/15"
+            icon heart class="size-4 text-white"
+            text "收藏" class="text-[11px] text-white/80"
+          end
+          box class="h-14 flex-1 items-center justify-center gap-1 rounded-xl bg-white/15"
+            icon circle-check class="size-4 text-white"
+            text "标记已看" class="text-[11px] text-white/80"
+          end
+          box class="h-14 flex-1 items-center justify-center gap-1 rounded-xl bg-white/15" note="下载到本机离线观看，可选原画或转码画质"
+            icon download class="size-4 text-white"
+            text "下载" class="text-[11px] text-white/80"
+          end
+        end
+      end
+    end
+    box class="flex-1 gap-5 overflow-hidden px-8 pt-6 pb-2"
+      box class="gap-1.5"
+        text "沙丘2" class="text-4xl font-bold tracking-tight text-zinc-50"
+        text "Dune: Part Two" class="text-base text-zinc-400"
+      end
+      text "2024 · 科幻 / 冒险 · 2 小时 46 分 · PG-13" class="text-sm text-zinc-50/80"
+      box class="flex-row flex-wrap items-center gap-2"
+        box class="flex-row items-center gap-1.5 rounded-md bg-emerald-500/15 px-2 py-1"
+          text "豆瓣" class="text-xs font-semibold text-emerald-500"
+          text "8.3" class="text-xs font-bold text-zinc-50"
+        end
+        box class="flex-row items-center gap-1.5 rounded-md bg-amber-500/15 px-2 py-1"
+          text "IMDb" class="text-xs font-bold text-amber-500"
+          text "8.5" class="text-xs font-bold text-zinc-50"
+        end
+        box class="flex-row items-center gap-1.5 rounded-md bg-sky-500/15 px-2 py-1"
+          text "TMDB" class="text-xs font-bold text-sky-500"
+          text "82%" class="text-xs font-bold text-zinc-50"
+        end
+        text "4K" class="rounded-md border border-white/8 bg-zinc-50/5 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-50"
+        text "杜比视界" class="rounded-md border border-white/8 bg-zinc-50/5 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-50"
+        text "Atmos" class="rounded-md border border-white/8 bg-zinc-50/5 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-50"
+        text "中字" class="rounded-md border border-white/8 bg-zinc-50/5 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-50"
+      end
+      box class="flex-row gap-3" note="多版本由媒体源合并；选择会记住到下次播放"
+        box class="flex-1 gap-1 rounded-xl border border-white/8 bg-[#1a1b25] px-3.5 py-2.5 shadow-sm shadow-black/5"
+          text "版本" class="text-[11px] text-zinc-400"
+          box class="flex-row items-center gap-1"
+            text "2160p Remux" class="flex-1 truncate text-sm font-medium text-zinc-50"
+            icon chevron-down class="size-4 text-zinc-400"
+          end
+        end
+        box class="flex-1 gap-1 rounded-xl border border-white/8 bg-[#1a1b25] px-3.5 py-2.5 shadow-sm shadow-black/5"
+          text "音轨" class="text-[11px] text-zinc-400"
+          box class="flex-row items-center gap-1"
+            text "英语 TrueHD 7.1" class="flex-1 truncate text-sm font-medium text-zinc-50"
+            icon chevron-down class="size-4 text-zinc-400"
+          end
+        end
+        box class="flex-1 gap-1 rounded-xl border border-white/8 bg-[#1a1b25] px-3.5 py-2.5 shadow-sm shadow-black/5"
+          text "字幕" class="text-[11px] text-zinc-400"
+          box class="flex-row items-center gap-1"
+            text "简体中文 ASS" class="flex-1 truncate text-sm font-medium text-zinc-50"
+            icon chevron-down class="size-4 text-zinc-400"
+          end
+        end
+      end
+      box class="gap-2"
+        text "简介" class="text-base font-bold text-zinc-50"
+        text "保罗·厄崔迪与契妮及弗雷曼人联手，踏上向毁灭其家族的阴谋者复仇之路。在挚爱与已知宇宙的命运之间，他必须做出抉择，并竭力阻止一个只有他能预见的可怕未来。" class="line-clamp-3 text-sm leading-relaxed text-zinc-50/80"
+      end
+      box class="gap-3"
+        text "演职人员" class="text-base font-bold text-zinc-50"
+        box class="flex-row gap-4 overflow-hidden"
+          box class="w-20 items-center gap-1.5"
+            image "丹尼斯·维伦纽瓦 头像" class="size-16 rounded-full shadow-md"
+            text "维伦纽瓦" class="truncate text-xs text-zinc-50"
+            text "导演" class="text-[11px] text-zinc-400"
+          end
+          box class="w-20 items-center gap-1.5"
+            image "提莫西·查拉梅 头像" class="size-16 rounded-full shadow-md"
+            text "查拉梅" class="truncate text-xs text-zinc-50"
+            text "保罗" class="text-[11px] text-zinc-400"
+          end
+          box class="w-20 items-center gap-1.5"
+            image "赞达亚 头像" class="size-16 rounded-full shadow-md"
+            text "赞达亚" class="truncate text-xs text-zinc-50"
+            text "契妮" class="text-[11px] text-zinc-400"
+          end
+          box class="w-20 items-center gap-1.5"
+            image "丽贝卡·弗格森 头像" class="size-16 rounded-full shadow-md"
+            text "弗格森" class="truncate text-xs text-zinc-50"
+            text "杰西卡" class="text-[11px] text-zinc-400"
+          end
+          box class="w-20 items-center gap-1.5"
+            image "奥斯汀·巴特勒 头像" class="size-16 rounded-full shadow-md"
+            text "巴特勒" class="truncate text-xs text-zinc-50"
+            text "菲德-罗萨" class="text-[11px] text-zinc-400"
+          end
+          box class="w-20 items-center gap-1.5"
+            image "哈维尔·巴登 头像" class="size-16 rounded-full shadow-md"
+            text "巴登" class="truncate text-xs text-zinc-50"
+            text "斯第尔格" class="text-[11px] text-zinc-400"
+          end
+        end
+      end
+      box class="gap-2 rounded-2xl border border-white/8 bg-[#1a1b25] p-4 shadow-sm shadow-black/5"
+        box class="flex-row items-center justify-between"
+          text "文件信息" class="text-sm font-semibold text-zinc-50"
+          text "直接播放" class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-500"
+        end
+        box class="flex-row gap-6"
+          box class="flex-1 gap-1"
+            text "来源 · 家庭 Emby" class="text-xs text-zinc-400"
+            text "MKV · 58.2 GB · 46.8 Mbps" class="text-xs text-zinc-400"
+          end
+          box class="flex-1 gap-1"
+            text "HEVC 3840×2160 · 杜比视界 P7" class="text-xs text-zinc-400"
+            text "TrueHD 7.1 Atmos · 字幕 14 条" class="text-xs text-zinc-400"
+          end
+        end
+      end
+    end
+  end
+end

@@ -1,0 +1,205 @@
+design light in="desktop-settings#light/page" name="设置窗口/弹幕" gap=160
+box class="relative flex-1 gap-4 bg-[#f4f4f7] p-8"
+  use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="flex-row items-center gap-4"
+    box class="flex-1 gap-1"
+      text "弹幕" class="text-2xl font-bold text-zinc-900"
+      text "弹幕显示样式、弹幕源与屏蔽规则" class="text-sm text-zinc-500"
+    end
+    text "启用弹幕" class="text-sm text-zinc-900"
+    use switch class="h-[22px] w-[38px]" knob.class="size-[18px]"
+  end
+  box class="relative h-36 overflow-hidden rounded-2xl shadow-lg shadow-black/20" note="实时预览：调整下方样式时即时生效"
+    image "预览画面：夜晚城市街道的电影画面" class="absolute top-0 right-0 bottom-0 left-0"
+    box class="absolute top-0 right-0 bottom-0 left-0 bg-black/30"
+    end
+    box class="absolute top-3 right-0 left-0 gap-2.5"
+      box class="flex-row gap-24 pl-[380px]"
+        text "这一段的配乐绝了" class="text-base font-semibold text-white/80"
+        text "前方高能" class="text-base font-semibold text-amber-300/80"
+      end
+      box class="flex-row gap-28 pl-[120px]"
+        text "二刷了，细节全在这里" class="text-base font-semibold text-sky-300/80"
+        text "哈哈哈哈" class="text-base font-semibold text-white/80"
+      end
+      box class="flex-row pl-[520px]"
+        text "演技太好了" class="text-base font-semibold text-white/80"
+      end
+    end
+    text "预览" class="absolute right-3 bottom-2.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-zinc-300"
+  end
+  box class="flex-1 flex-row gap-5"
+    box class="flex-1 gap-2"
+      text "显示" class="px-1 text-xs font-medium text-zinc-500"
+      box class="gap-px overflow-hidden rounded-xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5"
+        use slider class="py-2.5" label="不透明度" value="80%" label.class="text-sm"
+        use slider class="py-2.5" label="字号" value="24 px" fill.class="w-1/2" label.class="text-sm"
+        use slider class="py-2.5" label="滚动速度" value="适中" fill.class="w-1/2" label.class="text-sm"
+        use slider class="py-2.5" label="同屏密度" value="较多" fill.class="w-3/5" label.class="text-sm"
+        box class="h-11 flex-row items-center gap-3 bg-white px-4"
+          text "显示区域" class="flex-1 text-sm text-zinc-900"
+          box class="h-7 flex-row rounded-md bg-zinc-900/5 p-0.5"
+            box class="items-center justify-center rounded px-2"
+              text "1/4" class="text-xs text-zinc-500"
+            end
+            box class="items-center justify-center rounded bg-white shadow-sm px-2"
+              text "半屏" class="text-xs font-medium text-zinc-900"
+            end
+            box class="items-center justify-center rounded px-2"
+              text "3/4" class="text-xs text-zinc-500"
+            end
+            box class="items-center justify-center rounded px-2"
+              text "全屏" class="text-xs text-zinc-500"
+            end
+          end
+        end
+      end
+    end
+    box class="flex-1 gap-2"
+      text "弹幕源" class="px-1 text-xs font-medium text-zinc-500"
+      box class="gap-px overflow-hidden rounded-xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5" note="多个弹幕源的结果合并去重后显示；B 站登录后可获取完整弹幕"
+        box class="h-10 flex-row items-center gap-3 bg-white px-4"
+          text "弹弹play" class="flex-1 text-sm text-zinc-900"
+          text "已连接" class="text-xs text-emerald-500"
+          use switch class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-white px-4"
+          text "哔哩哔哩" class="flex-1 text-sm text-zinc-900"
+          text "已登录" class="text-xs text-emerald-500"
+          use switch class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-white px-4"
+          text "巴哈姆特动画疯" class="flex-1 text-sm text-zinc-900"
+          use switch variant=off class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-white px-4"
+          text "本地 XML / ASS 文件" class="flex-1 text-sm text-zinc-900"
+          use switch class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-white px-4" note="先按文件哈希精确匹配，失败后按标题与集数搜索，再失败时在播放器中提示手动选择"
+          text "匹配策略" class="flex-1 text-sm text-zinc-900"
+          use select label="哈希 → 标题 → 手动"
+        end
+      end
+      box class="gap-2 rounded-xl border border-zinc-900/8 bg-white p-3 shadow-sm shadow-black/5"
+        box class="flex-row items-center justify-between"
+          text "屏蔽词 · 12" class="text-sm text-zinc-900"
+          text "+ 添加（支持正则）" class="text-xs text-violet-500"
+        end
+        box class="flex-row flex-wrap gap-1.5"
+          text "剧透 ×" class="rounded-full bg-zinc-900/10 px-2 py-0.5 text-xs text-zinc-900/80"
+          text "前方高能 ×" class="rounded-full bg-zinc-900/10 px-2 py-0.5 text-xs text-zinc-900/80"
+          text "/^6{3,}$/ ×" class="rounded-full bg-zinc-900/10 px-2 py-0.5 text-xs text-zinc-900/80"
+          text "空降 ×" class="rounded-full bg-zinc-900/10 px-2 py-0.5 text-xs text-zinc-900/80"
+        end
+        box class="flex-row items-center justify-between border-t border-zinc-900/8 pt-2"
+          text "弹幕缓存 128 MB · 保留 30 天" class="text-xs text-zinc-500"
+          text "清除" class="text-xs text-rose-500"
+        end
+      end
+    end
+  end
+end
+
+design dark in="desktop-settings#dark/page" name="弹幕 · 深色"
+box class="relative flex-1 gap-4 bg-[#0f1017] p-8"
+  use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="flex-row items-center gap-4"
+    box class="flex-1 gap-1"
+      text "弹幕" class="text-2xl font-bold text-zinc-50"
+      text "弹幕显示样式、弹幕源与屏蔽规则" class="text-sm text-zinc-400"
+    end
+    text "启用弹幕" class="text-sm text-zinc-50"
+    use switch-dark class="h-[22px] w-[38px]" knob.class="size-[18px]"
+  end
+  box class="relative h-36 overflow-hidden rounded-2xl shadow-lg shadow-black/20" note="实时预览：调整下方样式时即时生效"
+    image "预览画面：夜晚城市街道的电影画面" class="absolute top-0 right-0 bottom-0 left-0"
+    box class="absolute top-0 right-0 bottom-0 left-0 bg-black/30"
+    end
+    box class="absolute top-3 right-0 left-0 gap-2.5"
+      box class="flex-row gap-24 pl-[380px]"
+        text "这一段的配乐绝了" class="text-base font-semibold text-white/80"
+        text "前方高能" class="text-base font-semibold text-amber-300/80"
+      end
+      box class="flex-row gap-28 pl-[120px]"
+        text "二刷了，细节全在这里" class="text-base font-semibold text-sky-300/80"
+        text "哈哈哈哈" class="text-base font-semibold text-white/80"
+      end
+      box class="flex-row pl-[520px]"
+        text "演技太好了" class="text-base font-semibold text-white/80"
+      end
+    end
+    text "预览" class="absolute right-3 bottom-2.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-zinc-300"
+  end
+  box class="flex-1 flex-row gap-5"
+    box class="flex-1 gap-2"
+      text "显示" class="px-1 text-xs font-medium text-zinc-400"
+      box class="gap-px overflow-hidden rounded-xl border border-white/8 bg-white/7 shadow-sm shadow-black/5"
+        use slider-dark class="py-2.5" label="不透明度" value="80%" label.class="text-sm"
+        use slider-dark class="py-2.5" label="字号" value="24 px" fill.class="w-1/2" label.class="text-sm"
+        use slider-dark class="py-2.5" label="滚动速度" value="适中" fill.class="w-1/2" label.class="text-sm"
+        use slider-dark class="py-2.5" label="同屏密度" value="较多" fill.class="w-3/5" label.class="text-sm"
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "显示区域" class="flex-1 text-sm text-zinc-50"
+          box class="h-7 flex-row rounded-md bg-zinc-50/5 p-0.5"
+            box class="items-center justify-center rounded px-2"
+              text "1/4" class="text-xs text-zinc-400"
+            end
+            box class="items-center justify-center rounded bg-[#1a1b25] shadow-sm px-2"
+              text "半屏" class="text-xs font-medium text-zinc-50"
+            end
+            box class="items-center justify-center rounded px-2"
+              text "3/4" class="text-xs text-zinc-400"
+            end
+            box class="items-center justify-center rounded px-2"
+              text "全屏" class="text-xs text-zinc-400"
+            end
+          end
+        end
+      end
+    end
+    box class="flex-1 gap-2"
+      text "弹幕源" class="px-1 text-xs font-medium text-zinc-400"
+      box class="gap-px overflow-hidden rounded-xl border border-white/8 bg-white/7 shadow-sm shadow-black/5" note="多个弹幕源的结果合并去重后显示；B 站登录后可获取完整弹幕"
+        box class="h-10 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "弹弹play" class="flex-1 text-sm text-zinc-50"
+          text "已连接" class="text-xs text-emerald-500"
+          use switch-dark class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "哔哩哔哩" class="flex-1 text-sm text-zinc-50"
+          text "已登录" class="text-xs text-emerald-500"
+          use switch-dark class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "巴哈姆特动画疯" class="flex-1 text-sm text-zinc-50"
+          use switch-dark variant=off class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "本地 XML / ASS 文件" class="flex-1 text-sm text-zinc-50"
+          use switch-dark class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-[#1a1b25] px-4" note="先按文件哈希精确匹配，失败后按标题与集数搜索，再失败时在播放器中提示手动选择"
+          text "匹配策略" class="flex-1 text-sm text-zinc-50"
+          use select-dark label="哈希 → 标题 → 手动"
+        end
+      end
+      box class="gap-2 rounded-xl border border-white/8 bg-[#1a1b25] p-3 shadow-sm shadow-black/5"
+        box class="flex-row items-center justify-between"
+          text "屏蔽词 · 12" class="text-sm text-zinc-50"
+          text "+ 添加（支持正则）" class="text-xs text-violet-400"
+        end
+        box class="flex-row flex-wrap gap-1.5"
+          text "剧透 ×" class="rounded-full bg-zinc-50/10 px-2 py-0.5 text-xs text-zinc-50/80"
+          text "前方高能 ×" class="rounded-full bg-zinc-50/10 px-2 py-0.5 text-xs text-zinc-50/80"
+          text "/^6{3,}$/ ×" class="rounded-full bg-zinc-50/10 px-2 py-0.5 text-xs text-zinc-50/80"
+          text "空降 ×" class="rounded-full bg-zinc-50/10 px-2 py-0.5 text-xs text-zinc-50/80"
+        end
+        box class="flex-row items-center justify-between border-t border-white/8 pt-2"
+          text "弹幕缓存 128 MB · 保留 30 天" class="text-xs text-zinc-400"
+          text "清除" class="text-xs text-rose-500"
+        end
+      end
+    end
+  end
+end

@@ -1,0 +1,311 @@
+design light device=desktop width=1920 height=1760 name="TV/首页" gap=200
+box class="relative flex-1 bg-[#f4f4f7]" note="遥控器方向键移动焦点；焦点下移到内容行时页面随之上滚，顶部大图收起。设计稿加高以展示所有行，实际屏幕为 1920×1080。界面跟随系统亮/暗主题，大图区域始终以深色遮罩承载白色文字"
+  box class="relative h-[900px]"
+    image "沙丘2 电影剧照：沙漠中的巨型沙虫与夕阳下的骑手，宽银幕画面" class="absolute top-0 right-0 left-0 h-[900px]" note="焦点停留在大图按钮上 6 秒后自动轮播下一部推荐，背景可播放无声预告片"
+    box class="absolute top-0 bottom-0 left-0 w-[1360px] bg-linear-to-r from-black/85 via-black/55 to-transparent"
+    end
+    box class="absolute top-0 right-0 left-0 h-56 bg-linear-to-b from-black/60 to-transparent"
+    end
+    box class="absolute right-0 bottom-0 left-0 h-24 bg-linear-to-b from-transparent to-[#f4f4f7]"
+    end
+    box class="absolute top-0 right-0 left-0 flex-row items-center justify-between px-24 pt-12"
+      use logo variant=onmedia mark.class="size-12" word.class="text-3xl"
+      box class="flex-row items-center gap-1 rounded-full border border-white/15 bg-black/35 p-2 shadow-2xl"
+        box class="size-14 items-center justify-center rounded-full"
+          icon search class="size-7 text-white/80"
+        end
+        box class="group h-14 justify-center rounded-full px-8 selected:bg-white" tap="open tv-home"
+          text "首页" class="text-2xl font-medium text-white/80 group-selected:font-semibold group-selected:text-black"
+        end
+        box class="h-14 justify-center rounded-full px-8"
+          text "电影" class="text-2xl font-medium text-white/80"
+        end
+        box class="h-14 justify-center rounded-full px-8"
+          text "剧集" class="text-2xl font-medium text-white/80"
+        end
+        box class="h-14 justify-center rounded-full px-8"
+          text "动漫" class="text-2xl font-medium text-white/80"
+        end
+        box class="h-14 justify-center rounded-full px-8"
+          text "收藏" class="text-2xl font-medium text-white/80"
+        end
+        box class="h-14 flex-row items-center justify-center gap-2 rounded-full px-8" tap="open tv-settings"
+          icon settings class="size-6 text-white/80"
+          text "设置" class="text-2xl font-medium text-white/80"
+        end
+      end
+      box class="flex-row items-center gap-6"
+        text "20:30" class="text-3xl font-medium text-white"
+        box class="size-14 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/40 ring-2 ring-white/30"
+          text "林" class="text-2xl font-semibold text-white"
+        end
+      end
+    end
+    box class="absolute top-[230px] left-24 w-[820px] gap-7"
+      box class="flex-row items-center gap-3"
+        box class="flex-row items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/25 px-4 py-1.5"
+          box class="size-2.5 rounded-full bg-emerald-400"
+          end
+          text "家庭 Emby" class="text-lg font-medium text-emerald-200"
+        end
+        box class="rounded-full bg-white/15 px-4 py-1.5"
+          text "本周新增" class="text-lg font-medium text-white"
+        end
+      end
+      text "沙丘2" class="text-8xl font-bold tracking-tight text-white"
+      box class="flex-row items-center gap-4"
+        text "豆瓣 8.3" class="text-2xl font-semibold text-amber-300"
+        text "2024 · 科幻 / 冒险 · 2 小时 46 分" class="text-2xl text-white/80"
+        box class="rounded-md border border-white/40 px-2 py-0.5"
+          text "4K" class="text-lg font-bold text-white"
+        end
+        box class="rounded-md border border-white/40 px-2 py-0.5"
+          text "杜比视界" class="text-lg font-bold text-white"
+        end
+        box class="rounded-md border border-white/40 px-2 py-0.5"
+          text "Atmos" class="text-lg font-bold text-white"
+        end
+      end
+      text "保罗·厄崔迪与契妮和弗雷曼人联手，向摧毁他家族的阴谋者展开复仇。在挚爱与宇宙命运之间，他必须做出抉择，阻止只有他能预见的可怕未来。" class="line-clamp-3 text-2xl leading-relaxed text-white/80"
+      box class="flex-row items-center gap-5 pt-2"
+        box class="h-20 flex-row items-center gap-3 rounded-full bg-white px-12 shadow-2xl shadow-violet-500/40 ring-4 ring-violet-500" tap="open tv-player" note="当前焦点：按 OK 键直接播放，从上次进度继续。焦点态为紫色描边并轻微放大"
+          icon play class="size-8 text-black"
+          text "播放" class="text-3xl font-semibold text-black"
+        end
+        box class="h-20 flex-row items-center gap-3 rounded-full border border-white/20 bg-white/15 px-10" tap="open tv-detail"
+          icon info class="size-7 text-white"
+          text "详情" class="text-3xl font-medium text-white"
+        end
+        box class="size-20 items-center justify-center rounded-full border border-white/20 bg-white/15"
+          icon heart class="size-8 text-white"
+        end
+      end
+      box class="flex-row gap-3 pt-4"
+        box class="h-2 w-12 rounded-full bg-white"
+        end
+        box class="h-2 w-2 rounded-full bg-white/40"
+        end
+        box class="h-2 w-2 rounded-full bg-white/40"
+        end
+        box class="h-2 w-2 rounded-full bg-white/40"
+        end
+        box class="h-2 w-2 rounded-full bg-white/40"
+        end
+      end
+    end
+  end
+  box class="relative gap-14 pb-24"
+    use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+    box class="gap-6 px-24"
+      box class="flex-row items-center gap-4"
+        box class="h-8 w-1.5 rounded-full bg-violet-500"
+        end
+        text "继续观看" class="text-3xl font-bold tracking-tight text-zinc-900"
+        text "4 项" class="text-xl text-zinc-500"
+      end
+      box class="flex-row gap-8 overflow-hidden" note="合并所有媒体源的观看进度，按最近播放排序；长按 OK 可标记已看或从列表移除"
+        use tv-card tap="open tv-player"
+        use tv-card title="繁花" sub="第 1 季 · 第 18 集 · 剩余 12 分钟" cover="繁花剧照：上海和平饭店夜景霓虹" source="书房 NAS" dot.class="bg-sky-400" progress.class="w-4/5" tap="open tv-player"
+        use tv-card title="奥本海默" sub="电影 · 剩余 1 小时 08 分" cover="奥本海默剧照：核试验火光映红的荒漠" source="飞牛影视" dot.class="bg-blue-400" progress.class="w-1/3" tap="open tv-player"
+        use tv-card title="葬送的芙莉莲" sub="第 1 季 · 第 23 集 · 剩余 9 分钟" cover="葬送的芙莉莲动画截图：精灵法师站在花田中" progress.class="w-3/5" tap="open tv-player"
+      end
+    end
+    box class="gap-6 px-24"
+      box class="flex-row items-center justify-between"
+        box class="flex-row items-center gap-4"
+          box class="h-8 w-1.5 rounded-full bg-fuchsia-500"
+          end
+          text "最近添加" class="text-3xl font-bold tracking-tight text-zinc-900"
+        end
+        box class="flex-row items-center gap-1 rounded-full border border-zinc-900/8 bg-zinc-900/5 px-5 py-2"
+          text "全部 1,865 部" class="text-xl text-zinc-500"
+          icon chevron-right class="size-5 text-zinc-500"
+        end
+      end
+      box class="flex-row gap-8 overflow-hidden"
+        use tv-poster title="沙丘2" sub="2024 · 豆瓣 8.3" cover="沙丘2 海报：沙漠中的主角侧影" tap="open tv-detail"
+        use tv-poster title="流浪地球2" tap="open tv-detail"
+        use tv-poster title="封神第一部" sub="2023 · 豆瓣 7.8" cover="封神第一部海报：金甲武士" quality="HDR" tap="open tv-detail"
+        use tv-poster title="周处除三害" sub="2023 · 豆瓣 7.7" cover="周处除三害海报：持枪男子的冷峻特写" quality="1080P" tap="open tv-detail"
+        use tv-poster title="坠落的审判" sub="2023 · 豆瓣 8.4" cover="坠落的审判海报：雪地山间木屋" variant=plain tap="open tv-detail"
+        use tv-poster title="可怜的东西" sub="2023 · 豆瓣 7.4" cover="可怜的东西海报：色彩浓烈的复古肖像" tap="open tv-detail"
+        use tv-poster title="怪物" sub="2023 · 豆瓣 8.6" cover="怪物海报：两个少年在隧道中" variant=plain tap="open tv-detail"
+      end
+    end
+    box class="gap-6 px-24"
+      box class="flex-row items-center gap-4"
+        box class="h-8 w-1.5 rounded-full bg-blue-500"
+        end
+        text "来自 飞牛影视" class="text-3xl font-bold tracking-tight text-zinc-900"
+        box class="rounded-md bg-blue-500/15 px-3 py-1"
+          text "fnOS" class="text-lg font-semibold text-blue-500"
+        end
+      end
+      box class="flex-row gap-8 overflow-hidden" note="每个媒体源各自一行，可在 设置 › 外观 › 首页布局 中调整顺序与显示"
+        use tv-poster title="三体" sub="2023 · 剧集 · 30 集" cover="三体剧集海报：倒计时数字映在夜空" tap="open tv-detail"
+        use tv-poster title="狂飙" sub="2023 · 剧集 · 39 集" cover="狂飙海报：黑白人物群像" quality="1080P" tap="open tv-detail"
+        use tv-poster title="我的阿勒泰" sub="2024 · 剧集 · 8 集" cover="我的阿勒泰海报：草原上骑马的少女" tap="open tv-detail"
+        use tv-poster title="隐秘的角落" sub="2020 · 剧集 · 12 集" cover="隐秘的角落海报：三个孩子在山顶" variant=plain tap="open tv-detail"
+        use tv-poster title="漫长的季节" sub="2023 · 剧集 · 12 集" cover="漫长的季节海报：秋天铁轨旁的人物" tap="open tv-detail"
+        use tv-poster title="山海情" sub="2021 · 剧集 · 23 集" cover="山海情海报：西北戈壁的村民" variant=plain tap="open tv-detail"
+        use tv-poster title="人世间" sub="2022 · 剧集 · 58 集" cover="人世间海报：一家人围坐" variant=plain tap="open tv-detail"
+      end
+    end
+  end
+end
+
+design dark device=desktop width=1920 height=1760 name="首页 · 深色"
+box class="relative flex-1 bg-[#0f1017]" note="遥控器方向键移动焦点；焦点下移到内容行时页面随之上滚，顶部大图收起。设计稿加高以展示所有行，实际屏幕为 1920×1080。界面跟随系统亮/暗主题，大图区域始终以深色遮罩承载白色文字"
+  box class="relative h-[900px]"
+    image "沙丘2 电影剧照：沙漠中的巨型沙虫与夕阳下的骑手，宽银幕画面" class="absolute top-0 right-0 left-0 h-[900px]" note="焦点停留在大图按钮上 6 秒后自动轮播下一部推荐，背景可播放无声预告片"
+    box class="absolute top-0 bottom-0 left-0 w-[1360px] bg-linear-to-r from-black/85 via-black/55 to-transparent"
+    end
+    box class="absolute top-0 right-0 left-0 h-56 bg-linear-to-b from-black/60 to-transparent"
+    end
+    box class="absolute right-0 bottom-0 left-0 h-24 bg-linear-to-b from-transparent to-[#0f1017]"
+    end
+    box class="absolute top-0 right-0 left-0 flex-row items-center justify-between px-24 pt-12"
+      use logo-dark variant=onmedia mark.class="size-12" word.class="text-3xl"
+      box class="flex-row items-center gap-1 rounded-full border border-white/15 bg-black/35 p-2 shadow-2xl"
+        box class="size-14 items-center justify-center rounded-full"
+          icon search class="size-7 text-white/80"
+        end
+        box class="group h-14 justify-center rounded-full px-8 selected:bg-white" tap="open tv-home#dark"
+          text "首页" class="text-2xl font-medium text-white/80 group-selected:font-semibold group-selected:text-black"
+        end
+        box class="h-14 justify-center rounded-full px-8"
+          text "电影" class="text-2xl font-medium text-white/80"
+        end
+        box class="h-14 justify-center rounded-full px-8"
+          text "剧集" class="text-2xl font-medium text-white/80"
+        end
+        box class="h-14 justify-center rounded-full px-8"
+          text "动漫" class="text-2xl font-medium text-white/80"
+        end
+        box class="h-14 justify-center rounded-full px-8"
+          text "收藏" class="text-2xl font-medium text-white/80"
+        end
+        box class="h-14 flex-row items-center justify-center gap-2 rounded-full px-8" tap="open tv-settings#dark"
+          icon settings class="size-6 text-white/80"
+          text "设置" class="text-2xl font-medium text-white/80"
+        end
+      end
+      box class="flex-row items-center gap-6"
+        text "20:30" class="text-3xl font-medium text-white"
+        box class="size-14 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/40 ring-2 ring-white/30"
+          text "林" class="text-2xl font-semibold text-white"
+        end
+      end
+    end
+    box class="absolute top-[230px] left-24 w-[820px] gap-7"
+      box class="flex-row items-center gap-3"
+        box class="flex-row items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/25 px-4 py-1.5"
+          box class="size-2.5 rounded-full bg-emerald-400"
+          end
+          text "家庭 Emby" class="text-lg font-medium text-emerald-200"
+        end
+        box class="rounded-full bg-white/15 px-4 py-1.5"
+          text "本周新增" class="text-lg font-medium text-white"
+        end
+      end
+      text "沙丘2" class="text-8xl font-bold tracking-tight text-white"
+      box class="flex-row items-center gap-4"
+        text "豆瓣 8.3" class="text-2xl font-semibold text-amber-300"
+        text "2024 · 科幻 / 冒险 · 2 小时 46 分" class="text-2xl text-white/80"
+        box class="rounded-md border border-white/40 px-2 py-0.5"
+          text "4K" class="text-lg font-bold text-white"
+        end
+        box class="rounded-md border border-white/40 px-2 py-0.5"
+          text "杜比视界" class="text-lg font-bold text-white"
+        end
+        box class="rounded-md border border-white/40 px-2 py-0.5"
+          text "Atmos" class="text-lg font-bold text-white"
+        end
+      end
+      text "保罗·厄崔迪与契妮和弗雷曼人联手，向摧毁他家族的阴谋者展开复仇。在挚爱与宇宙命运之间，他必须做出抉择，阻止只有他能预见的可怕未来。" class="line-clamp-3 text-2xl leading-relaxed text-white/80"
+      box class="flex-row items-center gap-5 pt-2"
+        box class="h-20 flex-row items-center gap-3 rounded-full bg-white px-12 shadow-2xl shadow-violet-500/40 ring-4 ring-violet-500" tap="open tv-player" note="当前焦点：按 OK 键直接播放，从上次进度继续。焦点态为紫色描边并轻微放大"
+          icon play class="size-8 text-black"
+          text "播放" class="text-3xl font-semibold text-black"
+        end
+        box class="h-20 flex-row items-center gap-3 rounded-full border border-white/20 bg-white/15 px-10" tap="open tv-detail#dark"
+          icon info class="size-7 text-white"
+          text "详情" class="text-3xl font-medium text-white"
+        end
+        box class="size-20 items-center justify-center rounded-full border border-white/20 bg-white/15"
+          icon heart class="size-8 text-white"
+        end
+      end
+      box class="flex-row gap-3 pt-4"
+        box class="h-2 w-12 rounded-full bg-white"
+        end
+        box class="h-2 w-2 rounded-full bg-white/40"
+        end
+        box class="h-2 w-2 rounded-full bg-white/40"
+        end
+        box class="h-2 w-2 rounded-full bg-white/40"
+        end
+        box class="h-2 w-2 rounded-full bg-white/40"
+        end
+      end
+    end
+  end
+  box class="relative gap-14 pb-24"
+    use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+    box class="gap-6 px-24"
+      box class="flex-row items-center gap-4"
+        box class="h-8 w-1.5 rounded-full bg-violet-500"
+        end
+        text "继续观看" class="text-3xl font-bold tracking-tight text-zinc-50"
+        text "4 项" class="text-xl text-zinc-400"
+      end
+      box class="flex-row gap-8 overflow-hidden" note="合并所有媒体源的观看进度，按最近播放排序；长按 OK 可标记已看或从列表移除"
+        use tv-card-dark tap="open tv-player"
+        use tv-card-dark title="繁花" sub="第 1 季 · 第 18 集 · 剩余 12 分钟" cover="繁花剧照：上海和平饭店夜景霓虹" source="书房 NAS" dot.class="bg-sky-400" progress.class="w-4/5" tap="open tv-player"
+        use tv-card-dark title="奥本海默" sub="电影 · 剩余 1 小时 08 分" cover="奥本海默剧照：核试验火光映红的荒漠" source="飞牛影视" dot.class="bg-blue-400" progress.class="w-1/3" tap="open tv-player"
+        use tv-card-dark title="葬送的芙莉莲" sub="第 1 季 · 第 23 集 · 剩余 9 分钟" cover="葬送的芙莉莲动画截图：精灵法师站在花田中" progress.class="w-3/5" tap="open tv-player"
+      end
+    end
+    box class="gap-6 px-24"
+      box class="flex-row items-center justify-between"
+        box class="flex-row items-center gap-4"
+          box class="h-8 w-1.5 rounded-full bg-fuchsia-500"
+          end
+          text "最近添加" class="text-3xl font-bold tracking-tight text-zinc-50"
+        end
+        box class="flex-row items-center gap-1 rounded-full border border-white/8 bg-zinc-50/5 px-5 py-2"
+          text "全部 1,865 部" class="text-xl text-zinc-400"
+          icon chevron-right class="size-5 text-zinc-400"
+        end
+      end
+      box class="flex-row gap-8 overflow-hidden"
+        use tv-poster-dark title="沙丘2" sub="2024 · 豆瓣 8.3" cover="沙丘2 海报：沙漠中的主角侧影" tap="open tv-detail#dark"
+        use tv-poster-dark title="流浪地球2" tap="open tv-detail#dark"
+        use tv-poster-dark title="封神第一部" sub="2023 · 豆瓣 7.8" cover="封神第一部海报：金甲武士" quality="HDR" tap="open tv-detail#dark"
+        use tv-poster-dark title="周处除三害" sub="2023 · 豆瓣 7.7" cover="周处除三害海报：持枪男子的冷峻特写" quality="1080P" tap="open tv-detail#dark"
+        use tv-poster-dark title="坠落的审判" sub="2023 · 豆瓣 8.4" cover="坠落的审判海报：雪地山间木屋" variant=plain tap="open tv-detail#dark"
+        use tv-poster-dark title="可怜的东西" sub="2023 · 豆瓣 7.4" cover="可怜的东西海报：色彩浓烈的复古肖像" tap="open tv-detail#dark"
+        use tv-poster-dark title="怪物" sub="2023 · 豆瓣 8.6" cover="怪物海报：两个少年在隧道中" variant=plain tap="open tv-detail#dark"
+      end
+    end
+    box class="gap-6 px-24"
+      box class="flex-row items-center gap-4"
+        box class="h-8 w-1.5 rounded-full bg-blue-500"
+        end
+        text "来自 飞牛影视" class="text-3xl font-bold tracking-tight text-zinc-50"
+        box class="rounded-md bg-blue-500/15 px-3 py-1"
+          text "fnOS" class="text-lg font-semibold text-blue-500"
+        end
+      end
+      box class="flex-row gap-8 overflow-hidden" note="每个媒体源各自一行，可在 设置 › 外观 › 首页布局 中调整顺序与显示"
+        use tv-poster-dark title="三体" sub="2023 · 剧集 · 30 集" cover="三体剧集海报：倒计时数字映在夜空" tap="open tv-detail#dark"
+        use tv-poster-dark title="狂飙" sub="2023 · 剧集 · 39 集" cover="狂飙海报：黑白人物群像" quality="1080P" tap="open tv-detail#dark"
+        use tv-poster-dark title="我的阿勒泰" sub="2024 · 剧集 · 8 集" cover="我的阿勒泰海报：草原上骑马的少女" tap="open tv-detail#dark"
+        use tv-poster-dark title="隐秘的角落" sub="2020 · 剧集 · 12 集" cover="隐秘的角落海报：三个孩子在山顶" variant=plain tap="open tv-detail#dark"
+        use tv-poster-dark title="漫长的季节" sub="2023 · 剧集 · 12 集" cover="漫长的季节海报：秋天铁轨旁的人物" tap="open tv-detail#dark"
+        use tv-poster-dark title="山海情" sub="2021 · 剧集 · 23 集" cover="山海情海报：西北戈壁的村民" variant=plain tap="open tv-detail#dark"
+        use tv-poster-dark title="人世间" sub="2022 · 剧集 · 58 集" cover="人世间海报：一家人围坐" variant=plain tap="open tv-detail#dark"
+      end
+    end
+  end
+end

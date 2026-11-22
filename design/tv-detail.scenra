@@ -1,0 +1,327 @@
+design light device=desktop width=1920 height=1640 name="TV/详情" gap=200
+box class="relative flex-1 bg-[#f4f4f7]" note="焦点从按钮行下移到演职人员与推荐行时页面上滚；设计稿加高以展示全部内容，实际屏幕为 1920×1080。界面跟随系统亮/暗主题，大图区域始终以深色遮罩承载白色文字"
+  box class="relative h-[980px]"
+    image "沙丘2 剧照：主角站在沙丘之巅，远处双月升起" class="absolute top-0 right-0 left-0 h-[980px]"
+    box class="absolute top-0 bottom-0 left-0 w-[1440px] bg-linear-to-r from-black/85 via-black/60 to-transparent"
+    end
+    box class="absolute top-0 right-0 left-0 h-48 bg-linear-to-b from-black/55 to-transparent"
+    end
+    box class="absolute right-0 bottom-0 left-0 h-20 bg-linear-to-b from-transparent to-[#f4f4f7]"
+    end
+    box class="absolute top-12 right-24 left-24 flex-row items-center justify-between"
+      box class="flex-row items-center gap-3" tap="close"
+        box class="flex-row items-center gap-2 rounded-full border border-white/20 bg-black/35 px-4 py-1.5"
+          icon arrow-left class="size-5 text-white"
+          text "返回" class="text-lg font-medium text-white"
+        end
+        text "按 返回 键返回" class="text-xl text-white/60"
+      end
+      text "20:30" class="text-3xl font-medium text-white"
+    end
+    box class="absolute top-[170px] left-24 w-[900px] gap-7"
+      svg "<svg viewBox='0 0 520 120'><text x='0' y='92' font-family='Georgia, serif' font-size='104' font-weight='700' letter-spacing='18' fill='#f5e6c8'>DUNE</text><text x='370' y='92' font-family='Georgia, serif' font-size='60' fill='#f5e6c8'>II</text></svg>" class="h-28 w-[480px]" note="优先显示 Emby/Jellyfin 返回的 Logo 图，没有时显示标题文字"
+      text "沙丘2 · Dune: Part Two" class="text-3xl font-semibold text-white"
+      box class="flex-row items-center gap-5"
+        box class="flex-row items-center gap-2"
+          text "豆瓣" class="rounded bg-emerald-600 px-2 py-0.5 text-base font-bold text-white"
+          text "8.3" class="text-2xl font-semibold text-white"
+        end
+        box class="flex-row items-center gap-2"
+          text "IMDb" class="rounded bg-amber-400 px-2 py-0.5 text-base font-bold text-black"
+          text "8.5" class="text-2xl font-semibold text-white"
+        end
+        box class="flex-row items-center gap-2"
+          text "TMDB" class="rounded bg-sky-500 px-2 py-0.5 text-base font-bold text-white"
+          text "82%" class="text-2xl font-semibold text-white"
+        end
+        text "2024 · 科幻 / 冒险 · 2 小时 46 分 · PG-13" class="text-2xl text-white/80"
+      end
+      box class="flex-row items-center gap-3"
+        box class="rounded-md border border-white/40 px-2.5 py-1"
+          text "4K" class="text-lg font-bold text-white"
+        end
+        box class="rounded-md border border-white/40 px-2.5 py-1"
+          text "杜比视界" class="text-lg font-bold text-white"
+        end
+        box class="rounded-md border border-white/40 px-2.5 py-1"
+          text "HDR10" class="text-lg font-bold text-white"
+        end
+        box class="rounded-md border border-white/40 px-2.5 py-1"
+          text "Dolby Atmos" class="text-lg font-bold text-white"
+        end
+        box class="rounded-md border border-white/40 px-2.5 py-1"
+          text "中文字幕" class="text-lg font-bold text-white"
+        end
+        box class="flex-row items-center gap-2 rounded-md border border-emerald-400/30 bg-emerald-500/25 px-2.5 py-1"
+          box class="size-2 rounded-full bg-emerald-400"
+          end
+          text "家庭 Emby" class="text-lg font-medium text-emerald-200"
+        end
+      end
+      text "保罗·厄崔迪与契妮和弗雷曼人联手，向摧毁他家族的阴谋者展开复仇。在挚爱与宇宙命运之间，他必须做出抉择，阻止只有他能预见的可怕未来。" class="line-clamp-2 text-2xl leading-relaxed text-white/80"
+      text "导演 丹尼斯·维伦纽瓦 · 主演 提莫西·查拉梅 / 赞达亚 / 丽贝卡·弗格森" class="text-xl text-white/60"
+      box class="gap-4 pt-2"
+        box class="flex-row items-center gap-4"
+          box class="h-20 flex-row items-center gap-3 rounded-full bg-white px-12 shadow-2xl shadow-violet-500/40 ring-4 ring-violet-500" tap="open tv-player" note="当前焦点（紫色描边并轻微放大）。有进度时显示「继续播放 1:12:40」"
+            icon play class="size-8 text-black"
+            text "继续播放" class="text-3xl font-semibold text-black"
+          end
+          box class="h-20 flex-row items-center gap-3 rounded-full border border-white/20 bg-white/15 px-9" tap="open tv-player"
+            icon rotate-ccw class="size-7 text-white"
+            text "从头播放" class="text-2xl font-medium text-white"
+          end
+          box class="h-20 flex-row items-center gap-3 rounded-full border border-white/20 bg-white/15 px-9"
+            icon clapperboard class="size-7 text-white"
+            text "预告片" class="text-2xl font-medium text-white"
+          end
+          box class="size-20 items-center justify-center rounded-full border border-white/20 bg-white/15"
+            icon heart class="size-8 text-white"
+          end
+          box class="h-20 flex-row items-center gap-3 rounded-full border border-white/20 bg-white/15 px-8" note="同一影片在多个媒体源或多个版本时，在此切换：2160p REMUX (Emby) / 1080p (飞牛影视)"
+            text "版本 2160p" class="text-2xl font-medium text-white"
+            icon chevron-down class="size-6 text-white"
+          end
+        end
+        box class="flex-row items-center gap-4"
+          box class="h-2 w-[620px] flex-row overflow-hidden rounded-full bg-white/20"
+            box class="h-2 w-[270px] rounded-full bg-violet-500"
+            end
+          end
+          text "已观看 1:12:40 · 剩余 1 小时 33 分" class="text-lg text-white/70"
+        end
+      end
+    end
+  end
+  box class="relative gap-14 pt-4 pb-24"
+    use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+    box class="gap-6 px-24"
+      box class="flex-row items-center gap-4"
+        box class="h-8 w-1.5 rounded-full bg-amber-500"
+        end
+        text "演职人员" class="text-3xl font-bold tracking-tight text-zinc-900"
+      end
+      box class="flex-row gap-10 overflow-hidden"
+        box class="w-40 items-center gap-3"
+          image "提莫西·查拉梅 头像" class="size-36 rounded-full border-4 border-white shadow-lg shadow-black/15"
+          text "提莫西·查拉梅" class="truncate text-xl font-medium text-zinc-900"
+          text "保罗" class="text-lg text-zinc-500"
+        end
+        box class="w-40 items-center gap-3"
+          image "赞达亚 头像" class="size-36 rounded-full border-4 border-white shadow-lg shadow-black/15"
+          text "赞达亚" class="truncate text-xl font-medium text-zinc-900"
+          text "契妮" class="text-lg text-zinc-500"
+        end
+        box class="w-40 items-center gap-3"
+          image "丽贝卡·弗格森 头像" class="size-36 rounded-full border-4 border-white shadow-lg shadow-black/15"
+          text "丽贝卡·弗格森" class="truncate text-xl font-medium text-zinc-900"
+          text "杰西卡夫人" class="text-lg text-zinc-500"
+        end
+        box class="w-40 items-center gap-3"
+          image "哈维尔·巴登 头像" class="size-36 rounded-full border-4 border-white shadow-lg shadow-black/15"
+          text "哈维尔·巴登" class="truncate text-xl font-medium text-zinc-900"
+          text "斯第尔格" class="text-lg text-zinc-500"
+        end
+        box class="w-40 items-center gap-3"
+          image "奥斯汀·巴特勒 头像" class="size-36 rounded-full border-4 border-white shadow-lg shadow-black/15"
+          text "奥斯汀·巴特勒" class="truncate text-xl font-medium text-zinc-900"
+          text "菲德-罗萨" class="text-lg text-zinc-500"
+        end
+        box class="w-40 items-center gap-3"
+          image "弗洛伦丝·皮尤 头像" class="size-36 rounded-full border-4 border-white shadow-lg shadow-black/15"
+          text "弗洛伦丝·皮尤" class="truncate text-xl font-medium text-zinc-900"
+          text "伊勒琅公主" class="text-lg text-zinc-500"
+        end
+        box class="w-40 items-center gap-3"
+          image "丹尼斯·维伦纽瓦 头像" class="size-36 rounded-full border-4 border-white shadow-lg shadow-black/15"
+          text "丹尼斯·维伦纽瓦" class="truncate text-xl font-medium text-zinc-900"
+          text "导演" class="text-lg text-zinc-500"
+        end
+        box class="w-40 items-center gap-3"
+          image "汉斯·季默 头像" class="size-36 rounded-full border-4 border-white shadow-lg shadow-black/15"
+          text "汉斯·季默" class="truncate text-xl font-medium text-zinc-900"
+          text "配乐" class="text-lg text-zinc-500"
+        end
+      end
+    end
+    box class="gap-6 px-24"
+      box class="flex-row items-center gap-4"
+        box class="h-8 w-1.5 rounded-full bg-violet-500"
+        end
+        text "相关推荐" class="text-3xl font-bold tracking-tight text-zinc-900"
+      end
+      box class="flex-row gap-8 overflow-hidden"
+        use tv-poster title="沙丘" sub="2021 · 豆瓣 7.7" cover="沙丘海报：沙漠中的主角与扑翼机" tap="open tv-detail"
+        use tv-poster title="银翼杀手2049" sub="2017 · 豆瓣 8.3" cover="银翼杀手2049海报：橙色雾霭中的人影" tap="open tv-detail"
+        use tv-poster title="星际穿越" sub="2014 · 豆瓣 9.4" cover="星际穿越海报：宇航员站在冰面上" tap="open tv-detail"
+        use tv-poster title="降临" sub="2016 · 豆瓣 7.8" cover="降临海报：草原上空悬浮的外星飞船" variant=plain tap="open tv-detail"
+        use tv-poster title="奥本海默" sub="2023 · 豆瓣 8.8" cover="奥本海默海报：火光中的人物侧脸" tap="open tv-detail"
+        use tv-poster title="火星救援" sub="2015 · 豆瓣 8.4" cover="火星救援海报：红色星球上的宇航员" variant=plain tap="open tv-detail"
+        use tv-poster title="头号玩家" sub="2018 · 豆瓣 8.7" cover="头号玩家海报：VR 头盔中的少年" variant=plain tap="open tv-detail"
+      end
+    end
+  end
+end
+
+design dark device=desktop width=1920 height=1640 name="详情 · 深色"
+box class="relative flex-1 bg-[#0f1017]" note="焦点从按钮行下移到演职人员与推荐行时页面上滚；设计稿加高以展示全部内容，实际屏幕为 1920×1080。界面跟随系统亮/暗主题，大图区域始终以深色遮罩承载白色文字"
+  box class="relative h-[980px]"
+    image "沙丘2 剧照：主角站在沙丘之巅，远处双月升起" class="absolute top-0 right-0 left-0 h-[980px]"
+    box class="absolute top-0 bottom-0 left-0 w-[1440px] bg-linear-to-r from-black/85 via-black/60 to-transparent"
+    end
+    box class="absolute top-0 right-0 left-0 h-48 bg-linear-to-b from-black/55 to-transparent"
+    end
+    box class="absolute right-0 bottom-0 left-0 h-20 bg-linear-to-b from-transparent to-[#0f1017]"
+    end
+    box class="absolute top-12 right-24 left-24 flex-row items-center justify-between"
+      box class="flex-row items-center gap-3" tap="close"
+        box class="flex-row items-center gap-2 rounded-full border border-white/20 bg-black/35 px-4 py-1.5"
+          icon arrow-left class="size-5 text-white"
+          text "返回" class="text-lg font-medium text-white"
+        end
+        text "按 返回 键返回" class="text-xl text-white/60"
+      end
+      text "20:30" class="text-3xl font-medium text-white"
+    end
+    box class="absolute top-[170px] left-24 w-[900px] gap-7"
+      svg "<svg viewBox='0 0 520 120'><text x='0' y='92' font-family='Georgia, serif' font-size='104' font-weight='700' letter-spacing='18' fill='#f5e6c8'>DUNE</text><text x='370' y='92' font-family='Georgia, serif' font-size='60' fill='#f5e6c8'>II</text></svg>" class="h-28 w-[480px]" note="优先显示 Emby/Jellyfin 返回的 Logo 图，没有时显示标题文字"
+      text "沙丘2 · Dune: Part Two" class="text-3xl font-semibold text-white"
+      box class="flex-row items-center gap-5"
+        box class="flex-row items-center gap-2"
+          text "豆瓣" class="rounded bg-emerald-600 px-2 py-0.5 text-base font-bold text-white"
+          text "8.3" class="text-2xl font-semibold text-white"
+        end
+        box class="flex-row items-center gap-2"
+          text "IMDb" class="rounded bg-amber-400 px-2 py-0.5 text-base font-bold text-black"
+          text "8.5" class="text-2xl font-semibold text-white"
+        end
+        box class="flex-row items-center gap-2"
+          text "TMDB" class="rounded bg-sky-500 px-2 py-0.5 text-base font-bold text-white"
+          text "82%" class="text-2xl font-semibold text-white"
+        end
+        text "2024 · 科幻 / 冒险 · 2 小时 46 分 · PG-13" class="text-2xl text-white/80"
+      end
+      box class="flex-row items-center gap-3"
+        box class="rounded-md border border-white/40 px-2.5 py-1"
+          text "4K" class="text-lg font-bold text-white"
+        end
+        box class="rounded-md border border-white/40 px-2.5 py-1"
+          text "杜比视界" class="text-lg font-bold text-white"
+        end
+        box class="rounded-md border border-white/40 px-2.5 py-1"
+          text "HDR10" class="text-lg font-bold text-white"
+        end
+        box class="rounded-md border border-white/40 px-2.5 py-1"
+          text "Dolby Atmos" class="text-lg font-bold text-white"
+        end
+        box class="rounded-md border border-white/40 px-2.5 py-1"
+          text "中文字幕" class="text-lg font-bold text-white"
+        end
+        box class="flex-row items-center gap-2 rounded-md border border-emerald-400/30 bg-emerald-500/25 px-2.5 py-1"
+          box class="size-2 rounded-full bg-emerald-400"
+          end
+          text "家庭 Emby" class="text-lg font-medium text-emerald-200"
+        end
+      end
+      text "保罗·厄崔迪与契妮和弗雷曼人联手，向摧毁他家族的阴谋者展开复仇。在挚爱与宇宙命运之间，他必须做出抉择，阻止只有他能预见的可怕未来。" class="line-clamp-2 text-2xl leading-relaxed text-white/80"
+      text "导演 丹尼斯·维伦纽瓦 · 主演 提莫西·查拉梅 / 赞达亚 / 丽贝卡·弗格森" class="text-xl text-white/60"
+      box class="gap-4 pt-2"
+        box class="flex-row items-center gap-4"
+          box class="h-20 flex-row items-center gap-3 rounded-full bg-white px-12 shadow-2xl shadow-violet-500/40 ring-4 ring-violet-500" tap="open tv-player" note="当前焦点（紫色描边并轻微放大）。有进度时显示「继续播放 1:12:40」"
+            icon play class="size-8 text-black"
+            text "继续播放" class="text-3xl font-semibold text-black"
+          end
+          box class="h-20 flex-row items-center gap-3 rounded-full border border-white/20 bg-white/15 px-9" tap="open tv-player"
+            icon rotate-ccw class="size-7 text-white"
+            text "从头播放" class="text-2xl font-medium text-white"
+          end
+          box class="h-20 flex-row items-center gap-3 rounded-full border border-white/20 bg-white/15 px-9"
+            icon clapperboard class="size-7 text-white"
+            text "预告片" class="text-2xl font-medium text-white"
+          end
+          box class="size-20 items-center justify-center rounded-full border border-white/20 bg-white/15"
+            icon heart class="size-8 text-white"
+          end
+          box class="h-20 flex-row items-center gap-3 rounded-full border border-white/20 bg-white/15 px-8" note="同一影片在多个媒体源或多个版本时，在此切换：2160p REMUX (Emby) / 1080p (飞牛影视)"
+            text "版本 2160p" class="text-2xl font-medium text-white"
+            icon chevron-down class="size-6 text-white"
+          end
+        end
+        box class="flex-row items-center gap-4"
+          box class="h-2 w-[620px] flex-row overflow-hidden rounded-full bg-white/20"
+            box class="h-2 w-[270px] rounded-full bg-violet-500"
+            end
+          end
+          text "已观看 1:12:40 · 剩余 1 小时 33 分" class="text-lg text-white/70"
+        end
+      end
+    end
+  end
+  box class="relative gap-14 pt-4 pb-24"
+    use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+    box class="gap-6 px-24"
+      box class="flex-row items-center gap-4"
+        box class="h-8 w-1.5 rounded-full bg-amber-500"
+        end
+        text "演职人员" class="text-3xl font-bold tracking-tight text-zinc-50"
+      end
+      box class="flex-row gap-10 overflow-hidden"
+        box class="w-40 items-center gap-3"
+          image "提莫西·查拉梅 头像" class="size-36 rounded-full border-4 border-[#1a1b25] shadow-lg shadow-black/15"
+          text "提莫西·查拉梅" class="truncate text-xl font-medium text-zinc-50"
+          text "保罗" class="text-lg text-zinc-400"
+        end
+        box class="w-40 items-center gap-3"
+          image "赞达亚 头像" class="size-36 rounded-full border-4 border-[#1a1b25] shadow-lg shadow-black/15"
+          text "赞达亚" class="truncate text-xl font-medium text-zinc-50"
+          text "契妮" class="text-lg text-zinc-400"
+        end
+        box class="w-40 items-center gap-3"
+          image "丽贝卡·弗格森 头像" class="size-36 rounded-full border-4 border-[#1a1b25] shadow-lg shadow-black/15"
+          text "丽贝卡·弗格森" class="truncate text-xl font-medium text-zinc-50"
+          text "杰西卡夫人" class="text-lg text-zinc-400"
+        end
+        box class="w-40 items-center gap-3"
+          image "哈维尔·巴登 头像" class="size-36 rounded-full border-4 border-[#1a1b25] shadow-lg shadow-black/15"
+          text "哈维尔·巴登" class="truncate text-xl font-medium text-zinc-50"
+          text "斯第尔格" class="text-lg text-zinc-400"
+        end
+        box class="w-40 items-center gap-3"
+          image "奥斯汀·巴特勒 头像" class="size-36 rounded-full border-4 border-[#1a1b25] shadow-lg shadow-black/15"
+          text "奥斯汀·巴特勒" class="truncate text-xl font-medium text-zinc-50"
+          text "菲德-罗萨" class="text-lg text-zinc-400"
+        end
+        box class="w-40 items-center gap-3"
+          image "弗洛伦丝·皮尤 头像" class="size-36 rounded-full border-4 border-[#1a1b25] shadow-lg shadow-black/15"
+          text "弗洛伦丝·皮尤" class="truncate text-xl font-medium text-zinc-50"
+          text "伊勒琅公主" class="text-lg text-zinc-400"
+        end
+        box class="w-40 items-center gap-3"
+          image "丹尼斯·维伦纽瓦 头像" class="size-36 rounded-full border-4 border-[#1a1b25] shadow-lg shadow-black/15"
+          text "丹尼斯·维伦纽瓦" class="truncate text-xl font-medium text-zinc-50"
+          text "导演" class="text-lg text-zinc-400"
+        end
+        box class="w-40 items-center gap-3"
+          image "汉斯·季默 头像" class="size-36 rounded-full border-4 border-[#1a1b25] shadow-lg shadow-black/15"
+          text "汉斯·季默" class="truncate text-xl font-medium text-zinc-50"
+          text "配乐" class="text-lg text-zinc-400"
+        end
+      end
+    end
+    box class="gap-6 px-24"
+      box class="flex-row items-center gap-4"
+        box class="h-8 w-1.5 rounded-full bg-violet-500"
+        end
+        text "相关推荐" class="text-3xl font-bold tracking-tight text-zinc-50"
+      end
+      box class="flex-row gap-8 overflow-hidden"
+        use tv-poster-dark title="沙丘" sub="2021 · 豆瓣 7.7" cover="沙丘海报：沙漠中的主角与扑翼机" tap="open tv-detail#dark"
+        use tv-poster-dark title="银翼杀手2049" sub="2017 · 豆瓣 8.3" cover="银翼杀手2049海报：橙色雾霭中的人影" tap="open tv-detail#dark"
+        use tv-poster-dark title="星际穿越" sub="2014 · 豆瓣 9.4" cover="星际穿越海报：宇航员站在冰面上" tap="open tv-detail#dark"
+        use tv-poster-dark title="降临" sub="2016 · 豆瓣 7.8" cover="降临海报：草原上空悬浮的外星飞船" variant=plain tap="open tv-detail#dark"
+        use tv-poster-dark title="奥本海默" sub="2023 · 豆瓣 8.8" cover="奥本海默海报：火光中的人物侧脸" tap="open tv-detail#dark"
+        use tv-poster-dark title="火星救援" sub="2015 · 豆瓣 8.4" cover="火星救援海报：红色星球上的宇航员" variant=plain tap="open tv-detail#dark"
+        use tv-poster-dark title="头号玩家" sub="2018 · 豆瓣 8.7" cover="头号玩家海报：VR 头盔中的少年" variant=plain tap="open tv-detail#dark"
+      end
+    end
+  end
+end

@@ -1,0 +1,35 @@
+name: waygu-video-test
+
+services:
+  jellyfin:
+    image: ${WAYGU_JELLYFIN_IMAGE:-jellyfin/jellyfin@sha256:fea863d0cd9ec445985d9c75fc6ed64e38a1d2766cf0c250a33d553f4fc1b771}
+    ports:
+      - "127.0.0.1:18096:8096"
+    volumes:
+      - jellyfin-config:/config
+      - jellyfin-cache:/cache
+      - ./media:/media:ro
+
+  emby:
+    image: ${WAYGU_EMBY_IMAGE:-emby/embyserver@sha256:7082c63b10a2fcb3805a7eaebba407d5723bc57c085c9f0b29b7d0a702765cc1}
+    ports:
+      - "127.0.0.1:28096:8096"
+    volumes:
+      - emby-config:/config
+      - ./media:/media:ro
+
+  plex:
+    image: ${WAYGU_PLEX_IMAGE:-plexinc/pms-docker@sha256:6d778d41daae68f89115aa87a44ae14a96b23e71a2093da173b5a9aac4091336}
+    ports:
+      - "127.0.0.1:32400:32400"
+    environment:
+      TZ: UTC
+    volumes:
+      - plex-config:/config
+      - ./media:/media:ro
+
+volumes:
+  jellyfin-config:
+  jellyfin-cache:
+  emby-config:
+  plex-config:

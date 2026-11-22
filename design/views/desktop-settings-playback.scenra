@@ -1,0 +1,167 @@
+design light in="desktop-settings#light/page" name="设置窗口/播放" gap=160
+box class="relative flex-1 gap-5 bg-[#f4f4f7] p-8"
+  use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="gap-1"
+    text "播放" class="text-2xl font-bold text-zinc-900"
+    text "播放器内核、解码、画质与音频输出" class="text-sm text-zinc-500"
+  end
+  box class="flex-1 flex-row gap-5"
+    box class="flex-1 gap-2"
+      text "视频" class="px-1 text-xs font-medium text-zinc-500"
+      box class="gap-px overflow-hidden rounded-xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5"
+        box class="h-11 flex-row items-center gap-3 bg-white px-4" note="内置 mpv 支持几乎所有格式与特效字幕；系统 AVPlayer 更省电，支持杜比视界原生输出"
+          text "播放器内核" class="flex-1 text-sm text-zinc-900"
+          use select label="内置 mpv"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-white px-4"
+          text "硬件解码" class="flex-1 text-sm text-zinc-900"
+          use select label="自动（VideoToolbox）"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-white px-4"
+          text "默认画质" class="flex-1 text-sm text-zinc-900"
+          use select label="原画"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-white px-4" note="服务器能直接串流时绝不转码；关闭后按网络带宽自动请求转码"
+          text "优先直接播放" class="flex-1 text-sm text-zinc-900"
+          use switch class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-white px-4"
+          text "HDR / 杜比视界" class="flex-1 text-sm text-zinc-900"
+          use select label="显示器支持时直出"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-white px-4"
+          text "HDR 转 SDR 色调映射" class="flex-1 text-sm text-zinc-900"
+          use select label="BT.2390"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-white px-4" note="播放时将显示器刷新率切换为与视频帧率匹配，如 23.976 Hz"
+          text "匹配内容刷新率" class="flex-1 text-sm text-zinc-900"
+          use switch class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-white px-4"
+          text "画面增强" class="flex-1 text-sm text-zinc-900"
+          use select label="超分 + 去色带"
+        end
+      end
+    end
+    box class="flex-1 gap-2"
+      text "音频" class="px-1 text-xs font-medium text-zinc-500"
+      box class="gap-px overflow-hidden rounded-xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5"
+        box class="h-11 flex-row items-center gap-3 bg-white px-4"
+          text "输出设备" class="flex-1 text-sm text-zinc-900"
+          use select label="LG OLED（HDMI）"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-white px-4" note="将 TrueHD / DTS-HD / E-AC3 原始码流送至功放解码"
+          text "音频直通" class="flex-1 text-sm text-zinc-900"
+          use switch class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-white px-4"
+          text "夜间模式（动态压缩）" class="flex-1 text-sm text-zinc-900"
+          use switch variant=off class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+      end
+      text "播放行为" class="px-1 pt-3 text-xs font-medium text-zinc-500"
+      box class="gap-px overflow-hidden rounded-xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5"
+        box class="h-11 flex-row items-center gap-3 bg-white px-4"
+          text "自动播放下一集" class="flex-1 text-sm text-zinc-900"
+          use select label="倒计时 10 秒"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-white px-4" note="使用媒体源的片头/片尾章节标记，没有时按同季其他集推断"
+          text "跳过片头片尾" class="flex-1 text-sm text-zinc-900"
+          use select label="显示跳过按钮"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-white px-4"
+          text "快退 / 快进步长" class="flex-1 text-sm text-zinc-900"
+          use select label="10 秒 / 10 秒"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-white px-4"
+          text "记住每部影片的音轨与字幕" class="flex-1 text-sm text-zinc-900"
+          use switch class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+      end
+    end
+  end
+end
+
+design dark in="desktop-settings#dark/page" name="播放 · 深色"
+box class="relative flex-1 gap-5 bg-[#0f1017] p-8"
+  use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="gap-1"
+    text "播放" class="text-2xl font-bold text-zinc-50"
+    text "播放器内核、解码、画质与音频输出" class="text-sm text-zinc-400"
+  end
+  box class="flex-1 flex-row gap-5"
+    box class="flex-1 gap-2"
+      text "视频" class="px-1 text-xs font-medium text-zinc-400"
+      box class="gap-px overflow-hidden rounded-xl border border-white/8 bg-white/7 shadow-sm shadow-black/5"
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4" note="内置 mpv 支持几乎所有格式与特效字幕；系统 AVPlayer 更省电，支持杜比视界原生输出"
+          text "播放器内核" class="flex-1 text-sm text-zinc-50"
+          use select-dark label="内置 mpv"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "硬件解码" class="flex-1 text-sm text-zinc-50"
+          use select-dark label="自动（VideoToolbox）"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "默认画质" class="flex-1 text-sm text-zinc-50"
+          use select-dark label="原画"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4" note="服务器能直接串流时绝不转码；关闭后按网络带宽自动请求转码"
+          text "优先直接播放" class="flex-1 text-sm text-zinc-50"
+          use switch-dark class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "HDR / 杜比视界" class="flex-1 text-sm text-zinc-50"
+          use select-dark label="显示器支持时直出"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "HDR 转 SDR 色调映射" class="flex-1 text-sm text-zinc-50"
+          use select-dark label="BT.2390"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4" note="播放时将显示器刷新率切换为与视频帧率匹配，如 23.976 Hz"
+          text "匹配内容刷新率" class="flex-1 text-sm text-zinc-50"
+          use switch-dark class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "画面增强" class="flex-1 text-sm text-zinc-50"
+          use select-dark label="超分 + 去色带"
+        end
+      end
+    end
+    box class="flex-1 gap-2"
+      text "音频" class="px-1 text-xs font-medium text-zinc-400"
+      box class="gap-px overflow-hidden rounded-xl border border-white/8 bg-white/7 shadow-sm shadow-black/5"
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "输出设备" class="flex-1 text-sm text-zinc-50"
+          use select-dark label="LG OLED（HDMI）"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4" note="将 TrueHD / DTS-HD / E-AC3 原始码流送至功放解码"
+          text "音频直通" class="flex-1 text-sm text-zinc-50"
+          use switch-dark class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "夜间模式（动态压缩）" class="flex-1 text-sm text-zinc-50"
+          use switch-dark variant=off class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+      end
+      text "播放行为" class="px-1 pt-3 text-xs font-medium text-zinc-400"
+      box class="gap-px overflow-hidden rounded-xl border border-white/8 bg-white/7 shadow-sm shadow-black/5"
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "自动播放下一集" class="flex-1 text-sm text-zinc-50"
+          use select-dark label="倒计时 10 秒"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4" note="使用媒体源的片头/片尾章节标记，没有时按同季其他集推断"
+          text "跳过片头片尾" class="flex-1 text-sm text-zinc-50"
+          use select-dark label="显示跳过按钮"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "快退 / 快进步长" class="flex-1 text-sm text-zinc-50"
+          use select-dark label="10 秒 / 10 秒"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+          text "记住每部影片的音轨与字幕" class="flex-1 text-sm text-zinc-50"
+          use switch-dark class="h-[22px] w-[38px]" knob.class="size-[18px]"
+        end
+      end
+    end
+  end
+end

@@ -1,0 +1,133 @@
+design light device=phone height=2080 name="设置/弹幕" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar
+  use nav-bar title="弹幕" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    box class="gap-2 px-4"
+      box class="relative h-44 overflow-hidden rounded-2xl" note="预览实时反映下方设置：透明度、字号、速度、区域与描边"
+        image "动画画面：夕阳下的城市天台，少女回头微笑" class="absolute top-0 right-0 bottom-0 left-0"
+        box class="absolute top-0 right-0 left-0 h-[88px]"
+          text "名场面来了！！" class="absolute top-3 left-[180px] text-[15px] font-bold text-white/80"
+          text "这一集画面太顶了" class="absolute top-9 left-6 text-[15px] font-bold text-sky-300/80"
+          text "awsl" class="absolute top-[60px] left-[230px] text-[15px] font-bold text-pink-300/80"
+        end
+        box class="absolute right-0 bottom-0 left-0 h-[88px] border-t border-dashed border-white/30 bg-black/20"
+          text "弹幕显示区域 1/2" class="absolute right-3 bottom-2 text-[10px] text-white/70"
+        end
+      end
+    end
+    use settings-group header="基础"
+      fill
+        use settings-row variant=toggle icon=message-square-text title="默认开启弹幕" badge.class="bg-pink-500"
+        use slider label="不透明度" value="80%" fill.class="w-4/5"
+        use slider label="字号" value="100%" fill.class="w-1/2"
+        use slider label="滚动速度" value="适中" fill.class="w-3/5"
+        use slider label="同屏密度" value="60 条" fill.class="w-2/5"
+        use settings-row variant=plain title="显示区域" value="1/2 屏"
+        use settings-row variant=plain title="描边样式" value="重描边"
+        use settings-row variant=plain title="字体" value="系统默认 · 粗体"
+        use settings-row variant="plain toggle" title="显示彩色弹幕"
+        use settings-row variant="plain toggle-off" title="字幕区域内不显示弹幕"
+      end
+    end
+    use settings-group header="弹幕源" variant=footer footer="弹幕按优先顺序加载并合并；自定义服务器需兼容弹弹play API。"
+      fill
+        use settings-row icon=play title="弹弹play" value="已登录" badge.class="bg-violet-500"
+        use settings-row icon=tv title="哔哩哔哩" value="已启用" badge.class="bg-pink-500"
+        use settings-row icon=message-square title="巴哈姆特动画疯" value="已启用" badge.class="bg-sky-600"
+        use settings-row icon=link title="自定义弹幕服务器" value="未设置" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group header="匹配"
+      fill
+        use settings-row variant="toggle desc" icon=fingerprint title="自动匹配弹幕" desc="使用文件哈希 + 文件名识别剧集与集数" badge.class="bg-emerald-500"
+        use settings-row icon=circle-help title="匹配失败时" value="提示手动搜索" badge.class="bg-amber-500"
+        use settings-row variant=toggle icon=layers title="多来源合并去重" badge.class="bg-indigo-500"
+      end
+    end
+    use settings-group header="屏蔽"
+      fill
+        use settings-row icon=ban title="屏蔽词" value="12 个" badge.class="bg-rose-500"
+        use settings-row icon=user-x title="屏蔽的用户" value="6 人" badge.class="bg-rose-500"
+        use settings-row icon=filter title="屏蔽等级" value="3 级" badge.class="bg-rose-500"
+      end
+    end
+    use settings-group header="发送与缓存" variant=footer footer="发送弹幕需要登录弹弹play 账号，发送的弹幕将同步到弹弹play 弹幕库。"
+      fill
+        use settings-row icon=send title="发送弹幕账号" value="弹弹play · lin_xy" badge.class="bg-violet-500"
+        use settings-row icon=database title="弹幕缓存" value="86 MB" badge.class="bg-zinc-500"
+        box class="h-12 items-center justify-center bg-white"
+          text "清除弹幕缓存" class="text-[15px] text-rose-500"
+        end
+      end
+    end
+  end
+end
+
+design dark device=phone height=2080 name="弹幕 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar-dark
+  use nav-bar-dark title="弹幕" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    box class="gap-2 px-4"
+      box class="relative h-44 overflow-hidden rounded-2xl" note="预览实时反映下方设置：透明度、字号、速度、区域与描边"
+        image "动画画面：夕阳下的城市天台，少女回头微笑" class="absolute top-0 right-0 bottom-0 left-0"
+        box class="absolute top-0 right-0 left-0 h-[88px]"
+          text "名场面来了！！" class="absolute top-3 left-[180px] text-[15px] font-bold text-white/80"
+          text "这一集画面太顶了" class="absolute top-9 left-6 text-[15px] font-bold text-sky-300/80"
+          text "awsl" class="absolute top-[60px] left-[230px] text-[15px] font-bold text-pink-300/80"
+        end
+        box class="absolute right-0 bottom-0 left-0 h-[88px] border-t border-dashed border-white/30 bg-black/20"
+          text "弹幕显示区域 1/2" class="absolute right-3 bottom-2 text-[10px] text-white/70"
+        end
+      end
+    end
+    use settings-group-dark header="基础"
+      fill
+        use settings-row-dark variant=toggle icon=message-square-text title="默认开启弹幕" badge.class="bg-pink-500"
+        use slider-dark label="不透明度" value="80%" fill.class="w-4/5"
+        use slider-dark label="字号" value="100%" fill.class="w-1/2"
+        use slider-dark label="滚动速度" value="适中" fill.class="w-3/5"
+        use slider-dark label="同屏密度" value="60 条" fill.class="w-2/5"
+        use settings-row-dark variant=plain title="显示区域" value="1/2 屏"
+        use settings-row-dark variant=plain title="描边样式" value="重描边"
+        use settings-row-dark variant=plain title="字体" value="系统默认 · 粗体"
+        use settings-row-dark variant="plain toggle" title="显示彩色弹幕"
+        use settings-row-dark variant="plain toggle-off" title="字幕区域内不显示弹幕"
+      end
+    end
+    use settings-group-dark header="弹幕源" variant=footer footer="弹幕按优先顺序加载并合并；自定义服务器需兼容弹弹play API。"
+      fill
+        use settings-row-dark icon=play title="弹弹play" value="已登录" badge.class="bg-violet-500"
+        use settings-row-dark icon=tv title="哔哩哔哩" value="已启用" badge.class="bg-pink-500"
+        use settings-row-dark icon=message-square title="巴哈姆特动画疯" value="已启用" badge.class="bg-sky-600"
+        use settings-row-dark icon=link title="自定义弹幕服务器" value="未设置" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group-dark header="匹配"
+      fill
+        use settings-row-dark variant="toggle desc" icon=fingerprint title="自动匹配弹幕" desc="使用文件哈希 + 文件名识别剧集与集数" badge.class="bg-emerald-500"
+        use settings-row-dark icon=circle-help title="匹配失败时" value="提示手动搜索" badge.class="bg-amber-500"
+        use settings-row-dark variant=toggle icon=layers title="多来源合并去重" badge.class="bg-indigo-500"
+      end
+    end
+    use settings-group-dark header="屏蔽"
+      fill
+        use settings-row-dark icon=ban title="屏蔽词" value="12 个" badge.class="bg-rose-500"
+        use settings-row-dark icon=user-x title="屏蔽的用户" value="6 人" badge.class="bg-rose-500"
+        use settings-row-dark icon=filter title="屏蔽等级" value="3 级" badge.class="bg-rose-500"
+      end
+    end
+    use settings-group-dark header="发送与缓存" variant=footer footer="发送弹幕需要登录弹弹play 账号，发送的弹幕将同步到弹弹play 弹幕库。"
+      fill
+        use settings-row-dark icon=send title="发送弹幕账号" value="弹弹play · lin_xy" badge.class="bg-violet-500"
+        use settings-row-dark icon=database title="弹幕缓存" value="86 MB" badge.class="bg-zinc-500"
+        box class="h-12 items-center justify-center bg-[#1a1b25]"
+          text "清除弹幕缓存" class="text-[15px] text-rose-500"
+        end
+      end
+    end
+  end
+end

@@ -1,0 +1,185 @@
+design light device=phone height=1100 name="手机/媒体库" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  use status-bar
+  box class="flex-row items-center justify-between px-5 pt-2"
+    text "媒体库" class="text-[28px] font-bold tracking-tight text-zinc-900"
+    box class="flex-row items-center gap-4"
+      icon layout-grid class="size-5 text-violet-500" note="在海报墙与列表视图之间切换"
+      icon sliders-horizontal class="size-5 text-zinc-900"
+    end
+  end
+  box class="flex-row gap-2 px-5 pt-4"
+    box class="group rounded-full border border-zinc-900/8 bg-white px-4 py-2 shadow-sm shadow-black/5 selected:border-transparent selected:bg-zinc-900" tap="tab movies"
+      text "电影" class="text-sm font-medium text-zinc-900/80 group-selected:text-[#f4f4f7]"
+    end
+    box class="group rounded-full border border-zinc-900/8 bg-white px-4 py-2 shadow-sm shadow-black/5 selected:border-transparent selected:bg-zinc-900" tap="tab shows"
+      text "剧集" class="text-sm font-medium text-zinc-900/80 group-selected:text-[#f4f4f7]"
+    end
+    box class="group rounded-full border border-zinc-900/8 bg-white px-4 py-2 shadow-sm shadow-black/5 selected:border-transparent selected:bg-zinc-900" tap="tab anime"
+      text "动漫" class="text-sm font-medium text-zinc-900/80 group-selected:text-[#f4f4f7]"
+    end
+    box class="group rounded-full border border-zinc-900/8 bg-white px-4 py-2 shadow-sm shadow-black/5 selected:border-transparent selected:bg-zinc-900" tap="tab docs"
+      text "纪录片" class="text-sm font-medium text-zinc-900/80 group-selected:text-[#f4f4f7]"
+    end
+  end
+  box class="flex-row gap-2 overflow-hidden px-5 pt-3 pb-4"
+    box class="flex-row items-center gap-1 rounded-lg border border-violet-500/30 bg-violet-500/12 px-2.5 py-1.5"
+      icon arrow-down-wide-narrow class="size-3.5 text-violet-500"
+      text "最近添加" class="text-xs text-violet-500"
+    end
+    box class="flex-row items-center gap-1 rounded-lg border border-zinc-900/8 bg-white px-2.5 py-1.5"
+      text "类型" class="text-xs text-zinc-900/80"
+      icon chevron-down class="size-3 text-zinc-500"
+    end
+    box class="flex-row items-center gap-1 rounded-lg border border-zinc-900/8 bg-white px-2.5 py-1.5"
+      text "年份" class="text-xs text-zinc-900/80"
+      icon chevron-down class="size-3 text-zinc-500"
+    end
+    box class="flex-row items-center gap-1 rounded-lg border border-zinc-900/8 bg-white px-2.5 py-1.5"
+      text "分辨率" class="text-xs text-zinc-900/80"
+      icon chevron-down class="size-3 text-zinc-500"
+    end
+    box class="flex-row items-center gap-1 rounded-lg border border-zinc-900/8 bg-white px-2.5 py-1.5"
+      text "未观看" class="text-xs text-zinc-900/80"
+    end
+  end
+  box class="flex-1 gap-5 px-5 pb-28" panel=movies
+    text "1,284 部电影 · 来自 3 个媒体源" class="text-xs text-zinc-500" note="同一部影片在多个媒体源中存在时合并为一项，详情页可选择版本"
+    box class="flex-row justify-between"
+      use poster variant=watched card.tap="open movie-detail"
+      use poster title="沙丘2" sub="2024 · 8.3" cover="《沙丘2》海报：沙漠中的人物剪影" variant=fresh card.tap="open movie-detail"
+      use poster title="奥本海默" sub="2023 · 8.8" cover="《奥本海默》海报：火焰中的人物" card.tap="open movie-detail"
+    end
+    box class="flex-row justify-between"
+      use poster title="坠落的审判" sub="2023 · 8.6" quality="HDR" cover="《坠落的审判》海报：雪山木屋" variant=fresh card.tap="open movie-detail"
+      use poster title="周处除三害" sub="2023 · 8.0" quality="1080P" cover="《周处除三害》海报：持枪男子" variant=watched card.tap="open movie-detail"
+      use poster title="封神第一部" sub="2023 · 7.8" cover="《封神第一部》海报：金甲武士" variant=fresh card.tap="open movie-detail"
+    end
+    box class="flex-row justify-between"
+      use poster title="星际穿越" sub="2014 · 9.4" cover="《星际穿越》海报：宇航员与黑洞" variant=watched card.tap="open movie-detail"
+      use poster title="让子弹飞" sub="2010 · 9.0" quality="1080P" cover="《让子弹飞》海报：火车与马匹" variant=watched card.tap="open movie-detail"
+      use poster title="千与千寻" sub="2001 · 9.4" cover="《千与千寻》海报：少女与无脸男" variant=fresh card.tap="open movie-detail"
+    end
+    box class="flex-row justify-between"
+      use poster title="银翼杀手2049" sub="2017 · 8.4" cover="《银翼杀手2049》海报：橙色雾霾中的城市" variant=fresh card.tap="open movie-detail"
+      use poster title="寄生虫" sub="2019 · 8.8" quality="HDR" cover="《寄生虫》海报：草坪上的一家人" variant=watched card.tap="open movie-detail"
+      use poster title="burning" sub="2018 · 7.9" quality="1080P" cover="《燃烧》海报：夕阳下的田野" variant=fresh card.tap="open movie-detail"
+    end
+  end
+  box class="flex-1 gap-5 px-5 pb-28" panel=shows
+    text "326 部剧集 · 12 部有更新" class="text-xs text-zinc-500"
+    box class="flex-row justify-between"
+      use poster title="繁花" sub="30 集 · 1 集未看" quality="新" badge.class="bg-violet-500" cover="《繁花》海报：上海外滩夜景" variant=fresh card.tap="open series-detail"
+      use poster title="漫长的季节" sub="S1 · E6" quality="1080P" cover="《漫长的季节》海报：东北铁轨" card.tap="open series-detail"
+      use poster title="三体" sub="30 集" cover="《三体》海报：倒计时与星空" variant=watched card.tap="open series-detail"
+    end
+    box class="flex-row justify-between"
+      use poster title="黑镜" sub="6 季" cover="《黑镜》海报：碎裂屏幕" variant=fresh card.tap="open series-detail"
+      use poster title="绝命毒师" sub="5 季" cover="《绝命毒师》海报：沙漠与房车" variant=watched card.tap="open series-detail"
+      use poster title="狂飙" sub="39 集" quality="1080P" cover="《狂飙》海报：鱼摊前的男人" card.tap="open series-detail"
+    end
+  end
+  box class="flex-1 items-center justify-center gap-2 pb-28" panel=anime
+    icon sparkles class="size-8 text-zinc-500/50"
+    text "动漫海报墙，布局同电影" class="text-sm text-zinc-500"
+  end
+  box class="flex-1 items-center justify-center gap-2 pb-28" panel=docs
+    icon globe class="size-8 text-zinc-500/50"
+    text "纪录片海报墙，布局同电影" class="text-sm text-zinc-500"
+  end
+  use tab-bar class="absolute right-0 bottom-0 left-0" home.tap="open home" library.tap="open library" search.tap="open search" settings.tap="open settings"
+end
+
+design dark device=phone height=1100 name="媒体库 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  use status-bar-dark
+  box class="flex-row items-center justify-between px-5 pt-2"
+    text "媒体库" class="text-[28px] font-bold tracking-tight text-zinc-50"
+    box class="flex-row items-center gap-4"
+      icon layout-grid class="size-5 text-violet-400" note="在海报墙与列表视图之间切换"
+      icon sliders-horizontal class="size-5 text-zinc-50"
+    end
+  end
+  box class="flex-row gap-2 px-5 pt-4"
+    box class="group rounded-full border border-white/8 bg-[#1a1b25] px-4 py-2 shadow-sm shadow-black/5 selected:border-transparent selected:bg-zinc-50" tap="tab movies"
+      text "电影" class="text-sm font-medium text-zinc-50/80 group-selected:text-[#0f1017]"
+    end
+    box class="group rounded-full border border-white/8 bg-[#1a1b25] px-4 py-2 shadow-sm shadow-black/5 selected:border-transparent selected:bg-zinc-50" tap="tab shows"
+      text "剧集" class="text-sm font-medium text-zinc-50/80 group-selected:text-[#0f1017]"
+    end
+    box class="group rounded-full border border-white/8 bg-[#1a1b25] px-4 py-2 shadow-sm shadow-black/5 selected:border-transparent selected:bg-zinc-50" tap="tab anime"
+      text "动漫" class="text-sm font-medium text-zinc-50/80 group-selected:text-[#0f1017]"
+    end
+    box class="group rounded-full border border-white/8 bg-[#1a1b25] px-4 py-2 shadow-sm shadow-black/5 selected:border-transparent selected:bg-zinc-50" tap="tab docs"
+      text "纪录片" class="text-sm font-medium text-zinc-50/80 group-selected:text-[#0f1017]"
+    end
+  end
+  box class="flex-row gap-2 overflow-hidden px-5 pt-3 pb-4"
+    box class="flex-row items-center gap-1 rounded-lg border border-violet-500/30 bg-violet-500/12 px-2.5 py-1.5"
+      icon arrow-down-wide-narrow class="size-3.5 text-violet-400"
+      text "最近添加" class="text-xs text-violet-400"
+    end
+    box class="flex-row items-center gap-1 rounded-lg border border-white/8 bg-[#1a1b25] px-2.5 py-1.5"
+      text "类型" class="text-xs text-zinc-50/80"
+      icon chevron-down class="size-3 text-zinc-400"
+    end
+    box class="flex-row items-center gap-1 rounded-lg border border-white/8 bg-[#1a1b25] px-2.5 py-1.5"
+      text "年份" class="text-xs text-zinc-50/80"
+      icon chevron-down class="size-3 text-zinc-400"
+    end
+    box class="flex-row items-center gap-1 rounded-lg border border-white/8 bg-[#1a1b25] px-2.5 py-1.5"
+      text "分辨率" class="text-xs text-zinc-50/80"
+      icon chevron-down class="size-3 text-zinc-400"
+    end
+    box class="flex-row items-center gap-1 rounded-lg border border-white/8 bg-[#1a1b25] px-2.5 py-1.5"
+      text "未观看" class="text-xs text-zinc-50/80"
+    end
+  end
+  box class="flex-1 gap-5 px-5 pb-28" panel=movies
+    text "1,284 部电影 · 来自 3 个媒体源" class="text-xs text-zinc-400" note="同一部影片在多个媒体源中存在时合并为一项，详情页可选择版本"
+    box class="flex-row justify-between"
+      use poster-dark variant=watched card.tap="open movie-detail#dark"
+      use poster-dark title="沙丘2" sub="2024 · 8.3" cover="《沙丘2》海报：沙漠中的人物剪影" variant=fresh card.tap="open movie-detail#dark"
+      use poster-dark title="奥本海默" sub="2023 · 8.8" cover="《奥本海默》海报：火焰中的人物" card.tap="open movie-detail#dark"
+    end
+    box class="flex-row justify-between"
+      use poster-dark title="坠落的审判" sub="2023 · 8.6" quality="HDR" cover="《坠落的审判》海报：雪山木屋" variant=fresh card.tap="open movie-detail#dark"
+      use poster-dark title="周处除三害" sub="2023 · 8.0" quality="1080P" cover="《周处除三害》海报：持枪男子" variant=watched card.tap="open movie-detail#dark"
+      use poster-dark title="封神第一部" sub="2023 · 7.8" cover="《封神第一部》海报：金甲武士" variant=fresh card.tap="open movie-detail#dark"
+    end
+    box class="flex-row justify-between"
+      use poster-dark title="星际穿越" sub="2014 · 9.4" cover="《星际穿越》海报：宇航员与黑洞" variant=watched card.tap="open movie-detail#dark"
+      use poster-dark title="让子弹飞" sub="2010 · 9.0" quality="1080P" cover="《让子弹飞》海报：火车与马匹" variant=watched card.tap="open movie-detail#dark"
+      use poster-dark title="千与千寻" sub="2001 · 9.4" cover="《千与千寻》海报：少女与无脸男" variant=fresh card.tap="open movie-detail#dark"
+    end
+    box class="flex-row justify-between"
+      use poster-dark title="银翼杀手2049" sub="2017 · 8.4" cover="《银翼杀手2049》海报：橙色雾霾中的城市" variant=fresh card.tap="open movie-detail#dark"
+      use poster-dark title="寄生虫" sub="2019 · 8.8" quality="HDR" cover="《寄生虫》海报：草坪上的一家人" variant=watched card.tap="open movie-detail#dark"
+      use poster-dark title="burning" sub="2018 · 7.9" quality="1080P" cover="《燃烧》海报：夕阳下的田野" variant=fresh card.tap="open movie-detail#dark"
+    end
+  end
+  box class="flex-1 gap-5 px-5 pb-28" panel=shows
+    text "326 部剧集 · 12 部有更新" class="text-xs text-zinc-400"
+    box class="flex-row justify-between"
+      use poster-dark title="繁花" sub="30 集 · 1 集未看" quality="新" badge.class="bg-violet-500" cover="《繁花》海报：上海外滩夜景" variant=fresh card.tap="open series-detail#dark"
+      use poster-dark title="漫长的季节" sub="S1 · E6" quality="1080P" cover="《漫长的季节》海报：东北铁轨" card.tap="open series-detail#dark"
+      use poster-dark title="三体" sub="30 集" cover="《三体》海报：倒计时与星空" variant=watched card.tap="open series-detail#dark"
+    end
+    box class="flex-row justify-between"
+      use poster-dark title="黑镜" sub="6 季" cover="《黑镜》海报：碎裂屏幕" variant=fresh card.tap="open series-detail#dark"
+      use poster-dark title="绝命毒师" sub="5 季" cover="《绝命毒师》海报：沙漠与房车" variant=watched card.tap="open series-detail#dark"
+      use poster-dark title="狂飙" sub="39 集" quality="1080P" cover="《狂飙》海报：鱼摊前的男人" card.tap="open series-detail#dark"
+    end
+  end
+  box class="flex-1 items-center justify-center gap-2 pb-28" panel=anime
+    icon sparkles class="size-8 text-zinc-400/50"
+    text "动漫海报墙，布局同电影" class="text-sm text-zinc-400"
+  end
+  box class="flex-1 items-center justify-center gap-2 pb-28" panel=docs
+    icon globe class="size-8 text-zinc-400/50"
+    text "纪录片海报墙，布局同电影" class="text-sm text-zinc-400"
+  end
+  use tab-bar-dark class="absolute right-0 bottom-0 left-0" home.tap="open home#dark" library.tap="open library#dark" search.tap="open search#dark" settings.tap="open settings#dark"
+end

@@ -1,0 +1,267 @@
+design light device=desktop width=1100 height=760 name="桌面/设置窗口" gap=160
+box class="relative flex-1 bg-[#f4f4f7]" note="未链接的分类（字幕、外观、媒体库与元数据、同步与账户、存储与下载、家长控制、关于）内容与手机端对应的设置页一致，按桌面表单样式排版"
+  use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="h-12 flex-row items-center border-b border-zinc-900/8 bg-[#e9e9f0]/60 px-4"
+    box class="w-20 flex-row gap-2"
+      box class="size-3 rounded-full bg-[#ff5f57]"
+      end
+      box class="size-3 rounded-full bg-[#febc2e]"
+      end
+      box class="size-3 rounded-full bg-[#28c840]"
+      end
+    end
+    text "设置" class="flex-1 text-center text-sm font-semibold text-zinc-900"
+    box class="w-20"
+    end
+  end
+  box class="flex-1 flex-row"
+    box class="w-56 gap-0.5 border-r border-zinc-900/8 bg-[#e9e9f0]/40 p-3"
+      box class="mb-2 h-8 flex-row items-center gap-2 rounded-lg border border-zinc-900/8 bg-white px-2.5 shadow-sm shadow-black/5"
+        icon search class="size-3.5 text-zinc-500"
+        text "搜索设置" class="text-[13px] text-zinc-500"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12" tap="open desktop-settings-general"
+        box class="size-6 items-center justify-center rounded-md bg-slate-500"
+          icon settings class="size-3.5 text-white"
+        end
+        text "通用" class="text-[13px] text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12" tap="open desktop-settings-sources"
+        box class="size-6 items-center justify-center rounded-md bg-emerald-500"
+          icon server class="size-3.5 text-white"
+        end
+        text "媒体源" class="text-[13px] text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12" tap="open desktop-settings-playback"
+        box class="size-6 items-center justify-center rounded-md bg-violet-500"
+          icon play class="size-3.5 text-white"
+        end
+        text "播放" class="text-[13px] text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-sky-500"
+          icon captions class="size-3.5 text-white"
+        end
+        text "字幕" class="text-[13px] text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12" tap="open desktop-settings-danmaku"
+        box class="size-6 items-center justify-center rounded-md bg-fuchsia-500"
+          icon message-square-text class="size-3.5 text-white"
+        end
+        text "弹幕" class="text-[13px] text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-pink-500"
+          icon palette class="size-3.5 text-white"
+        end
+        text "外观" class="text-[13px] text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-orange-500"
+          icon library class="size-3.5 text-white"
+        end
+        text "媒体库与元数据" class="text-[13px] text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-blue-500"
+          icon refresh-cw class="size-3.5 text-white"
+        end
+        text "同步与账户" class="text-[13px] text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-teal-500"
+          icon hard-drive class="size-3.5 text-white"
+        end
+        text "存储与下载" class="text-[13px] text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-rose-500"
+          icon shield class="size-3.5 text-white"
+        end
+        text "家长控制" class="text-[13px] text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-slate-500"
+          icon keyboard class="size-3.5 text-white"
+        end
+        text "快捷键" class="text-[13px] text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-slate-600"
+          icon info class="size-3.5 text-white"
+        end
+        text "关于" class="text-[13px] text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      end
+    end
+    box class="relative flex-1 gap-6 p-8" outlet=page
+      box class="flex-row items-center gap-4 rounded-2xl border border-zinc-900/8 bg-white p-5 shadow-sm shadow-black/5"
+        box class="size-14 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500"
+          text "林" class="text-xl font-semibold text-white"
+        end
+        box class="flex-1 gap-1"
+          text "林小雨" class="text-lg font-semibold text-zinc-900"
+          text "设置已通过 Waygu 账户在 4 台设备间同步" class="text-sm text-zinc-500"
+        end
+        text "Waygu 2.4.0" class="rounded-full bg-zinc-900/5 px-3 py-1 text-xs text-zinc-500"
+      end
+      text "常用设置" class="text-sm font-medium text-zinc-500"
+      box class="flex-row gap-4"
+        box class="flex-1 gap-3 rounded-2xl border border-zinc-900/8 bg-white p-5 shadow-sm shadow-black/5" tap="open desktop-settings-sources"
+          box class="size-9 items-center justify-center rounded-lg bg-emerald-500"
+            icon server class="size-5 text-white"
+          end
+          text "媒体源" class="font-semibold text-zinc-900"
+          text "5 个已添加 · 3 个在线" class="text-xs text-zinc-500"
+        end
+        box class="flex-1 gap-3 rounded-2xl border border-zinc-900/8 bg-white p-5 shadow-sm shadow-black/5" tap="open desktop-settings-playback"
+          box class="size-9 items-center justify-center rounded-lg bg-violet-500"
+            icon play class="size-5 text-white"
+          end
+          text "播放" class="font-semibold text-zinc-900"
+          text "内置 mpv · 硬件解码" class="text-xs text-zinc-500"
+        end
+        box class="flex-1 gap-3 rounded-2xl border border-zinc-900/8 bg-white p-5 shadow-sm shadow-black/5" tap="open desktop-settings-danmaku"
+          box class="size-9 items-center justify-center rounded-lg bg-fuchsia-500"
+            icon message-square-text class="size-5 text-white"
+          end
+          text "弹幕" class="font-semibold text-zinc-900"
+          text "已开启 · 2 个弹幕源" class="text-xs text-zinc-500"
+        end
+      end
+    end
+  end
+end
+
+design dark device=desktop width=1100 height=760 name="设置窗口 · 深色"
+box class="relative flex-1 bg-[#0f1017]" note="未链接的分类（字幕、外观、媒体库与元数据、同步与账户、存储与下载、家长控制、关于）内容与手机端对应的设置页一致，按桌面表单样式排版"
+  use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="h-12 flex-row items-center border-b border-white/8 bg-[#1a1b25]/60 px-4"
+    box class="w-20 flex-row gap-2"
+      box class="size-3 rounded-full bg-[#ff5f57]"
+      end
+      box class="size-3 rounded-full bg-[#febc2e]"
+      end
+      box class="size-3 rounded-full bg-[#28c840]"
+      end
+    end
+    text "设置" class="flex-1 text-center text-sm font-semibold text-zinc-50"
+    box class="w-20"
+    end
+  end
+  box class="flex-1 flex-row"
+    box class="w-56 gap-0.5 border-r border-white/8 bg-[#1a1b25]/40 p-3"
+      box class="mb-2 h-8 flex-row items-center gap-2 rounded-lg border border-white/8 bg-[#1a1b25] px-2.5 shadow-sm shadow-black/5"
+        icon search class="size-3.5 text-zinc-400"
+        text "搜索设置" class="text-[13px] text-zinc-400"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12" tap="open desktop-settings-general#dark"
+        box class="size-6 items-center justify-center rounded-md bg-slate-500"
+          icon settings class="size-3.5 text-white"
+        end
+        text "通用" class="text-[13px] text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12" tap="open desktop-settings-sources#dark"
+        box class="size-6 items-center justify-center rounded-md bg-emerald-500"
+          icon server class="size-3.5 text-white"
+        end
+        text "媒体源" class="text-[13px] text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12" tap="open desktop-settings-playback#dark"
+        box class="size-6 items-center justify-center rounded-md bg-violet-500"
+          icon play class="size-3.5 text-white"
+        end
+        text "播放" class="text-[13px] text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-sky-500"
+          icon captions class="size-3.5 text-white"
+        end
+        text "字幕" class="text-[13px] text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12" tap="open desktop-settings-danmaku#dark"
+        box class="size-6 items-center justify-center rounded-md bg-fuchsia-500"
+          icon message-square-text class="size-3.5 text-white"
+        end
+        text "弹幕" class="text-[13px] text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-pink-500"
+          icon palette class="size-3.5 text-white"
+        end
+        text "外观" class="text-[13px] text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-orange-500"
+          icon library class="size-3.5 text-white"
+        end
+        text "媒体库与元数据" class="text-[13px] text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-blue-500"
+          icon refresh-cw class="size-3.5 text-white"
+        end
+        text "同步与账户" class="text-[13px] text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-teal-500"
+          icon hard-drive class="size-3.5 text-white"
+        end
+        text "存储与下载" class="text-[13px] text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-rose-500"
+          icon shield class="size-3.5 text-white"
+        end
+        text "家长控制" class="text-[13px] text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-slate-500"
+          icon keyboard class="size-3.5 text-white"
+        end
+        text "快捷键" class="text-[13px] text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
+      end
+      box class="group h-9 flex-row items-center gap-2.5 rounded-lg px-2.5 selected:bg-violet-500/12"
+        box class="size-6 items-center justify-center rounded-md bg-slate-600"
+          icon info class="size-3.5 text-white"
+        end
+        text "关于" class="text-[13px] text-zinc-50/80 group-selected:font-medium group-selected:text-zinc-50"
+      end
+    end
+    box class="relative flex-1 gap-6 p-8" outlet=page
+      box class="flex-row items-center gap-4 rounded-2xl border border-white/8 bg-[#1a1b25] p-5 shadow-sm shadow-black/5"
+        box class="size-14 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500"
+          text "林" class="text-xl font-semibold text-white"
+        end
+        box class="flex-1 gap-1"
+          text "林小雨" class="text-lg font-semibold text-zinc-50"
+          text "设置已通过 Waygu 账户在 4 台设备间同步" class="text-sm text-zinc-400"
+        end
+        text "Waygu 2.4.0" class="rounded-full bg-zinc-50/5 px-3 py-1 text-xs text-zinc-400"
+      end
+      text "常用设置" class="text-sm font-medium text-zinc-400"
+      box class="flex-row gap-4"
+        box class="flex-1 gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] p-5 shadow-sm shadow-black/5" tap="open desktop-settings-sources#dark"
+          box class="size-9 items-center justify-center rounded-lg bg-emerald-500"
+            icon server class="size-5 text-white"
+          end
+          text "媒体源" class="font-semibold text-zinc-50"
+          text "5 个已添加 · 3 个在线" class="text-xs text-zinc-400"
+        end
+        box class="flex-1 gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] p-5 shadow-sm shadow-black/5" tap="open desktop-settings-playback#dark"
+          box class="size-9 items-center justify-center rounded-lg bg-violet-500"
+            icon play class="size-5 text-white"
+          end
+          text "播放" class="font-semibold text-zinc-50"
+          text "内置 mpv · 硬件解码" class="text-xs text-zinc-400"
+        end
+        box class="flex-1 gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] p-5 shadow-sm shadow-black/5" tap="open desktop-settings-danmaku#dark"
+          box class="size-9 items-center justify-center rounded-lg bg-fuchsia-500"
+            icon message-square-text class="size-5 text-white"
+          end
+          text "弹幕" class="font-semibold text-zinc-50"
+          text "已开启 · 2 个弹幕源" class="text-xs text-zinc-400"
+        end
+      end
+    end
+  end
+end

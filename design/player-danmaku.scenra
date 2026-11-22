@@ -1,0 +1,267 @@
+design device=phone width=844 height=390 name="手机/弹幕面板"
+box class="relative flex-1 overflow-hidden bg-zinc-950" note="播放器界面始终为深色，不随亮/暗主题切换"
+  image "电影画面：太空电梯在暗蓝色星空下升起，远处是被冰封的地球，冷色科幻光影" class="absolute top-0 right-0 bottom-0 left-0"
+  box class="absolute top-0 right-0 bottom-0 left-0 bg-black/50" tap="close"
+    text "这段特效真的是国产天花板" class="absolute top-[70px] left-[60px] text-[15px] font-semibold text-white/60"
+    text "名场面来了" class="absolute top-[110px] left-[300px] text-[15px] font-semibold text-amber-300/60"
+    text "二刷还是会哭" class="absolute top-[150px] left-[120px] text-[15px] font-semibold text-pink-300/60"
+  end
+  box class="absolute top-0 right-0 bottom-0 w-[360px] border-l border-white/10 bg-zinc-900/85 shadow-2xl shadow-black/60"
+    box class="flex-row items-center justify-between px-5 pt-4 pb-3"
+      box class="flex-row items-center gap-2"
+        box class="size-6 items-center justify-center rounded-md bg-linear-to-br from-violet-500 to-fuchsia-500"
+          text "弹" class="text-xs font-bold text-white"
+        end
+        text "弹幕" class="text-base font-semibold text-white"
+        text "已加载 12,143 条" class="text-xs text-zinc-500"
+      end
+      box class="size-8 items-center justify-center rounded-full bg-white/10" tap="close"
+        icon x class="size-4 text-zinc-300"
+      end
+    end
+    box class="mx-5 flex-row rounded-xl border border-white/10 bg-white/5 p-1"
+      box class="group h-7 flex-1 items-center justify-center rounded-lg selected:bg-violet-500 selected:shadow-md selected:shadow-violet-500/30" tap="tab show"
+        text "显示" class="text-xs text-zinc-400 group-selected:font-medium group-selected:text-white"
+      end
+      box class="group h-7 flex-1 items-center justify-center rounded-lg selected:bg-violet-500 selected:shadow-md selected:shadow-violet-500/30" tap="tab source"
+        text "来源" class="text-xs text-zinc-400 group-selected:font-medium group-selected:text-white"
+      end
+      box class="group h-7 flex-1 items-center justify-center rounded-lg selected:bg-violet-500 selected:shadow-md selected:shadow-violet-500/30" tap="tab block"
+        text "屏蔽" class="text-xs text-zinc-400 group-selected:font-medium group-selected:text-white"
+      end
+    end
+    box class="flex-1 gap-3.5 overflow-hidden px-5 pt-3.5" panel=show note="面板内容可上下滚动；调整实时作用于画面上的弹幕，并保存为默认值"
+      box class="flex-row items-center justify-between"
+        text "显示弹幕" class="text-sm text-white"
+        use switch-dark class="scale-90"
+      end
+      box class="flex-row gap-5"
+        box class="flex-1 gap-1.5"
+          box class="flex-row justify-between"
+            text "不透明度" class="text-xs text-zinc-400"
+            text "80%" class="text-xs font-medium text-violet-400"
+          end
+          box class="h-3 flex-row items-center"
+            box class="h-1 w-4/5 rounded-l-full bg-linear-to-r from-violet-500 to-fuchsia-500"
+            end
+            box class="size-3 rounded-full bg-white shadow-md shadow-violet-500/40"
+            end
+            box class="h-1 flex-1 rounded-r-full bg-white/15"
+            end
+          end
+        end
+        box class="flex-1 gap-1.5"
+          box class="flex-row justify-between"
+            text "字号" class="text-xs text-zinc-400"
+            text "100%" class="text-xs font-medium text-violet-400"
+          end
+          box class="h-3 flex-row items-center"
+            box class="h-1 w-1/2 rounded-l-full bg-linear-to-r from-violet-500 to-fuchsia-500"
+            end
+            box class="size-3 rounded-full bg-white shadow-md shadow-violet-500/40"
+            end
+            box class="h-1 flex-1 rounded-r-full bg-white/15"
+            end
+          end
+        end
+      end
+      box class="flex-row gap-5"
+        box class="flex-1 gap-1.5"
+          box class="flex-row justify-between"
+            text "速度" class="text-xs text-zinc-400"
+            text "适中" class="text-xs font-medium text-violet-400"
+          end
+          box class="h-3 flex-row items-center"
+            box class="h-1 w-3/5 rounded-l-full bg-linear-to-r from-violet-500 to-fuchsia-500"
+            end
+            box class="size-3 rounded-full bg-white shadow-md shadow-violet-500/40"
+            end
+            box class="h-1 flex-1 rounded-r-full bg-white/15"
+            end
+          end
+        end
+        box class="flex-1 gap-1.5"
+          box class="flex-row justify-between"
+            text "同屏密度" class="text-xs text-zinc-400"
+            text "60 条" class="text-xs font-medium text-violet-400"
+          end
+          box class="h-3 flex-row items-center"
+            box class="h-1 w-2/5 rounded-l-full bg-linear-to-r from-violet-500 to-fuchsia-500"
+            end
+            box class="size-3 rounded-full bg-white shadow-md shadow-violet-500/40"
+            end
+            box class="h-1 flex-1 rounded-r-full bg-white/15"
+            end
+          end
+        end
+      end
+      box class="gap-1.5"
+        text "显示区域" class="text-xs text-zinc-400"
+        box class="flex-row gap-1.5"
+          box class="h-7 flex-1 items-center justify-center rounded-lg border border-white/10 bg-white/5"
+            text "1/4" class="text-xs text-zinc-300"
+          end
+          box class="h-7 flex-1 items-center justify-center rounded-lg bg-violet-500 shadow-md shadow-violet-500/30"
+            text "1/2" class="text-xs font-medium text-white"
+          end
+          box class="h-7 flex-1 items-center justify-center rounded-lg border border-white/10 bg-white/5"
+            text "3/4" class="text-xs text-zinc-300"
+          end
+          box class="h-7 flex-1 items-center justify-center rounded-lg border border-white/10 bg-white/5"
+            text "全屏" class="text-xs text-zinc-300"
+          end
+        end
+      end
+      box class="gap-1.5"
+        text "弹幕类型" class="text-xs text-zinc-400"
+        box class="flex-row gap-1.5"
+          box class="h-7 flex-1 flex-row items-center justify-center gap-1 rounded-lg border border-violet-500/60 bg-violet-500/15"
+            icon check class="size-3 text-violet-300"
+            text "滚动" class="text-xs text-white"
+          end
+          box class="h-7 flex-1 flex-row items-center justify-center gap-1 rounded-lg border border-violet-500/60 bg-violet-500/15"
+            icon check class="size-3 text-violet-300"
+            text "顶部" class="text-xs text-white"
+          end
+          box class="h-7 flex-1 flex-row items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/5"
+            text "底部" class="text-xs text-zinc-400"
+          end
+          box class="h-7 flex-1 flex-row items-center justify-center gap-1 rounded-lg border border-violet-500/60 bg-violet-500/15"
+            icon check class="size-3 text-violet-300"
+            text "彩色" class="text-xs text-white"
+          end
+        end
+      end
+      box class="flex-row items-center justify-between"
+        box class="gap-0.5"
+          text "时间偏移" class="text-sm text-white"
+          text "弹幕整体提前或延后" class="text-[11px] text-zinc-500"
+        end
+        box class="h-8 flex-row items-center rounded-lg border border-white/10 bg-white/5"
+          box class="h-8 w-9 items-center justify-center"
+            icon minus class="size-3.5 text-zinc-300"
+          end
+          text "+0.5s" class="w-12 text-center text-xs font-medium text-white"
+          box class="h-8 w-9 items-center justify-center"
+            icon plus class="size-3.5 text-zinc-300"
+          end
+        end
+      end
+    end
+    box class="flex-1 gap-3 overflow-hidden px-5 pt-3.5" panel=source
+      box class="flex-row items-center gap-3 rounded-2xl border border-violet-500/30 bg-linear-to-br from-violet-500/20 to-fuchsia-500/10 p-3" note="自动匹配：先用文件前 16MB 的哈希 + 文件名向弹弹play 查询，匹配失败再按标题与集数搜索，见 flows/danmaku-matching"
+        image "流浪地球2 海报缩略图" class="h-12 w-9 rounded-md"
+        box class="flex-1 gap-0.5"
+          text "流浪地球2" class="text-sm font-medium text-white"
+          text "弹弹play 自动匹配 · 匹配度 98%" class="text-[11px] text-violet-300"
+        end
+        box class="h-7 items-center justify-center rounded-full bg-white/10 px-3"
+          text "更换" class="text-xs text-white"
+        end
+      end
+      box class="gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10"
+        box class="h-11 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+          box class="size-6 items-center justify-center rounded-md bg-linear-to-br from-violet-500 to-fuchsia-500"
+            text "弹" class="text-[10px] font-bold text-white"
+          end
+          text "弹弹play" class="flex-1 text-sm text-white"
+          text "8,421" class="text-xs text-zinc-500"
+          use switch-dark class="scale-75"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+          box class="size-6 items-center justify-center rounded-md bg-pink-500"
+            icon tv class="size-3.5 text-white"
+          end
+          text "哔哩哔哩" class="flex-1 text-sm text-white"
+          text "3,210" class="text-xs text-zinc-500"
+          use switch-dark class="scale-75"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+          box class="size-6 items-center justify-center rounded-md bg-sky-600"
+            icon message-square class="size-3.5 text-white"
+          end
+          text "巴哈姆特" class="flex-1 text-sm text-white"
+          text "512" class="text-xs text-zinc-500"
+          use switch-dark variant=off class="scale-75"
+        end
+        box class="h-11 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+          box class="size-6 items-center justify-center rounded-md bg-zinc-600"
+            icon file-text class="size-3.5 text-white"
+          end
+          text "本地 XML 文件" class="flex-1 text-sm text-white"
+          text "未导入" class="text-xs text-zinc-500"
+          icon chevron-right class="size-4 text-zinc-600"
+        end
+      end
+      box class="flex-row gap-2"
+        box class="h-9 flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/10"
+          icon search class="size-3.5 text-white"
+          text "手动搜索匹配" class="text-xs text-white"
+        end
+        box class="h-9 flex-1 flex-row items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/10" note="支持 B 站 XML、弹弹play JSON、ASS 格式"
+          icon upload class="size-3.5 text-white"
+          text "导入弹幕文件" class="text-xs text-white"
+        end
+      end
+      box class="flex-row items-center justify-between"
+        text "多来源合并去重" class="text-sm text-white"
+        use switch-dark class="scale-75"
+      end
+    end
+    box class="flex-1 gap-3 overflow-hidden px-5 pt-3.5" panel=block
+      box class="gap-2"
+        box class="flex-row items-center justify-between"
+          text "屏蔽关键词" class="text-sm text-white"
+          text "+ 添加" class="text-xs text-violet-400"
+        end
+        box class="flex-row flex-wrap gap-1.5"
+          box class="flex-row items-center gap-1 rounded-full bg-white/10 px-2.5 py-1"
+            text "剧透" class="text-xs text-zinc-200"
+            icon x class="size-3 text-zinc-500"
+          end
+          box class="flex-row items-center gap-1 rounded-full bg-white/10 px-2.5 py-1"
+            text "前方高能" class="text-xs text-zinc-200"
+            icon x class="size-3 text-zinc-500"
+          end
+          box class="flex-row items-center gap-1 rounded-full bg-white/10 px-2.5 py-1"
+            text "打卡" class="text-xs text-zinc-200"
+            icon x class="size-3 text-zinc-500"
+          end
+          box class="flex-row items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1"
+            text "正则 ^\\d+$" class="text-xs text-amber-300"
+            icon x class="size-3 text-amber-500/60"
+          end
+        end
+      end
+      box class="gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10"
+        box class="h-11 flex-row items-center bg-zinc-800/70 px-3"
+          text "屏蔽的用户" class="flex-1 text-sm text-white"
+          text "6 人" class="text-xs text-zinc-500"
+          icon chevron-right class="ml-1 size-4 text-zinc-600"
+        end
+        box class="h-11 flex-row items-center bg-zinc-800/70 px-3" note="同一时间窗口内内容相同的弹幕合并为一条，并显示 ×N"
+          text "合并重复弹幕" class="flex-1 text-sm text-white"
+          use switch-dark class="scale-75"
+        end
+        box class="h-11 flex-row items-center bg-zinc-800/70 px-3"
+          text "屏蔽彩色弹幕" class="flex-1 text-sm text-white"
+          use switch-dark variant=off class="scale-75"
+        end
+      end
+      box class="gap-1.5"
+        box class="flex-row justify-between"
+          text "屏蔽等级" class="text-xs text-zinc-400"
+          text "3 级 · 过滤低质量弹幕" class="text-xs font-medium text-violet-400"
+        end
+        box class="h-3 flex-row items-center"
+          box class="h-1 w-[30%] rounded-l-full bg-linear-to-r from-violet-500 to-fuchsia-500"
+          end
+          box class="size-3 rounded-full bg-white shadow-md shadow-violet-500/40"
+          end
+          box class="h-1 flex-1 rounded-r-full bg-white/15"
+          end
+        end
+      end
+    end
+  end
+end

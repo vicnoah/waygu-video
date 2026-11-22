@@ -1,0 +1,469 @@
+design light in="desktop-main#light/content" name="主窗口/电影详情" gap=160
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="relative mx-8 mt-6 h-[500px] overflow-hidden rounded-3xl shadow-2xl shadow-black/25"
+    image "沙丘2 横版剧照：沙丘之上的弗雷曼人军队，巨大的双日" class="absolute top-0 right-0 bottom-0 left-0"
+    box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-t from-black/90 via-black/45 to-black/10"
+    end
+    box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-r from-black/70 via-black/20 to-transparent"
+    end
+    box class="absolute top-6 left-6 size-10 items-center justify-center rounded-full border border-white/15 bg-black/40" tap="close"
+      icon chevron-left class="size-5 text-white"
+    end
+    box class="absolute top-6 right-6 flex-row gap-2"
+      box class="size-10 items-center justify-center rounded-full border border-white/15 bg-black/40"
+        icon heart class="size-4 text-white"
+      end
+      box class="size-10 items-center justify-center rounded-full border border-white/15 bg-black/40"
+        icon share-2 class="size-4 text-white"
+      end
+      box class="size-10 items-center justify-center rounded-full border border-white/15 bg-black/40" note="更多：标记已看/未看、重新刮削元数据、修改匹配、编辑封面、在媒体源中删除"
+        icon ellipsis class="size-4 text-white"
+      end
+    end
+    box class="absolute right-0 bottom-0 left-0 flex-row items-end gap-8 px-10 pb-8"
+      image "沙丘2 竖版海报：沙漠中的保罗剪影" class="h-[300px] w-52 rounded-2xl shadow-2xl ring-1 ring-white/20"
+      box class="flex-1 gap-3"
+        text "沙丘2" class="text-5xl font-bold text-white"
+        text "Dune: Part Two" class="text-lg text-zinc-400"
+        box class="flex-row items-center gap-3"
+          text "2024" class="text-sm text-zinc-300"
+          text "·" class="text-sm text-zinc-500"
+          text "科幻 / 冒险" class="text-sm text-zinc-300"
+          text "·" class="text-sm text-zinc-500"
+          text "2 小时 46 分" class="text-sm text-zinc-300"
+          text "·" class="text-sm text-zinc-500"
+          text "PG-13" class="rounded border border-white/30 px-1.5 text-[11px] text-zinc-300"
+        end
+        box class="flex-row items-center gap-2"
+          box class="flex-row items-center gap-1.5 rounded-md bg-emerald-500/15 px-2 py-1"
+            text "豆瓣" class="text-xs font-semibold text-emerald-400"
+            text "8.3" class="text-xs font-bold text-white"
+          end
+          box class="flex-row items-center gap-1.5 rounded-md bg-amber-400/15 px-2 py-1"
+            text "IMDb" class="text-xs font-bold text-amber-300"
+            text "8.5" class="text-xs font-bold text-white"
+          end
+          box class="flex-row items-center gap-1.5 rounded-md bg-sky-500/15 px-2 py-1"
+            text "TMDB" class="text-xs font-bold text-sky-300"
+            text "82%" class="text-xs font-bold text-white"
+          end
+          box class="ml-2 flex-row gap-1.5"
+            text "4K" class="rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+            text "杜比视界" class="rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+            text "HDR10" class="rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+            text "Atmos" class="rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+            text "HEVC" class="rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+            text "中字" class="rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+          end
+        end
+        box class="flex-row items-center gap-3 pt-2"
+          box class="h-12 flex-row items-center gap-2 rounded-full bg-violet-500 px-7 shadow-lg shadow-violet-500/40" tap="open desktop-player"
+            icon play class="size-5 text-white"
+            text "继续播放 1:12:30" class="font-semibold text-white"
+          end
+          box class="h-12 flex-row items-center gap-2 rounded-full border border-white/20 bg-white/15 px-5"
+            icon rotate-ccw class="size-4 text-white"
+            text "从头播放" class="text-sm font-medium text-white"
+          end
+          box class="h-12 flex-row items-center gap-2 rounded-full border border-white/20 bg-white/15 px-5"
+            icon clapperboard class="size-4 text-white"
+            text "预告片" class="text-sm font-medium text-white"
+          end
+          box class="size-12 items-center justify-center rounded-full border border-white/20 bg-white/15"
+            icon circle-check class="size-5 text-white"
+          end
+          box class="size-12 items-center justify-center rounded-full border border-white/20 bg-white/15" note="下载到本机离线观看，可选原画或转码画质"
+            icon download class="size-5 text-white"
+          end
+        end
+        box class="h-1 w-80 rounded-full bg-white/25"
+          box class="h-1 w-[43%] rounded-full bg-violet-500"
+          end
+        end
+      end
+    end
+  end
+  box class="flex-row gap-10 px-10 pt-8 pb-10"
+    box class="flex-1 gap-8"
+      box class="flex-row gap-3" note="多版本由媒体源合并；选择会记住到下次播放"
+        box class="flex-1 gap-1.5 rounded-xl border border-zinc-900/8 bg-white px-4 py-3 shadow-sm shadow-black/5"
+          text "版本" class="text-xs text-zinc-500"
+          box class="flex-row items-center gap-2"
+            text "2160p · Remux · 58.2 GB" class="flex-1 truncate text-sm font-medium text-zinc-900"
+            icon chevron-down class="size-4 text-zinc-500"
+          end
+        end
+        box class="flex-1 gap-1.5 rounded-xl border border-zinc-900/8 bg-white px-4 py-3 shadow-sm shadow-black/5"
+          text "音轨" class="text-xs text-zinc-500"
+          box class="flex-row items-center gap-2"
+            text "英语 · TrueHD 7.1 Atmos" class="flex-1 truncate text-sm font-medium text-zinc-900"
+            icon chevron-down class="size-4 text-zinc-500"
+          end
+        end
+        box class="flex-1 gap-1.5 rounded-xl border border-zinc-900/8 bg-white px-4 py-3 shadow-sm shadow-black/5"
+          text "字幕" class="text-xs text-zinc-500"
+          box class="flex-row items-center gap-2"
+            text "简体中文 · 特效 ASS" class="flex-1 truncate text-sm font-medium text-zinc-900"
+            icon chevron-down class="size-4 text-zinc-500"
+          end
+        end
+      end
+      box class="gap-3"
+        text "简介" class="text-lg font-bold text-zinc-900"
+        text "保罗·厄崔迪与契妮及弗雷曼人联手，踏上向毁灭其家族的阴谋者复仇之路。在挚爱与已知宇宙的命运之间，他必须做出抉择，并竭力阻止一个只有他能预见的可怕未来。" class="text-sm leading-relaxed text-zinc-900/80"
+        box class="flex-row gap-8 pt-1"
+          box class="gap-1"
+            text "导演" class="text-xs text-zinc-500"
+            text "丹尼斯·维伦纽瓦" class="text-sm text-zinc-900"
+          end
+          box class="gap-1"
+            text "编剧" class="text-xs text-zinc-500"
+            text "丹尼斯·维伦纽瓦 / 乔·斯派茨" class="text-sm text-zinc-900"
+          end
+          box class="gap-1"
+            text "制片国家" class="text-xs text-zinc-500"
+            text "美国 / 加拿大" class="text-sm text-zinc-900"
+          end
+        end
+      end
+      box class="gap-4"
+        text "演职人员" class="text-lg font-bold text-zinc-900"
+        box class="flex-row gap-5 overflow-hidden"
+          box class="w-24 items-center gap-2"
+            image "提莫西·查拉梅 头像" class="size-20 rounded-full shadow-md ring-2 ring-zinc-900/8"
+            text "提莫西·查拉梅" class="truncate text-xs text-zinc-900"
+            text "保罗" class="text-[11px] text-zinc-500"
+          end
+          box class="w-24 items-center gap-2"
+            image "赞达亚 头像" class="size-20 rounded-full shadow-md ring-2 ring-zinc-900/8"
+            text "赞达亚" class="truncate text-xs text-zinc-900"
+            text "契妮" class="text-[11px] text-zinc-500"
+          end
+          box class="w-24 items-center gap-2"
+            image "丽贝卡·弗格森 头像" class="size-20 rounded-full shadow-md ring-2 ring-zinc-900/8"
+            text "丽贝卡·弗格森" class="truncate text-xs text-zinc-900"
+            text "杰西卡" class="text-[11px] text-zinc-500"
+          end
+          box class="w-24 items-center gap-2"
+            image "奥斯汀·巴特勒 头像" class="size-20 rounded-full shadow-md ring-2 ring-zinc-900/8"
+            text "奥斯汀·巴特勒" class="truncate text-xs text-zinc-900"
+            text "菲德-罗萨" class="text-[11px] text-zinc-500"
+          end
+          box class="w-24 items-center gap-2"
+            image "弗洛伦丝·皮尤 头像" class="size-20 rounded-full shadow-md ring-2 ring-zinc-900/8"
+            text "弗洛伦丝·皮尤" class="truncate text-xs text-zinc-900"
+            text "伊勒琅公主" class="text-[11px] text-zinc-500"
+          end
+          box class="w-24 items-center gap-2"
+            image "哈维尔·巴登 头像" class="size-20 rounded-full shadow-md ring-2 ring-zinc-900/8"
+            text "哈维尔·巴登" class="truncate text-xs text-zinc-900"
+            text "斯第尔格" class="text-[11px] text-zinc-500"
+          end
+          box class="w-24 items-center gap-2"
+            image "乔什·布洛林 头像" class="size-20 rounded-full shadow-md ring-2 ring-zinc-900/8"
+            text "乔什·布洛林" class="truncate text-xs text-zinc-900"
+            text "格尼" class="text-[11px] text-zinc-500"
+          end
+        end
+      end
+      box class="gap-4"
+        text "相关推荐" class="text-lg font-bold text-zinc-900"
+        box class="flex-row gap-4 overflow-hidden"
+          use poster class="w-36" cover.class="h-52" variant=watched cover="沙丘 海报：沙漠中的少年" title="沙丘" sub="2021 · 科幻"
+          use poster class="w-36" cover.class="h-52" variant=fresh cover="银翼杀手2049 海报：橙色雾中的人影" title="银翼杀手2049" sub="2017 · 科幻"
+          use poster class="w-36" cover.class="h-52" variant=fresh cover="降临 海报：悬浮在草原上的外星飞船" title="降临" sub="2016 · 科幻"
+          use poster class="w-36" cover.class="h-52" variant=fresh cover="星际穿越 海报：宇航员站在冰原上" title="星际穿越" sub="2014 · 科幻"
+          use poster class="w-36" cover.class="h-52" variant=fresh cover="流浪地球2 海报：太空电梯与宇航员" title="流浪地球2" sub="2023 · 科幻"
+        end
+      end
+    end
+    box class="w-80 gap-4"
+      box class="gap-3 rounded-2xl border border-zinc-900/8 bg-white p-5 shadow-sm shadow-black/5"
+        box class="flex-row items-center justify-between"
+          text "文件信息" class="font-semibold text-zinc-900"
+          text "直接播放" class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-500"
+        end
+        box class="flex-row gap-3"
+          text "来源" class="w-16 text-xs text-zinc-500"
+          text "家庭 Emby" class="flex-1 text-xs text-zinc-900"
+        end
+        box class="flex-row gap-3"
+          text "路径" class="w-16 text-xs text-zinc-500"
+          text "/media/movies/Dune Part Two (2024)/Dune.Part.Two.2024.2160p.Remux.mkv" class="flex-1 text-xs leading-relaxed break-all text-zinc-900"
+        end
+        box class="flex-row gap-3"
+          text "容器" class="w-16 text-xs text-zinc-500"
+          text "MKV · 58.2 GB" class="flex-1 text-xs text-zinc-900"
+        end
+        box class="flex-row gap-3"
+          text "视频" class="w-16 text-xs text-zinc-500"
+          text "HEVC Main10 · 3840×2160 · 23.976 fps" class="flex-1 text-xs text-zinc-900"
+        end
+        box class="flex-row gap-3"
+          text "动态范围" class="w-16 text-xs text-zinc-500"
+          text "杜比视界 P7 + HDR10" class="flex-1 text-xs text-zinc-900"
+        end
+        box class="flex-row gap-3"
+          text "码率" class="w-16 text-xs text-zinc-500"
+          text "46.8 Mbps" class="flex-1 text-xs text-zinc-900"
+        end
+        box class="flex-row gap-3"
+          text "音频" class="w-16 text-xs text-zinc-500"
+          text "TrueHD 7.1 Atmos · 另 5 条" class="flex-1 text-xs text-zinc-900"
+        end
+        box class="flex-row gap-3"
+          text "字幕" class="w-16 text-xs text-zinc-500"
+          text "内封 12 条 · 外挂 2 条" class="flex-1 text-xs text-zinc-900"
+        end
+        box class="flex-row gap-3"
+          text "添加于" class="w-16 text-xs text-zinc-500"
+          text "2026-11-17 22:41" class="flex-1 text-xs text-zinc-900"
+        end
+      end
+      box class="gap-3 rounded-2xl border border-zinc-900/8 bg-white p-5 shadow-sm shadow-black/5"
+        text "弹幕" class="font-semibold text-zinc-900"
+        box class="flex-row items-center gap-2"
+          icon message-square-text class="size-4 text-fuchsia-500"
+          text "已匹配 3,812 条 · 弹弹play" class="flex-1 text-xs text-zinc-900/80"
+          text "更换" class="text-xs text-violet-500"
+        end
+      end
+    end
+  end
+end
+
+design dark in="desktop-main#dark/content" name="电影详情 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  box class="relative mx-8 mt-6 h-[500px] overflow-hidden rounded-3xl shadow-2xl shadow-black/25"
+    image "沙丘2 横版剧照：沙丘之上的弗雷曼人军队，巨大的双日" class="absolute top-0 right-0 bottom-0 left-0"
+    box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-t from-black/90 via-black/45 to-black/10"
+    end
+    box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-r from-black/70 via-black/20 to-transparent"
+    end
+    box class="absolute top-6 left-6 size-10 items-center justify-center rounded-full border border-white/15 bg-black/40" tap="close"
+      icon chevron-left class="size-5 text-white"
+    end
+    box class="absolute top-6 right-6 flex-row gap-2"
+      box class="size-10 items-center justify-center rounded-full border border-white/15 bg-black/40"
+        icon heart class="size-4 text-white"
+      end
+      box class="size-10 items-center justify-center rounded-full border border-white/15 bg-black/40"
+        icon share-2 class="size-4 text-white"
+      end
+      box class="size-10 items-center justify-center rounded-full border border-white/15 bg-black/40" note="更多：标记已看/未看、重新刮削元数据、修改匹配、编辑封面、在媒体源中删除"
+        icon ellipsis class="size-4 text-white"
+      end
+    end
+    box class="absolute right-0 bottom-0 left-0 flex-row items-end gap-8 px-10 pb-8"
+      image "沙丘2 竖版海报：沙漠中的保罗剪影" class="h-[300px] w-52 rounded-2xl shadow-2xl ring-1 ring-white/20"
+      box class="flex-1 gap-3"
+        text "沙丘2" class="text-5xl font-bold text-white"
+        text "Dune: Part Two" class="text-lg text-zinc-400"
+        box class="flex-row items-center gap-3"
+          text "2024" class="text-sm text-zinc-300"
+          text "·" class="text-sm text-zinc-500"
+          text "科幻 / 冒险" class="text-sm text-zinc-300"
+          text "·" class="text-sm text-zinc-500"
+          text "2 小时 46 分" class="text-sm text-zinc-300"
+          text "·" class="text-sm text-zinc-500"
+          text "PG-13" class="rounded border border-white/30 px-1.5 text-[11px] text-zinc-300"
+        end
+        box class="flex-row items-center gap-2"
+          box class="flex-row items-center gap-1.5 rounded-md bg-emerald-500/15 px-2 py-1"
+            text "豆瓣" class="text-xs font-semibold text-emerald-400"
+            text "8.3" class="text-xs font-bold text-white"
+          end
+          box class="flex-row items-center gap-1.5 rounded-md bg-amber-400/15 px-2 py-1"
+            text "IMDb" class="text-xs font-bold text-amber-300"
+            text "8.5" class="text-xs font-bold text-white"
+          end
+          box class="flex-row items-center gap-1.5 rounded-md bg-sky-500/15 px-2 py-1"
+            text "TMDB" class="text-xs font-bold text-sky-300"
+            text "82%" class="text-xs font-bold text-white"
+          end
+          box class="ml-2 flex-row gap-1.5"
+            text "4K" class="rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+            text "杜比视界" class="rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+            text "HDR10" class="rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+            text "Atmos" class="rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+            text "HEVC" class="rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+            text "中字" class="rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"
+          end
+        end
+        box class="flex-row items-center gap-3 pt-2"
+          box class="h-12 flex-row items-center gap-2 rounded-full bg-violet-500 px-7 shadow-lg shadow-violet-500/40" tap="open desktop-player"
+            icon play class="size-5 text-white"
+            text "继续播放 1:12:30" class="font-semibold text-white"
+          end
+          box class="h-12 flex-row items-center gap-2 rounded-full border border-white/20 bg-white/15 px-5"
+            icon rotate-ccw class="size-4 text-white"
+            text "从头播放" class="text-sm font-medium text-white"
+          end
+          box class="h-12 flex-row items-center gap-2 rounded-full border border-white/20 bg-white/15 px-5"
+            icon clapperboard class="size-4 text-white"
+            text "预告片" class="text-sm font-medium text-white"
+          end
+          box class="size-12 items-center justify-center rounded-full border border-white/20 bg-white/15"
+            icon circle-check class="size-5 text-white"
+          end
+          box class="size-12 items-center justify-center rounded-full border border-white/20 bg-white/15" note="下载到本机离线观看，可选原画或转码画质"
+            icon download class="size-5 text-white"
+          end
+        end
+        box class="h-1 w-80 rounded-full bg-white/25"
+          box class="h-1 w-[43%] rounded-full bg-violet-500"
+          end
+        end
+      end
+    end
+  end
+  box class="flex-row gap-10 px-10 pt-8 pb-10"
+    box class="flex-1 gap-8"
+      box class="flex-row gap-3" note="多版本由媒体源合并；选择会记住到下次播放"
+        box class="flex-1 gap-1.5 rounded-xl border border-white/8 bg-[#1a1b25] px-4 py-3 shadow-sm shadow-black/5"
+          text "版本" class="text-xs text-zinc-400"
+          box class="flex-row items-center gap-2"
+            text "2160p · Remux · 58.2 GB" class="flex-1 truncate text-sm font-medium text-zinc-50"
+            icon chevron-down class="size-4 text-zinc-400"
+          end
+        end
+        box class="flex-1 gap-1.5 rounded-xl border border-white/8 bg-[#1a1b25] px-4 py-3 shadow-sm shadow-black/5"
+          text "音轨" class="text-xs text-zinc-400"
+          box class="flex-row items-center gap-2"
+            text "英语 · TrueHD 7.1 Atmos" class="flex-1 truncate text-sm font-medium text-zinc-50"
+            icon chevron-down class="size-4 text-zinc-400"
+          end
+        end
+        box class="flex-1 gap-1.5 rounded-xl border border-white/8 bg-[#1a1b25] px-4 py-3 shadow-sm shadow-black/5"
+          text "字幕" class="text-xs text-zinc-400"
+          box class="flex-row items-center gap-2"
+            text "简体中文 · 特效 ASS" class="flex-1 truncate text-sm font-medium text-zinc-50"
+            icon chevron-down class="size-4 text-zinc-400"
+          end
+        end
+      end
+      box class="gap-3"
+        text "简介" class="text-lg font-bold text-zinc-50"
+        text "保罗·厄崔迪与契妮及弗雷曼人联手，踏上向毁灭其家族的阴谋者复仇之路。在挚爱与已知宇宙的命运之间，他必须做出抉择，并竭力阻止一个只有他能预见的可怕未来。" class="text-sm leading-relaxed text-zinc-50/80"
+        box class="flex-row gap-8 pt-1"
+          box class="gap-1"
+            text "导演" class="text-xs text-zinc-400"
+            text "丹尼斯·维伦纽瓦" class="text-sm text-zinc-50"
+          end
+          box class="gap-1"
+            text "编剧" class="text-xs text-zinc-400"
+            text "丹尼斯·维伦纽瓦 / 乔·斯派茨" class="text-sm text-zinc-50"
+          end
+          box class="gap-1"
+            text "制片国家" class="text-xs text-zinc-400"
+            text "美国 / 加拿大" class="text-sm text-zinc-50"
+          end
+        end
+      end
+      box class="gap-4"
+        text "演职人员" class="text-lg font-bold text-zinc-50"
+        box class="flex-row gap-5 overflow-hidden"
+          box class="w-24 items-center gap-2"
+            image "提莫西·查拉梅 头像" class="size-20 rounded-full shadow-md ring-2 ring-white/8"
+            text "提莫西·查拉梅" class="truncate text-xs text-zinc-50"
+            text "保罗" class="text-[11px] text-zinc-400"
+          end
+          box class="w-24 items-center gap-2"
+            image "赞达亚 头像" class="size-20 rounded-full shadow-md ring-2 ring-white/8"
+            text "赞达亚" class="truncate text-xs text-zinc-50"
+            text "契妮" class="text-[11px] text-zinc-400"
+          end
+          box class="w-24 items-center gap-2"
+            image "丽贝卡·弗格森 头像" class="size-20 rounded-full shadow-md ring-2 ring-white/8"
+            text "丽贝卡·弗格森" class="truncate text-xs text-zinc-50"
+            text "杰西卡" class="text-[11px] text-zinc-400"
+          end
+          box class="w-24 items-center gap-2"
+            image "奥斯汀·巴特勒 头像" class="size-20 rounded-full shadow-md ring-2 ring-white/8"
+            text "奥斯汀·巴特勒" class="truncate text-xs text-zinc-50"
+            text "菲德-罗萨" class="text-[11px] text-zinc-400"
+          end
+          box class="w-24 items-center gap-2"
+            image "弗洛伦丝·皮尤 头像" class="size-20 rounded-full shadow-md ring-2 ring-white/8"
+            text "弗洛伦丝·皮尤" class="truncate text-xs text-zinc-50"
+            text "伊勒琅公主" class="text-[11px] text-zinc-400"
+          end
+          box class="w-24 items-center gap-2"
+            image "哈维尔·巴登 头像" class="size-20 rounded-full shadow-md ring-2 ring-white/8"
+            text "哈维尔·巴登" class="truncate text-xs text-zinc-50"
+            text "斯第尔格" class="text-[11px] text-zinc-400"
+          end
+          box class="w-24 items-center gap-2"
+            image "乔什·布洛林 头像" class="size-20 rounded-full shadow-md ring-2 ring-white/8"
+            text "乔什·布洛林" class="truncate text-xs text-zinc-50"
+            text "格尼" class="text-[11px] text-zinc-400"
+          end
+        end
+      end
+      box class="gap-4"
+        text "相关推荐" class="text-lg font-bold text-zinc-50"
+        box class="flex-row gap-4 overflow-hidden"
+          use poster-dark class="w-36" cover.class="h-52" variant=watched cover="沙丘 海报：沙漠中的少年" title="沙丘" sub="2021 · 科幻"
+          use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="银翼杀手2049 海报：橙色雾中的人影" title="银翼杀手2049" sub="2017 · 科幻"
+          use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="降临 海报：悬浮在草原上的外星飞船" title="降临" sub="2016 · 科幻"
+          use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="星际穿越 海报：宇航员站在冰原上" title="星际穿越" sub="2014 · 科幻"
+          use poster-dark class="w-36" cover.class="h-52" variant=fresh cover="流浪地球2 海报：太空电梯与宇航员" title="流浪地球2" sub="2023 · 科幻"
+        end
+      end
+    end
+    box class="w-80 gap-4"
+      box class="gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] p-5 shadow-sm shadow-black/5"
+        box class="flex-row items-center justify-between"
+          text "文件信息" class="font-semibold text-zinc-50"
+          text "直接播放" class="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-500"
+        end
+        box class="flex-row gap-3"
+          text "来源" class="w-16 text-xs text-zinc-400"
+          text "家庭 Emby" class="flex-1 text-xs text-zinc-50"
+        end
+        box class="flex-row gap-3"
+          text "路径" class="w-16 text-xs text-zinc-400"
+          text "/media/movies/Dune Part Two (2024)/Dune.Part.Two.2024.2160p.Remux.mkv" class="flex-1 text-xs leading-relaxed break-all text-zinc-50"
+        end
+        box class="flex-row gap-3"
+          text "容器" class="w-16 text-xs text-zinc-400"
+          text "MKV · 58.2 GB" class="flex-1 text-xs text-zinc-50"
+        end
+        box class="flex-row gap-3"
+          text "视频" class="w-16 text-xs text-zinc-400"
+          text "HEVC Main10 · 3840×2160 · 23.976 fps" class="flex-1 text-xs text-zinc-50"
+        end
+        box class="flex-row gap-3"
+          text "动态范围" class="w-16 text-xs text-zinc-400"
+          text "杜比视界 P7 + HDR10" class="flex-1 text-xs text-zinc-50"
+        end
+        box class="flex-row gap-3"
+          text "码率" class="w-16 text-xs text-zinc-400"
+          text "46.8 Mbps" class="flex-1 text-xs text-zinc-50"
+        end
+        box class="flex-row gap-3"
+          text "音频" class="w-16 text-xs text-zinc-400"
+          text "TrueHD 7.1 Atmos · 另 5 条" class="flex-1 text-xs text-zinc-50"
+        end
+        box class="flex-row gap-3"
+          text "字幕" class="w-16 text-xs text-zinc-400"
+          text "内封 12 条 · 外挂 2 条" class="flex-1 text-xs text-zinc-50"
+        end
+        box class="flex-row gap-3"
+          text "添加于" class="w-16 text-xs text-zinc-400"
+          text "2026-11-17 22:41" class="flex-1 text-xs text-zinc-50"
+        end
+      end
+      box class="gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] p-5 shadow-sm shadow-black/5"
+        text "弹幕" class="font-semibold text-zinc-50"
+        box class="flex-row items-center gap-2"
+          icon message-square-text class="size-4 text-fuchsia-500"
+          text "已匹配 3,812 条 · 弹弹play" class="flex-1 text-xs text-zinc-50/80"
+          text "更换" class="text-xs text-violet-400"
+        end
+      end
+    end
+  end
+end

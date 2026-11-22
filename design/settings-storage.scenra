@@ -1,0 +1,171 @@
+design light device=phone height=1380 name="设置/存储与下载" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar
+  use nav-bar title="存储与下载" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    box class="mx-4 gap-3 rounded-2xl border border-zinc-900/8 bg-white shadow-sm shadow-black/5 p-4"
+      box class="flex-row items-end justify-between"
+        text "Waygu 占用 13.6 GB" class="text-base font-semibold text-zinc-900"
+        text "iPhone 可用 41.2 GB" class="text-xs text-zinc-500"
+      end
+      box class="h-3 flex-row overflow-hidden rounded-full bg-zinc-900/10"
+        box class="h-3 w-[22%] bg-violet-500"
+        end
+        box class="h-3 w-[3%] bg-sky-400"
+        end
+        box class="h-3 w-[1%] bg-pink-400"
+        end
+      end
+      box class="flex-row flex-wrap gap-x-4 gap-y-1.5"
+        box class="flex-row items-center gap-1.5"
+          box class="size-2 rounded-full bg-violet-500"
+          end
+          text "离线下载 12.4 GB" class="text-xs text-zinc-900/80"
+        end
+        box class="flex-row items-center gap-1.5"
+          box class="size-2 rounded-full bg-sky-400"
+          end
+          text "图片缓存 1.1 GB" class="text-xs text-zinc-900/80"
+        end
+        box class="flex-row items-center gap-1.5"
+          box class="size-2 rounded-full bg-pink-400"
+          end
+          text "弹幕缓存 86 MB" class="text-xs text-zinc-900/80"
+        end
+      end
+    end
+    box class="gap-2 px-4"
+      text "离线下载" class="px-4 text-xs font-medium tracking-wide text-zinc-500 uppercase"
+      box class="gap-px overflow-hidden rounded-2xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5"
+        box class="flex-row items-center gap-3 bg-white px-4 py-3"
+          image "漫长的季节 剧照缩略图" class="h-12 w-20 rounded-lg"
+          box class="flex-1 gap-1.5"
+            text "漫长的季节 · 第 7 集" class="truncate text-sm text-zinc-900"
+            box class="h-1 rounded-full bg-zinc-900/10"
+              box class="h-1 w-3/5 rounded-full bg-violet-500"
+              end
+            end
+            text "620 MB / 1.0 GB · 4.2 MB/s" class="text-[11px] text-zinc-500"
+          end
+          icon pause class="size-5 text-zinc-900/80"
+        end
+        box class="flex-row items-center gap-3 bg-white px-4 py-3"
+          image "奥本海默 剧照缩略图" class="h-12 w-20 rounded-lg"
+          box class="flex-1 gap-1"
+            text "奥本海默" class="truncate text-sm text-zinc-900"
+            text "已下载 · 1080p · 6.8 GB" class="text-[11px] text-emerald-500"
+          end
+          icon circle-check class="size-5 text-emerald-500"
+        end
+      end
+    end
+    use settings-group header="下载选项"
+      fill
+        use settings-row icon=film title="下载画质" value="1080p · 10 Mbps" badge.class="bg-violet-500" note="原画下载需服务器允许；其它画质由服务器转码后下载"
+        use settings-row variant=toggle icon=wifi title="仅在 Wi-Fi 下下载" badge.class="bg-sky-500"
+        use settings-row icon=layers title="同时下载数" value="2" badge.class="bg-indigo-500"
+        use settings-row icon=folder title="下载位置" value="本机" badge.class="bg-zinc-500"
+        use settings-row variant="toggle desc" icon=trash title="自动删除已看完" desc="看完 24 小时后删除下载文件" badge.class="bg-rose-500"
+        use settings-row variant=toggle icon=subtitles title="同时下载字幕与弹幕" badge.class="bg-pink-500"
+      end
+    end
+    use settings-group header="缓存"
+      fill
+        use settings-row icon=image title="图片缓存上限" value="2 GB" badge.class="bg-sky-500"
+        box class="h-12 items-center justify-center bg-white"
+          text "清除图片缓存" class="text-[15px] text-violet-500"
+        end
+        box class="h-12 items-center justify-center bg-white"
+          text "删除全部下载" class="text-[15px] text-rose-500"
+        end
+      end
+    end
+  end
+end
+
+design dark device=phone height=1380 name="存储与下载 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar-dark
+  use nav-bar-dark title="存储与下载" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    box class="mx-4 gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] shadow-sm shadow-black/5 p-4"
+      box class="flex-row items-end justify-between"
+        text "Waygu 占用 13.6 GB" class="text-base font-semibold text-zinc-50"
+        text "iPhone 可用 41.2 GB" class="text-xs text-zinc-400"
+      end
+      box class="h-3 flex-row overflow-hidden rounded-full bg-zinc-50/10"
+        box class="h-3 w-[22%] bg-violet-500"
+        end
+        box class="h-3 w-[3%] bg-sky-400"
+        end
+        box class="h-3 w-[1%] bg-pink-400"
+        end
+      end
+      box class="flex-row flex-wrap gap-x-4 gap-y-1.5"
+        box class="flex-row items-center gap-1.5"
+          box class="size-2 rounded-full bg-violet-500"
+          end
+          text "离线下载 12.4 GB" class="text-xs text-zinc-50/80"
+        end
+        box class="flex-row items-center gap-1.5"
+          box class="size-2 rounded-full bg-sky-400"
+          end
+          text "图片缓存 1.1 GB" class="text-xs text-zinc-50/80"
+        end
+        box class="flex-row items-center gap-1.5"
+          box class="size-2 rounded-full bg-pink-400"
+          end
+          text "弹幕缓存 86 MB" class="text-xs text-zinc-50/80"
+        end
+      end
+    end
+    box class="gap-2 px-4"
+      text "离线下载" class="px-4 text-xs font-medium tracking-wide text-zinc-400 uppercase"
+      box class="gap-px overflow-hidden rounded-2xl border border-white/8 bg-white/7 shadow-sm shadow-black/5"
+        box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-3"
+          image "漫长的季节 剧照缩略图" class="h-12 w-20 rounded-lg"
+          box class="flex-1 gap-1.5"
+            text "漫长的季节 · 第 7 集" class="truncate text-sm text-zinc-50"
+            box class="h-1 rounded-full bg-zinc-50/10"
+              box class="h-1 w-3/5 rounded-full bg-violet-500"
+              end
+            end
+            text "620 MB / 1.0 GB · 4.2 MB/s" class="text-[11px] text-zinc-400"
+          end
+          icon pause class="size-5 text-zinc-50/80"
+        end
+        box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-3"
+          image "奥本海默 剧照缩略图" class="h-12 w-20 rounded-lg"
+          box class="flex-1 gap-1"
+            text "奥本海默" class="truncate text-sm text-zinc-50"
+            text "已下载 · 1080p · 6.8 GB" class="text-[11px] text-emerald-500"
+          end
+          icon circle-check class="size-5 text-emerald-500"
+        end
+      end
+    end
+    use settings-group-dark header="下载选项"
+      fill
+        use settings-row-dark icon=film title="下载画质" value="1080p · 10 Mbps" badge.class="bg-violet-500" note="原画下载需服务器允许；其它画质由服务器转码后下载"
+        use settings-row-dark variant=toggle icon=wifi title="仅在 Wi-Fi 下下载" badge.class="bg-sky-500"
+        use settings-row-dark icon=layers title="同时下载数" value="2" badge.class="bg-indigo-500"
+        use settings-row-dark icon=folder title="下载位置" value="本机" badge.class="bg-zinc-500"
+        use settings-row-dark variant="toggle desc" icon=trash title="自动删除已看完" desc="看完 24 小时后删除下载文件" badge.class="bg-rose-500"
+        use settings-row-dark variant=toggle icon=subtitles title="同时下载字幕与弹幕" badge.class="bg-pink-500"
+      end
+    end
+    use settings-group-dark header="缓存"
+      fill
+        use settings-row-dark icon=image title="图片缓存上限" value="2 GB" badge.class="bg-sky-500"
+        box class="h-12 items-center justify-center bg-[#1a1b25]"
+          text "清除图片缓存" class="text-[15px] text-violet-400"
+        end
+        box class="h-12 items-center justify-center bg-[#1a1b25]"
+          text "删除全部下载" class="text-[15px] text-rose-500"
+        end
+      end
+    end
+  end
+end

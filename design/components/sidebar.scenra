@@ -1,0 +1,90 @@
+component name="桌面/侧边栏" width=240 backdrop="bg-[#f4f4f7]"
+box class="w-60 gap-5 border-r border-zinc-900/8 bg-[#e9e9f0]/40 px-3 pt-5 pb-4"
+  box class="flex-row items-center justify-between px-2"
+    use logo
+    icon panel-left class="size-4 text-zinc-500"
+  end
+  box name=searchbox class="h-9 flex-row items-center gap-2 rounded-lg border border-zinc-900/8 bg-white px-3 shadow-sm shadow-black/5"
+    icon search class="size-4 text-zinc-500"
+    text "搜索影片、演员" class="flex-1 text-sm text-zinc-500"
+    text "⌘K" class="text-xs text-zinc-500/70"
+  end
+  box class="gap-0.5"
+    text "浏览" class="px-3 pb-1 text-[11px] font-medium text-zinc-500"
+    box name=home class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+      icon house class="size-4 text-zinc-500 group-selected:text-violet-500"
+      text "首页" class="text-sm text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+    end
+    box name=movies class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+      icon film class="size-4 text-zinc-500 group-selected:text-violet-500"
+      text "电影" class="flex-1 text-sm text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      text "1,284" class="text-xs text-zinc-500/70"
+    end
+    box name=shows class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+      icon tv class="size-4 text-zinc-500 group-selected:text-violet-500"
+      text "剧集" class="flex-1 text-sm text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      text "326" class="text-xs text-zinc-500/70"
+    end
+    box name=anime class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+      icon sparkles class="size-4 text-zinc-500 group-selected:text-violet-500"
+      text "动漫" class="flex-1 text-sm text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      text "198" class="text-xs text-zinc-500/70"
+    end
+    box name=docs class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+      icon globe class="size-4 text-zinc-500 group-selected:text-violet-500"
+      text "纪录片" class="flex-1 text-sm text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+      text "57" class="text-xs text-zinc-500/70"
+    end
+  end
+  box class="gap-0.5"
+    text "我的" class="px-3 pb-1 text-[11px] font-medium text-zinc-500"
+    box name=favorites class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+      icon heart class="size-4 text-zinc-500 group-selected:text-violet-500"
+      text "收藏" class="text-sm text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+    end
+    box name=history class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+      icon history class="size-4 text-zinc-500 group-selected:text-violet-500"
+      text "观看记录" class="text-sm text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+    end
+    box name=downloads class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+      icon download class="size-4 text-zinc-500 group-selected:text-violet-500"
+      text "离线下载" class="text-sm text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+    end
+  end
+  box class="gap-0.5"
+    text "媒体源" class="px-3 pb-1 text-[11px] font-medium text-zinc-500"
+    box name=emby class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+      box class="size-2 rounded-full bg-emerald-400"
+      end
+      text "家庭 Emby" class="flex-1 truncate text-sm text-zinc-900/80 group-selected:text-zinc-900"
+      text "Emby" class="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] text-emerald-500"
+    end
+    box name=jellyfin class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+      box class="size-2 rounded-full bg-emerald-400"
+      end
+      text "书房 NAS" class="flex-1 truncate text-sm text-zinc-900/80 group-selected:text-zinc-900"
+      text "Jellyfin" class="rounded bg-sky-500/15 px-1.5 py-0.5 text-[10px] text-sky-500"
+    end
+    box name=fnos class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+      box class="size-2 rounded-full bg-amber-400"
+      end
+      text "飞牛影视" class="flex-1 truncate text-sm text-zinc-900/80 group-selected:text-zinc-900"
+      text "fnOS" class="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] text-blue-500"
+    end
+  end
+  box class="mt-auto gap-0.5 border-t border-zinc-900/8 pt-3"
+    box name=settings class="group h-9 flex-row items-center gap-3 rounded-lg px-3 selected:bg-violet-500/12"
+      icon settings class="size-4 text-zinc-500 group-selected:text-violet-500"
+      text "设置" class="text-sm text-zinc-900/80 group-selected:font-medium group-selected:text-zinc-900"
+    end
+    box class="h-11 flex-row items-center gap-3 rounded-lg px-3"
+      box class="size-7 items-center justify-center rounded-full bg-linear-to-br from-violet-500 to-fuchsia-500"
+        text "林" class="text-xs font-semibold text-white"
+      end
+      box class="flex-1"
+        text "林小雨" class="text-sm font-medium text-zinc-900"
+        text "3 个媒体源在线" class="text-[11px] text-zinc-500"
+      end
+    end
+  end
+end

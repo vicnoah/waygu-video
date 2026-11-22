@@ -1,0 +1,20 @@
+component name="媒体/继续观看卡片" width=256 backdrop="bg-[#f4f4f7]"
+box name=card class="w-64 gap-2"
+  box class="relative overflow-hidden rounded-2xl shadow-lg shadow-black/15"
+    image "剧集横版剧照" name=cover class="h-36 w-full"
+    box class="absolute right-0 bottom-0 left-0 h-16 bg-linear-to-t from-black/60 to-transparent"
+    end
+    box class="absolute bottom-3 left-2.5 flex-row items-center gap-1 rounded-full bg-black/55 px-2 py-1"
+      icon play name=stateicon class="size-3 text-white"
+      text "剩余 32 分钟" name=remain class="text-[10px] font-medium text-white"
+    end
+    box class="absolute right-0 bottom-0 left-0 h-1 bg-white/25"
+      box name=progress class="h-1 w-2/3 bg-violet-500"
+      end
+    end
+  end
+  box class="gap-0.5 px-0.5"
+    text "漫长的季节" name=title class="truncate text-sm font-medium text-zinc-900"
+    text "第 1 季 · 第 6 集" name=sub class="truncate text-xs text-zinc-500"
+  end
+end

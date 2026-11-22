@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "skills": {
+    "nsgo": {
+      "source": "nsgo-dev/nsgo",
+      "commit": "091984681603d03095e491025b499e3cc11d00df",
+      "sourceType": "github",
+      "skillPath": "skills/nsgo/SKILL.md",
+      "computedHash": "aa54500c32e49c96945796cddad8570d0a41b099a2121693d89b70b315204808"
+    },
+    "scenra": {
+      "source": "oneo-me/nsgo-scenra",
+      "commit": "88548db091cda40965a8272127d75f844bc83b9a",
+      "sourceType": "github",
+      "skillPath": "cmd/scenra/resources/skills/scenra/SKILL.md",
+      "computedHash": "4fd8aa43247f6ba8f61f4aea05bca99d085ef2c894c325042344c392b0ecf0e8"
+    }
+  }
+}

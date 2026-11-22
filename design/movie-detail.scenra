@@ -1,0 +1,367 @@
+design light device=phone height=1960 name="手机/电影详情" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-[400px] right-0 left-0 h-[1100px]"
+  box class="relative h-[460px]"
+    image "《流浪地球2》剧照：冰封城市上空巨大的行星发动机光柱" class="absolute top-0 right-0 bottom-0 left-0"
+    box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-t from-black/90 via-black/35 to-black/45"
+    end
+    box class="absolute right-0 bottom-0 left-0 h-12 bg-linear-to-b from-transparent to-[#f4f4f7]"
+    end
+    box class="absolute top-0 right-0 left-0"
+      use status-bar variant=onmedia
+      box class="flex-row items-center justify-between px-4 pt-1"
+        box class="size-9 items-center justify-center rounded-full bg-black/40" tap="close"
+          icon chevron-left class="size-5 text-white"
+        end
+        box class="flex-row gap-2"
+          box class="size-9 items-center justify-center rounded-full bg-black/40"
+            icon cast class="size-4 text-white"
+          end
+          box class="size-9 items-center justify-center rounded-full bg-black/40"
+            icon ellipsis class="size-4 text-white"
+          end
+        end
+      end
+    end
+    box class="absolute right-0 bottom-0 left-0 gap-2.5 px-5 pb-12"
+      text "流浪地球2" class="text-4xl font-bold tracking-tight text-white"
+      text "The Wandering Earth II" class="text-sm text-white/80"
+      text "2023 · 173 分钟 · 科幻 / 冒险 · 12+" class="text-xs text-white/80"
+      box class="flex-row items-center gap-3"
+        box class="flex-row items-center gap-1"
+          text "豆" class="rounded bg-emerald-600 px-1 text-[10px] font-bold text-white"
+          text "8.3" class="text-sm font-semibold text-white"
+        end
+        box class="flex-row items-center gap-1"
+          text "IMDb" class="rounded bg-amber-400 px-1 text-[10px] font-bold text-black"
+          text "7.9" class="text-sm font-semibold text-white"
+        end
+        box class="flex-row items-center gap-1"
+          text "TMDB" class="rounded bg-sky-600 px-1 text-[10px] font-bold text-white"
+          text "7.3" class="text-sm font-semibold text-white"
+        end
+      end
+      box class="flex-row gap-1.5"
+        text "4K" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        text "Dolby Vision" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        text "Atmos" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        box class="flex-row items-center gap-1 rounded border border-fuchsia-400/50 bg-fuchsia-500/15 px-1.5 py-0.5"
+          icon message-square-text class="size-3 text-fuchsia-300"
+          text "弹幕 1.2万" class="text-[10px] font-semibold text-fuchsia-200"
+        end
+      end
+    end
+  end
+  box class="flex-1 gap-7 pt-5 pb-10"
+    box class="gap-4 px-5"
+      box class="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30" tap="open player" note="有观看进度时显示「从 1:12:40 继续播放」，长按可选择从头播放"
+        icon play class="size-5 text-white"
+        text "播放" class="text-base font-semibold text-white"
+      end
+      box class="flex-row rounded-2xl border border-zinc-900/8 bg-white py-3 shadow-sm shadow-black/5"
+        box class="flex-1 items-center gap-1.5" note="下载到本机以离线观看，可选择原画或转码画质"
+          icon download class="size-5 text-violet-500"
+          text "下载" class="text-[11px] text-zinc-500"
+        end
+        box class="flex-1 items-center gap-1.5"
+          icon heart class="size-5 text-violet-500"
+          text "收藏" class="text-[11px] text-zinc-500"
+        end
+        box class="flex-1 items-center gap-1.5" note="标记为已看并同步到媒体服务器与 Trakt"
+          icon circle-check class="size-5 text-violet-500"
+          text "标为已看" class="text-[11px] text-zinc-500"
+        end
+        box class="flex-1 items-center gap-1.5"
+          icon share-2 class="size-5 text-violet-500"
+          text "分享" class="text-[11px] text-zinc-500"
+        end
+        box class="flex-1 items-center gap-1.5" note="更多：重新匹配元数据、刷新元数据、手动匹配弹幕、编辑、从媒体库删除"
+          icon ellipsis class="size-5 text-violet-500"
+          text "更多" class="text-[11px] text-zinc-500"
+        end
+      end
+    end
+    box class="gap-2 px-5"
+      text "太阳即将毁灭，人类在地球表面建造出巨大的推进器，寻找新的家园。然而宇宙之路危机四伏，为了拯救地球，流浪地球时代的年轻人再次挺身而出，展开争分夺秒的生死之战。" class="line-clamp-3 text-sm leading-relaxed text-zinc-900/80"
+      text "导演：郭帆   主演：吴京 / 刘德华 / 李雪健 / 沙溢" class="text-xs text-zinc-500"
+    end
+    use settings-group header="播放选项"
+      fill
+        use settings-row title="版本" icon=layers value="2160p REMUX · 58.4 GB" note="同一影片有多个文件时可选：2160p REMUX（家庭 Emby）/ 1080p WEB-DL 8.2 GB（书房 NAS）"
+        use settings-row title="来源" icon=server badge.class="bg-emerald-500" value="家庭 Emby"
+        use settings-row title="音轨" icon=audio-lines badge.class="bg-sky-500" value="国语 TrueHD Atmos 7.1"
+        use settings-row title="字幕" icon=captions badge.class="bg-amber-500" value="简体中文 (PGS)"
+        use settings-row title="弹幕" icon=message-square-text badge.class="bg-fuchsia-500" value="弹弹play · 已匹配"
+      end
+    end
+    box class="gap-3"
+      use section-title title="演职人员" moretext="全部 46"
+      box class="flex-row gap-4 overflow-hidden px-5"
+        box class="w-16 items-center gap-1.5"
+          image "导演郭帆的头像" class="size-16 rounded-full border-2 border-white shadow-md shadow-black/10"
+          text "郭帆" class="text-[11px] text-zinc-900"
+          text "导演" class="text-[10px] text-zinc-500"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "演员吴京的头像" class="size-16 rounded-full border-2 border-white shadow-md shadow-black/10"
+          text "吴京" class="text-[11px] text-zinc-900"
+          text "刘培强" class="text-[10px] text-zinc-500"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "演员刘德华的头像" class="size-16 rounded-full border-2 border-white shadow-md shadow-black/10"
+          text "刘德华" class="text-[11px] text-zinc-900"
+          text "图恒宇" class="text-[10px] text-zinc-500"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "演员李雪健的头像" class="size-16 rounded-full border-2 border-white shadow-md shadow-black/10"
+          text "李雪健" class="text-[11px] text-zinc-900"
+          text "周喆直" class="text-[10px] text-zinc-500"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "演员沙溢的头像" class="size-16 rounded-full border-2 border-white shadow-md shadow-black/10"
+          text "沙溢" class="text-[11px] text-zinc-900"
+          text "张鹏" class="text-[10px] text-zinc-500"
+        end
+      end
+    end
+    box class="gap-3"
+      use section-title title="预告片与花絮" variant=bare
+      box class="flex-row gap-3 overflow-hidden px-5"
+        box class="w-56 gap-1.5"
+          box class="relative overflow-hidden rounded-2xl shadow-lg shadow-black/15"
+            image "正式预告片画面：太空电梯与月球" class="h-32 w-full"
+            box class="absolute top-0 right-0 bottom-0 left-0 items-center justify-center bg-black/30"
+              icon circle-play class="size-9 text-white"
+            end
+          end
+          text "终极预告 · 2:31" class="text-xs text-zinc-900/80"
+        end
+        box class="w-56 gap-1.5"
+          box class="relative overflow-hidden rounded-2xl shadow-lg shadow-black/15"
+            image "幕后花絮画面：片场中的导演与摄影机" class="h-32 w-full"
+            box class="absolute top-0 right-0 bottom-0 left-0 items-center justify-center bg-black/30"
+              icon circle-play class="size-9 text-white"
+            end
+          end
+          text "幕后制作特辑 · 8:12" class="text-xs text-zinc-900/80"
+        end
+      end
+    end
+    box class="gap-3"
+      use section-title title="相关推荐" variant=bare
+      box class="flex-row gap-3 overflow-hidden px-5"
+        use poster title="流浪地球" sub="2019 · 7.9" cover="《流浪地球》海报：冰封地球与发动机" variant=watched card.tap="open movie-detail"
+        use poster title="星际穿越" sub="2014 · 9.4" cover="《星际穿越》海报：宇航员与黑洞" variant=watched card.tap="open movie-detail"
+        use poster title="火星救援" sub="2015 · 8.5" cover="《火星救援》海报：红色星球上的宇航员" variant=fresh card.tap="open movie-detail"
+        use poster title="沙丘2" sub="2024 · 8.3" cover="《沙丘2》海报：沙漠中的人物剪影" variant=fresh card.tap="open movie-detail"
+      end
+    end
+    box class="mx-4 gap-3 rounded-2xl border border-zinc-900/8 bg-white p-4 shadow-sm shadow-black/5"
+      text "文件信息" class="text-sm font-semibold text-zinc-900"
+      box class="flex-row"
+        text "视频" class="w-16 text-xs text-zinc-500"
+        text "HEVC Main10 · 3840×2160 · 23.976fps · Dolby Vision P7 + HDR10" class="flex-1 text-xs text-zinc-900/80"
+      end
+      box class="flex-row"
+        text "音频" class="w-16 text-xs text-zinc-500"
+        text "TrueHD Atmos 7.1 国语 · DTS-HD MA 5.1 粤语 · AC3 2.0 导评" class="flex-1 text-xs text-zinc-900/80"
+      end
+      box class="flex-row"
+        text "字幕" class="w-16 text-xs text-zinc-500"
+        text "PGS 简中 / 繁中 / 英文 · 外挂 ASS 简英双语" class="flex-1 text-xs text-zinc-900/80"
+      end
+      box class="flex-row"
+        text "码率" class="w-16 text-xs text-zinc-500"
+        text "72.4 Mbps · 58.4 GB · MKV" class="flex-1 text-xs text-zinc-900/80"
+      end
+      box class="flex-row"
+        text "路径" class="w-16 text-xs text-zinc-500"
+        text "/volume1/Movies/流浪地球2 (2023)/The.Wandering.Earth.II.2023.2160p.UHD.BluRay.REMUX.DV.HDR.TrueHD.7.1.mkv" class="flex-1 text-xs break-all text-zinc-900/80"
+      end
+    end
+  end
+end
+
+design dark device=phone height=1960 name="电影详情 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-[400px] right-0 left-0 h-[1100px]"
+  box class="relative h-[460px]"
+    image "《流浪地球2》剧照：冰封城市上空巨大的行星发动机光柱" class="absolute top-0 right-0 bottom-0 left-0"
+    box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-t from-black/90 via-black/35 to-black/45"
+    end
+    box class="absolute right-0 bottom-0 left-0 h-12 bg-linear-to-b from-transparent to-[#0f1017]"
+    end
+    box class="absolute top-0 right-0 left-0"
+      use status-bar-dark variant=onmedia
+      box class="flex-row items-center justify-between px-4 pt-1"
+        box class="size-9 items-center justify-center rounded-full bg-black/40" tap="close"
+          icon chevron-left class="size-5 text-white"
+        end
+        box class="flex-row gap-2"
+          box class="size-9 items-center justify-center rounded-full bg-black/40"
+            icon cast class="size-4 text-white"
+          end
+          box class="size-9 items-center justify-center rounded-full bg-black/40"
+            icon ellipsis class="size-4 text-white"
+          end
+        end
+      end
+    end
+    box class="absolute right-0 bottom-0 left-0 gap-2.5 px-5 pb-12"
+      text "流浪地球2" class="text-4xl font-bold tracking-tight text-white"
+      text "The Wandering Earth II" class="text-sm text-white/80"
+      text "2023 · 173 分钟 · 科幻 / 冒险 · 12+" class="text-xs text-white/80"
+      box class="flex-row items-center gap-3"
+        box class="flex-row items-center gap-1"
+          text "豆" class="rounded bg-emerald-600 px-1 text-[10px] font-bold text-white"
+          text "8.3" class="text-sm font-semibold text-white"
+        end
+        box class="flex-row items-center gap-1"
+          text "IMDb" class="rounded bg-amber-400 px-1 text-[10px] font-bold text-black"
+          text "7.9" class="text-sm font-semibold text-white"
+        end
+        box class="flex-row items-center gap-1"
+          text "TMDB" class="rounded bg-sky-600 px-1 text-[10px] font-bold text-white"
+          text "7.3" class="text-sm font-semibold text-white"
+        end
+      end
+      box class="flex-row gap-1.5"
+        text "4K" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        text "Dolby Vision" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        text "Atmos" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        box class="flex-row items-center gap-1 rounded border border-fuchsia-400/50 bg-fuchsia-500/15 px-1.5 py-0.5"
+          icon message-square-text class="size-3 text-fuchsia-300"
+          text "弹幕 1.2万" class="text-[10px] font-semibold text-fuchsia-200"
+        end
+      end
+    end
+  end
+  box class="flex-1 gap-7 pt-5 pb-10"
+    box class="gap-4 px-5"
+      box class="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30" tap="open player" note="有观看进度时显示「从 1:12:40 继续播放」，长按可选择从头播放"
+        icon play class="size-5 text-white"
+        text "播放" class="text-base font-semibold text-white"
+      end
+      box class="flex-row rounded-2xl border border-white/8 bg-[#1a1b25] py-3 shadow-sm shadow-black/5"
+        box class="flex-1 items-center gap-1.5" note="下载到本机以离线观看，可选择原画或转码画质"
+          icon download class="size-5 text-violet-400"
+          text "下载" class="text-[11px] text-zinc-400"
+        end
+        box class="flex-1 items-center gap-1.5"
+          icon heart class="size-5 text-violet-400"
+          text "收藏" class="text-[11px] text-zinc-400"
+        end
+        box class="flex-1 items-center gap-1.5" note="标记为已看并同步到媒体服务器与 Trakt"
+          icon circle-check class="size-5 text-violet-400"
+          text "标为已看" class="text-[11px] text-zinc-400"
+        end
+        box class="flex-1 items-center gap-1.5"
+          icon share-2 class="size-5 text-violet-400"
+          text "分享" class="text-[11px] text-zinc-400"
+        end
+        box class="flex-1 items-center gap-1.5" note="更多：重新匹配元数据、刷新元数据、手动匹配弹幕、编辑、从媒体库删除"
+          icon ellipsis class="size-5 text-violet-400"
+          text "更多" class="text-[11px] text-zinc-400"
+        end
+      end
+    end
+    box class="gap-2 px-5"
+      text "太阳即将毁灭，人类在地球表面建造出巨大的推进器，寻找新的家园。然而宇宙之路危机四伏，为了拯救地球，流浪地球时代的年轻人再次挺身而出，展开争分夺秒的生死之战。" class="line-clamp-3 text-sm leading-relaxed text-zinc-50/80"
+      text "导演：郭帆   主演：吴京 / 刘德华 / 李雪健 / 沙溢" class="text-xs text-zinc-400"
+    end
+    use settings-group-dark header="播放选项"
+      fill
+        use settings-row-dark title="版本" icon=layers value="2160p REMUX · 58.4 GB" note="同一影片有多个文件时可选：2160p REMUX（家庭 Emby）/ 1080p WEB-DL 8.2 GB（书房 NAS）"
+        use settings-row-dark title="来源" icon=server badge.class="bg-emerald-500" value="家庭 Emby"
+        use settings-row-dark title="音轨" icon=audio-lines badge.class="bg-sky-500" value="国语 TrueHD Atmos 7.1"
+        use settings-row-dark title="字幕" icon=captions badge.class="bg-amber-500" value="简体中文 (PGS)"
+        use settings-row-dark title="弹幕" icon=message-square-text badge.class="bg-fuchsia-500" value="弹弹play · 已匹配"
+      end
+    end
+    box class="gap-3"
+      use section-title-dark title="演职人员" moretext="全部 46"
+      box class="flex-row gap-4 overflow-hidden px-5"
+        box class="w-16 items-center gap-1.5"
+          image "导演郭帆的头像" class="size-16 rounded-full border-2 border-[#1a1b25] shadow-md shadow-black/10"
+          text "郭帆" class="text-[11px] text-zinc-50"
+          text "导演" class="text-[10px] text-zinc-400"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "演员吴京的头像" class="size-16 rounded-full border-2 border-[#1a1b25] shadow-md shadow-black/10"
+          text "吴京" class="text-[11px] text-zinc-50"
+          text "刘培强" class="text-[10px] text-zinc-400"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "演员刘德华的头像" class="size-16 rounded-full border-2 border-[#1a1b25] shadow-md shadow-black/10"
+          text "刘德华" class="text-[11px] text-zinc-50"
+          text "图恒宇" class="text-[10px] text-zinc-400"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "演员李雪健的头像" class="size-16 rounded-full border-2 border-[#1a1b25] shadow-md shadow-black/10"
+          text "李雪健" class="text-[11px] text-zinc-50"
+          text "周喆直" class="text-[10px] text-zinc-400"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "演员沙溢的头像" class="size-16 rounded-full border-2 border-[#1a1b25] shadow-md shadow-black/10"
+          text "沙溢" class="text-[11px] text-zinc-50"
+          text "张鹏" class="text-[10px] text-zinc-400"
+        end
+      end
+    end
+    box class="gap-3"
+      use section-title-dark title="预告片与花絮" variant=bare
+      box class="flex-row gap-3 overflow-hidden px-5"
+        box class="w-56 gap-1.5"
+          box class="relative overflow-hidden rounded-2xl shadow-lg shadow-black/15"
+            image "正式预告片画面：太空电梯与月球" class="h-32 w-full"
+            box class="absolute top-0 right-0 bottom-0 left-0 items-center justify-center bg-black/30"
+              icon circle-play class="size-9 text-white"
+            end
+          end
+          text "终极预告 · 2:31" class="text-xs text-zinc-50/80"
+        end
+        box class="w-56 gap-1.5"
+          box class="relative overflow-hidden rounded-2xl shadow-lg shadow-black/15"
+            image "幕后花絮画面：片场中的导演与摄影机" class="h-32 w-full"
+            box class="absolute top-0 right-0 bottom-0 left-0 items-center justify-center bg-black/30"
+              icon circle-play class="size-9 text-white"
+            end
+          end
+          text "幕后制作特辑 · 8:12" class="text-xs text-zinc-50/80"
+        end
+      end
+    end
+    box class="gap-3"
+      use section-title-dark title="相关推荐" variant=bare
+      box class="flex-row gap-3 overflow-hidden px-5"
+        use poster-dark title="流浪地球" sub="2019 · 7.9" cover="《流浪地球》海报：冰封地球与发动机" variant=watched card.tap="open movie-detail#dark"
+        use poster-dark title="星际穿越" sub="2014 · 9.4" cover="《星际穿越》海报：宇航员与黑洞" variant=watched card.tap="open movie-detail#dark"
+        use poster-dark title="火星救援" sub="2015 · 8.5" cover="《火星救援》海报：红色星球上的宇航员" variant=fresh card.tap="open movie-detail#dark"
+        use poster-dark title="沙丘2" sub="2024 · 8.3" cover="《沙丘2》海报：沙漠中的人物剪影" variant=fresh card.tap="open movie-detail#dark"
+      end
+    end
+    box class="mx-4 gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] p-4 shadow-sm shadow-black/5"
+      text "文件信息" class="text-sm font-semibold text-zinc-50"
+      box class="flex-row"
+        text "视频" class="w-16 text-xs text-zinc-400"
+        text "HEVC Main10 · 3840×2160 · 23.976fps · Dolby Vision P7 + HDR10" class="flex-1 text-xs text-zinc-50/80"
+      end
+      box class="flex-row"
+        text "音频" class="w-16 text-xs text-zinc-400"
+        text "TrueHD Atmos 7.1 国语 · DTS-HD MA 5.1 粤语 · AC3 2.0 导评" class="flex-1 text-xs text-zinc-50/80"
+      end
+      box class="flex-row"
+        text "字幕" class="w-16 text-xs text-zinc-400"
+        text "PGS 简中 / 繁中 / 英文 · 外挂 ASS 简英双语" class="flex-1 text-xs text-zinc-50/80"
+      end
+      box class="flex-row"
+        text "码率" class="w-16 text-xs text-zinc-400"
+        text "72.4 Mbps · 58.4 GB · MKV" class="flex-1 text-xs text-zinc-50/80"
+      end
+      box class="flex-row"
+        text "路径" class="w-16 text-xs text-zinc-400"
+        text "/volume1/Movies/流浪地球2 (2023)/The.Wandering.Earth.II.2023.2160p.UHD.BluRay.REMUX.DV.HDR.TrueHD.7.1.mkv" class="flex-1 text-xs break-all text-zinc-50/80"
+      end
+    end
+  end
+end

@@ -1,0 +1,24 @@
+flow name="iCloud 同步与多端续播" direction=down
+node start "触发同步" kind=start note="触发时机：前台启动、从后台唤起、设置变更后 5 秒、手动刷新；Apple TV 仅后台同步"
+node icloud "iCloud 可用？" kind=decision note="检查 NSFileManager ubiquityIdentityToken；未登录 iCloud 或关闭 iCloud Drive 时降级为仅本地"
+node push "推送本机配置到 iCloud" kind=data note="同步内容（可在设置 › 同步中各自开关）：媒体源列表（凭据 AES-256 加密）、外观偏好、屏蔽词与过滤规则；凭据不跨设备明文传输"
+node pull "拉取其他设备的配置变更" note="通过 NSMetadataQuery 监听 iCloud 文件变化，增量合并；媒体源以 ID 去重，冲突时保留最新修改时间"
+node progress "同步多端观看进度" kind=decision note="进度来源：Emby/Jellyfin/飞牛影视服务器（优先）；服务器不可达时读 iCloud 本地缓存"
+node server "从媒体服务器读取进度" note="Emby/Jellyfin：GET /Users/{UserId}/Items/{Id}/UserData；飞牛影视：播放进度接口；合并同一媒体项在多个来源的进度，取最新"
+node local "从 iCloud 缓存读取进度" note="上次播放时写入的本地进度文件；离线时保证续播连贯"
+node resume "首页「继续观看」更新" note="列出跨设备所有未完成项，按最近播放时间排序；同一影片在多端有不同进度时合并为单条，显示最新进度"
+node notify "推送续播建议通知" note="另一台设备刚播放过某内容时，锁屏通知「在 iPad 上看到第 6 集，要继续吗？」；可在设置中关闭"
+node play "用户在当前设备续播" note="接受通知或点击继续观看卡片，直接跳到对应进度；进度来自服务器，误差在最后一次回写时间内（约 10 秒）"
+node end "写回当前设备进度" kind=end note="播放中每 10 秒及暂停/退出时回写到服务器与 iCloud；离线时仅写 iCloud，联网后自动补报服务器"
+start -> icloud
+icloud -> push "是"
+icloud -> progress "否（仅本地）"
+push -> pull -> progress
+progress -> server "服务器可达"
+progress -> local "服务器不可达"
+server -> resume
+local -> resume
+resume -> notify
+notify ..> play "用户响应"
+resume ..> play "用户点击继续观看"
+play -> end

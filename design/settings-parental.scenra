@@ -1,0 +1,73 @@
+design light device=phone height=1080 name="设置/家长控制" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  use status-bar
+  use nav-bar title="家长控制" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    box class="mx-4 flex-row items-center gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4"
+      box class="size-10 items-center justify-center rounded-full bg-amber-500 shadow-md shadow-amber-500/30"
+        icon shield class="size-5 text-white"
+      end
+      text "开启后，超出分级的内容会被隐藏，修改设置与解锁需要输入访问密码。" class="flex-1 text-xs leading-relaxed text-zinc-900/80"
+    end
+    use settings-group variant=noheader
+      fill
+        use settings-row variant=toggle icon=shield-check title="启用家长控制" badge.class="bg-amber-500"
+        use settings-row icon=key-round title="访问密码" value="已设置 4 位 PIN" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group header="内容限制"
+      fill
+        use settings-row icon=badge-alert title="分级上限" value="PG-13" badge.class="bg-rose-500" note="G / PG / PG-13 / R / 不限制；无分级信息的内容按“需要确认”处理"
+        use settings-row icon=eye-off title="隐藏的媒体库" value="2 个" badge.class="bg-zinc-500"
+        use settings-row icon=server title="允许的媒体源" value="家庭 Emby" badge.class="bg-emerald-500"
+        use settings-row variant="toggle-off desc" icon=baby title="儿童模式" desc="只显示动画与家庭分级内容，界面简化" badge.class="bg-pink-500"
+      end
+    end
+    use settings-group header="使用时长" variant=footer footer="到达时长后暂停播放，输入密码可临时延长 30 分钟。"
+      fill
+        use settings-row variant=toggle icon=hourglass title="每日时长限制" badge.class="bg-indigo-500"
+        use settings-row variant=plain title="工作日" value="1 小时"
+        use settings-row variant=plain title="周末" value="2 小时"
+        use settings-row variant=plain title="禁止观看时段" value="21:30 – 07:00"
+      end
+    end
+  end
+end
+
+design dark device=phone height=1080 name="家长控制 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  use status-bar-dark
+  use nav-bar-dark title="家长控制" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    box class="mx-4 flex-row items-center gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4"
+      box class="size-10 items-center justify-center rounded-full bg-amber-500 shadow-md shadow-amber-500/30"
+        icon shield class="size-5 text-white"
+      end
+      text "开启后，超出分级的内容会被隐藏，修改设置与解锁需要输入访问密码。" class="flex-1 text-xs leading-relaxed text-zinc-50/80"
+    end
+    use settings-group-dark variant=noheader
+      fill
+        use settings-row-dark variant=toggle icon=shield-check title="启用家长控制" badge.class="bg-amber-500"
+        use settings-row-dark icon=key-round title="访问密码" value="已设置 4 位 PIN" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group-dark header="内容限制"
+      fill
+        use settings-row-dark icon=badge-alert title="分级上限" value="PG-13" badge.class="bg-rose-500" note="G / PG / PG-13 / R / 不限制；无分级信息的内容按“需要确认”处理"
+        use settings-row-dark icon=eye-off title="隐藏的媒体库" value="2 个" badge.class="bg-zinc-500"
+        use settings-row-dark icon=server title="允许的媒体源" value="家庭 Emby" badge.class="bg-emerald-500"
+        use settings-row-dark variant="toggle-off desc" icon=baby title="儿童模式" desc="只显示动画与家庭分级内容，界面简化" badge.class="bg-pink-500"
+      end
+    end
+    use settings-group-dark header="使用时长" variant=footer footer="到达时长后暂停播放，输入密码可临时延长 30 分钟。"
+      fill
+        use settings-row-dark variant=toggle icon=hourglass title="每日时长限制" badge.class="bg-indigo-500"
+        use settings-row-dark variant=plain title="工作日" value="1 小时"
+        use settings-row-dark variant=plain title="周末" value="2 小时"
+        use settings-row-dark variant=plain title="禁止观看时段" value="21:30 – 07:00"
+      end
+    end
+  end
+end

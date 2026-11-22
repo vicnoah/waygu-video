@@ -1,0 +1,30 @@
+flow name="播放决策" direction=down
+node start "点击播放" kind=start note="来自详情页、继续观看卡片或下一集自动播放"
+node info "读取 PlaybackInfo" note="Emby/Jellyfin：POST /Items/{Id}/PlaybackInfo 并附设备能力描述；飞牛影视：播放信息接口；文件源：本地探测容器与编码"
+node version "选择版本" note="多版本时按 设置 › 播放 › 首选版本（最高画质 / 匹配网络 / 记住上次）自动选择，也可在详情页手动切换"
+node can "设备能否直接播放？" kind=decision note="检查容器、视频编码（HEVC / AV1 / 杜比视界 Profile）、音频编码（TrueHD / DTS-HD）、码率与当前网络带宽"
+node direct "直接播放" status=done note="原始文件直连，画质与音质无损"
+node stream "直接串流（重新封装）" note="仅容器不支持时由服务器转封装，不重新编码"
+node transcode "服务器转码" note="按 设置 › 播放 › 网络画质（Wi-Fi / 蜂窝）限制码率；飞牛影视支持硬件转码"
+node tracks "加载字幕、音轨与弹幕" note="字幕按首选语言自动选择，支持内嵌、外挂与在线搜索；弹幕见 弹幕匹配与加载 流程"
+node resume "恢复进度" kind=decision note="有进度时询问「继续播放 / 从头播放」，可设为总是继续"
+node report "播放中定期上报进度" kind=data note="每 10 秒及暂停、拖动、退出时回写 Emby / Jellyfin（/Sessions/Playing/Progress）与飞牛影视；离线时暂存，联网后补报"
+node ended "播放结束？" kind=decision
+node next "自动播放下一集" note="片尾前 30 秒显示下一集卡片，倒计时 10 秒；支持跳过片头片尾"
+node watched "标记已看并同步" note="进度超过 90% 标记已看，同步到服务器与 Trakt"
+node done "退出播放器" kind=end
+start -> info -> version -> can
+can -> direct "完全支持"
+can -> stream "仅容器不支持"
+can -> transcode "编码或码率不支持"
+direct -> tracks
+stream -> tracks
+transcode -> tracks
+tracks -> resume
+resume -> report "继续 / 从头"
+report -> ended
+ended ..> report "否，继续播放"
+ended -> next "剧集且有下一集"
+ended -> watched "电影或最后一集"
+next ..> info "下一集"
+watched -> done

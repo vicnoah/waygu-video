@@ -1,0 +1,151 @@
+design light device=phone height=1780 name="设置/字幕" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar
+  use nav-bar title="字幕" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    use settings-group header="语言"
+      fill
+        use settings-row icon=languages title="首选字幕语言" value="简中 › 繁中 › 英文" badge.class="bg-sky-500" note="可排序的多语言列表，依次尝试匹配字幕轨道"
+        use settings-row icon=audio-lines title="首选音频语言" value="原始语言" badge.class="bg-pink-500"
+        use settings-row icon=wand-sparkles title="自动选择字幕" value="仅外语时" badge.class="bg-violet-500" note="总是 / 仅外语时（音频非首选语言）/ 关闭"
+        use settings-row variant=toggle icon=repeat title="简繁自动转换" badge.class="bg-teal-500"
+      end
+    end
+    box class="gap-2 px-4"
+      text "字幕样式" class="px-4 text-xs font-medium tracking-wide text-zinc-500 uppercase"
+      box class="overflow-hidden rounded-2xl border border-zinc-900/8 bg-white shadow-sm shadow-black/5"
+        box class="relative h-48"
+          image "电影画面：雪原上的两个宇航员背影，远处是巨大的行星发动机" class="absolute top-0 right-0 bottom-0 left-0"
+          box class="absolute right-0 bottom-5 left-0 items-center"
+            text "“我们选择希望。”" class="rounded bg-black/30 px-2 text-xl font-semibold text-white"
+            text "We choose hope." class="mt-0.5 text-sm font-medium text-amber-200"
+          end
+          box class="absolute top-2.5 left-2.5 rounded-md bg-black/50 px-2 py-0.5"
+            text "预览" class="text-[10px] text-white"
+          end
+        end
+        box class="gap-px border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5"
+          use settings-row variant=plain title="字体" value="思源黑体 Medium"
+          use slider label="字号" value="100%" fill.class="w-1/2"
+          box class="gap-2.5 bg-white px-4 py-3"
+            text "颜色" class="text-[15px] text-zinc-900"
+            box class="flex-row gap-3"
+              box class="size-8 items-center justify-center rounded-full border border-zinc-900/8 bg-white ring-2 ring-violet-500 ring-offset-2 ring-offset-card"
+                icon check class="size-4 text-black"
+              end
+              box class="size-8 rounded-full bg-amber-200"
+              end
+              box class="size-8 rounded-full bg-yellow-300"
+              end
+              box class="size-8 rounded-full bg-sky-300"
+              end
+              box class="size-8 rounded-full bg-emerald-300"
+              end
+              box class="size-8 rounded-full bg-pink-300"
+              end
+              box class="size-8 items-center justify-center rounded-full border border-zinc-900/8"
+                icon plus class="size-4 text-zinc-500"
+              end
+            end
+          end
+          use settings-row variant=plain title="描边 / 阴影" value="细描边 + 阴影"
+          use settings-row variant=plain title="背景" value="无"
+          use settings-row variant=plain title="位置" value="底部 · 距边 6%"
+          use settings-row variant="plain toggle" title="双语字幕上下分行"
+        end
+      end
+    end
+    use settings-group header="ASS / SSA" variant=footer footer="开启后保留特效字幕的原始字体、位置与动画；关闭则统一使用上方样式。"
+      fill
+        use settings-row variant=toggle icon=sparkles title="按原样式渲染 ASS 字幕" badge.class="bg-fuchsia-500"
+        use settings-row variant=toggle icon=type title="加载内嵌字体" badge.class="bg-fuchsia-500"
+      end
+    end
+    use settings-group header="在线字幕"
+      fill
+        use settings-row variant=toggle icon=download title="缺少字幕时自动下载" badge.class="bg-emerald-500"
+        use settings-row icon=globe title="OpenSubtitles" value="已登录 · lin_xy" badge.class="bg-emerald-600"
+        use settings-row icon=globe title="射手网（伪）" value="已启用" badge.class="bg-blue-500"
+        use settings-row icon=globe title="SubHD" value="未启用" badge.class="bg-zinc-500"
+        use settings-row icon=folder-open title="外挂字幕匹配" value="同名 + 语言后缀" badge.class="bg-zinc-500" note="识别 movie.zh-CN.ass、movie.chs.srt 等命名的外挂字幕"
+      end
+    end
+  end
+end
+
+design dark device=phone height=1780 name="字幕 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar-dark
+  use nav-bar-dark title="字幕" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    use settings-group-dark header="语言"
+      fill
+        use settings-row-dark icon=languages title="首选字幕语言" value="简中 › 繁中 › 英文" badge.class="bg-sky-500" note="可排序的多语言列表，依次尝试匹配字幕轨道"
+        use settings-row-dark icon=audio-lines title="首选音频语言" value="原始语言" badge.class="bg-pink-500"
+        use settings-row-dark icon=wand-sparkles title="自动选择字幕" value="仅外语时" badge.class="bg-violet-500" note="总是 / 仅外语时（音频非首选语言）/ 关闭"
+        use settings-row-dark variant=toggle icon=repeat title="简繁自动转换" badge.class="bg-teal-500"
+      end
+    end
+    box class="gap-2 px-4"
+      text "字幕样式" class="px-4 text-xs font-medium tracking-wide text-zinc-400 uppercase"
+      box class="overflow-hidden rounded-2xl border border-white/8 bg-[#1a1b25] shadow-sm shadow-black/5"
+        box class="relative h-48"
+          image "电影画面：雪原上的两个宇航员背影，远处是巨大的行星发动机" class="absolute top-0 right-0 bottom-0 left-0"
+          box class="absolute right-0 bottom-5 left-0 items-center"
+            text "“我们选择希望。”" class="rounded bg-black/30 px-2 text-xl font-semibold text-white"
+            text "We choose hope." class="mt-0.5 text-sm font-medium text-amber-200"
+          end
+          box class="absolute top-2.5 left-2.5 rounded-md bg-black/50 px-2 py-0.5"
+            text "预览" class="text-[10px] text-white"
+          end
+        end
+        box class="gap-px border border-white/8 bg-white/7 shadow-sm shadow-black/5"
+          use settings-row-dark variant=plain title="字体" value="思源黑体 Medium"
+          use slider-dark label="字号" value="100%" fill.class="w-1/2"
+          box class="gap-2.5 bg-[#1a1b25] px-4 py-3"
+            text "颜色" class="text-[15px] text-zinc-50"
+            box class="flex-row gap-3"
+              box class="size-8 items-center justify-center rounded-full border border-white/8 bg-white ring-2 ring-violet-500 ring-offset-2 ring-offset-card"
+                icon check class="size-4 text-black"
+              end
+              box class="size-8 rounded-full bg-amber-200"
+              end
+              box class="size-8 rounded-full bg-yellow-300"
+              end
+              box class="size-8 rounded-full bg-sky-300"
+              end
+              box class="size-8 rounded-full bg-emerald-300"
+              end
+              box class="size-8 rounded-full bg-pink-300"
+              end
+              box class="size-8 items-center justify-center rounded-full border border-white/8"
+                icon plus class="size-4 text-zinc-400"
+              end
+            end
+          end
+          use settings-row-dark variant=plain title="描边 / 阴影" value="细描边 + 阴影"
+          use settings-row-dark variant=plain title="背景" value="无"
+          use settings-row-dark variant=plain title="位置" value="底部 · 距边 6%"
+          use settings-row-dark variant="plain toggle" title="双语字幕上下分行"
+        end
+      end
+    end
+    use settings-group-dark header="ASS / SSA" variant=footer footer="开启后保留特效字幕的原始字体、位置与动画；关闭则统一使用上方样式。"
+      fill
+        use settings-row-dark variant=toggle icon=sparkles title="按原样式渲染 ASS 字幕" badge.class="bg-fuchsia-500"
+        use settings-row-dark variant=toggle icon=type title="加载内嵌字体" badge.class="bg-fuchsia-500"
+      end
+    end
+    use settings-group-dark header="在线字幕"
+      fill
+        use settings-row-dark variant=toggle icon=download title="缺少字幕时自动下载" badge.class="bg-emerald-500"
+        use settings-row-dark icon=globe title="OpenSubtitles" value="已登录 · lin_xy" badge.class="bg-emerald-600"
+        use settings-row-dark icon=globe title="射手网（伪）" value="已启用" badge.class="bg-blue-500"
+        use settings-row-dark icon=globe title="SubHD" value="未启用" badge.class="bg-zinc-500"
+        use settings-row-dark icon=folder-open title="外挂字幕匹配" value="同名 + 语言后缀" badge.class="bg-zinc-500" note="识别 movie.zh-CN.ass、movie.chs.srt 等命名的外挂字幕"
+      end
+    end
+  end
+end

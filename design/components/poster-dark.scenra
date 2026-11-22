@@ -1,0 +1,21 @@
+component name="媒体/海报卡片 · 深色" width=112 backdrop="bg-[#0f1017]"
+box name=card class="w-28 gap-1.5"
+  box class="relative overflow-hidden rounded-xl shadow-lg shadow-black/15"
+    image "电影竖版海报" name=cover class="h-40 w-full"
+    box name=badge class="absolute top-1.5 left-1.5 rounded-md bg-black/55 px-1.5 py-0.5"
+      text "4K" name=quality class="text-[9px] font-bold text-white"
+    end
+    box name=watched class="absolute top-1.5 right-1.5 hidden size-5 items-center justify-center rounded-full bg-violet-500 shadow-md"
+      icon check class="size-3 text-white"
+    end
+    box name=track class="absolute right-2 bottom-2 left-2 h-1 rounded-full bg-white/30"
+      box name=progress class="h-1 w-1/2 rounded-full bg-violet-500"
+      end
+    end
+  end
+  text "流浪地球2" name=title class="truncate text-[13px] font-medium text-zinc-50"
+  text "2023 · 8.3" name=sub class="truncate text-[11px] text-zinc-400"
+end
+variant fresh track.class="hidden"
+variant watched watched.class="flex" track.class="hidden"
+variant plain badge.class="hidden" track.class="hidden"

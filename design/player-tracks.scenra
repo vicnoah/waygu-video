@@ -1,0 +1,165 @@
+design device=phone width=844 height=390 name="手机/字幕与音轨"
+box class="relative flex-1 overflow-hidden bg-zinc-950" note="播放器界面始终为深色，不随亮/暗主题切换"
+  image "电影画面：太空电梯在暗蓝色星空下升起，远处是被冰封的地球，冷色科幻光影" class="absolute top-0 right-0 bottom-0 left-0"
+  box class="absolute top-0 right-0 bottom-0 left-0 bg-black/50" tap="close"
+    text "“我们选择希望。”" class="absolute bottom-10 left-[150px] text-lg font-semibold text-white/80"
+  end
+  box class="absolute top-0 right-0 bottom-0 w-[360px] border-l border-white/10 bg-zinc-900/85 shadow-2xl shadow-black/60"
+    box class="flex-row items-center justify-between px-5 pt-4 pb-3"
+      text "字幕与音轨" class="text-base font-semibold text-white"
+      box class="size-8 items-center justify-center rounded-full bg-white/10" tap="close"
+        icon x class="size-4 text-zinc-300"
+      end
+    end
+    box class="mx-5 flex-row rounded-xl border border-white/10 bg-white/5 p-1"
+      box class="group h-7 flex-1 items-center justify-center rounded-lg selected:bg-violet-500 selected:shadow-md selected:shadow-violet-500/30" tap="tab subs"
+        text "字幕" class="text-xs text-zinc-400 group-selected:font-medium group-selected:text-white"
+      end
+      box class="group h-7 flex-1 items-center justify-center rounded-lg selected:bg-violet-500 selected:shadow-md selected:shadow-violet-500/30" tap="tab audio"
+        text "音轨" class="text-xs text-zinc-400 group-selected:font-medium group-selected:text-white"
+      end
+      box class="group h-7 flex-1 items-center justify-center rounded-lg selected:bg-violet-500 selected:shadow-md selected:shadow-violet-500/30" tap="tab quality"
+        text "画质" class="text-xs text-zinc-400 group-selected:font-medium group-selected:text-white"
+      end
+      box class="group h-7 flex-1 items-center justify-center rounded-lg selected:bg-violet-500 selected:shadow-md selected:shadow-violet-500/30" tap="tab speed"
+        text "倍速" class="text-xs text-zinc-400 group-selected:font-medium group-selected:text-white"
+      end
+    end
+    box class="flex-1 gap-2.5 overflow-hidden px-5 pt-3" panel=subs
+      box class="gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10"
+        box class="h-10 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+          text "关闭" class="flex-1 text-sm text-zinc-300"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-violet-500/20 px-3"
+          text "简体中文" class="text-sm font-medium text-white"
+          text "ASS · 内嵌" class="flex-1 text-[11px] text-zinc-400"
+          icon check class="size-4 text-violet-400"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+          text "繁體中文" class="text-sm text-zinc-200"
+          text "SRT · 外挂" class="flex-1 text-[11px] text-zinc-500"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+          text "English" class="text-sm text-zinc-200"
+          text "PGS · 内嵌" class="flex-1 text-[11px] text-zinc-500"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-zinc-800/70 px-3" note="按片名与文件哈希在 OpenSubtitles、射手网搜索，下载后自动加载并缓存"
+          icon search class="size-4 text-violet-400"
+          text "在线搜索字幕" class="flex-1 text-sm text-violet-300"
+          text "OpenSubtitles · 射手" class="text-[11px] text-zinc-500"
+        end
+      end
+      box class="flex-row items-center justify-between"
+        text "字幕延迟" class="text-sm text-white"
+        box class="h-8 flex-row items-center rounded-lg border border-white/10 bg-white/5"
+          box class="h-8 w-9 items-center justify-center"
+            icon minus class="size-3.5 text-zinc-300"
+          end
+          text "0.0s" class="w-12 text-center text-xs font-medium text-white"
+          box class="h-8 w-9 items-center justify-center"
+            icon plus class="size-3.5 text-zinc-300"
+          end
+        end
+      end
+      box class="h-9 flex-row items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3" note="打开字幕样式：字体、字号、颜色、描边、位置，与 设置 › 字幕 相同"
+        text "字幕样式" class="text-sm text-white"
+        icon chevron-right class="size-4 text-zinc-500"
+      end
+    end
+    box class="flex-1 gap-2.5 overflow-hidden px-5 pt-3" panel=audio
+      box class="gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10"
+        box class="h-12 flex-row items-center gap-3 bg-violet-500/20 px-3"
+          box class="flex-1 gap-0.5"
+            text "国语 · Dolby TrueHD Atmos" class="text-sm font-medium text-white"
+            text "7.1 声道 · 直通至功放" class="text-[11px] text-zinc-400"
+          end
+          icon check class="size-4 text-violet-400"
+        end
+        box class="h-12 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+          box class="flex-1 gap-0.5"
+            text "国语 · AC3" class="text-sm text-zinc-200"
+            text "5.1 声道 · 640 kbps" class="text-[11px] text-zinc-500"
+          end
+        end
+        box class="h-12 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+          box class="flex-1 gap-0.5"
+            text "导演评论 · AAC" class="text-sm text-zinc-200"
+            text "2.0 声道 · 192 kbps" class="text-[11px] text-zinc-500"
+          end
+        end
+      end
+      box class="flex-row items-center justify-between"
+        text "音画同步" class="text-sm text-white"
+        box class="h-8 flex-row items-center rounded-lg border border-white/10 bg-white/5"
+          box class="h-8 w-9 items-center justify-center"
+            icon minus class="size-3.5 text-zinc-300"
+          end
+          text "0 ms" class="w-12 text-center text-xs font-medium text-white"
+          box class="h-8 w-9 items-center justify-center"
+            icon plus class="size-3.5 text-zinc-300"
+          end
+        end
+      end
+      box class="flex-row items-center justify-between"
+        text "夜间模式（压缩动态范围）" class="text-sm text-white"
+        use switch-dark variant=off class="scale-75"
+      end
+    end
+    box class="flex-1 gap-2.5 overflow-hidden px-5 pt-3" panel=quality note="原画为直接播放（Direct Play）；选择码率后由 Emby / Jellyfin / 飞牛影视 服务器转码，切换时从当前进度继续"
+      box class="gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10"
+        box class="h-12 flex-row items-center gap-3 bg-violet-500/20 px-3"
+          box class="flex-1 gap-0.5"
+            text "原画 · 2160p" class="text-sm font-medium text-white"
+            text "直接播放 · HEVC 68 Mbps" class="text-[11px] text-zinc-400"
+          end
+          icon check class="size-4 text-violet-400"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+          text "1080p · 20 Mbps" class="flex-1 text-sm text-zinc-200"
+          text "服务器转码" class="text-[11px] text-zinc-500"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+          text "720p · 8 Mbps" class="flex-1 text-sm text-zinc-200"
+          text "服务器转码" class="text-[11px] text-zinc-500"
+        end
+        box class="h-10 flex-row items-center gap-3 bg-zinc-800/70 px-3"
+          text "480p · 4 Mbps" class="flex-1 text-sm text-zinc-200"
+          text "服务器转码" class="text-[11px] text-zinc-500"
+        end
+      end
+      box class="flex-row items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2"
+        icon circle-check class="size-4 text-emerald-400"
+        text "当前网络良好，无需转码" class="text-xs text-emerald-300"
+      end
+    end
+    box class="flex-1 gap-3 overflow-hidden px-5 pt-3" panel=speed
+      box class="flex-row flex-wrap gap-2"
+        box class="h-10 w-[72px] items-center justify-center rounded-lg border border-white/10 bg-white/5"
+          text "0.5x" class="text-sm text-zinc-300"
+        end
+        box class="h-10 w-[72px] items-center justify-center rounded-lg border border-white/10 bg-white/5"
+          text "0.75x" class="text-sm text-zinc-300"
+        end
+        box class="h-10 w-[72px] items-center justify-center rounded-lg bg-linear-to-br from-violet-500 to-fuchsia-500 shadow-md shadow-violet-500/30"
+          text "1.0x" class="text-sm font-semibold text-white"
+        end
+        box class="h-10 w-[72px] items-center justify-center rounded-lg border border-white/10 bg-white/5"
+          text "1.25x" class="text-sm text-zinc-300"
+        end
+        box class="h-10 w-[72px] items-center justify-center rounded-lg border border-white/10 bg-white/5"
+          text "1.5x" class="text-sm text-zinc-300"
+        end
+        box class="h-10 w-[72px] items-center justify-center rounded-lg border border-white/10 bg-white/5"
+          text "2.0x" class="text-sm text-zinc-300"
+        end
+        box class="h-10 w-[72px] items-center justify-center rounded-lg border border-white/10 bg-white/5"
+          text "2.5x" class="text-sm text-zinc-300"
+        end
+        box class="h-10 w-[72px] items-center justify-center rounded-lg border border-white/10 bg-white/5"
+          text "3.0x" class="text-sm text-zinc-300"
+        end
+      end
+      text "倍速播放时音频保持原音调；弹幕速度随倍速同步。" class="text-xs leading-relaxed text-zinc-500"
+    end
+  end
+end

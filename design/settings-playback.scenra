@@ -1,0 +1,115 @@
+design light device=phone height=1760 name="设置/播放" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar
+  use nav-bar title="播放" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    use settings-group header="画质" variant=footer footer="直接播放不经服务器转码，画质最好；网络不足时自动降为转码播放。"
+      fill
+        use settings-row icon=wifi title="Wi-Fi 下画质" value="原画" badge.class="bg-violet-500"
+        use settings-row icon=signal title="移动网络画质" value="4 Mbps" badge.class="bg-violet-500"
+        use settings-row variant=toggle icon=zap title="优先直接播放" badge.class="bg-emerald-500"
+        use settings-row variant=toggle-off icon=triangle-alert title="移动网络播放前提醒" badge.class="bg-amber-500"
+      end
+    end
+    use settings-group header="解码与显示"
+      fill
+        use settings-row variant=toggle icon=cpu title="硬件解码" badge.class="bg-sky-500"
+        use settings-row icon=binary title="解码器" value="自动" badge.class="bg-sky-500" note="自动 / 硬解优先 / 软解（兼容性最好，耗电较高）"
+        use settings-row variant="toggle desc" icon=sun title="匹配动态范围" desc="播放 HDR10 / 杜比视界时切换显示模式" badge.class="bg-orange-500"
+        use settings-row icon=sun-dim title="HDR 色调映射" value="自动" badge.class="bg-orange-500" note="在不支持 HDR 的屏幕上将 HDR 映射为 SDR：自动 / Hable / Reinhard / 关闭"
+        use settings-row variant="toggle desc" icon=gauge title="匹配帧率" desc="电视端切换为影片原生帧率，如 23.976 Hz" badge.class="bg-teal-500"
+        use settings-row icon=ratio title="默认画面比例" value="原始" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group header="音频"
+      fill
+        use settings-row variant="toggle desc" icon=speaker title="音频直通" desc="将 AC3、DTS、TrueHD、Atmos 原样输出到功放" badge.class="bg-pink-500"
+        use settings-row icon=audio-lines title="直通格式" value="AC3 · DTS · TrueHD" badge.class="bg-pink-500"
+        use settings-row variant=toggle-off icon=volume-2 title="音量增强" badge.class="bg-rose-500"
+        use settings-row variant=toggle-off icon=moon title="夜间模式（压缩动态范围）" badge.class="bg-indigo-500"
+      end
+    end
+    use settings-group header="剧集"
+      fill
+        use settings-row variant=toggle icon=skip-forward title="自动播放下一集" badge.class="bg-violet-500"
+        use settings-row variant=toggle icon=fast-forward title="跳过片头片尾" badge.class="bg-violet-500"
+        use settings-row icon=scan-search title="片头片尾识别" value="服务器标记 + 音频指纹" badge.class="bg-violet-500" note="优先使用 Emby / Jellyfin 章节与 Intro Skipper 标记，没有时按同季音频指纹自动识别"
+      end
+    end
+    use settings-group header="控制"
+      fill
+        use settings-row variant=toggle icon=history title="记住播放进度" badge.class="bg-blue-500"
+        use settings-row icon=rotate-ccw title="快退步长" value="10 秒" badge.class="bg-blue-500"
+        use settings-row icon=rotate-cw title="快进步长" value="30 秒" badge.class="bg-blue-500"
+        use settings-row icon=gauge title="默认倍速" value="1.0x" badge.class="bg-blue-500"
+        use settings-row icon=hand title="手势" value="亮度 · 音量 · 进度" badge.class="bg-blue-500"
+      end
+    end
+    use settings-group header="后台与网络"
+      fill
+        use settings-row variant=toggle icon=picture-in-picture-2 title="自动画中画" badge.class="bg-emerald-500"
+        use settings-row variant=toggle-off icon=headphones title="后台继续播放音频" badge.class="bg-emerald-500"
+        use settings-row icon=hard-drive-download title="缓冲大小" value="自动（最多 500 MB）" badge.class="bg-zinc-500"
+      end
+    end
+  end
+end
+
+design dark device=phone height=1760 name="播放 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar-dark
+  use nav-bar-dark title="播放" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    use settings-group-dark header="画质" variant=footer footer="直接播放不经服务器转码，画质最好；网络不足时自动降为转码播放。"
+      fill
+        use settings-row-dark icon=wifi title="Wi-Fi 下画质" value="原画" badge.class="bg-violet-500"
+        use settings-row-dark icon=signal title="移动网络画质" value="4 Mbps" badge.class="bg-violet-500"
+        use settings-row-dark variant=toggle icon=zap title="优先直接播放" badge.class="bg-emerald-500"
+        use settings-row-dark variant=toggle-off icon=triangle-alert title="移动网络播放前提醒" badge.class="bg-amber-500"
+      end
+    end
+    use settings-group-dark header="解码与显示"
+      fill
+        use settings-row-dark variant=toggle icon=cpu title="硬件解码" badge.class="bg-sky-500"
+        use settings-row-dark icon=binary title="解码器" value="自动" badge.class="bg-sky-500" note="自动 / 硬解优先 / 软解（兼容性最好，耗电较高）"
+        use settings-row-dark variant="toggle desc" icon=sun title="匹配动态范围" desc="播放 HDR10 / 杜比视界时切换显示模式" badge.class="bg-orange-500"
+        use settings-row-dark icon=sun-dim title="HDR 色调映射" value="自动" badge.class="bg-orange-500" note="在不支持 HDR 的屏幕上将 HDR 映射为 SDR：自动 / Hable / Reinhard / 关闭"
+        use settings-row-dark variant="toggle desc" icon=gauge title="匹配帧率" desc="电视端切换为影片原生帧率，如 23.976 Hz" badge.class="bg-teal-500"
+        use settings-row-dark icon=ratio title="默认画面比例" value="原始" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group-dark header="音频"
+      fill
+        use settings-row-dark variant="toggle desc" icon=speaker title="音频直通" desc="将 AC3、DTS、TrueHD、Atmos 原样输出到功放" badge.class="bg-pink-500"
+        use settings-row-dark icon=audio-lines title="直通格式" value="AC3 · DTS · TrueHD" badge.class="bg-pink-500"
+        use settings-row-dark variant=toggle-off icon=volume-2 title="音量增强" badge.class="bg-rose-500"
+        use settings-row-dark variant=toggle-off icon=moon title="夜间模式（压缩动态范围）" badge.class="bg-indigo-500"
+      end
+    end
+    use settings-group-dark header="剧集"
+      fill
+        use settings-row-dark variant=toggle icon=skip-forward title="自动播放下一集" badge.class="bg-violet-500"
+        use settings-row-dark variant=toggle icon=fast-forward title="跳过片头片尾" badge.class="bg-violet-500"
+        use settings-row-dark icon=scan-search title="片头片尾识别" value="服务器标记 + 音频指纹" badge.class="bg-violet-500" note="优先使用 Emby / Jellyfin 章节与 Intro Skipper 标记，没有时按同季音频指纹自动识别"
+      end
+    end
+    use settings-group-dark header="控制"
+      fill
+        use settings-row-dark variant=toggle icon=history title="记住播放进度" badge.class="bg-blue-500"
+        use settings-row-dark icon=rotate-ccw title="快退步长" value="10 秒" badge.class="bg-blue-500"
+        use settings-row-dark icon=rotate-cw title="快进步长" value="30 秒" badge.class="bg-blue-500"
+        use settings-row-dark icon=gauge title="默认倍速" value="1.0x" badge.class="bg-blue-500"
+        use settings-row-dark icon=hand title="手势" value="亮度 · 音量 · 进度" badge.class="bg-blue-500"
+      end
+    end
+    use settings-group-dark header="后台与网络"
+      fill
+        use settings-row-dark variant=toggle icon=picture-in-picture-2 title="自动画中画" badge.class="bg-emerald-500"
+        use settings-row-dark variant=toggle-off icon=headphones title="后台继续播放音频" badge.class="bg-emerald-500"
+        use settings-row-dark icon=hard-drive-download title="缓冲大小" value="自动（最多 500 MB）" badge.class="bg-zinc-500"
+      end
+    end
+  end
+end

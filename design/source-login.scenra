@@ -1,0 +1,203 @@
+design light device=phone height=1240 name="引导/连接服务器" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar
+  box class="h-11 flex-row items-center justify-between px-3"
+    box class="flex-row items-center gap-0.5" tap="close"
+      icon chevron-left class="size-6 text-violet-500"
+      text "返回" class="text-base text-violet-500"
+    end
+    text "连接服务器" class="text-[17px] font-semibold text-zinc-900"
+    box class="w-16"
+    end
+  end
+  box class="flex-1 gap-6 pt-3 pb-10"
+    box class="mx-4 flex-row rounded-xl bg-zinc-900/5 p-1"
+      box class="group flex-1 items-center rounded-lg py-2 selected:bg-white selected:shadow-sm" tap="tab emby"
+        text "Emby" class="text-sm text-zinc-500 group-selected:font-semibold group-selected:text-zinc-900"
+      end
+      box class="group flex-1 items-center rounded-lg py-2 selected:bg-white selected:shadow-sm" tap="tab jellyfin"
+        text "Jellyfin" class="text-sm text-zinc-500 group-selected:font-semibold group-selected:text-zinc-900"
+      end
+      box class="group flex-1 items-center rounded-lg py-2 selected:bg-white selected:shadow-sm" tap="tab fnos"
+        text "飞牛影视" class="text-sm text-zinc-500 group-selected:font-semibold group-selected:text-zinc-900"
+      end
+    end
+    box class="gap-6" panel=emby
+      use settings-group header="服务器"
+        fill
+          box class="h-12 flex-row items-center gap-3 bg-white px-4"
+            text "地址" class="w-16 text-[15px] text-zinc-900"
+            text "home.example.com" class="flex-1 text-[15px] text-zinc-900/80"
+            icon scan-line class="size-4 text-zinc-500"
+          end
+          box class="h-12 flex-row items-center gap-3 bg-white px-4"
+            text "端口" class="w-16 text-[15px] text-zinc-900"
+            text "8096" class="flex-1 text-[15px] text-zinc-900/80"
+          end
+          use settings-row title="使用 HTTPS" variant="toggle plain"
+          box class="h-12 flex-row items-center gap-3 bg-white px-4"
+            text "名称" class="w-16 text-[15px] text-zinc-900"
+            text "家庭 Emby" class="flex-1 text-[15px] text-zinc-900/80"
+          end
+        end
+      end
+      use settings-group header="登录" variant=footer footer="也可在已登录的 Emby 网页端「快速连接」中输入代码登录，无需密码。"
+        fill
+          box class="h-12 flex-row items-center gap-3 bg-white px-4"
+            text "用户名" class="w-16 text-[15px] text-zinc-900"
+            text "linxiaoyu" class="flex-1 text-[15px] text-zinc-900/80"
+          end
+          box class="h-12 flex-row items-center gap-3 bg-white px-4"
+            text "密码" class="w-16 text-[15px] text-zinc-900"
+            text "••••••••••" class="flex-1 text-[15px] text-zinc-900/80"
+            icon eye-off class="size-4 text-zinc-500"
+          end
+          use settings-row title="使用快速连接码" icon=key-round badge.class="bg-slate-500" value="Quick Connect"
+        end
+      end
+      use settings-group header="高级"
+        fill
+          use settings-row title="自定义请求头" variant=plain value="2 项"
+          use settings-row title="忽略证书错误" variant="toggle-off plain"
+          use settings-row title="备用外网地址" variant=plain value="未设置" note="内网不可达时自动切换到外网地址"
+        end
+      end
+      box class="mx-4 flex-row items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4"
+        icon circle-check class="size-5 text-emerald-500"
+        box class="flex-1"
+          text "已连接 Emby Server 4.8.10" class="text-sm font-medium text-zinc-900"
+          text "延迟 12ms · 局域网 · 已登录为 linxiaoyu" class="text-xs text-zinc-500"
+        end
+        text "重新测试" class="text-xs text-emerald-500"
+      end
+      use settings-group header="选择要导入的媒体库"
+        fill
+          use settings-row title="电影" icon=film value="1,284 部" chevron=circle-check chevron.class="size-5 text-violet-500"
+          use settings-row title="剧集" icon=tv value="326 部" chevron=circle-check chevron.class="size-5 text-violet-500"
+          use settings-row title="动漫" icon=sparkles value="198 部" chevron=circle-check chevron.class="size-5 text-violet-500"
+          use settings-row title="纪录片" icon=globe badge.class="bg-slate-500" value="57 部" chevron=circle chevron.class="size-5 text-zinc-500/60"
+        end
+      end
+    end
+    box class="gap-6" panel=jellyfin
+      box class="mx-4 items-center gap-2 rounded-2xl border border-zinc-900/8 bg-white p-6 shadow-sm shadow-black/5"
+        icon server class="size-8 text-sky-500"
+        text "Jellyfin 连接表单与 Emby 相同" class="text-sm text-zinc-900"
+        text "支持 Quick Connect 与多用户切换" class="text-xs text-zinc-500"
+      end
+    end
+    box class="gap-6" panel=fnos
+      box class="mx-4 items-center gap-2 rounded-2xl border border-zinc-900/8 bg-white p-6 shadow-sm shadow-black/5"
+        icon hard-drive class="size-8 text-blue-500"
+        text "使用飞牛 fnOS 账号登录" class="text-sm text-zinc-900"
+        text "支持 FN Connect 远程访问 ID" class="text-xs text-zinc-500"
+      end
+    end
+    box class="mx-4 h-[52px] items-center justify-center rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30" tap="open home" note="保存媒体源并开始同步所选媒体库，同步进度在首页顶部显示"
+      text "完成" class="text-base font-semibold text-white"
+    end
+  end
+end
+
+design dark device=phone height=1240 name="连接服务器 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar-dark
+  box class="h-11 flex-row items-center justify-between px-3"
+    box class="flex-row items-center gap-0.5" tap="close"
+      icon chevron-left class="size-6 text-violet-400"
+      text "返回" class="text-base text-violet-400"
+    end
+    text "连接服务器" class="text-[17px] font-semibold text-zinc-50"
+    box class="w-16"
+    end
+  end
+  box class="flex-1 gap-6 pt-3 pb-10"
+    box class="mx-4 flex-row rounded-xl bg-zinc-50/5 p-1"
+      box class="group flex-1 items-center rounded-lg py-2 selected:bg-[#1a1b25] selected:shadow-sm" tap="tab emby"
+        text "Emby" class="text-sm text-zinc-400 group-selected:font-semibold group-selected:text-zinc-50"
+      end
+      box class="group flex-1 items-center rounded-lg py-2 selected:bg-[#1a1b25] selected:shadow-sm" tap="tab jellyfin"
+        text "Jellyfin" class="text-sm text-zinc-400 group-selected:font-semibold group-selected:text-zinc-50"
+      end
+      box class="group flex-1 items-center rounded-lg py-2 selected:bg-[#1a1b25] selected:shadow-sm" tap="tab fnos"
+        text "飞牛影视" class="text-sm text-zinc-400 group-selected:font-semibold group-selected:text-zinc-50"
+      end
+    end
+    box class="gap-6" panel=emby
+      use settings-group-dark header="服务器"
+        fill
+          box class="h-12 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+            text "地址" class="w-16 text-[15px] text-zinc-50"
+            text "home.example.com" class="flex-1 text-[15px] text-zinc-50/80"
+            icon scan-line class="size-4 text-zinc-400"
+          end
+          box class="h-12 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+            text "端口" class="w-16 text-[15px] text-zinc-50"
+            text "8096" class="flex-1 text-[15px] text-zinc-50/80"
+          end
+          use settings-row-dark title="使用 HTTPS" variant="toggle plain"
+          box class="h-12 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+            text "名称" class="w-16 text-[15px] text-zinc-50"
+            text "家庭 Emby" class="flex-1 text-[15px] text-zinc-50/80"
+          end
+        end
+      end
+      use settings-group-dark header="登录" variant=footer footer="也可在已登录的 Emby 网页端「快速连接」中输入代码登录，无需密码。"
+        fill
+          box class="h-12 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+            text "用户名" class="w-16 text-[15px] text-zinc-50"
+            text "linxiaoyu" class="flex-1 text-[15px] text-zinc-50/80"
+          end
+          box class="h-12 flex-row items-center gap-3 bg-[#1a1b25] px-4"
+            text "密码" class="w-16 text-[15px] text-zinc-50"
+            text "••••••••••" class="flex-1 text-[15px] text-zinc-50/80"
+            icon eye-off class="size-4 text-zinc-400"
+          end
+          use settings-row-dark title="使用快速连接码" icon=key-round badge.class="bg-slate-500" value="Quick Connect"
+        end
+      end
+      use settings-group-dark header="高级"
+        fill
+          use settings-row-dark title="自定义请求头" variant=plain value="2 项"
+          use settings-row-dark title="忽略证书错误" variant="toggle-off plain"
+          use settings-row-dark title="备用外网地址" variant=plain value="未设置" note="内网不可达时自动切换到外网地址"
+        end
+      end
+      box class="mx-4 flex-row items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4"
+        icon circle-check class="size-5 text-emerald-500"
+        box class="flex-1"
+          text "已连接 Emby Server 4.8.10" class="text-sm font-medium text-zinc-50"
+          text "延迟 12ms · 局域网 · 已登录为 linxiaoyu" class="text-xs text-zinc-400"
+        end
+        text "重新测试" class="text-xs text-emerald-500"
+      end
+      use settings-group-dark header="选择要导入的媒体库"
+        fill
+          use settings-row-dark title="电影" icon=film value="1,284 部" chevron=circle-check chevron.class="size-5 text-violet-400"
+          use settings-row-dark title="剧集" icon=tv value="326 部" chevron=circle-check chevron.class="size-5 text-violet-400"
+          use settings-row-dark title="动漫" icon=sparkles value="198 部" chevron=circle-check chevron.class="size-5 text-violet-400"
+          use settings-row-dark title="纪录片" icon=globe badge.class="bg-slate-500" value="57 部" chevron=circle chevron.class="size-5 text-zinc-400/60"
+        end
+      end
+    end
+    box class="gap-6" panel=jellyfin
+      box class="mx-4 items-center gap-2 rounded-2xl border border-white/8 bg-[#1a1b25] p-6 shadow-sm shadow-black/5"
+        icon server class="size-8 text-sky-500"
+        text "Jellyfin 连接表单与 Emby 相同" class="text-sm text-zinc-50"
+        text "支持 Quick Connect 与多用户切换" class="text-xs text-zinc-400"
+      end
+    end
+    box class="gap-6" panel=fnos
+      box class="mx-4 items-center gap-2 rounded-2xl border border-white/8 bg-[#1a1b25] p-6 shadow-sm shadow-black/5"
+        icon hard-drive class="size-8 text-blue-500"
+        text "使用飞牛 fnOS 账号登录" class="text-sm text-zinc-50"
+        text "支持 FN Connect 远程访问 ID" class="text-xs text-zinc-400"
+      end
+    end
+    box class="mx-4 h-[52px] items-center justify-center rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30" tap="open home#dark" note="保存媒体源并开始同步所选媒体库，同步进度在首页顶部显示"
+      text "完成" class="text-base font-semibold text-white"
+    end
+  end
+end

@@ -1,0 +1,148 @@
+design device=desktop width=1920 height=1080 name="TV/播放器"
+box class="relative flex-1 bg-zinc-950" note="播放器界面始终为深色，不随亮/暗主题切换"
+  image "繁花剧集画面：九十年代上海黄河路，霓虹灯下的饭店门口人来人往" class="absolute top-0 right-0 bottom-0 left-0"
+  box class="absolute top-0 right-0 left-0 h-72 bg-linear-to-b from-black/75 via-black/35 to-transparent"
+  end
+  box class="absolute right-0 bottom-0 left-0 h-[420px] bg-linear-to-t from-black/85 via-black/45 to-transparent"
+  end
+  box class="absolute top-[150px] right-[600px] left-0 h-[480px] overflow-hidden" note="弹幕层：滚动弹幕从右向左移动，顶部/底部弹幕居中停留 4 秒；显示区域、透明度、字号、速度、密度按 设置 › 弹幕 生效，并自动避开字幕区域"
+    box class="absolute top-2 left-[180px]"
+      text "宝总这一身也太帅了吧" class="text-4xl font-semibold text-white opacity-90"
+    end
+    box class="absolute top-2 left-[760px]"
+      text "前方高能！！！" class="text-4xl font-semibold text-amber-300 opacity-90"
+    end
+    box class="absolute top-[64px] left-[420px]"
+      text "王家卫的镜头语言真的绝" class="text-4xl font-semibold text-white opacity-90"
+    end
+    box class="absolute top-[128px] left-[60px]"
+      text "黄河路的灯光好美" class="text-4xl font-semibold text-sky-300 opacity-90"
+    end
+    box class="absolute top-[128px] left-[640px]"
+      text "二刷打卡 2026.11" class="text-4xl font-semibold text-white opacity-90"
+    end
+    box class="absolute top-[192px] left-[300px]"
+      text "爷叔：做生意要靠头脑" class="text-4xl font-semibold text-pink-300 opacity-90"
+    end
+    box class="absolute top-[256px] left-[520px] rounded-lg border-2 border-violet-400 bg-violet-500/15 px-2"
+      text "我发的：这段配乐是谁的？" class="text-4xl font-semibold text-white opacity-90"
+    end
+  end
+  box class="absolute top-12 right-24 left-24 flex-row items-start justify-between"
+    box class="gap-2"
+      text "繁花" class="text-4xl font-bold text-white"
+      text "第 1 季 · 第 18 集 · 黄河路的夜" class="text-2xl text-zinc-300"
+    end
+    box class="flex-row items-center gap-3" note="右上角状态信息，播放 3 秒后随 OSD 一起淡出"
+      box class="flex-row items-center gap-2 rounded-full border border-white/10 bg-black/45 px-4 py-2"
+        box class="size-2.5 rounded-full bg-sky-400"
+        end
+        text "书房 NAS · 直接播放" class="text-lg text-white"
+      end
+      box class="rounded-full border border-white/10 bg-black/45 px-4 py-2"
+        text "4K HDR10" class="text-lg font-medium text-white"
+      end
+      box class="flex-row items-center gap-2 rounded-full border border-pink-400/30 bg-pink-500/25 px-4 py-2"
+        icon message-square class="size-5 text-pink-200"
+        text "弹幕 3,482 条" class="text-lg text-pink-100"
+      end
+      text "20:30" class="pl-3 text-3xl font-medium text-white"
+    end
+  end
+  box class="absolute right-[600px] bottom-14 left-24 gap-6"
+    box class="relative h-[190px]"
+      box class="absolute bottom-0 left-[520px] items-center gap-2" note="左右键拖动进度时显示预览缩略图（来自服务器 Trickplay / BIF 缩略图）"
+        image "进度预览缩略图：饭店包间里的人物对话" class="h-[160px] w-[284px] rounded-xl border-2 border-white shadow-2xl"
+        text "32:16" class="text-2xl font-semibold text-white"
+      end
+    end
+    box class="gap-3"
+      box class="relative h-2.5 flex-row rounded-full bg-white/20"
+        box class="h-2.5 w-[38%] rounded-l-full bg-white/35"
+        end
+        box class="absolute top-0 left-0 h-2.5 w-[32%] rounded-full bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/50"
+        end
+      end
+      box class="flex-row items-center justify-between"
+        text "27:41" class="text-2xl font-medium text-white"
+        text "-17:05" class="text-2xl font-medium text-zinc-300"
+      end
+    end
+    box class="flex-row items-center gap-10" note="遥控器操作提示，首次播放时显示，3 次后自动隐藏"
+      box class="flex-row items-center gap-3"
+        box class="size-10 items-center justify-center rounded-lg border border-white/15 bg-white/15"
+          icon arrow-up class="size-5 text-white"
+        end
+        text "字幕 / 音轨" class="text-xl text-zinc-300"
+      end
+      box class="flex-row items-center gap-3"
+        box class="size-10 items-center justify-center rounded-lg border border-white/15 bg-white/15"
+          icon arrow-down class="size-5 text-white"
+        end
+        text "弹幕设置" class="text-xl text-zinc-300"
+      end
+      box class="flex-row items-center gap-3"
+        box class="h-10 flex-row items-center justify-center gap-1 rounded-lg border border-white/15 bg-white/15 px-2"
+          icon arrow-left class="size-5 text-white"
+          icon arrow-right class="size-5 text-white"
+        end
+        text "快退 / 快进 10 秒" class="text-xl text-zinc-300"
+      end
+      box class="flex-row items-center gap-3"
+        box class="h-10 items-center justify-center rounded-lg border border-white/15 bg-white/15 px-3"
+          text "OK" class="text-lg font-bold text-white"
+        end
+        text "暂停" class="text-xl text-zinc-300"
+      end
+    end
+  end
+  box class="absolute top-0 right-0 bottom-0 w-[560px] gap-8 border-l border-white/10 bg-zinc-900/85 shadow-2xl shadow-black/60 px-10 pt-16 pb-12" note="快捷菜单：播放中按 菜单 键或 ↓ 键呼出，上下键移动焦点，左右键直接调整数值，返回键关闭"
+    box class="gap-2"
+      text "快捷设置" class="text-4xl font-bold text-white"
+      text "左右键调整 · 返回键关闭" class="text-xl text-zinc-500"
+    end
+    box class="gap-3"
+      box class="h-20 flex-row items-center gap-5 rounded-2xl border border-white/10 bg-white/5 px-6"
+        icon message-square class="size-8 text-zinc-300"
+        text "弹幕" class="flex-1 text-2xl text-white"
+        use switch-dark class="h-[40px] w-[68px]" knob.class="size-[34px]"
+      end
+      box class="h-20 flex-row items-center gap-5 rounded-2xl bg-white px-6 shadow-2xl shadow-violet-500/30 ring-4 ring-violet-500/60" note="当前焦点：按左右键以 10% 步进调整透明度，弹幕实时预览"
+        icon droplet class="size-8 text-black"
+        text "弹幕透明度" class="flex-1 text-2xl font-semibold text-black"
+        icon chevron-left class="size-6 text-zinc-500"
+        text "80%" class="w-16 text-center text-2xl font-semibold text-violet-600"
+        icon chevron-right class="size-6 text-zinc-500"
+      end
+      box class="h-20 flex-row items-center gap-5 rounded-2xl border border-white/10 bg-white/5 px-6"
+        icon captions class="size-8 text-zinc-300"
+        text "字幕" class="flex-1 text-2xl text-white"
+        text "简体中文 (ASS)" class="text-2xl text-zinc-400"
+        icon chevron-right class="size-6 text-zinc-500"
+      end
+      box class="h-20 flex-row items-center gap-5 rounded-2xl border border-white/10 bg-white/5 px-6"
+        icon audio-lines class="size-8 text-zinc-300"
+        text "音轨" class="flex-1 text-2xl text-white"
+        text "TrueHD Atmos 7.1" class="text-2xl text-zinc-400"
+        icon chevron-right class="size-6 text-zinc-500"
+      end
+      box class="h-20 flex-row items-center gap-5 rounded-2xl border border-white/10 bg-white/5 px-6"
+        icon gauge class="size-8 text-zinc-300"
+        text "画质" class="flex-1 text-2xl text-white"
+        text "原画" class="text-2xl text-zinc-400"
+        icon chevron-right class="size-6 text-zinc-500"
+      end
+      box class="h-20 flex-row items-center gap-5 rounded-2xl border border-white/10 bg-white/5 px-6"
+        icon fast-forward class="size-8 text-zinc-300"
+        text "倍速" class="flex-1 text-2xl text-white"
+        text "1.0x" class="text-2xl text-zinc-400"
+        icon chevron-right class="size-6 text-zinc-500"
+      end
+    end
+    box class="mt-auto h-20 flex-row items-center gap-5 rounded-2xl border border-white/10 bg-white/5 px-6" tap="open tv-settings#dark"
+      icon settings class="size-8 text-zinc-300"
+      text "更多弹幕与播放设置" class="flex-1 text-2xl text-white"
+      icon chevron-right class="size-6 text-zinc-500"
+    end
+  end
+end

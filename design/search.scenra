@@ -1,0 +1,159 @@
+design light device=phone name="手机/搜索" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  use status-bar
+  box class="flex-1 gap-6 pt-2 pb-28"
+    box class="gap-3 px-5"
+      text "搜索" class="text-[28px] font-bold tracking-tight text-zinc-900"
+      box class="h-11 flex-row items-center gap-2 rounded-xl border border-zinc-900/8 bg-white px-3 shadow-sm shadow-black/5"
+        icon search class="size-4 text-zinc-500"
+        text "诺兰" class="flex-1 text-[15px] text-zinc-900"
+        icon circle-x class="size-4 text-zinc-500"
+      end
+      box class="flex-row gap-2" note="限定在某个媒体源内搜索，默认同时搜索全部媒体源"
+        text "全部" class="rounded-full bg-zinc-900 px-3 py-1 text-xs font-medium text-[#f4f4f7]"
+        text "家庭 Emby" class="rounded-full border border-zinc-900/8 bg-white px-3 py-1 text-xs text-zinc-900/80"
+        text "书房 NAS" class="rounded-full border border-zinc-900/8 bg-white px-3 py-1 text-xs text-zinc-900/80"
+        text "飞牛影视" class="rounded-full border border-zinc-900/8 bg-white px-3 py-1 text-xs text-zinc-900/80"
+      end
+    end
+    box class="gap-2 px-5"
+      box class="flex-row items-center justify-between"
+        text "最近搜索" class="text-sm font-semibold text-zinc-900"
+        text "清除" class="text-xs text-zinc-500"
+      end
+      box class="flex-row gap-2"
+        text "宫崎骏" class="rounded-full bg-zinc-900/5 px-3 py-1.5 text-xs text-zinc-900/80"
+        text "繁花" class="rounded-full bg-zinc-900/5 px-3 py-1.5 text-xs text-zinc-900/80"
+        text "杜比视界" class="rounded-full bg-zinc-900/5 px-3 py-1.5 text-xs text-zinc-900/80"
+        text "梁朝伟" class="rounded-full bg-zinc-900/5 px-3 py-1.5 text-xs text-zinc-900/80"
+      end
+    end
+    box class="gap-3"
+      text "电影 · 6" class="px-5 text-sm font-semibold text-zinc-900"
+      box class="flex-row gap-3 overflow-hidden px-5"
+        use poster title="奥本海默" sub="2023 · 8.8" cover="《奥本海默》海报：火焰中的人物" card.tap="open movie-detail"
+        use poster title="星际穿越" sub="2014 · 9.4" cover="《星际穿越》海报：宇航员与黑洞" variant=watched card.tap="open movie-detail"
+        use poster title="盗梦空间" sub="2010 · 9.4" cover="《盗梦空间》海报：折叠的城市" variant=watched card.tap="open movie-detail"
+        use poster title="信条" sub="2020 · 7.7" cover="《信条》海报：倒放的子弹" variant=fresh card.tap="open movie-detail"
+      end
+    end
+    box class="gap-3"
+      text "剧集 · 1" class="px-5 text-sm font-semibold text-zinc-900"
+      box class="mx-5 flex-row items-center gap-3 rounded-2xl border border-zinc-900/8 bg-white p-2.5 shadow-sm shadow-black/5" tap="open series-detail"
+        image "《辛普森一家》诺兰客串集剧照" class="h-14 w-24 rounded-lg"
+        box class="flex-1 gap-0.5"
+          text "致命魔术：幕后" class="text-sm font-medium text-zinc-900"
+          text "纪录剧集 · 1 季 · 书房 NAS" class="text-xs text-zinc-500"
+        end
+        icon chevron-right class="size-4 text-zinc-500/50"
+      end
+    end
+    box class="gap-3"
+      text "演职人员" class="px-5 text-sm font-semibold text-zinc-900"
+      box class="flex-row gap-4 px-5"
+        box class="w-16 items-center gap-1.5"
+          image "导演克里斯托弗·诺兰的头像" class="size-16 rounded-full border-2 border-white shadow-md shadow-black/10"
+          text "克里斯托弗·诺兰" class="w-full truncate text-center text-[11px] text-zinc-900"
+          text "导演 · 8 部" class="text-[10px] text-zinc-500"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "演员基里安·墨菲的头像" class="size-16 rounded-full border-2 border-white shadow-md shadow-black/10"
+          text "基里安·墨菲" class="w-full truncate text-center text-[11px] text-zinc-900"
+          text "演员 · 5 部" class="text-[10px] text-zinc-500"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "演员迈克尔·凯恩的头像" class="size-16 rounded-full border-2 border-white shadow-md shadow-black/10"
+          text "迈克尔·凯恩" class="w-full truncate text-center text-[11px] text-zinc-900"
+          text "演员 · 6 部" class="text-[10px] text-zinc-500"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "作曲家汉斯·季默的头像" class="size-16 rounded-full border-2 border-white shadow-md shadow-black/10"
+          text "汉斯·季默" class="w-full truncate text-center text-[11px] text-zinc-900"
+          text "配乐 · 4 部" class="text-[10px] text-zinc-500"
+        end
+      end
+    end
+  end
+  use tab-bar class="absolute right-0 bottom-0 left-0" home.tap="open home" library.tap="open library" search.tap="open search" settings.tap="open settings"
+end
+
+design dark device=phone name="搜索 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 bottom-0 left-0 h-full"
+  use status-bar-dark
+  box class="flex-1 gap-6 pt-2 pb-28"
+    box class="gap-3 px-5"
+      text "搜索" class="text-[28px] font-bold tracking-tight text-zinc-50"
+      box class="h-11 flex-row items-center gap-2 rounded-xl border border-white/8 bg-[#1a1b25] px-3 shadow-sm shadow-black/5"
+        icon search class="size-4 text-zinc-400"
+        text "诺兰" class="flex-1 text-[15px] text-zinc-50"
+        icon circle-x class="size-4 text-zinc-400"
+      end
+      box class="flex-row gap-2" note="限定在某个媒体源内搜索，默认同时搜索全部媒体源"
+        text "全部" class="rounded-full bg-zinc-50 px-3 py-1 text-xs font-medium text-[#0f1017]"
+        text "家庭 Emby" class="rounded-full border border-white/8 bg-[#1a1b25] px-3 py-1 text-xs text-zinc-50/80"
+        text "书房 NAS" class="rounded-full border border-white/8 bg-[#1a1b25] px-3 py-1 text-xs text-zinc-50/80"
+        text "飞牛影视" class="rounded-full border border-white/8 bg-[#1a1b25] px-3 py-1 text-xs text-zinc-50/80"
+      end
+    end
+    box class="gap-2 px-5"
+      box class="flex-row items-center justify-between"
+        text "最近搜索" class="text-sm font-semibold text-zinc-50"
+        text "清除" class="text-xs text-zinc-400"
+      end
+      box class="flex-row gap-2"
+        text "宫崎骏" class="rounded-full bg-zinc-50/5 px-3 py-1.5 text-xs text-zinc-50/80"
+        text "繁花" class="rounded-full bg-zinc-50/5 px-3 py-1.5 text-xs text-zinc-50/80"
+        text "杜比视界" class="rounded-full bg-zinc-50/5 px-3 py-1.5 text-xs text-zinc-50/80"
+        text "梁朝伟" class="rounded-full bg-zinc-50/5 px-3 py-1.5 text-xs text-zinc-50/80"
+      end
+    end
+    box class="gap-3"
+      text "电影 · 6" class="px-5 text-sm font-semibold text-zinc-50"
+      box class="flex-row gap-3 overflow-hidden px-5"
+        use poster-dark title="奥本海默" sub="2023 · 8.8" cover="《奥本海默》海报：火焰中的人物" card.tap="open movie-detail#dark"
+        use poster-dark title="星际穿越" sub="2014 · 9.4" cover="《星际穿越》海报：宇航员与黑洞" variant=watched card.tap="open movie-detail#dark"
+        use poster-dark title="盗梦空间" sub="2010 · 9.4" cover="《盗梦空间》海报：折叠的城市" variant=watched card.tap="open movie-detail#dark"
+        use poster-dark title="信条" sub="2020 · 7.7" cover="《信条》海报：倒放的子弹" variant=fresh card.tap="open movie-detail#dark"
+      end
+    end
+    box class="gap-3"
+      text "剧集 · 1" class="px-5 text-sm font-semibold text-zinc-50"
+      box class="mx-5 flex-row items-center gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] p-2.5 shadow-sm shadow-black/5" tap="open series-detail#dark"
+        image "《辛普森一家》诺兰客串集剧照" class="h-14 w-24 rounded-lg"
+        box class="flex-1 gap-0.5"
+          text "致命魔术：幕后" class="text-sm font-medium text-zinc-50"
+          text "纪录剧集 · 1 季 · 书房 NAS" class="text-xs text-zinc-400"
+        end
+        icon chevron-right class="size-4 text-zinc-400/50"
+      end
+    end
+    box class="gap-3"
+      text "演职人员" class="px-5 text-sm font-semibold text-zinc-50"
+      box class="flex-row gap-4 px-5"
+        box class="w-16 items-center gap-1.5"
+          image "导演克里斯托弗·诺兰的头像" class="size-16 rounded-full border-2 border-[#1a1b25] shadow-md shadow-black/10"
+          text "克里斯托弗·诺兰" class="w-full truncate text-center text-[11px] text-zinc-50"
+          text "导演 · 8 部" class="text-[10px] text-zinc-400"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "演员基里安·墨菲的头像" class="size-16 rounded-full border-2 border-[#1a1b25] shadow-md shadow-black/10"
+          text "基里安·墨菲" class="w-full truncate text-center text-[11px] text-zinc-50"
+          text "演员 · 5 部" class="text-[10px] text-zinc-400"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "演员迈克尔·凯恩的头像" class="size-16 rounded-full border-2 border-[#1a1b25] shadow-md shadow-black/10"
+          text "迈克尔·凯恩" class="w-full truncate text-center text-[11px] text-zinc-50"
+          text "演员 · 6 部" class="text-[10px] text-zinc-400"
+        end
+        box class="w-16 items-center gap-1.5"
+          image "作曲家汉斯·季默的头像" class="size-16 rounded-full border-2 border-[#1a1b25] shadow-md shadow-black/10"
+          text "汉斯·季默" class="w-full truncate text-center text-[11px] text-zinc-50"
+          text "配乐 · 4 部" class="text-[10px] text-zinc-400"
+        end
+      end
+    end
+  end
+  use tab-bar-dark class="absolute right-0 bottom-0 left-0" home.tap="open home#dark" library.tap="open library#dark" search.tap="open search#dark" settings.tap="open settings#dark"
+end

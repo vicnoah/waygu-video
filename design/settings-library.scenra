@@ -1,0 +1,89 @@
+design light device=phone height=1400 name="设置/媒体库与元数据" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar
+  use nav-bar title="媒体库与元数据" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    use settings-group header="元数据" variant=footer footer="Emby、Jellyfin、飞牛影视的媒体默认使用服务器已刮削的信息；SMB、WebDAV 等文件源由 Waygu 自行刮削。"
+      fill
+        use settings-row variant="toggle desc" icon=server title="服务器元数据优先" desc="缺失时再从下方来源补全" badge.class="bg-emerald-500"
+        use settings-row icon=clapperboard title="电影 / 剧集" value="TMDB" badge.class="bg-sky-500"
+        use settings-row icon=star title="评分与短评" value="豆瓣" badge.class="bg-green-600"
+        use settings-row icon=tv title="剧集补充" value="TVDB" badge.class="bg-indigo-500"
+        use settings-row icon=sparkles title="动漫" value="Bangumi" badge.class="bg-pink-500"
+        use settings-row icon=languages title="元数据语言" value="简体中文" badge.class="bg-blue-500"
+      end
+    end
+    use settings-group header="识别"
+      fill
+        use settings-row variant=toggle icon=scan-search title="刮削本地与网盘文件" badge.class="bg-violet-500"
+        use settings-row icon=regex title="文件名识别规则" value="4 条自定义" badge.class="bg-violet-500" note="以正则从文件名提取片名、年份、季、集，如 ^(.+?)\\.S(\\d+)E(\\d+)"
+        use settings-row variant=toggle icon=library title="合集自动分组" badge.class="bg-orange-500"
+        use settings-row variant="toggle desc" icon=sparkles title="动漫按 Bangumi 识别" desc="按番剧分季，便于弹幕与进度匹配" badge.class="bg-pink-500"
+      end
+    end
+    use settings-group header="媒体库"
+      fill
+        use settings-row variant=toggle icon=refresh-cw title="观看进度同步回服务器" badge.class="bg-emerald-500"
+        use settings-row icon=eye-off title="隐藏的媒体库" value="2 个" badge.class="bg-zinc-500"
+        use settings-row icon=clock title="自动刷新" value="每 30 分钟" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group variant=noheader
+      fill
+        box class="h-12 flex-row items-center justify-center gap-2 bg-white"
+          icon refresh-cw class="size-4 text-violet-500"
+          text "重新扫描全部媒体库" class="text-[15px] text-violet-500"
+        end
+        box class="h-12 items-center justify-center bg-white"
+          text "清除元数据缓存" class="text-[15px] text-rose-500"
+        end
+      end
+    end
+  end
+end
+
+design dark device=phone height=1400 name="媒体库与元数据 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar-dark
+  use nav-bar-dark title="媒体库与元数据" back.tap="close"
+  box class="flex-1 gap-6 pt-2 pb-8"
+    use settings-group-dark header="元数据" variant=footer footer="Emby、Jellyfin、飞牛影视的媒体默认使用服务器已刮削的信息；SMB、WebDAV 等文件源由 Waygu 自行刮削。"
+      fill
+        use settings-row-dark variant="toggle desc" icon=server title="服务器元数据优先" desc="缺失时再从下方来源补全" badge.class="bg-emerald-500"
+        use settings-row-dark icon=clapperboard title="电影 / 剧集" value="TMDB" badge.class="bg-sky-500"
+        use settings-row-dark icon=star title="评分与短评" value="豆瓣" badge.class="bg-green-600"
+        use settings-row-dark icon=tv title="剧集补充" value="TVDB" badge.class="bg-indigo-500"
+        use settings-row-dark icon=sparkles title="动漫" value="Bangumi" badge.class="bg-pink-500"
+        use settings-row-dark icon=languages title="元数据语言" value="简体中文" badge.class="bg-blue-500"
+      end
+    end
+    use settings-group-dark header="识别"
+      fill
+        use settings-row-dark variant=toggle icon=scan-search title="刮削本地与网盘文件" badge.class="bg-violet-500"
+        use settings-row-dark icon=regex title="文件名识别规则" value="4 条自定义" badge.class="bg-violet-500" note="以正则从文件名提取片名、年份、季、集，如 ^(.+?)\\.S(\\d+)E(\\d+)"
+        use settings-row-dark variant=toggle icon=library title="合集自动分组" badge.class="bg-orange-500"
+        use settings-row-dark variant="toggle desc" icon=sparkles title="动漫按 Bangumi 识别" desc="按番剧分季，便于弹幕与进度匹配" badge.class="bg-pink-500"
+      end
+    end
+    use settings-group-dark header="媒体库"
+      fill
+        use settings-row-dark variant=toggle icon=refresh-cw title="观看进度同步回服务器" badge.class="bg-emerald-500"
+        use settings-row-dark icon=eye-off title="隐藏的媒体库" value="2 个" badge.class="bg-zinc-500"
+        use settings-row-dark icon=clock title="自动刷新" value="每 30 分钟" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group-dark variant=noheader
+      fill
+        box class="h-12 flex-row items-center justify-center gap-2 bg-[#1a1b25]"
+          icon refresh-cw class="size-4 text-violet-400"
+          text "重新扫描全部媒体库" class="text-[15px] text-violet-400"
+        end
+        box class="h-12 items-center justify-center bg-[#1a1b25]"
+          text "清除元数据缓存" class="text-[15px] text-rose-500"
+        end
+      end
+    end
+  end
+end

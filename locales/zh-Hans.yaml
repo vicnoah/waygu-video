@@ -1,0 +1,74 @@
+appName: 肥牛视频
+NSLocalNetworkUsageDescription: 连接同一局域网内的影视服务器。
+brand: Waygu
+welcomeTitle: "你的私人影院，\n在每一块屏幕上。"
+welcomeBody: 连接家里的媒体服务器与 NAS，随时在不同设备上继续观看。
+addSource: 添加媒体源
+later: 稍后设置
+back: 返回
+chooseSource: 选择媒体服务器
+flymoo: 飞牛影视
+connectServer: 连接服务器
+serverAddress: 服务器地址
+sourceName: 显示名称
+username: 用户名
+password: 密码
+plexToken: Plex 访问令牌
+testConnection: 测试连接
+signIn: 登录
+connected: "已连接 {name}"
+importLibraries: 选择要导入的媒体库
+importAction: 导入媒体库
+noLibraries: 此账号没有可导入的影视库。
+home: 首页
+library: 媒体库
+search: 搜索
+settings: 设置
+allSources: 全部媒体源
+allLibraries: 全部媒体库
+mediaSources: 媒体源
+noSources: 添加媒体源，开始浏览电影与剧集。
+emptyLibrary: 没有找到匹配的影片
+searchHint: 搜索电影和剧集
+searchAction: 搜索媒体库
+continueWatching: 继续观看
+recent: 最近添加
+details: 详情
+play: 播放
+resume: 继续播放
+fromStart: 从头播放
+pause: 暂停
+closePlayer: 关闭播放器
+retry: 重试
+loading: 正在加载…
+serverError: 无法读取服务器数据，请重试。
+invalidAddress: 请输入有效的 HTTP 或 HTTPS 服务器地址。
+authenticationError: 登录未通过，请检查账号密码或访问令牌。
+secretUnavailable: 无法使用系统安全存储，重启应用后需要重新登录。
+removeSource: 移除媒体源
+reconnect: 重新登录
+sourceMissing: 此媒体源不可用。
+noOverview: 暂无影片简介。
+seasons: 季
+episodes: 分集
+selectEpisode: 选择一集播放。
+nextPage: 加载更多
+videoError: 播放器无法打开这个视频。
+seekBack: 后退 10 秒
+seekForward: 前进 10 秒
+playbackPosition: 播放进度
+danmaku: 弹幕
+addDanmaku: 导入弹幕 XML
+hideDanmaku: 隐藏弹幕
+showDanmaku: 显示弹幕
+danmakuFileError: 无法从所选文件读取弹幕。
+playbackSettings: 播放
+preferMPV: 优先使用 libmpv 播放器
+directPlay: 原画直连
+directStream: 直接串流
+transcode: 服务器转码
+movieType: 电影
+seriesType: 剧集
+episodeType: 分集
+episodeLabel: "第 {number} 集"
+seasonLabel: "第 {number} 季"

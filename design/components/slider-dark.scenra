@@ -1,0 +1,15 @@
+component name="控件/滑杆 · 深色" width=fill preview=358 backdrop="bg-[#1a1b25]"
+box class="gap-2 bg-[#1a1b25] px-4 py-3"
+  box class="flex-row items-center justify-between"
+    text "不透明度" name=label class="text-[15px] text-zinc-50"
+    text "80%" name=value class="text-sm font-medium text-violet-400"
+  end
+  box class="h-5 flex-row items-center"
+    box name=fill class="h-1.5 w-4/5 rounded-l-full bg-violet-500"
+    end
+    box class="size-5 rounded-full border border-black/5 bg-white shadow-md"
+    end
+    box class="h-1.5 flex-1 rounded-r-full bg-zinc-50/10"
+    end
+  end
+end

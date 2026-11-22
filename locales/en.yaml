@@ -1,0 +1,74 @@
+appName: waygu-video
+NSLocalNetworkUsageDescription: Connect to media servers on your local network.
+brand: Waygu
+welcomeTitle: "Your private cinema,\non every screen."
+welcomeBody: Connect your home media servers and pick up where you left off.
+addSource: Add media source
+later: Set up later
+back: Back
+chooseSource: Choose a media server
+flymoo: Flymoo
+connectServer: Connect to server
+serverAddress: Server address
+sourceName: Display name
+username: Username
+password: Password
+plexToken: Plex access token
+testConnection: Test connection
+signIn: Sign in
+connected: "Connected to {name}"
+importLibraries: Choose libraries to import
+importAction: Import libraries
+noLibraries: This account has no video libraries.
+home: Home
+library: Library
+search: Search
+settings: Settings
+allSources: All media sources
+allLibraries: All libraries
+mediaSources: Media sources
+noSources: Add a media source to browse your movies and shows.
+emptyLibrary: No matching titles
+searchHint: Search movies and shows
+searchAction: Search library
+continueWatching: Continue watching
+recent: Recently added
+details: Details
+play: Play
+resume: Resume
+fromStart: Play from beginning
+pause: Pause
+closePlayer: Close player
+retry: Retry
+loading: Loading…
+serverError: Could not load data from the server. Try again.
+invalidAddress: Enter a valid HTTP or HTTPS server address.
+authenticationError: The server did not accept the login. Check your credentials.
+secretUnavailable: Secure storage is unavailable. Sign in again after restarting the app.
+removeSource: Remove source
+reconnect: Sign in again
+sourceMissing: This media source is unavailable.
+noOverview: No synopsis is available.
+seasons: Seasons
+episodes: Episodes
+selectEpisode: Select an episode to play.
+nextPage: Load more
+videoError: The player could not open this video.
+seekBack: Back 10 seconds
+seekForward: Forward 10 seconds
+playbackPosition: Playback position
+danmaku: Danmaku
+addDanmaku: Load danmaku XML
+hideDanmaku: Hide danmaku
+showDanmaku: Show danmaku
+danmakuFileError: The selected file does not contain readable danmaku comments.
+playbackSettings: Playback
+preferMPV: Use libmpv when available
+directPlay: Direct play
+directStream: Direct stream
+transcode: Server transcoding
+movieType: Movie
+seriesType: Show
+episodeType: Episode
+episodeLabel: "Episode {number}"
+seasonLabel: "Season {number}"

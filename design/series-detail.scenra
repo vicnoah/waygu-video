@@ -1,0 +1,289 @@
+design light device=phone height=1500 name="手机/剧集详情" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-[360px] right-0 left-0 h-[1100px]"
+  box class="relative h-[420px]"
+    image "《漫长的季节》剧照：东北深秋的铁路与骑摩托的中年男人" class="absolute top-0 right-0 bottom-0 left-0"
+    box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-t from-black/90 via-black/35 to-black/45"
+    end
+    box class="absolute right-0 bottom-0 left-0 h-12 bg-linear-to-b from-transparent to-[#f4f4f7]"
+    end
+    box class="absolute top-0 right-0 left-0"
+      use status-bar variant=onmedia
+      box class="flex-row items-center justify-between px-4 pt-1"
+        box class="size-9 items-center justify-center rounded-full bg-black/40" tap="close"
+          icon chevron-left class="size-5 text-white"
+        end
+        box class="flex-row gap-2"
+          box class="size-9 items-center justify-center rounded-full bg-black/40"
+            icon heart class="size-4 text-white"
+          end
+          box class="size-9 items-center justify-center rounded-full bg-black/40"
+            icon ellipsis class="size-4 text-white"
+          end
+        end
+      end
+    end
+    box class="absolute right-0 bottom-0 left-0 gap-2.5 px-5 pb-12"
+      text "漫长的季节" class="text-4xl font-bold tracking-tight text-white"
+      text "2023 · 2 季 · 剧情 / 悬疑 · 豆瓣 9.4" class="text-xs text-white/80"
+      box class="flex-row gap-1.5"
+        text "1080P" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        text "HDR10" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        text "书房 NAS · Jellyfin" class="rounded-md bg-sky-500/30 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+      end
+    end
+  end
+  box class="flex-1 gap-6 pt-5 pb-10"
+    box class="gap-3 px-5"
+      box class="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30" tap="open player"
+        icon play class="size-5 text-white"
+        text "继续播放 S1 · E6" class="text-base font-semibold text-white"
+      end
+      box class="h-1 rounded-full bg-zinc-900/10"
+        box class="h-1 w-2/5 rounded-full bg-violet-500"
+        end
+      end
+      text "第 6 集已看 18 分钟 · 本季剩余 7 集" class="text-xs text-zinc-500"
+      text "1997 年，桦林钢厂司机王响在铁轨旁发现一具碎尸，他与刑警马德胜一同追查，牵扯出一段跨越二十年的往事……" class="line-clamp-2 text-sm leading-relaxed text-zinc-900/80"
+    end
+    box class="flex-row items-center gap-5 border-b border-zinc-900/8 px-5"
+      box class="group border-b-2 border-transparent pb-2.5 selected:border-violet-500" tap="tab s1"
+        text "第 1 季" class="text-[15px] font-semibold text-zinc-500 group-selected:text-zinc-900"
+      end
+      box class="group border-b-2 border-transparent pb-2.5 selected:border-violet-500" tap="tab s2"
+        text "第 2 季" class="text-[15px] font-semibold text-zinc-500 group-selected:text-zinc-900"
+      end
+      box class="group border-b-2 border-transparent pb-2.5 selected:border-violet-500" tap="tab extras"
+        text "特别篇" class="text-[15px] font-semibold text-zinc-500 group-selected:text-zinc-900"
+      end
+      box class="ml-auto flex-row items-center gap-1 pb-2.5" note="排序：正序 / 倒序；可切换是否隐藏已看剧集"
+        icon arrow-up-down class="size-3.5 text-zinc-500"
+        text "正序" class="text-xs text-zinc-500"
+      end
+    end
+    box class="mx-4 gap-1 rounded-2xl border border-zinc-900/8 bg-white p-2 shadow-sm shadow-black/5" panel=s1
+      box class="flex-row gap-3 rounded-xl p-2" tap="open player"
+        box class="relative overflow-hidden rounded-lg shadow-sm shadow-black/15"
+          image "第 5 集剧照：雨夜的工厂门口" class="h-[72px] w-32"
+          box class="absolute top-1 right-1 size-4 items-center justify-center rounded-full bg-violet-500"
+            icon check class="size-2.5 text-white"
+          end
+        end
+        box class="flex-1 gap-1"
+          text "5. 我们会再见面的" class="text-sm font-medium text-zinc-500"
+          text "46 分钟 · 已看完" class="text-xs text-zinc-500/60"
+          box class="flex-row items-center gap-1"
+            icon message-square-text class="size-3 text-fuchsia-500/60"
+            text "3,412 条弹幕" class="text-[11px] text-zinc-500/60"
+          end
+        end
+      end
+      box class="flex-row gap-3 rounded-xl bg-violet-500/10 p-2" tap="open player"
+        box class="relative overflow-hidden rounded-lg shadow-sm shadow-black/15"
+          image "第 6 集剧照：铁轨旁的王响与马德胜" class="h-[72px] w-32"
+          box class="absolute top-0 right-0 bottom-0 left-0 items-center justify-center bg-black/30"
+            icon play class="size-6 text-white"
+          end
+          box class="absolute right-0 bottom-0 left-0 h-1 bg-white/20"
+            box class="h-1 w-2/5 bg-violet-500"
+            end
+          end
+        end
+        box class="flex-1 gap-1"
+          text "6. 去打个车" class="text-sm font-medium text-zinc-900"
+          text "52 分钟 · 剩余 34 分钟" class="text-xs text-violet-500"
+          box class="flex-row items-center gap-1"
+            icon message-square-text class="size-3 text-fuchsia-500"
+            text "5,208 条弹幕" class="text-[11px] text-zinc-500"
+          end
+        end
+      end
+      box class="flex-row gap-3 rounded-xl p-2" tap="open player"
+        image "第 7 集剧照：冬天结冰的河面" class="h-[72px] w-32 rounded-lg shadow-sm shadow-black/15"
+        box class="flex-1 gap-1"
+          text "7. 冬天的蝴蝶" class="text-sm font-medium text-zinc-900"
+          text "48 分钟" class="text-xs text-zinc-500"
+          box class="flex-row items-center gap-1"
+            icon message-square-text class="size-3 text-fuchsia-500"
+            text "4,876 条弹幕" class="text-[11px] text-zinc-500"
+          end
+        end
+      end
+      box class="flex-row gap-3 rounded-xl p-2" tap="open player"
+        image "第 8 集剧照：出租车里的两个人" class="h-[72px] w-32 rounded-lg shadow-sm shadow-black/15"
+        box class="flex-1 gap-1"
+          text "8. 打出租车" class="text-sm font-medium text-zinc-900"
+          text "50 分钟" class="text-xs text-zinc-500"
+          box class="flex-row items-center gap-1"
+            icon message-square-text class="size-3 text-fuchsia-500"
+            text "4,102 条弹幕" class="text-[11px] text-zinc-500"
+          end
+        end
+      end
+      box class="flex-row gap-3 rounded-xl p-2" tap="open player"
+        image "第 9 集剧照：老旧小区的楼道" class="h-[72px] w-32 rounded-lg shadow-sm shadow-black/15"
+        box class="flex-1 gap-1"
+          text "9. 喜欢的人" class="text-sm font-medium text-zinc-900"
+          text "47 分钟 · 已下载" class="text-xs text-zinc-500"
+          box class="flex-row items-center gap-1"
+            icon message-square-text class="size-3 text-fuchsia-500"
+            text "3,997 条弹幕" class="text-[11px] text-zinc-500"
+          end
+        end
+      end
+    end
+    box class="items-center gap-2 px-5 py-10 mx-4 rounded-2xl border border-zinc-900/8 bg-white" panel=s2
+      icon calendar-clock class="size-8 text-zinc-500/60"
+      text "第 2 季剧集列表，布局同第 1 季" class="text-sm text-zinc-500"
+    end
+    box class="items-center gap-2 px-5 py-10 mx-4 rounded-2xl border border-zinc-900/8 bg-white" panel=extras
+      icon clapperboard class="size-8 text-zinc-500/60"
+      text "特别篇与花絮" class="text-sm text-zinc-500"
+    end
+  end
+end
+
+design dark device=phone height=1500 name="剧集详情 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-[360px] right-0 left-0 h-[1100px]"
+  box class="relative h-[420px]"
+    image "《漫长的季节》剧照：东北深秋的铁路与骑摩托的中年男人" class="absolute top-0 right-0 bottom-0 left-0"
+    box class="absolute top-0 right-0 bottom-0 left-0 bg-linear-to-t from-black/90 via-black/35 to-black/45"
+    end
+    box class="absolute right-0 bottom-0 left-0 h-12 bg-linear-to-b from-transparent to-[#0f1017]"
+    end
+    box class="absolute top-0 right-0 left-0"
+      use status-bar-dark variant=onmedia
+      box class="flex-row items-center justify-between px-4 pt-1"
+        box class="size-9 items-center justify-center rounded-full bg-black/40" tap="close"
+          icon chevron-left class="size-5 text-white"
+        end
+        box class="flex-row gap-2"
+          box class="size-9 items-center justify-center rounded-full bg-black/40"
+            icon heart class="size-4 text-white"
+          end
+          box class="size-9 items-center justify-center rounded-full bg-black/40"
+            icon ellipsis class="size-4 text-white"
+          end
+        end
+      end
+    end
+    box class="absolute right-0 bottom-0 left-0 gap-2.5 px-5 pb-12"
+      text "漫长的季节" class="text-4xl font-bold tracking-tight text-white"
+      text "2023 · 2 季 · 剧情 / 悬疑 · 豆瓣 9.4" class="text-xs text-white/80"
+      box class="flex-row gap-1.5"
+        text "1080P" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        text "HDR10" class="rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+        text "书房 NAS · Jellyfin" class="rounded-md bg-sky-500/30 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+      end
+    end
+  end
+  box class="flex-1 gap-6 pt-5 pb-10"
+    box class="gap-3 px-5"
+      box class="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30" tap="open player"
+        icon play class="size-5 text-white"
+        text "继续播放 S1 · E6" class="text-base font-semibold text-white"
+      end
+      box class="h-1 rounded-full bg-zinc-50/10"
+        box class="h-1 w-2/5 rounded-full bg-violet-500"
+        end
+      end
+      text "第 6 集已看 18 分钟 · 本季剩余 7 集" class="text-xs text-zinc-400"
+      text "1997 年，桦林钢厂司机王响在铁轨旁发现一具碎尸，他与刑警马德胜一同追查，牵扯出一段跨越二十年的往事……" class="line-clamp-2 text-sm leading-relaxed text-zinc-50/80"
+    end
+    box class="flex-row items-center gap-5 border-b border-white/8 px-5"
+      box class="group border-b-2 border-transparent pb-2.5 selected:border-violet-500" tap="tab s1"
+        text "第 1 季" class="text-[15px] font-semibold text-zinc-400 group-selected:text-zinc-50"
+      end
+      box class="group border-b-2 border-transparent pb-2.5 selected:border-violet-500" tap="tab s2"
+        text "第 2 季" class="text-[15px] font-semibold text-zinc-400 group-selected:text-zinc-50"
+      end
+      box class="group border-b-2 border-transparent pb-2.5 selected:border-violet-500" tap="tab extras"
+        text "特别篇" class="text-[15px] font-semibold text-zinc-400 group-selected:text-zinc-50"
+      end
+      box class="ml-auto flex-row items-center gap-1 pb-2.5" note="排序：正序 / 倒序；可切换是否隐藏已看剧集"
+        icon arrow-up-down class="size-3.5 text-zinc-400"
+        text "正序" class="text-xs text-zinc-400"
+      end
+    end
+    box class="mx-4 gap-1 rounded-2xl border border-white/8 bg-[#1a1b25] p-2 shadow-sm shadow-black/5" panel=s1
+      box class="flex-row gap-3 rounded-xl p-2" tap="open player"
+        box class="relative overflow-hidden rounded-lg shadow-sm shadow-black/15"
+          image "第 5 集剧照：雨夜的工厂门口" class="h-[72px] w-32"
+          box class="absolute top-1 right-1 size-4 items-center justify-center rounded-full bg-violet-500"
+            icon check class="size-2.5 text-white"
+          end
+        end
+        box class="flex-1 gap-1"
+          text "5. 我们会再见面的" class="text-sm font-medium text-zinc-400"
+          text "46 分钟 · 已看完" class="text-xs text-zinc-400/60"
+          box class="flex-row items-center gap-1"
+            icon message-square-text class="size-3 text-fuchsia-500/60"
+            text "3,412 条弹幕" class="text-[11px] text-zinc-400/60"
+          end
+        end
+      end
+      box class="flex-row gap-3 rounded-xl bg-violet-500/10 p-2" tap="open player"
+        box class="relative overflow-hidden rounded-lg shadow-sm shadow-black/15"
+          image "第 6 集剧照：铁轨旁的王响与马德胜" class="h-[72px] w-32"
+          box class="absolute top-0 right-0 bottom-0 left-0 items-center justify-center bg-black/30"
+            icon play class="size-6 text-white"
+          end
+          box class="absolute right-0 bottom-0 left-0 h-1 bg-white/20"
+            box class="h-1 w-2/5 bg-violet-500"
+            end
+          end
+        end
+        box class="flex-1 gap-1"
+          text "6. 去打个车" class="text-sm font-medium text-zinc-50"
+          text "52 分钟 · 剩余 34 分钟" class="text-xs text-violet-400"
+          box class="flex-row items-center gap-1"
+            icon message-square-text class="size-3 text-fuchsia-500"
+            text "5,208 条弹幕" class="text-[11px] text-zinc-400"
+          end
+        end
+      end
+      box class="flex-row gap-3 rounded-xl p-2" tap="open player"
+        image "第 7 集剧照：冬天结冰的河面" class="h-[72px] w-32 rounded-lg shadow-sm shadow-black/15"
+        box class="flex-1 gap-1"
+          text "7. 冬天的蝴蝶" class="text-sm font-medium text-zinc-50"
+          text "48 分钟" class="text-xs text-zinc-400"
+          box class="flex-row items-center gap-1"
+            icon message-square-text class="size-3 text-fuchsia-500"
+            text "4,876 条弹幕" class="text-[11px] text-zinc-400"
+          end
+        end
+      end
+      box class="flex-row gap-3 rounded-xl p-2" tap="open player"
+        image "第 8 集剧照：出租车里的两个人" class="h-[72px] w-32 rounded-lg shadow-sm shadow-black/15"
+        box class="flex-1 gap-1"
+          text "8. 打出租车" class="text-sm font-medium text-zinc-50"
+          text "50 分钟" class="text-xs text-zinc-400"
+          box class="flex-row items-center gap-1"
+            icon message-square-text class="size-3 text-fuchsia-500"
+            text "4,102 条弹幕" class="text-[11px] text-zinc-400"
+          end
+        end
+      end
+      box class="flex-row gap-3 rounded-xl p-2" tap="open player"
+        image "第 9 集剧照：老旧小区的楼道" class="h-[72px] w-32 rounded-lg shadow-sm shadow-black/15"
+        box class="flex-1 gap-1"
+          text "9. 喜欢的人" class="text-sm font-medium text-zinc-50"
+          text "47 分钟 · 已下载" class="text-xs text-zinc-400"
+          box class="flex-row items-center gap-1"
+            icon message-square-text class="size-3 text-fuchsia-500"
+            text "3,997 条弹幕" class="text-[11px] text-zinc-400"
+          end
+        end
+      end
+    end
+    box class="items-center gap-2 px-5 py-10 mx-4 rounded-2xl border border-white/8 bg-[#1a1b25]" panel=s2
+      icon calendar-clock class="size-8 text-zinc-400/60"
+      text "第 2 季剧集列表，布局同第 1 季" class="text-sm text-zinc-400"
+    end
+    box class="items-center gap-2 px-5 py-10 mx-4 rounded-2xl border border-white/8 bg-[#1a1b25]" panel=extras
+      icon clapperboard class="size-8 text-zinc-400/60"
+      text "特别篇与花絮" class="text-sm text-zinc-400"
+    end
+  end
+end

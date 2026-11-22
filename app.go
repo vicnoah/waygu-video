@@ -1,0 +1,196 @@
+package main
+
+import (
+	"crypto/rand"
+	"encoding/json"
+	"errors"
+	"slices"
+	"sync"
+
+	"github.com/nsgo-dev/nsgo"
+	"github.com/nsgo-dev/nsgo/core"
+
+	"waygu-video/internal/media"
+	"waygu-video/locales"
+)
+
+type screen string
+
+const (
+	screenWelcome  screen = "welcome"
+	screenSources  screen = "sources"
+	screenConnect  screen = "connect"
+	screenHome     screen = "home"
+	screenLibrary  screen = "library"
+	screenSearch   screen = "search"
+	screenSettings screen = "settings"
+	screenDetail   screen = "detail"
+	screenPlayer   screen = "player"
+)
+
+type route struct {
+	screen   screen
+	provider media.Provider
+	source   source
+	item     media.Item
+	resume   bool
+}
+
+type source struct {
+	ID        string
+	Provider  media.Provider
+	Address   string
+	Name      string
+	ServerID  string
+	AccountID string
+	Username  string
+	Libraries []media.Library
+	Volatile  bool `json:"-"`
+}
+
+type mediaFactory func(media.Provider, string, media.Device, media.Session) (media.Client, error)
+
+type application struct {
+	device       media.Device
+	storage      core.Storage
+	secrets      core.Secrets
+	newMedia     mediaFactory
+	sources      *core.Signal[[]source]
+	routes       *core.Signal[[]route]
+	tab          *core.Signal[int]
+	sourceFilter *core.Signal[string]
+	mpvPreferred *core.Signal[bool]
+	tokens       sync.Map
+}
+
+const (
+	sourcesKey = "media-sources-v1"
+	deviceKey  = "media-device-v1"
+	seenKey    = "onboarding-seen-v1"
+	mpvKey     = "playback-libmpv-v1"
+)
+
+func Root(cx *core.Scope) core.Node {
+	return appRoot(cx, media.NewClient)
+}
+
+func appRoot(cx *core.Scope, factory mediaFactory) core.Node {
+	cx.SetTheme(wayguTheme())
+	storage := cx.Storage()
+	var sources []source
+	if data, ok := storage.GetItem(sourcesKey); ok {
+		_ = json.Unmarshal([]byte(data), &sources)
+	}
+	deviceID, _ := storage.GetItem(deviceKey)
+	if deviceID == "" {
+		deviceID = rand.Text()
+		_ = storage.SetItem(deviceKey, deviceID)
+	}
+	first := screenWelcome
+	mpvPreference, _ := storage.GetItem(mpvKey)
+	if _, seen := storage.GetItem(seenKey); seen || len(sources) > 0 {
+		first = screenHome
+	}
+	a := &application{
+		device: media.Device{ID: deviceID, Name: "Waygu Video"}, storage: storage, secrets: cx.Secrets(), newMedia: factory,
+		sources: core.NewSignalFunc(cx, sources, nil), routes: core.NewSignalFunc(cx, []route{{screen: first}}, nil),
+		tab: core.NewSignal(cx, 0), sourceFilter: core.NewSignal(cx, ""),
+		mpvPreferred: core.NewSignal(cx, mpvPreference == "true"),
+	}
+	return core.View{Class: "flex-1 bg-background", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
+		core.Dynamic(func(screenScope *core.Scope) core.Node {
+			stack := a.routes.Get()
+			current := stack[len(stack)-1]
+			switch current.screen {
+			case screenWelcome:
+				return a.welcome(screenScope)
+			case screenSources:
+				return a.chooseSource(screenScope)
+			case screenConnect:
+				return a.connect(screenScope, current)
+			case screenDetail:
+				return a.detail(screenScope, current)
+			case screenPlayer:
+				return a.player(screenScope, current)
+			default:
+				return a.shell(screenScope)
+			}
+		}),
+	}}
+}
+
+func (a *application) push(next route) {
+	stack := a.routes.GetUntracked()
+	a.routes.Set(append(slices.Clone(stack), next))
+}
+
+func (a *application) back() {
+	stack := a.routes.GetUntracked()
+	if len(stack) > 1 {
+		a.routes.Set(stack[:len(stack)-1])
+	}
+}
+
+func (a *application) enter() {
+	_ = a.storage.SetItem(seenKey, "true")
+	a.tab.Set(0)
+	a.routes.Set([]route{{screen: screenHome}})
+}
+
+func (a *application) saveSources(sources []source) error {
+	data, err := json.Marshal(sources)
+	if err != nil {
+		return err
+	}
+	if err := a.storage.SetItem(sourcesKey, string(data)); err != nil {
+		return err
+	}
+	a.sources.Set(sources)
+	return nil
+}
+
+func (a *application) client(s source) (media.Client, error) {
+	value, exists := a.tokens.Load(s.ID)
+	if !exists {
+		token, found, err := a.secrets.Get(s.ID)
+		if err != nil && !errors.Is(err, core.ErrSecretsUnavailable) {
+			return nil, err
+		}
+		if !found && s.Provider != media.Plex {
+			return nil, media.ErrAuthentication
+		}
+		value = token
+		a.tokens.Store(s.ID, token)
+	}
+	return a.newMedia(s.Provider, s.Address, a.device, media.Session{UserID: s.AccountID, Token: value.(string)})
+}
+
+func errorText(cx *core.Scope, err error) string {
+	switch {
+	case errors.Is(err, media.ErrInvalidAddress):
+		return locales.InvalidAddress(cx)
+	case errors.Is(err, media.ErrAuthentication):
+		return locales.AuthenticationError(cx)
+	case errors.Is(err, core.ErrSecretsUnavailable):
+		return locales.SecretUnavailable(cx)
+	default:
+		return locales.ServerError(cx)
+	}
+}
+
+func providerName(cx *core.Scope, provider media.Provider) string {
+	switch provider {
+	case media.Emby:
+		return "Emby"
+	case media.Jellyfin:
+		return "Jellyfin"
+	case media.Plex:
+		return "Plex"
+	case media.Flymoo:
+		return locales.Flymoo(cx)
+	default:
+		return string(provider)
+	}
+}
+
+func main() { nsgo.Run(Root, nsgo.WindowSize(1440, 900)) }

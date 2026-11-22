@@ -1,0 +1,283 @@
+design light device=phone height=1320 name="设置/媒体源" gap=100
+box class="relative flex-1 bg-[#f4f4f7]"
+  use ambient class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar
+  use nav-bar title="媒体源" variant=action action="编辑" back.tap="close"
+  box class="flex-1 gap-6 pt-2"
+    box class="gap-3 px-4"
+      box class="gap-3 rounded-2xl border border-zinc-900/8 bg-white shadow-sm shadow-black/5 p-4" note="长按卡片可拖动调整优先顺序；左滑可删除或断开"
+        box class="flex-row items-center gap-3"
+          box class="size-11 items-center justify-center rounded-xl bg-emerald-500 shadow-md shadow-black/10"
+            icon server class="size-5 text-white"
+          end
+          box class="flex-1 gap-0.5"
+            box class="flex-row items-center gap-2"
+              text "家庭 Emby" class="text-base font-semibold text-zinc-900"
+              text "Emby" class="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] text-emerald-500"
+            end
+            text "192.168.1.20:8096 · 外网 emby.lin.home" class="truncate text-xs text-zinc-500"
+          end
+          icon grip-vertical class="size-4 text-zinc-500/70"
+        end
+        box class="flex-row items-center gap-4 border-t border-zinc-900/8 pt-3"
+          box class="flex-row items-center gap-1.5"
+            box class="size-2 rounded-full bg-emerald-500"
+            end
+            text "在线 · 局域网" class="text-xs text-emerald-500"
+          end
+          text "用户 lin" class="text-xs text-zinc-500"
+          text "同步于 2 分钟前" class="flex-1 text-right text-xs text-zinc-500"
+        end
+        box class="flex-row gap-2"
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-zinc-900/8 bg-zinc-900/5"
+            icon refresh-cw class="size-3.5 text-zinc-900/80"
+            text "同步" class="text-xs text-zinc-900/90"
+          end
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-zinc-900/8 bg-zinc-900/5"
+            icon library class="size-3.5 text-zinc-900/80"
+            text "媒体库 5" class="text-xs text-zinc-900/90"
+          end
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-zinc-900/8 bg-zinc-900/5" tap="open source-login"
+            icon pencil class="size-3.5 text-zinc-900/80"
+            text "编辑" class="text-xs text-zinc-900/90"
+          end
+        end
+      end
+      box class="gap-3 rounded-2xl border border-zinc-900/8 bg-white shadow-sm shadow-black/5 p-4"
+        box class="flex-row items-center gap-3"
+          box class="size-11 items-center justify-center rounded-xl bg-sky-500 shadow-md shadow-black/10"
+            icon database class="size-5 text-white"
+          end
+          box class="flex-1 gap-0.5"
+            box class="flex-row items-center gap-2"
+              text "书房 NAS" class="text-base font-semibold text-zinc-900"
+              text "Jellyfin" class="rounded bg-sky-500/15 px-1.5 py-0.5 text-[10px] text-sky-500"
+            end
+            text "https://jf.lin.home:8920" class="truncate text-xs text-zinc-500"
+          end
+          icon grip-vertical class="size-4 text-zinc-500/70"
+        end
+        box class="flex-row items-center gap-4 border-t border-zinc-900/8 pt-3"
+          box class="flex-row items-center gap-1.5"
+            box class="size-2 rounded-full bg-emerald-500"
+            end
+            text "在线 · 外网" class="text-xs text-emerald-500"
+          end
+          text "用户 lin" class="text-xs text-zinc-500"
+          text "同步于 1 小时前" class="flex-1 text-right text-xs text-zinc-500"
+        end
+        box class="flex-row gap-2"
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-zinc-900/8 bg-zinc-900/5"
+            icon refresh-cw class="size-3.5 text-zinc-900/80"
+            text "同步" class="text-xs text-zinc-900/90"
+          end
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-zinc-900/8 bg-zinc-900/5"
+            icon library class="size-3.5 text-zinc-900/80"
+            text "媒体库 3" class="text-xs text-zinc-900/90"
+          end
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-zinc-900/8 bg-zinc-900/5" tap="open source-login"
+            icon pencil class="size-3.5 text-zinc-900/80"
+            text "编辑" class="text-xs text-zinc-900/90"
+          end
+        end
+      end
+      box class="gap-3 rounded-2xl border border-zinc-900/8 bg-white shadow-sm shadow-black/5 p-4"
+        box class="flex-row items-center gap-3"
+          box class="size-11 items-center justify-center rounded-xl bg-blue-600 shadow-md shadow-black/10"
+            icon hard-drive class="size-5 text-white"
+          end
+          box class="flex-1 gap-0.5"
+            box class="flex-row items-center gap-2"
+              text "飞牛影视" class="text-base font-semibold text-zinc-900"
+              text "fnOS" class="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] text-blue-500"
+            end
+            text "fn.lin.home:5666" class="truncate text-xs text-zinc-500"
+          end
+          icon grip-vertical class="size-4 text-zinc-500/70"
+        end
+        box class="flex-row items-center gap-4 border-t border-zinc-900/8 pt-3"
+          box class="flex-row items-center gap-1.5"
+            box class="size-2 rounded-full bg-amber-500"
+            end
+            text "连接缓慢" class="text-xs text-amber-500"
+          end
+          text "用户 admin" class="text-xs text-zinc-500"
+          text "同步于 昨天" class="flex-1 text-right text-xs text-zinc-500"
+        end
+        box class="flex-row gap-2"
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-zinc-900/8 bg-zinc-900/5"
+            icon refresh-cw class="size-3.5 text-zinc-900/80"
+            text "重新连接" class="text-xs text-zinc-900/90"
+          end
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-zinc-900/8 bg-zinc-900/5"
+            icon library class="size-3.5 text-zinc-900/80"
+            text "媒体库 2" class="text-xs text-zinc-900/90"
+          end
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-zinc-900/8 bg-zinc-900/5" tap="open source-login"
+            icon pencil class="size-3.5 text-zinc-900/80"
+            text "编辑" class="text-xs text-zinc-900/90"
+          end
+        end
+      end
+      box class="h-12 flex-row items-center justify-center gap-2 rounded-2xl border border-dashed border-violet-500/50 bg-violet-500/8" tap="open add-source"
+        icon plus class="size-5 text-violet-500"
+        text "添加媒体源" class="text-[15px] font-medium text-violet-500"
+      end
+    end
+    use settings-group header="连接"
+      fill
+        use settings-row variant=toggle icon=power title="启动时自动连接" badge.class="bg-emerald-500"
+        use settings-row variant="toggle desc" icon=network title="局域网 / 外网自动切换" desc="在家时优先使用局域网地址，离开后切换到外网地址" badge.class="bg-sky-500"
+        use settings-row icon=timer title="连接超时" value="10 秒" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group header="多个媒体源" variant=footer footer="同一部影片在多个媒体源中存在时，按上方卡片顺序优先播放，也可在详情页手动切换版本。"
+      fill
+        use settings-row variant="toggle desc" icon=layers title="合并相同影片" desc="按 TMDB / IMDb ID 识别同一影片" badge.class="bg-violet-500"
+        use settings-row icon=list-ordered title="优先源顺序" value="Emby › Jellyfin › 飞牛" badge.class="bg-indigo-500"
+      end
+    end
+  end
+end
+
+design dark device=phone height=1320 name="媒体源 · 深色"
+box class="relative flex-1 bg-[#0f1017]"
+  use ambient-dark class="absolute top-0 right-0 left-0 h-[1100px]"
+  use status-bar-dark
+  use nav-bar-dark title="媒体源" variant=action action="编辑" back.tap="close"
+  box class="flex-1 gap-6 pt-2"
+    box class="gap-3 px-4"
+      box class="gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] shadow-sm shadow-black/5 p-4" note="长按卡片可拖动调整优先顺序；左滑可删除或断开"
+        box class="flex-row items-center gap-3"
+          box class="size-11 items-center justify-center rounded-xl bg-emerald-500 shadow-md shadow-black/10"
+            icon server class="size-5 text-white"
+          end
+          box class="flex-1 gap-0.5"
+            box class="flex-row items-center gap-2"
+              text "家庭 Emby" class="text-base font-semibold text-zinc-50"
+              text "Emby" class="rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] text-emerald-500"
+            end
+            text "192.168.1.20:8096 · 外网 emby.lin.home" class="truncate text-xs text-zinc-400"
+          end
+          icon grip-vertical class="size-4 text-zinc-400/70"
+        end
+        box class="flex-row items-center gap-4 border-t border-white/8 pt-3"
+          box class="flex-row items-center gap-1.5"
+            box class="size-2 rounded-full bg-emerald-500"
+            end
+            text "在线 · 局域网" class="text-xs text-emerald-500"
+          end
+          text "用户 lin" class="text-xs text-zinc-400"
+          text "同步于 2 分钟前" class="flex-1 text-right text-xs text-zinc-400"
+        end
+        box class="flex-row gap-2"
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-white/8 bg-zinc-50/5"
+            icon refresh-cw class="size-3.5 text-zinc-50/80"
+            text "同步" class="text-xs text-zinc-50/90"
+          end
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-white/8 bg-zinc-50/5"
+            icon library class="size-3.5 text-zinc-50/80"
+            text "媒体库 5" class="text-xs text-zinc-50/90"
+          end
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-white/8 bg-zinc-50/5" tap="open source-login#dark"
+            icon pencil class="size-3.5 text-zinc-50/80"
+            text "编辑" class="text-xs text-zinc-50/90"
+          end
+        end
+      end
+      box class="gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] shadow-sm shadow-black/5 p-4"
+        box class="flex-row items-center gap-3"
+          box class="size-11 items-center justify-center rounded-xl bg-sky-500 shadow-md shadow-black/10"
+            icon database class="size-5 text-white"
+          end
+          box class="flex-1 gap-0.5"
+            box class="flex-row items-center gap-2"
+              text "书房 NAS" class="text-base font-semibold text-zinc-50"
+              text "Jellyfin" class="rounded bg-sky-500/15 px-1.5 py-0.5 text-[10px] text-sky-500"
+            end
+            text "https://jf.lin.home:8920" class="truncate text-xs text-zinc-400"
+          end
+          icon grip-vertical class="size-4 text-zinc-400/70"
+        end
+        box class="flex-row items-center gap-4 border-t border-white/8 pt-3"
+          box class="flex-row items-center gap-1.5"
+            box class="size-2 rounded-full bg-emerald-500"
+            end
+            text "在线 · 外网" class="text-xs text-emerald-500"
+          end
+          text "用户 lin" class="text-xs text-zinc-400"
+          text "同步于 1 小时前" class="flex-1 text-right text-xs text-zinc-400"
+        end
+        box class="flex-row gap-2"
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-white/8 bg-zinc-50/5"
+            icon refresh-cw class="size-3.5 text-zinc-50/80"
+            text "同步" class="text-xs text-zinc-50/90"
+          end
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-white/8 bg-zinc-50/5"
+            icon library class="size-3.5 text-zinc-50/80"
+            text "媒体库 3" class="text-xs text-zinc-50/90"
+          end
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-white/8 bg-zinc-50/5" tap="open source-login#dark"
+            icon pencil class="size-3.5 text-zinc-50/80"
+            text "编辑" class="text-xs text-zinc-50/90"
+          end
+        end
+      end
+      box class="gap-3 rounded-2xl border border-white/8 bg-[#1a1b25] shadow-sm shadow-black/5 p-4"
+        box class="flex-row items-center gap-3"
+          box class="size-11 items-center justify-center rounded-xl bg-blue-600 shadow-md shadow-black/10"
+            icon hard-drive class="size-5 text-white"
+          end
+          box class="flex-1 gap-0.5"
+            box class="flex-row items-center gap-2"
+              text "飞牛影视" class="text-base font-semibold text-zinc-50"
+              text "fnOS" class="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] text-blue-500"
+            end
+            text "fn.lin.home:5666" class="truncate text-xs text-zinc-400"
+          end
+          icon grip-vertical class="size-4 text-zinc-400/70"
+        end
+        box class="flex-row items-center gap-4 border-t border-white/8 pt-3"
+          box class="flex-row items-center gap-1.5"
+            box class="size-2 rounded-full bg-amber-500"
+            end
+            text "连接缓慢" class="text-xs text-amber-500"
+          end
+          text "用户 admin" class="text-xs text-zinc-400"
+          text "同步于 昨天" class="flex-1 text-right text-xs text-zinc-400"
+        end
+        box class="flex-row gap-2"
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-white/8 bg-zinc-50/5"
+            icon refresh-cw class="size-3.5 text-zinc-50/80"
+            text "重新连接" class="text-xs text-zinc-50/90"
+          end
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-white/8 bg-zinc-50/5"
+            icon library class="size-3.5 text-zinc-50/80"
+            text "媒体库 2" class="text-xs text-zinc-50/90"
+          end
+          box class="h-8 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg border border-white/8 bg-zinc-50/5" tap="open source-login#dark"
+            icon pencil class="size-3.5 text-zinc-50/80"
+            text "编辑" class="text-xs text-zinc-50/90"
+          end
+        end
+      end
+      box class="h-12 flex-row items-center justify-center gap-2 rounded-2xl border border-dashed border-violet-500/50 bg-violet-500/8" tap="open add-source#dark"
+        icon plus class="size-5 text-violet-400"
+        text "添加媒体源" class="text-[15px] font-medium text-violet-400"
+      end
+    end
+    use settings-group-dark header="连接"
+      fill
+        use settings-row-dark variant=toggle icon=power title="启动时自动连接" badge.class="bg-emerald-500"
+        use settings-row-dark variant="toggle desc" icon=network title="局域网 / 外网自动切换" desc="在家时优先使用局域网地址，离开后切换到外网地址" badge.class="bg-sky-500"
+        use settings-row-dark icon=timer title="连接超时" value="10 秒" badge.class="bg-zinc-500"
+      end
+    end
+    use settings-group-dark header="多个媒体源" variant=footer footer="同一部影片在多个媒体源中存在时，按上方卡片顺序优先播放，也可在详情页手动切换版本。"
+      fill
+        use settings-row-dark variant="toggle desc" icon=layers title="合并相同影片" desc="按 TMDB / IMDb ID 识别同一影片" badge.class="bg-violet-500"
+        use settings-row-dark icon=list-ordered title="优先源顺序" value="Emby › Jellyfin › 飞牛" badge.class="bg-indigo-500"
+      end
+    end
+  end
+end

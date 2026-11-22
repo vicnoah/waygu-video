@@ -1,0 +1,6 @@
+component name="控件/开关 · 深色"
+box name=track class="h-[31px] w-[51px] flex-row items-center justify-end rounded-full bg-violet-500 px-0.5"
+  box name=knob class="size-[27px] rounded-full bg-white shadow-md"
+  end
+end
+variant off track.class="justify-start bg-zinc-50/15"

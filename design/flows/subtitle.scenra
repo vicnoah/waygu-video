@@ -1,0 +1,18 @@
+flow name="字幕搜索与加载" direction=down
+node start "开始播放" kind=start
+node read "读取可用字幕轨道" note="Emby/Jellyfin：PlaybackInfo 中 MediaStreams；文件源：同名 .srt/.ass/.sup/.vtt 等扫描；服务器元数据中的外挂字幕路径"
+node auto "按首选语言自动选择" note="首选语言列表在「设置 › 字幕」中配置，支持多语言回退；强制字幕单独标记，不影响回退"
+node has "找到合适字幕？" kind=decision
+node render "渲染字幕" note="SRT/ASS/SSA：本地渲染，支持自定义字体大小、颜色、描边、位置偏移；PGS/VOBSUB：解码为图像层叠加；Dolby Vision 下字幕单独合成防止色偏"
+node switch "用户在播放器手动切换字幕" note="「字幕/音轨」面板（player-tracks）可切换已有轨道，或选择「从在线搜索」"
+node search "在线字幕搜索" note="搜索 Subhd、Zimuku、射手网等，依片名 + 年份 + 语言过滤，按匹配分排序"
+node pick "用户选择并下载字幕" kind=data note="下载的字幕缓存本地并绑定该媒体项，下次播放直接使用；可手动调整时间偏移（±秒，按集保存）"
+node end "字幕渲染中" kind=end
+start -> read -> auto -> has
+has -> render "有"
+has -> switch "无"
+render ..> switch "用户需要切换"
+switch ..> render "内嵌 / 外挂字幕"
+switch ..> search "在线搜索"
+search -> pick -> render
+render -> end

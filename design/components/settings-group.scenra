@@ -1,0 +1,10 @@
+component name="控件/设置分组" width=fill backdrop="bg-[#f4f4f7]"
+box class="gap-2 px-4"
+  text "分组标题" name=header class="px-4 text-xs font-medium tracking-wide text-zinc-500 uppercase"
+  slot class="gap-px overflow-hidden rounded-2xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5"
+    use settings-row
+  end
+  text "分组脚注" name=footer class="hidden px-4 text-xs leading-relaxed text-zinc-500"
+end
+variant footer footer.class="flex"
+variant noheader header.class="hidden"

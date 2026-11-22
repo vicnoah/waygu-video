@@ -1,0 +1,19 @@
+component name="TV/横版卡片 · 深色" width=420 backdrop="bg-[#0f1017]"
+box name=card class="group w-[420px] gap-3"
+  box name=frame class="relative overflow-hidden rounded-2xl shadow-lg shadow-black/20 group-selected:shadow-2xl group-selected:ring-4 group-selected:ring-violet-500"
+    image "剧集横版剧照" name=cover class="h-[236px] w-full"
+    box name=badge class="absolute top-3 left-3 flex-row items-center gap-1.5 rounded-md bg-black/55 px-2 py-1"
+      box name=dot class="size-2 rounded-full bg-emerald-400"
+      end
+      text "Emby" name=source class="text-sm font-medium text-white"
+    end
+    box name=track class="absolute right-0 bottom-0 left-0 h-1.5 bg-white/25"
+      box name=progress class="h-1.5 w-1/2 bg-violet-500"
+      end
+    end
+  end
+  text "漫长的季节" name=title class="truncate text-2xl font-semibold text-zinc-50/70 group-selected:text-zinc-50"
+  text "第 1 季 · 第 6 集 · 剩余 32 分钟" name=sub class="truncate text-lg text-zinc-400"
+end
+variant focused state=selected
+variant fresh track.class="hidden"

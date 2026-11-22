@@ -1,0 +1,27 @@
+flow name="投屏" direction=down
+node start "点击投屏" kind=start note="入口：电影/剧集详情页右上角图标、播放器控件栏；TV 端不支持投出"
+node scan "扫描局域网投屏设备" note="AirPlay 2 目标（Apple TV、HomePod、AirPlay 显示器）通过 Bonjour 发现；DLNA/UPNP 通过 SSDP 发现；Chromecast 通过 mDNS 发现；列表每 10 秒刷新"
+node found "找到设备？" kind=decision
+node empty "提示无可用设备" note="「当前网络未发现设备，请确认设备已开机且与本机在同一 Wi-Fi」；可手动输入 IP"
+node pick "用户选择目标设备" kind=decision
+node airplay "AirPlay 2" note="使用系统 AVRoutePickerView 授权；本机继续播放，画面同步到目标设备；支持 Siri Remote 控制播放进度"
+node dlna "DLNA Push（DMR）" note="本机起 HTTP 服务器将文件 URL 推送给渲染设备（Kodi、智能电视）；进度同步靠 SOAP GetPositionInfo 轮询（每 5 秒）；仅支持目标设备能直接解码的格式"
+node chrome "Chromecast" note="Cast SDK；不支持直接播放时转为 H.264/AAC；字幕转换为 WebVTT 推送；支持 Google Home 控制"
+node compat "目标设备能直接播放该格式？" kind=decision note="仅 DLNA 需要此判断；AirPlay 和 Chromecast 有各自的转码策略"
+node transcode "请求服务器转码为兼容格式" note="实时转码，画质取决于服务器性能；转码中显示缓冲进度"
+node control "统一播放控制" note="Waygu 界面控制播放/暂停/进度/音量；字幕与音轨切换同步到目标设备；本机可切换小屏预览或熄屏省电"
+node end "结束投屏" kind=end note="用户手动断开，或目标设备离线；结束后在本机以当前进度恢复播放"
+start -> scan -> found
+found -> empty "否"
+empty ..> scan "重新扫描"
+found -> pick "是"
+pick -> airplay "AirPlay"
+pick -> dlna "DLNA"
+pick -> chrome "Chromecast"
+dlna -> compat
+compat -> transcode "否"
+compat -> control "是"
+transcode -> control
+airplay -> control
+chrome -> control
+control -> end

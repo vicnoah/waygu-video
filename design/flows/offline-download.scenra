@@ -1,0 +1,31 @@
+flow name="离线下载" direction=down
+node start "点击下载" kind=start note="入口：电影/剧集详情页工具栏；剧集可按季批量勾选或逐集下载"
+node online "网络可用？" kind=decision
+node warn "提示无网络" note="可选「等待 Wi-Fi」或「立即使用移动网络」（受设置控制）"
+node quality "选择下载画质" note="原画 / 1080p / 720p（服务器转码后下载）；显示各选项预估大小"
+node space "本地空间是否足够？" kind=decision note="与「设置 › 存储 › 下载空间限制」比对"
+node low "提示空间不足" note="显示所需 / 可用空间对比，提示前往「存储与下载」清理已下载内容"
+node enqueue "加入下载队列" kind=data note="最多同时 3 个任务并行；Wi-Fi 切换到蜂窝时自动暂停（可在设置中允许蜂窝下载）"
+node progress "下载中" note="后台持续下载，锁屏不中断；进度显示在详情页与存储页；可手动暂停 / 继续"
+node verify "分片校验" kind=decision note="每个分片下载后校验 MD5，不一致时自动重试最多 3 次"
+node fail "下载失败" note="重试超限后推送通知，在存储页可手动重试"
+node done "下载完成" kind=data note="详情页显示「已离线」标记；媒体库海报墙显示下载角标；离线时仍可在媒体库内看到该项"
+node play "离线播放" note="直接播放本地文件，无需服务器；字幕/音轨限于已下载的轨道；进度本地缓存，联网后自动回写"
+node expire "媒体库同步时检测文件是否还在服务器" kind=decision note="服务器删除或媒体源离线超 30 天时标记过期"
+node clean "标记过期并提示清理" note="用户在「存储与下载」页统一管理，可手动删除或选择保留本地副本"
+start -> online
+online -> warn "否"
+warn ..> enqueue "用户确认"
+online -> quality "是"
+quality -> space
+space -> low "不足"
+low ..> quality "重新选择"
+space -> enqueue "足够"
+enqueue -> progress -> verify
+verify -> fail "校验失败"
+fail ..> enqueue "手动重试"
+verify -> done "通过"
+done -> play
+play ..> expire "联网同步时"
+expire -> clean "过期"
+expire ..> play "未过期"

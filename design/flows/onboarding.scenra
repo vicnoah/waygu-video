@@ -1,0 +1,19 @@
+flow name="首次启动引导" direction=down
+node start "安装后首次启动" kind=start
+node restore "检测到 iCloud 配置备份？" kind=decision note="检查 iCloud Drive 中是否有 Waygu 配置文件；离线时跳过检测"
+node import "恢复媒体源与设置" note="还原媒体源列表（凭据从钥匙串恢复）、外观偏好、屏蔽词；凭据需重新在各设备认证"
+node welcome "显示欢迎页" note="海报墙轮播、三大功能说明（多平台媒体源 / 弹幕同看 / 4K 原画）"
+node choice "立即添加媒体源还是稍后？" kind=decision
+node add "进入「添加媒体源」" note="打开 add-source，用户选择 Emby/Jellyfin/飞牛影视/Plex/SMB/WebDAV"
+node connect "走「连接媒体源」流程" note="见 连接媒体源 流程；支持局域网自动发现"
+node skip "稍后设置"
+node home "进入首页" kind=end note="跳过时首页显示「尚无内容」引导卡片，始终可从设置 › 添加媒体源再次进入；iCloud 恢复后直接进入并开始后台同步"
+start -> restore
+restore -> import "是"
+restore -> welcome "否"
+import -> home
+welcome -> choice
+choice -> add "立即添加"
+choice -> skip "稍后设置"
+add -> connect -> home
+skip -> home

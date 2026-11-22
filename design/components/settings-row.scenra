@@ -1,0 +1,18 @@
+component name="控件/设置行" width=fill preview=358 backdrop="bg-white"
+box name=row class="min-h-12 flex-row items-center gap-3 bg-white px-4 py-2.5"
+  box name=badge class="size-7 items-center justify-center rounded-lg bg-violet-500 shadow-sm"
+    icon settings name=icon class="size-4 text-white"
+  end
+  box class="flex-1 gap-0.5"
+    text "设置项" name=title class="text-[15px] text-zinc-900"
+    text "说明文字" name=desc class="hidden text-xs leading-snug text-zinc-500"
+  end
+  text "默认" name=value class="text-[15px] text-zinc-500"
+  icon chevron-right name=chevron class="size-4 text-zinc-500/60"
+  use switch name=switch class="hidden"
+end
+variant toggle value.class="hidden" chevron.class="hidden" switch.class="flex"
+variant toggle-off variant=toggle switch.variant=off
+variant plain badge.class="hidden"
+variant desc desc.class="flex"
+variant check value.class="hidden" chevron.class="hidden" badge.class="hidden"
