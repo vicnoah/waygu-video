@@ -225,70 +225,21 @@ func (a *application) importSource(cx *core.Scope, candidate candidateSource, ba
 		if busy.GetUntracked() {
 			return
 		}
-		form := candidate.source
-		form.Libraries = draft.GetUntracked()
-		previous := a.matchSource(form)
-		var previousKey string
-		if previous.ID != "" {
-			form.ID = previous.ID
-			previousKey = previous.credentialKey()
-		}
-		if form.ID == "" {
-			form.ID = rand.Text()
-		}
-		// Stage replacements under a fresh key so the saved source keeps its old
-		// credential if the view closes or saving the source settings fails.
-		if previousKey != "" {
-			form.CredentialKey = rand.Text()
-		}
-		key, token := form.credentialKey(), candidate.session.Token
 		busy.Set(true)
-		go func() {
-			var err error
-			if token != "" {
-				err = a.secrets.Set(key, token)
+		a.saveCandidateSource(viewContext, candidate, draft.GetUntracked(), func(err error) {
+			busy.Set(false)
+			if err != nil {
+				failure.Set(err)
+				return
 			}
-			form.Volatile = errors.Is(err, core.ErrSecretsUnavailable)
-			discard := func() {
-				if token != "" && err == nil {
-					go func() { _ = a.secrets.Delete(key) }()
-				}
+			if a.returnToSourceSettings() {
+				return
 			}
-			a.scope.Post(func() {
-				if viewContext.Err() != nil {
-					discard()
-					return
-				}
-				busy.Set(false)
-				if err != nil && !form.Volatile {
-					failure.Set(err)
-					return
-				}
-				form.LibrariesSyncedAt = time.Now().Unix()
-				sources := slices.Clone(a.sources.GetUntracked())
-				if index := slices.IndexFunc(sources, func(entry source) bool { return entry.ID == form.ID }); index >= 0 {
-					sources[index] = form
-				} else {
-					sources = append(sources, form)
-				}
-				if err := a.saveSources(sources); err != nil {
-					discard()
-					failure.Set(err)
-					return
-				}
-				a.tokens.Store(key, token)
-				if previousKey != "" {
-					a.tokens.Delete(previousKey)
-					go func() { _ = a.secrets.Delete(previousKey) }()
-				}
-				if a.returnToSourceSettings() {
-					return
-				}
-				a.sourceFilter.Set("")
-				a.enter()
-			})
-		}()
+			a.sourceFilter.Set("")
+			a.enter()
+		})
 	}
+
 	return core.View{Class: "gap-6", Children: []core.Node{
 		setupGroup(locales.ImportLibraries(cx), "", list...),
 		core.Dynamic(func(cx *core.Scope) core.Node {
@@ -304,6 +255,67 @@ func (a *application) importSource(cx *core.Scope, candidate candidateSource, ba
 			}, store),
 		}},
 	}}
+}
+
+// saveCandidateSource starts on the UI goroutine and completes there after the
+// platform has staged the media session in its credential store.
+func (a *application) saveCandidateSource(lifetime context.Context, candidate candidateSource, libraries []sourceLibrary, done func(error)) {
+	form := candidate.source
+	form.Libraries = libraries
+	previous := a.matchSource(form)
+	var previousKey string
+	if previous.ID != "" {
+		form.ID = previous.ID
+		previousKey = previous.credentialKey()
+	}
+	if form.ID == "" {
+		form.ID = rand.Text()
+	}
+	if previousKey != "" {
+		// Keep the old session valid until its replacement has committed.
+		form.CredentialKey = rand.Text()
+	}
+	key, token := form.credentialKey(), candidate.session.Token
+	go func() {
+		var stageError error
+		if token != "" {
+			stageError = a.secrets.Set(key, token)
+		}
+		form.Volatile = errors.Is(stageError, core.ErrSecretsUnavailable)
+		discard := func() {
+			if token != "" && stageError == nil {
+				go func() { _ = a.secrets.Delete(key) }()
+			}
+		}
+		a.scope.Post(func() {
+			if lifetime.Err() != nil {
+				discard()
+				return
+			}
+			if stageError != nil && !form.Volatile {
+				done(stageError)
+				return
+			}
+			form.LibrariesSyncedAt = time.Now().Unix()
+			sources := slices.Clone(a.sources.GetUntracked())
+			if index := slices.IndexFunc(sources, func(entry source) bool { return entry.ID == form.ID }); index >= 0 {
+				sources[index] = form
+			} else {
+				sources = append(sources, form)
+			}
+			if err := a.saveSources(sources); err != nil {
+				discard()
+				done(err)
+				return
+			}
+			a.tokens.Store(key, token)
+			if previousKey != "" {
+				a.tokens.Delete(previousKey)
+				go func() { _ = a.secrets.Delete(previousKey) }()
+			}
+			done(nil)
+		})
+	}()
 }
 
 func (a *application) matchSource(form source) source {

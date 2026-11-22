@@ -39,7 +39,8 @@ const (
 	screenManageLibraries   screen = "manage-libraries"
 	screenDetail            screen = "detail"
 	screenPlayer            screen = "player"
-	screenTVPlayerSettings  screen = "tv-player-settings"
+	screenTVSettings        screen = "tv-settings"
+	screenTVPairPhone       screen = "tv-pair-phone"
 	screenDownloads         screen = "downloads"
 )
 
@@ -56,6 +57,7 @@ type route struct {
 	downloadID    string
 	match         *catalogMatch
 	seriesView    seriesViewState
+	pairLink      string
 }
 
 type source struct {
@@ -102,6 +104,7 @@ type application struct {
 	sourceTimeout  *core.Signal[int]
 	mergeTitles    *core.Signal[bool]
 	mpvPreferred   *core.Signal[bool]
+	appearance     *core.Signal[string]
 	bitrateLimit   *core.Signal[int]
 	versionPolicy  *core.Signal[media.VersionPolicy]
 	autoNext       *core.Signal[bool]
@@ -175,6 +178,7 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 		autoNext:      core.NewSignal(cx, autoNext != "false"),
 		danmakuPrefs:  core.NewSignal(cx, core.Untracked(cx, func() danmakuPreferences { return readDanmakuPreferences(storage) })),
 	}
+	a.applyAppearance(cx)
 	a.progress = core.Untracked(cx, func() *progressOutbox { return newProgressOutbox(cx, storage) })
 	a.playbackPrefs = core.NewSignal(cx, core.Untracked(cx, func() playbackPreferences { return readPlaybackPreferences(storage) }))
 	a.subtitlePrefs = core.NewSignalFunc(cx, core.Untracked(cx, func() subtitlePreferences { return readSubtitlePreferences(storage) }), nil)
@@ -220,8 +224,14 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 				return a.detail(screenScope, current)
 			case screenPlayer:
 				return a.player(screenScope, current)
-			case screenTVPlayerSettings:
-				return pageFrame(pageHeader(screenScope, locales.Settings(screenScope), a.back), a.settings(screenScope))
+			case screenTVPairPhone:
+				return a.phoneTVPair(screenScope, current.pairLink)
+			case screenTVSettings:
+				initial := tvSources
+				if current.item.ID != "" {
+					initial = tvDanmaku
+				}
+				return a.tvSettingsPage(screenScope, initial, current, a.back)
 			case screenPlaybackSettings:
 				return a.phonePlaybackSettings(screenScope)
 			case screenSubtitleSettings:

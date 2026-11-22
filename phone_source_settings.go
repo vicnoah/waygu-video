@@ -350,7 +350,9 @@ func sourceCardStyle(provider media.Provider) sourceCardAppearance {
 
 func (a *application) returnToSourceSettings() bool {
 	stack := a.routes.GetUntracked()
-	index := slices.IndexFunc(stack, func(entry route) bool { return entry.screen == screenSourceSettings })
+	index := slices.IndexFunc(stack, func(entry route) bool {
+		return entry.screen == screenSourceSettings || entry.screen == screenTVSettings
+	})
 	if index < 0 {
 		return false
 	}

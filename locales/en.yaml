@@ -522,3 +522,44 @@ tvPlayerSeekHint: "Back / forward 10 seconds"
 tvPlayerOK: "OK"
 tvPlayerDanmakuCount: "Danmaku {count}"
 tvPlayerOpacity: "Danmaku opacity"
+tvSettingsAccounts: Sync and account
+tvSettingsStorage: Storage
+tvSettingsParental: Parental controls
+tvSettingsAbout: About
+tvSettingsLight: Light
+tvSettingsDark: Dark
+tvDanmakuHint: Press ↓ during playback for quick adjustments
+tvDanmakuVisible: Show danmaku
+tvDanmakuDandan: DandanPlay
+tvDanmakuXML: Local XML
+tvDanmakuSmall: Small
+tvDanmakuStandard: Standard
+tvDanmakuLarge: Large
+tvDanmakuExtraLarge: Extra large
+tvDanmakuSlow: Slow
+tvDanmakuMedium: Moderate
+tvDanmakuFast: Fast
+tvDanmakuVeryFast: Very fast
+tvDanmakuLow: Low
+tvDanmakuDensity: On-screen density
+tvDanmakuDensityMedium: Medium
+tvDanmakuHigh: High
+tvDanmakuHideFixed: Hide top and bottom danmaku
+tvDanmakuRuleCount: "{count} rules"
+tvDanmakuOffset: Timeline offset
+tvDanmakuQuarter: Quarter
+tvDanmakuHalf: Half
+tvDanmakuThreeQuarters: Three quarters
+tvPairTitle: Set up from your phone
+tvPairInstructions: Scan with the Waygu app to enter the server address and sign-in details.
+tvPairCode: "Code {code} · valid for 5 minutes"
+tvPairExpired: Code expired. Select to refresh.
+tvPairUnavailable: Connect this TV to your local network to pair.
+tvPairSuccess: Setup received
+tvPairPhoneTitle: Pair with a TV
+tvPairPhoneScan: Scan TV code
+tvPairPhoneCode: TV pairing address
+tvPairPhoneInvalid: Scan a valid Waygu TV pairing code.
+tvPairNetworkError: Could not connect to the TV. Check the code and use the same network.
+tvPairCredentialError: The TV could not save these sign-in details.
+tvPairPhoneSend: Send to TV

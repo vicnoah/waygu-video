@@ -14,6 +14,7 @@ import (
 	"github.com/nsgo-dev/nsgo/ui"
 
 	"waygu-video/internal/media"
+	"waygu-video/internal/tvpair"
 	"waygu-video/locales"
 )
 
@@ -154,6 +155,10 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 					return
 				}
 				if code == nil || disabled() {
+					return
+				}
+				if _, err := tvpair.Parse(code.Text); err == nil {
+					a.push(route{screen: screenTVPairPhone, pairLink: code.Text})
 					return
 				}
 				base, err := media.NormalizeAddress(code.Text)

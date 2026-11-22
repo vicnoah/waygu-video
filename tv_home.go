@@ -105,7 +105,7 @@ func (a *application) tvShell(cx *core.Scope) core.Node {
 			case screenSearch:
 				a.tab.Set(2)
 			case screenSettings:
-				a.tab.Set(3)
+				a.push(route{screen: screenTVSettings})
 			default:
 				a.libraryView.Set(page)
 				a.tab.Set(1)
@@ -125,12 +125,7 @@ func (a *application) tvShell(cx *core.Scope) core.Node {
 			})
 			return a.browse(cx, page, core.IdiomTV, nil)
 		}
-		content := func() core.Node {
-			if page == screenSettings {
-				return a.settings(cx)
-			}
-			return a.browse(cx, page, core.IdiomTV, category)
-		}()
+		content := a.browse(cx, page, core.IdiomTV, category)
 		return pageFrame(core.View{Class: "shrink-0 bg-[#171720]", Children: []core.Node{header(cx)}}, content)
 	})
 }

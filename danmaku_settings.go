@@ -12,6 +12,14 @@ import (
 	"waygu-video/locales"
 )
 
+func (a *application) saveDandanCredentials(id, secret string) error {
+	data, err := json.Marshal(danmaku.DandanCredentials{AppID: id, Secret: secret})
+	if err != nil {
+		return err
+	}
+	return a.secrets.Set(dandanCredentialKey, string(data))
+}
+
 func (a *application) danmakuSettings(cx *core.Scope) core.Node {
 	id := core.NewSignal(cx, "")
 	secret := core.NewSignal(cx, "")
@@ -40,8 +48,7 @@ func (a *application) danmakuSettings(cx *core.Scope) core.Node {
 			if remove {
 				err = a.secrets.Delete(dandanCredentialKey)
 			} else {
-				data, _ := json.Marshal(credentials)
-				err = a.secrets.Set(dandanCredentialKey, string(data))
+				err = a.saveDandanCredentials(credentials.AppID, credentials.Secret)
 			}
 			cx.Post(func() {
 				if view.Err() != nil {

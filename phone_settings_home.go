@@ -81,7 +81,8 @@ func (a *application) phoneSettingsHome(cx *core.Scope) core.Node {
 			(phoneSetting{locales.SettingsLibraryMetadata(cx), "", "bg-indigo-500", lucide.Database}).unavailable(cx),
 		),
 		setupGroup(locales.SettingsAccountsData(cx), "",
-			(phoneSetting{locales.SettingsSyncAccounts(cx), "", "bg-blue-500", lucide.RefreshCw}).row(phoneSettingValue(locales.SettingsLocalOnly(cx))),
+			(phoneSetting{locales.SettingsSyncAccounts(cx), "", "bg-blue-500", lucide.RefreshCw}).linkValue(cx, "open-phone-tv-pair",
+				func() string { return locales.SettingsLocalOnly(cx) }, routeTo(screenTVPairPhone)),
 			core.Dynamic(func(cx *core.Scope) core.Node {
 				if !a.downloads.available() {
 					return downloads.unavailable(cx)

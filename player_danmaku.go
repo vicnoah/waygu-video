@@ -312,7 +312,7 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 
 const maxDanmakuOffset = 60 * time.Second
 
-func (a *application) danmakuOffset(cx *core.Scope, current route) (*core.Signal[time.Duration], core.Node) {
+func (a *application) danmakuOffsetEditor(cx *core.Scope, current route) (*core.Signal[time.Duration], func(time.Duration), *core.Signal[bool]) {
 	key := "danmaku-offset-v1:" + danmakuItemKey(current)
 	stored := core.Untracked(cx, func() string { value, _ := a.storage.GetItem(key); return value })
 	ms, _ := strconv.ParseInt(stored, 10, 64)
@@ -329,6 +329,11 @@ func (a *application) danmakuOffset(cx *core.Scope, current route) (*core.Signal
 		failed.Set(false)
 		offset.Set(value)
 	}
+	return offset, set, failed
+}
+
+func (a *application) danmakuOffset(cx *core.Scope, current route) (*core.Signal[time.Duration], core.Node) {
+	offset, set, failed := a.danmakuOffsetEditor(cx, current)
 	regular := core.View{Class: "gap-1", Children: []core.Node{
 		core.View{Class: "flex-row flex-wrap items-center gap-2", Children: []core.Node{
 			core.Text{ContentFunc: func() string {

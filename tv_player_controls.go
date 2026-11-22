@@ -147,7 +147,7 @@ func (a *application) tvPlayerSettings(cx *core.Scope, l tvLayout, p tvPlayerCon
 	for i, row := range rows {
 		button := tvPlayerSettingRow(cx, l, row, func() bool { return selected.Get() == i }, func() { selected.Set(i) }, &refs[i])
 		if cx.Env().OS() == core.OSIOS && row.change != nil {
-			button = tvAppleAdjustTargets(cx, l, button, row, &refs[i])
+			button = tvAppleAdjustTargets(cx, l, button, row.change, &refs[i])
 		}
 		cells = append(cells, button)
 	}
@@ -223,7 +223,7 @@ func (a *application) openTVPlayerSettings(at time.Duration) {
 	next := append([]route(nil), stack...)
 	play := &next[len(next)-1]
 	play.item.Position, play.resume, play.resumeLocal = at, true, true
-	a.routes.Set(append(next, route{screen: screenTVPlayerSettings}))
+	a.routes.Set(append(next, route{screen: screenTVSettings, item: play.item, source: play.source}))
 }
 
 func tvAppleRemoteTargets(cx *core.Scope, focus *core.Ref, up, down, left, right func()) core.Node {
@@ -244,11 +244,11 @@ func tvAppleRemoteTargets(cx *core.Scope, focus *core.Ref, up, down, left, right
 	}
 }
 
-func tvAppleAdjustTargets(cx *core.Scope, l tvLayout, button core.Node, row tvSettingRow, ref *core.Ref) core.Node {
+func tvAppleAdjustTargets(cx *core.Scope, l tvLayout, button core.Node, adjust func(int), ref *core.Ref) core.Node {
 	target := func(edge string, delta int) core.Node {
 		return core.View{Class: "absolute inset-y-0 " + edge, Style: core.Style{Width: l.length(28)},
 			Focusable: func() bool { return true }, AccessibilityElementsHidden: func() bool { return true }, OnFocus: func() {
-				row.change(delta)
+				adjust(delta)
 				cx.Post(ref.Focus)
 			}}
 	}

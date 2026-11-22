@@ -40,6 +40,11 @@ def visible(test_id):
     raise RuntimeError(f"{test_id!r} did not appear: {diagnostic}")
 
 
+def visible_label(test_id):
+    node = visible(test_id)
+    return node.get("text") or node.get("content-desc")
+
+
 def focused_id():
     deadline = time.monotonic() + 12
     while time.monotonic() < deadline:
@@ -69,7 +74,7 @@ def key(*codes):
 def focus_with_remote(test_id, direction):
     visible(test_id)
     focused = ""
-    for _ in range(8):
+    for _ in range(12):
         focused = focused_id()
         if focused == test_id:
             return
@@ -93,6 +98,7 @@ def onboarding_smoke():
     select_with_remote("onboarding-later")
     visible("empty-add-source")
     select_with_remote("tv-tab-settings", "KEYCODE_DPAD_RIGHT")
+    key("DPAD_RIGHT")
     select_with_remote("settings-add-source")
     visible("choose-flymoo")
     adb("shell", "input", "keyevent", "KEYCODE_BACK")
@@ -139,13 +145,9 @@ def detail_smoke():
 
 
 def player_smoke():
-    def label(test_id):
-        node = visible(test_id)
-        return node.get("text") or node.get("content-desc")
-
     def position():
         seconds = 0
-        for part in label("player-position").split(":"):
+        for part in visible_label("player-position").split(":"):
             seconds = seconds * 60 + int(part)
         return seconds
 
@@ -153,9 +155,9 @@ def player_smoke():
     key("DPAD_CENTER")
     visible("tv-player")
     expect_focus("toggle-play")
-    playing = label("toggle-play")
+    playing = visible_label("toggle-play")
     key("DPAD_CENTER")
-    if label("toggle-play") == playing:
+    if visible_label("toggle-play") == playing:
         raise RuntimeError("Select did not toggle playback.")
 
     key("MENU")
@@ -163,9 +165,9 @@ def player_smoke():
     expect_focus("toggle-danmaku")
     key("DPAD_DOWN")
     expect_focus("tv-player-opacity")
-    opacity = label("tv-player-opacity-value")
+    opacity = visible_label("tv-player-opacity-value")
     key("DPAD_RIGHT" if opacity == "10%" else "DPAD_LEFT")
-    if label("tv-player-opacity-value") == opacity:
+    if visible_label("tv-player-opacity-value") == opacity:
         raise RuntimeError("Left or Right did not adjust danmaku opacity.")
     key("BACK")
     expect_focus("toggle-play")
@@ -183,6 +185,33 @@ def player_smoke():
     print("Android TV player passed Select, Menu, opacity, seeking, tracks and Back.")
 
 
+def settings_smoke():
+    visible("home-hero-play")
+    key("DPAD_UP")
+    select_with_remote("tv-tab-settings", "KEYCODE_DPAD_RIGHT")
+    expect_focus("tv-settings-section-sources")
+    visible("tv-pair-code")
+    for section in ("playback", "subtitles", "danmaku"):
+        key("DPAD_DOWN")
+        expect_focus("tv-settings-section-" + section)
+    key("DPAD_RIGHT")
+    expect_focus("tv-danmaku-visible")
+    for option in ("sources", "opacity"):
+        key("DPAD_DOWN")
+        expect_focus("tv-danmaku-" + option)
+    before = visible_label("tv-danmaku-opacity-value")
+    key("DPAD_RIGHT" if before == "10%" else "DPAD_LEFT")
+    after = visible_label("tv-danmaku-opacity-value")
+    if not before or not after or before == after:
+        raise RuntimeError("The remote did not change the settings opacity.")
+    for option in ("font-size", "speed", "area"):
+        key("DPAD_DOWN")
+        expect_focus("tv-danmaku-" + option)
+    key("BACK")
+    visible("tv-tab-settings")
+    print("Android TV settings passed categories, options, opacity, pairing code and Back.")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
@@ -192,9 +221,13 @@ if __name__ == "__main__":
                       help="test a featured movie with versions, credits and recommendations")
     mode.add_argument("--with-player", action="store_true",
                       help="test remote playback against a featured movie")
+    mode.add_argument("--with-settings", action="store_true",
+                      help="test the TV settings categories and controls against a connected library")
     args = parser.parse_args()
     if args.with_player:
         player_smoke()
+    elif args.with_settings:
+        settings_smoke()
     elif args.with_detail:
         detail_smoke()
     elif args.with_library:

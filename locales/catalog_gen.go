@@ -124,6 +124,8 @@ var Parameters = map[string][]string{
 	"TvDetailVersion":                {"resolution"},
 	"TvStarring":                     {"names"},
 	"TvPlayerDanmakuCount":           {"count"},
+	"TvDanmakuRuleCount":             {"count"},
+	"TvPairCode":                     {"code"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -213,6 +215,8 @@ type Translation struct {
 	TvDetailVersion                func(resolution string) string
 	TvStarring                     func(names string) string
 	TvPlayerDanmakuCount           func(count string) string
+	TvDanmakuRuleCount             func(count string) string
+	TvPairCode                     func(code string) string
 }
 
 var supplied = map[string]Translation{}
@@ -662,6 +666,45 @@ const (
 	textTvPlayerSeekHint
 	textTvPlayerOK
 	textTvPlayerOpacity
+	textTvSettingsAccounts
+	textTvSettingsStorage
+	textTvSettingsParental
+	textTvSettingsAbout
+	textTvSettingsLight
+	textTvSettingsDark
+	textTvDanmakuHint
+	textTvDanmakuVisible
+	textTvDanmakuDandan
+	textTvDanmakuXML
+	textTvDanmakuSmall
+	textTvDanmakuStandard
+	textTvDanmakuLarge
+	textTvDanmakuExtraLarge
+	textTvDanmakuSlow
+	textTvDanmakuMedium
+	textTvDanmakuFast
+	textTvDanmakuVeryFast
+	textTvDanmakuLow
+	textTvDanmakuDensity
+	textTvDanmakuDensityMedium
+	textTvDanmakuHigh
+	textTvDanmakuHideFixed
+	textTvDanmakuOffset
+	textTvDanmakuQuarter
+	textTvDanmakuHalf
+	textTvDanmakuThreeQuarters
+	textTvPairTitle
+	textTvPairInstructions
+	textTvPairExpired
+	textTvPairUnavailable
+	textTvPairSuccess
+	textTvPairPhoneTitle
+	textTvPairPhoneScan
+	textTvPairPhoneCode
+	textTvPairPhoneInvalid
+	textTvPairNetworkError
+	textTvPairCredentialError
+	textTvPairPhoneSend
 	numTexts
 )
 
@@ -1111,6 +1154,45 @@ var keyOfText = [numTexts]string{
 	"tvPlayerSeekHint",
 	"tvPlayerOK",
 	"tvPlayerOpacity",
+	"tvSettingsAccounts",
+	"tvSettingsStorage",
+	"tvSettingsParental",
+	"tvSettingsAbout",
+	"tvSettingsLight",
+	"tvSettingsDark",
+	"tvDanmakuHint",
+	"tvDanmakuVisible",
+	"tvDanmakuDandan",
+	"tvDanmakuXML",
+	"tvDanmakuSmall",
+	"tvDanmakuStandard",
+	"tvDanmakuLarge",
+	"tvDanmakuExtraLarge",
+	"tvDanmakuSlow",
+	"tvDanmakuMedium",
+	"tvDanmakuFast",
+	"tvDanmakuVeryFast",
+	"tvDanmakuLow",
+	"tvDanmakuDensity",
+	"tvDanmakuDensityMedium",
+	"tvDanmakuHigh",
+	"tvDanmakuHideFixed",
+	"tvDanmakuOffset",
+	"tvDanmakuQuarter",
+	"tvDanmakuHalf",
+	"tvDanmakuThreeQuarters",
+	"tvPairTitle",
+	"tvPairInstructions",
+	"tvPairExpired",
+	"tvPairUnavailable",
+	"tvPairSuccess",
+	"tvPairPhoneTitle",
+	"tvPairPhoneScan",
+	"tvPairPhoneCode",
+	"tvPairPhoneInvalid",
+	"tvPairNetworkError",
+	"tvPairCredentialError",
+	"tvPairPhoneSend",
 }
 
 // textsEn are the messages without arguments in en.
@@ -1557,7 +1639,46 @@ var textsEn = i18n.NewTexts(""+
 	"Danmaku settings"+
 	"Back / forward 10 seconds"+
 	"OK"+
-	"Danmaku opacity",
+	"Danmaku opacity"+
+	"Sync and account"+
+	"Storage"+
+	"Parental controls"+
+	"About"+
+	"Light"+
+	"Dark"+
+	"Press ↓ during playback for quick adjustments"+
+	"Show danmaku"+
+	"DandanPlay"+
+	"Local XML"+
+	"Small"+
+	"Standard"+
+	"Large"+
+	"Extra large"+
+	"Slow"+
+	"Moderate"+
+	"Fast"+
+	"Very fast"+
+	"Low"+
+	"On-screen density"+
+	"Medium"+
+	"High"+
+	"Hide top and bottom danmaku"+
+	"Timeline offset"+
+	"Quarter"+
+	"Half"+
+	"Three quarters"+
+	"Set up from your phone"+
+	"Scan with the Waygu app to enter the server address and sign-in details."+
+	"Code expired. Select to refresh."+
+	"Connect this TV to your local network to pair."+
+	"Setup received"+
+	"Pair with a TV"+
+	"Scan TV code"+
+	"TV pairing address"+
+	"Scan a valid Waygu TV pairing code."+
+	"Could not connect to the TV. Check the code and use the same network."+
+	"The TV could not save these sign-in details."+
+	"Send to TV",
 	[]uint16{
 		11,
 		47,
@@ -2002,6 +2123,45 @@ var textsEn = i18n.NewTexts(""+
 		25,
 		2,
 		15,
+		16,
+		7,
+		17,
+		5,
+		5,
+		4,
+		47,
+		12,
+		10,
+		9,
+		5,
+		8,
+		5,
+		11,
+		4,
+		8,
+		4,
+		9,
+		3,
+		17,
+		6,
+		4,
+		27,
+		15,
+		7,
+		4,
+		14,
+		22,
+		72,
+		32,
+		46,
+		14,
+		14,
+		12,
+		18,
+		35,
+		69,
+		44,
+		10,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -2448,7 +2608,46 @@ var textsZhHans = i18n.NewTexts(""+
 	"弹幕设置"+
 	"快退 / 快进 10 秒"+
 	"OK"+
-	"弹幕透明度",
+	"弹幕透明度"+
+	"同步与账户"+
+	"存储"+
+	"家长控制"+
+	"关于"+
+	"浅色"+
+	"深色"+
+	"在播放中按 ↓ 键也可快速调整"+
+	"显示弹幕"+
+	"弹弹play"+
+	"本地 XML"+
+	"小"+
+	"标准"+
+	"大"+
+	"特大"+
+	"慢"+
+	"适中"+
+	"快"+
+	"很快"+
+	"低"+
+	"同屏密度"+
+	"中"+
+	"高"+
+	"屏蔽顶部 / 底部弹幕"+
+	"时间轴偏移"+
+	"1/4 屏"+
+	"半屏"+
+	"3/4 屏"+
+	"扫码在手机上登录"+
+	"用肥牛视频扫码，在手机上填写服务器地址、账号与密码"+
+	"配对码已过期，按确认键刷新"+
+	"请将电视连接到局域网后再配对。"+
+	"已收到设置"+
+	"与电视配对"+
+	"扫描电视配对码"+
+	"电视配对地址"+
+	"请扫描有效的肥牛视频电视配对码。"+
+	"无法连接电视，请确认配对码并连接同一网络。"+
+	"电视无法保存这组登录信息。"+
+	"发送到电视",
 	[]uint16{
 		12,
 		45,
@@ -2893,6 +3092,45 @@ var textsZhHans = i18n.NewTexts(""+
 		22,
 		2,
 		15,
+		15,
+		6,
+		12,
+		6,
+		6,
+		6,
+		41,
+		12,
+		10,
+		10,
+		3,
+		6,
+		3,
+		6,
+		3,
+		6,
+		3,
+		6,
+		3,
+		12,
+		3,
+		3,
+		27,
+		15,
+		7,
+		6,
+		7,
+		24,
+		75,
+		39,
+		45,
+		15,
+		15,
+		21,
+		18,
+		48,
+		63,
+		39,
+		15,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -3191,6 +3429,12 @@ func Supply(lang string, t Translation) {
 	}
 	if t.TvPlayerDanmakuCount != nil {
 		s.TvPlayerDanmakuCount = t.TvPlayerDanmakuCount
+	}
+	if t.TvDanmakuRuleCount != nil {
+		s.TvDanmakuRuleCount = t.TvDanmakuRuleCount
+	}
+	if t.TvPairCode != nil {
+		s.TvPairCode = t.TvPairCode
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -8291,3 +8535,322 @@ func TvPlayerOpacity(cx *core.Scope) string { return For(cx).TvPlayerOpacity() }
 
 // TvPlayerOpacity is the package's TvPlayerOpacity in the language of msgs.
 func (msgs Messages) TvPlayerOpacity() string { return msgs.text(textTvPlayerOpacity) }
+
+// TvSettingsAccounts says "Sync and account"
+// in the language the app shows under cx.
+func TvSettingsAccounts(cx *core.Scope) string { return For(cx).TvSettingsAccounts() }
+
+// TvSettingsAccounts is the package's TvSettingsAccounts in the language of msgs.
+func (msgs Messages) TvSettingsAccounts() string { return msgs.text(textTvSettingsAccounts) }
+
+// TvSettingsStorage says "Storage"
+// in the language the app shows under cx.
+func TvSettingsStorage(cx *core.Scope) string { return For(cx).TvSettingsStorage() }
+
+// TvSettingsStorage is the package's TvSettingsStorage in the language of msgs.
+func (msgs Messages) TvSettingsStorage() string { return msgs.text(textTvSettingsStorage) }
+
+// TvSettingsParental says "Parental controls"
+// in the language the app shows under cx.
+func TvSettingsParental(cx *core.Scope) string { return For(cx).TvSettingsParental() }
+
+// TvSettingsParental is the package's TvSettingsParental in the language of msgs.
+func (msgs Messages) TvSettingsParental() string { return msgs.text(textTvSettingsParental) }
+
+// TvSettingsAbout says "About"
+// in the language the app shows under cx.
+func TvSettingsAbout(cx *core.Scope) string { return For(cx).TvSettingsAbout() }
+
+// TvSettingsAbout is the package's TvSettingsAbout in the language of msgs.
+func (msgs Messages) TvSettingsAbout() string { return msgs.text(textTvSettingsAbout) }
+
+// TvSettingsLight says "Light"
+// in the language the app shows under cx.
+func TvSettingsLight(cx *core.Scope) string { return For(cx).TvSettingsLight() }
+
+// TvSettingsLight is the package's TvSettingsLight in the language of msgs.
+func (msgs Messages) TvSettingsLight() string { return msgs.text(textTvSettingsLight) }
+
+// TvSettingsDark says "Dark"
+// in the language the app shows under cx.
+func TvSettingsDark(cx *core.Scope) string { return For(cx).TvSettingsDark() }
+
+// TvSettingsDark is the package's TvSettingsDark in the language of msgs.
+func (msgs Messages) TvSettingsDark() string { return msgs.text(textTvSettingsDark) }
+
+// TvDanmakuHint says "Press ↓ during playback for quick adjustments"
+// in the language the app shows under cx.
+func TvDanmakuHint(cx *core.Scope) string { return For(cx).TvDanmakuHint() }
+
+// TvDanmakuHint is the package's TvDanmakuHint in the language of msgs.
+func (msgs Messages) TvDanmakuHint() string { return msgs.text(textTvDanmakuHint) }
+
+// TvDanmakuVisible says "Show danmaku"
+// in the language the app shows under cx.
+func TvDanmakuVisible(cx *core.Scope) string { return For(cx).TvDanmakuVisible() }
+
+// TvDanmakuVisible is the package's TvDanmakuVisible in the language of msgs.
+func (msgs Messages) TvDanmakuVisible() string { return msgs.text(textTvDanmakuVisible) }
+
+// TvDanmakuDandan says "DandanPlay"
+// in the language the app shows under cx.
+func TvDanmakuDandan(cx *core.Scope) string { return For(cx).TvDanmakuDandan() }
+
+// TvDanmakuDandan is the package's TvDanmakuDandan in the language of msgs.
+func (msgs Messages) TvDanmakuDandan() string { return msgs.text(textTvDanmakuDandan) }
+
+// TvDanmakuXML says "Local XML"
+// in the language the app shows under cx.
+func TvDanmakuXML(cx *core.Scope) string { return For(cx).TvDanmakuXML() }
+
+// TvDanmakuXML is the package's TvDanmakuXML in the language of msgs.
+func (msgs Messages) TvDanmakuXML() string { return msgs.text(textTvDanmakuXML) }
+
+// TvDanmakuSmall says "Small"
+// in the language the app shows under cx.
+func TvDanmakuSmall(cx *core.Scope) string { return For(cx).TvDanmakuSmall() }
+
+// TvDanmakuSmall is the package's TvDanmakuSmall in the language of msgs.
+func (msgs Messages) TvDanmakuSmall() string { return msgs.text(textTvDanmakuSmall) }
+
+// TvDanmakuStandard says "Standard"
+// in the language the app shows under cx.
+func TvDanmakuStandard(cx *core.Scope) string { return For(cx).TvDanmakuStandard() }
+
+// TvDanmakuStandard is the package's TvDanmakuStandard in the language of msgs.
+func (msgs Messages) TvDanmakuStandard() string { return msgs.text(textTvDanmakuStandard) }
+
+// TvDanmakuLarge says "Large"
+// in the language the app shows under cx.
+func TvDanmakuLarge(cx *core.Scope) string { return For(cx).TvDanmakuLarge() }
+
+// TvDanmakuLarge is the package's TvDanmakuLarge in the language of msgs.
+func (msgs Messages) TvDanmakuLarge() string { return msgs.text(textTvDanmakuLarge) }
+
+// TvDanmakuExtraLarge says "Extra large"
+// in the language the app shows under cx.
+func TvDanmakuExtraLarge(cx *core.Scope) string { return For(cx).TvDanmakuExtraLarge() }
+
+// TvDanmakuExtraLarge is the package's TvDanmakuExtraLarge in the language of msgs.
+func (msgs Messages) TvDanmakuExtraLarge() string { return msgs.text(textTvDanmakuExtraLarge) }
+
+// TvDanmakuSlow says "Slow"
+// in the language the app shows under cx.
+func TvDanmakuSlow(cx *core.Scope) string { return For(cx).TvDanmakuSlow() }
+
+// TvDanmakuSlow is the package's TvDanmakuSlow in the language of msgs.
+func (msgs Messages) TvDanmakuSlow() string { return msgs.text(textTvDanmakuSlow) }
+
+// TvDanmakuMedium says "Moderate"
+// in the language the app shows under cx.
+func TvDanmakuMedium(cx *core.Scope) string { return For(cx).TvDanmakuMedium() }
+
+// TvDanmakuMedium is the package's TvDanmakuMedium in the language of msgs.
+func (msgs Messages) TvDanmakuMedium() string { return msgs.text(textTvDanmakuMedium) }
+
+// TvDanmakuFast says "Fast"
+// in the language the app shows under cx.
+func TvDanmakuFast(cx *core.Scope) string { return For(cx).TvDanmakuFast() }
+
+// TvDanmakuFast is the package's TvDanmakuFast in the language of msgs.
+func (msgs Messages) TvDanmakuFast() string { return msgs.text(textTvDanmakuFast) }
+
+// TvDanmakuVeryFast says "Very fast"
+// in the language the app shows under cx.
+func TvDanmakuVeryFast(cx *core.Scope) string { return For(cx).TvDanmakuVeryFast() }
+
+// TvDanmakuVeryFast is the package's TvDanmakuVeryFast in the language of msgs.
+func (msgs Messages) TvDanmakuVeryFast() string { return msgs.text(textTvDanmakuVeryFast) }
+
+// TvDanmakuLow says "Low"
+// in the language the app shows under cx.
+func TvDanmakuLow(cx *core.Scope) string { return For(cx).TvDanmakuLow() }
+
+// TvDanmakuLow is the package's TvDanmakuLow in the language of msgs.
+func (msgs Messages) TvDanmakuLow() string { return msgs.text(textTvDanmakuLow) }
+
+// TvDanmakuDensity says "On-screen density"
+// in the language the app shows under cx.
+func TvDanmakuDensity(cx *core.Scope) string { return For(cx).TvDanmakuDensity() }
+
+// TvDanmakuDensity is the package's TvDanmakuDensity in the language of msgs.
+func (msgs Messages) TvDanmakuDensity() string { return msgs.text(textTvDanmakuDensity) }
+
+// TvDanmakuDensityMedium says "Medium"
+// in the language the app shows under cx.
+func TvDanmakuDensityMedium(cx *core.Scope) string { return For(cx).TvDanmakuDensityMedium() }
+
+// TvDanmakuDensityMedium is the package's TvDanmakuDensityMedium in the language of msgs.
+func (msgs Messages) TvDanmakuDensityMedium() string { return msgs.text(textTvDanmakuDensityMedium) }
+
+// TvDanmakuHigh says "High"
+// in the language the app shows under cx.
+func TvDanmakuHigh(cx *core.Scope) string { return For(cx).TvDanmakuHigh() }
+
+// TvDanmakuHigh is the package's TvDanmakuHigh in the language of msgs.
+func (msgs Messages) TvDanmakuHigh() string { return msgs.text(textTvDanmakuHigh) }
+
+// TvDanmakuHideFixed says "Hide top and bottom danmaku"
+// in the language the app shows under cx.
+func TvDanmakuHideFixed(cx *core.Scope) string { return For(cx).TvDanmakuHideFixed() }
+
+// TvDanmakuHideFixed is the package's TvDanmakuHideFixed in the language of msgs.
+func (msgs Messages) TvDanmakuHideFixed() string { return msgs.text(textTvDanmakuHideFixed) }
+
+// TvDanmakuRuleCount says "{count} rules"
+// in the language the app shows under cx.
+func TvDanmakuRuleCount(cx *core.Scope, count string) string {
+	return For(cx).TvDanmakuRuleCount(count)
+}
+
+// TvDanmakuRuleCount is the package's TvDanmakuRuleCount in the language of msgs.
+func (msgs Messages) TvDanmakuRuleCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.TvDanmakuRuleCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].TvDanmakuRuleCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " rules"
+		case "zh-Hans":
+			return count + " 条规则"
+		}
+	}
+}
+
+// TvDanmakuOffset says "Timeline offset"
+// in the language the app shows under cx.
+func TvDanmakuOffset(cx *core.Scope) string { return For(cx).TvDanmakuOffset() }
+
+// TvDanmakuOffset is the package's TvDanmakuOffset in the language of msgs.
+func (msgs Messages) TvDanmakuOffset() string { return msgs.text(textTvDanmakuOffset) }
+
+// TvDanmakuQuarter says "Quarter"
+// in the language the app shows under cx.
+func TvDanmakuQuarter(cx *core.Scope) string { return For(cx).TvDanmakuQuarter() }
+
+// TvDanmakuQuarter is the package's TvDanmakuQuarter in the language of msgs.
+func (msgs Messages) TvDanmakuQuarter() string { return msgs.text(textTvDanmakuQuarter) }
+
+// TvDanmakuHalf says "Half"
+// in the language the app shows under cx.
+func TvDanmakuHalf(cx *core.Scope) string { return For(cx).TvDanmakuHalf() }
+
+// TvDanmakuHalf is the package's TvDanmakuHalf in the language of msgs.
+func (msgs Messages) TvDanmakuHalf() string { return msgs.text(textTvDanmakuHalf) }
+
+// TvDanmakuThreeQuarters says "Three quarters"
+// in the language the app shows under cx.
+func TvDanmakuThreeQuarters(cx *core.Scope) string { return For(cx).TvDanmakuThreeQuarters() }
+
+// TvDanmakuThreeQuarters is the package's TvDanmakuThreeQuarters in the language of msgs.
+func (msgs Messages) TvDanmakuThreeQuarters() string { return msgs.text(textTvDanmakuThreeQuarters) }
+
+// TvPairTitle says "Set up from your phone"
+// in the language the app shows under cx.
+func TvPairTitle(cx *core.Scope) string { return For(cx).TvPairTitle() }
+
+// TvPairTitle is the package's TvPairTitle in the language of msgs.
+func (msgs Messages) TvPairTitle() string { return msgs.text(textTvPairTitle) }
+
+// TvPairInstructions says "Scan with the Waygu app to enter the server address and sign-in details."
+// in the language the app shows under cx.
+func TvPairInstructions(cx *core.Scope) string { return For(cx).TvPairInstructions() }
+
+// TvPairInstructions is the package's TvPairInstructions in the language of msgs.
+func (msgs Messages) TvPairInstructions() string { return msgs.text(textTvPairInstructions) }
+
+// TvPairCode says "Code {code} · valid for 5 minutes"
+// in the language the app shows under cx.
+func TvPairCode(cx *core.Scope, code string) string { return For(cx).TvPairCode(code) }
+
+// TvPairCode is the package's TvPairCode in the language of msgs.
+func (msgs Messages) TvPairCode(code string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.TvPairCode(code))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].TvPairCode; f != nil {
+			return f(code)
+		}
+		switch lang {
+		case "", "en":
+			return "Code " + msgs.arg(code) + " · valid for 5 minutes"
+		case "zh-Hans":
+			return "配对码 " + code + " · 5 分钟内有效"
+		}
+	}
+}
+
+// TvPairExpired says "Code expired. Select to refresh."
+// in the language the app shows under cx.
+func TvPairExpired(cx *core.Scope) string { return For(cx).TvPairExpired() }
+
+// TvPairExpired is the package's TvPairExpired in the language of msgs.
+func (msgs Messages) TvPairExpired() string { return msgs.text(textTvPairExpired) }
+
+// TvPairUnavailable says "Connect this TV to your local network to pair."
+// in the language the app shows under cx.
+func TvPairUnavailable(cx *core.Scope) string { return For(cx).TvPairUnavailable() }
+
+// TvPairUnavailable is the package's TvPairUnavailable in the language of msgs.
+func (msgs Messages) TvPairUnavailable() string { return msgs.text(textTvPairUnavailable) }
+
+// TvPairSuccess says "Setup received"
+// in the language the app shows under cx.
+func TvPairSuccess(cx *core.Scope) string { return For(cx).TvPairSuccess() }
+
+// TvPairSuccess is the package's TvPairSuccess in the language of msgs.
+func (msgs Messages) TvPairSuccess() string { return msgs.text(textTvPairSuccess) }
+
+// TvPairPhoneTitle says "Pair with a TV"
+// in the language the app shows under cx.
+func TvPairPhoneTitle(cx *core.Scope) string { return For(cx).TvPairPhoneTitle() }
+
+// TvPairPhoneTitle is the package's TvPairPhoneTitle in the language of msgs.
+func (msgs Messages) TvPairPhoneTitle() string { return msgs.text(textTvPairPhoneTitle) }
+
+// TvPairPhoneScan says "Scan TV code"
+// in the language the app shows under cx.
+func TvPairPhoneScan(cx *core.Scope) string { return For(cx).TvPairPhoneScan() }
+
+// TvPairPhoneScan is the package's TvPairPhoneScan in the language of msgs.
+func (msgs Messages) TvPairPhoneScan() string { return msgs.text(textTvPairPhoneScan) }
+
+// TvPairPhoneCode says "TV pairing address"
+// in the language the app shows under cx.
+func TvPairPhoneCode(cx *core.Scope) string { return For(cx).TvPairPhoneCode() }
+
+// TvPairPhoneCode is the package's TvPairPhoneCode in the language of msgs.
+func (msgs Messages) TvPairPhoneCode() string { return msgs.text(textTvPairPhoneCode) }
+
+// TvPairPhoneInvalid says "Scan a valid Waygu TV pairing code."
+// in the language the app shows under cx.
+func TvPairPhoneInvalid(cx *core.Scope) string { return For(cx).TvPairPhoneInvalid() }
+
+// TvPairPhoneInvalid is the package's TvPairPhoneInvalid in the language of msgs.
+func (msgs Messages) TvPairPhoneInvalid() string { return msgs.text(textTvPairPhoneInvalid) }
+
+// TvPairNetworkError says "Could not connect to the TV. Check the code and use the same network."
+// in the language the app shows under cx.
+func TvPairNetworkError(cx *core.Scope) string { return For(cx).TvPairNetworkError() }
+
+// TvPairNetworkError is the package's TvPairNetworkError in the language of msgs.
+func (msgs Messages) TvPairNetworkError() string { return msgs.text(textTvPairNetworkError) }
+
+// TvPairCredentialError says "The TV could not save these sign-in details."
+// in the language the app shows under cx.
+func TvPairCredentialError(cx *core.Scope) string { return For(cx).TvPairCredentialError() }
+
+// TvPairCredentialError is the package's TvPairCredentialError in the language of msgs.
+func (msgs Messages) TvPairCredentialError() string { return msgs.text(textTvPairCredentialError) }
+
+// TvPairPhoneSend says "Send to TV"
+// in the language the app shows under cx.
+func TvPairPhoneSend(cx *core.Scope) string { return For(cx).TvPairPhoneSend() }
+
+// TvPairPhoneSend is the package's TvPairPhoneSend in the language of msgs.
+func (msgs Messages) TvPairPhoneSend() string { return msgs.text(textTvPairPhoneSend) }

@@ -522,3 +522,44 @@ tvPlayerSeekHint: "快退 / 快进 10 秒"
 tvPlayerOK: "OK"
 tvPlayerDanmakuCount: "弹幕 {count} 条"
 tvPlayerOpacity: "弹幕透明度"
+tvSettingsAccounts: 同步与账户
+tvSettingsStorage: 存储
+tvSettingsParental: 家长控制
+tvSettingsAbout: 关于
+tvSettingsLight: 浅色
+tvSettingsDark: 深色
+tvDanmakuHint: 在播放中按 ↓ 键也可快速调整
+tvDanmakuVisible: 显示弹幕
+tvDanmakuDandan: 弹弹play
+tvDanmakuXML: 本地 XML
+tvDanmakuSmall: 小
+tvDanmakuStandard: 标准
+tvDanmakuLarge: 大
+tvDanmakuExtraLarge: 特大
+tvDanmakuSlow: 慢
+tvDanmakuMedium: 适中
+tvDanmakuFast: 快
+tvDanmakuVeryFast: 很快
+tvDanmakuLow: 低
+tvDanmakuDensity: 同屏密度
+tvDanmakuDensityMedium: 中
+tvDanmakuHigh: 高
+tvDanmakuHideFixed: 屏蔽顶部 / 底部弹幕
+tvDanmakuRuleCount: "{count} 条规则"
+tvDanmakuOffset: 时间轴偏移
+tvDanmakuQuarter: 1/4 屏
+tvDanmakuHalf: 半屏
+tvDanmakuThreeQuarters: 3/4 屏
+tvPairTitle: 扫码在手机上登录
+tvPairInstructions: 用肥牛视频扫码，在手机上填写服务器地址、账号与密码
+tvPairCode: "配对码 {code} · 5 分钟内有效"
+tvPairExpired: 配对码已过期，按确认键刷新
+tvPairUnavailable: 请将电视连接到局域网后再配对。
+tvPairSuccess: 已收到设置
+tvPairPhoneTitle: 与电视配对
+tvPairPhoneScan: 扫描电视配对码
+tvPairPhoneCode: 电视配对地址
+tvPairPhoneInvalid: 请扫描有效的肥牛视频电视配对码。
+tvPairNetworkError: 无法连接电视，请确认配对码并连接同一网络。
+tvPairCredentialError: 电视无法保存这组登录信息。
+tvPairPhoneSend: 发送到电视

@@ -199,7 +199,22 @@ func TestDockerTVPlayerReview(t *testing.T) {
 		}
 	}
 	app.Press("id:tv-player-more-settings")
-	app.WaitFor("id:settings-add-source", 3*time.Second)
+	app.WaitFor("id:tv-danmaku-offset", 3*time.Second)
+	app.Key("right")
+	app.WaitUntil(time.Second, func() bool { return app.Find("id:tv-danmaku-visible").Focused })
+	for range 10 {
+		app.Key("down")
+	}
+	app.WaitUntil(time.Second, func() bool { return app.Find("id:tv-danmaku-offset").Focused })
+	app.Key("right")
+	offset := "danmaku-offset-v1:" + danmakuItemKey(route{source: sources[0], item: item})
+	if got, _ := app.Storage().GetItem(offset); got != "500" {
+		t.Fatalf("the TV settings saved an offset of %q ms, want 500", got)
+	}
+	if nsgotest.Target() != "" {
+		app.Screenshot("app-tv-settings-episode-offset")
+	}
+	app.Key("left")
 	app.Press("id:back")
 	app.WaitFor("id:tv-player", 5*time.Second)
 	app.Key("escape")

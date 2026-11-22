@@ -17,6 +17,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | TV home · light and dark | [Design, shelf and remote checks](tv-home.md) | Compared at 1920 × 1760 pt on GTK with three Docker media servers. Android TV D-pad navigation passed at 1920 × 1080. |
 | TV detail · light and dark | [Movie details, resume and remote checks](tv-detail.md) | Compared at 1920 × 1640 pt on GTK. Android TV remote navigation passed at 1920 × 1080. |
 | TV player | [Playback, seek preview and quick settings comparisons](tv-player.md) | Compared at 1920 × 1080 pt on GTK. Android TV remote playback passed against Emby. Buffered progress and tvOS checks remain pending. |
+| TV settings · light and dark | [Danmaku, focus and pairing comparisons](tv-settings.md) | Compared at 1920 × 1080 pt on GTK. Pairing was tested with a Docker media source and the phone form. |
 | Phone settings and source management · light and dark | [Comparison and server checks](phone-source-settings.md) | Compared on GTK with three Docker media servers. Source reordering, sync and removal are tested. Phone device captures remain pending. |
 | Phone landscape player · all seven panel tabs | [Playback and panel comparisons](phone-player.md) | Compared at 844 × 390 pt on GTK with an Emby video and subtitle fixture. Phone rotation and system gestures remain pending. |
 | Phone playback and subtitle settings · light and dark | [Settings comparison and playback checks](phone-player-settings.md) | Compared on GTK. Audio and caption preferences were verified against Emby and Jellyfin. Device captures and several controls remain pending. |
@@ -122,6 +123,16 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
 ```
 
 Use `WAYGU_REVIEW_DESIGN=tv-player.scenra` to export the reference.
+
+Capture the TV settings in both appearances. The playback review also captures the episode-specific time offset.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^(TestDockerTVSettingsReview|TestDockerTVPlayerReview)$' \
+  -screenshots .nsgo/ui-review/tv-settings
+```
+
+Use `WAYGU_REVIEW_DESIGN=tv-settings.scenra` to export the references.
 
 Capture the personal state transitions with the same servers.
 
