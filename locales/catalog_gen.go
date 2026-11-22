@@ -117,6 +117,8 @@ var Parameters = map[string][]string{
 	"PhonePlayerDanmakuLoaded":       {"count"},
 	"PhonePlayerDanmakuRegex":        {"rule"},
 	"PhonePlayerRemoveRule":          {"rule"},
+	"TvAllTitles":                    {"count"},
+	"TvFromSource":                   {"source"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -199,6 +201,8 @@ type Translation struct {
 	PhonePlayerDanmakuLoaded       func(count string) string
 	PhonePlayerDanmakuRegex        func(rule string) string
 	PhonePlayerRemoveRule          func(rule string) string
+	TvAllTitles                    func(count string) string
+	TvFromSource                   func(source string) string
 }
 
 var supplied = map[string]Translation{}
@@ -632,6 +636,8 @@ const (
 	textPhonePlayerAddFilter
 	textPhonePlayerHideColored
 	textPhonePlayerDanmakuSpeed
+	textTvAddedThisWeek
+	textTvRemoveFromContinueWatching
 	numTexts
 )
 
@@ -1065,6 +1071,8 @@ var keyOfText = [numTexts]string{
 	"phonePlayerAddFilter",
 	"phonePlayerHideColored",
 	"phonePlayerDanmakuSpeed",
+	"tvAddedThisWeek",
+	"tvRemoveFromContinueWatching",
 }
 
 // textsEn are the messages without arguments in en.
@@ -1495,7 +1503,9 @@ var textsEn = i18n.NewTexts(""+
 	"Local danmaku file"+
 	"+ Add"+
 	"Hide colored danmaku"+
-	"Danmaku follows the current playback speed.",
+	"Danmaku follows the current playback speed."+
+	"Added this week"+
+	"Remove from Continue Watching",
 	[]uint16{
 		11,
 		47,
@@ -1924,6 +1934,8 @@ var textsEn = i18n.NewTexts(""+
 		5,
 		20,
 		43,
+		15,
+		29,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -2354,7 +2366,9 @@ var textsZhHans = i18n.NewTexts(""+
 	"本地弹幕文件"+
 	"+ 添加"+
 	"屏蔽彩色弹幕"+
-	"弹幕速度随播放倍速同步。",
+	"弹幕速度随播放倍速同步。"+
+	"本周新增"+
+	"从继续观看移除",
 	[]uint16{
 		12,
 		45,
@@ -2783,6 +2797,8 @@ var textsZhHans = i18n.NewTexts(""+
 		8,
 		18,
 		36,
+		12,
+		21,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -3060,6 +3076,12 @@ func Supply(lang string, t Translation) {
 	}
 	if t.PhonePlayerRemoveRule != nil {
 		s.PhonePlayerRemoveRule = t.PhonePlayerRemoveRule
+	}
+	if t.TvAllTitles != nil {
+		s.TvAllTitles = t.TvAllTitles
+	}
+	if t.TvFromSource != nil {
+		s.TvFromSource = t.TvFromSource
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -7884,3 +7906,65 @@ func PhonePlayerDanmakuSpeed(cx *core.Scope) string { return For(cx).PhonePlayer
 
 // PhonePlayerDanmakuSpeed is the package's PhonePlayerDanmakuSpeed in the language of msgs.
 func (msgs Messages) PhonePlayerDanmakuSpeed() string { return msgs.text(textPhonePlayerDanmakuSpeed) }
+
+// TvAllTitles says "All {count} titles"
+// in the language the app shows under cx.
+func TvAllTitles(cx *core.Scope, count string) string { return For(cx).TvAllTitles(count) }
+
+// TvAllTitles is the package's TvAllTitles in the language of msgs.
+func (msgs Messages) TvAllTitles(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.TvAllTitles(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].TvAllTitles; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return "All " + msgs.arg(count) + " titles"
+		case "zh-Hans":
+			return "全部 " + count + " 部"
+		}
+	}
+}
+
+// TvFromSource says "From {source}"
+// in the language the app shows under cx.
+func TvFromSource(cx *core.Scope, source string) string { return For(cx).TvFromSource(source) }
+
+// TvFromSource is the package's TvFromSource in the language of msgs.
+func (msgs Messages) TvFromSource(source string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.TvFromSource(source))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].TvFromSource; f != nil {
+			return f(source)
+		}
+		switch lang {
+		case "", "en":
+			return "From " + msgs.arg(source)
+		case "zh-Hans":
+			return "来自 " + source
+		}
+	}
+}
+
+// TvAddedThisWeek says "Added this week"
+// in the language the app shows under cx.
+func TvAddedThisWeek(cx *core.Scope) string { return For(cx).TvAddedThisWeek() }
+
+// TvAddedThisWeek is the package's TvAddedThisWeek in the language of msgs.
+func (msgs Messages) TvAddedThisWeek() string { return msgs.text(textTvAddedThisWeek) }
+
+// TvRemoveFromContinueWatching says "Remove from Continue Watching"
+// in the language the app shows under cx.
+func TvRemoveFromContinueWatching(cx *core.Scope) string {
+	return For(cx).TvRemoveFromContinueWatching()
+}
+
+// TvRemoveFromContinueWatching is the package's TvRemoveFromContinueWatching in the language of msgs.
+func (msgs Messages) TvRemoveFromContinueWatching() string {
+	return msgs.text(textTvRemoveFromContinueWatching)
+}

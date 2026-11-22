@@ -499,3 +499,7 @@ phonePlayerRemoveRule: "移除 {rule}"
 phonePlayerAddFilter: "+ 添加"
 phonePlayerHideColored: 屏蔽彩色弹幕
 phonePlayerDanmakuSpeed: 弹幕速度随播放倍速同步。
+tvAllTitles: "全部 {count} 部"
+tvFromSource: "来自 {source}"
+tvAddedThisWeek: "本周新增"
+tvRemoveFromContinueWatching: "从继续观看移除"

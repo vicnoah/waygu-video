@@ -16,7 +16,7 @@ import (
 	"waygu-video/locales"
 )
 
-func recommendHomeTitles(recent []catalogItem) []catalogItem {
+func recommendHomeTitles(recent []catalogItem, limit int) []catalogItem {
 	featured := make([]catalogItem, 0, 12)
 	for _, entry := range recent[:min(len(recent), 12)] {
 		if playable(entry.item) {
@@ -24,10 +24,10 @@ func recommendHomeTitles(recent []catalogItem) []catalogItem {
 		}
 	}
 	if len(featured) == 0 {
-		featured = slices.Clone(recent[:min(len(recent), 4)])
+		featured = slices.Clone(recent[:min(len(recent), limit)])
 	}
 	slices.SortStableFunc(featured, func(a, b catalogItem) int { return cmp.Compare(b.item.Rating, a.item.Rating) })
-	return featured[:min(len(featured), 4)]
+	return featured[:min(len(featured), limit)]
 }
 
 var homeHorizontalPan = core.PanActivation{ActiveOffsetX: 12, FailOffsetY: 12}

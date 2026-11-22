@@ -1,0 +1,44 @@
+# TV home review
+
+The left frames are Scenra and the right frames are the app on Linux GTK. Both use the Simplified Chinese layout at 1920 × 1760 pt. The app connects to the Emby, Jellyfin, and Plex Docker fixtures. The reference renderer substitutes image placeholders for the design's film stills and posters. [Scenra design](../../design/tv-home.scenra)
+
+## Light
+
+![TV home in light appearance, Scenra and the app](images/tv-home-light.png)
+
+## Dark
+
+![TV home in dark appearance, Scenra and the app](images/tv-home-dark.png)
+
+## Source shelves
+
+The design frame clips the first source shelf at 1760 pt. To compare this section, the reference export extends the frame to 2450 pt and crops the first source shelf. The app capture scrolls to its first shelf. The reference shows Flymoo and the fixture shows Emby.
+
+![TV source shelf in light appearance, Scenra and the app](images/tv-home-light-source-shelf.png)
+
+![TV source shelf in dark appearance, Scenra and the app](images/tv-home-dark-source-shelf.png)
+
+## Findings
+
+| Area | Comparison |
+| --- | --- |
+| Featured artwork | Both appearances use a 900 pt panel with a left scrim extending 1360 pt, a top scrim and a 96 pt fade into the page background. The high-contrast color bars in the app come from the synthetic movie. |
+| Navigation | The wordmark, central pill, clock and profile sit in a row with 96 pt side insets. The app shows the active Home pill. The static Scenra export draws the unselected pills. The app uses the current time and the first source account initial. |
+| Featured metadata and actions | Source and freshness pills, title, metadata, synopsis, actions and page indicators use the reference layout. The title and synopsis change line breaks with the catalog text. Ratings use the server's value, and quality badges depend on available stream metadata. The primary focus uses a violet ring and a small scale increase. |
+| Continue watching | Cards use 420 × 236 pt artwork, a 32 pt gap, a source badge over the top-left corner and a 6 pt progress line. The fixture shows five saved bookmarks. The horizontal viewport clips the next card at the 96 pt right inset. |
+| Recently added and source shelves | The shelves use 220 × 330 pt artwork, 32 pt gaps and section markers. The fixture's available source names, provider badges and media count determine the labels. Content cards link to their media copy. |
+| Remaining checks | Silent background trailers and the settings controls for configuring TV shelves remain pending. The Android TV and tvOS results below track native input separately from the GTK geometry. |
+
+## Interaction checks
+
+`TestDockerTVHomeReview` verifies the featured and card dimensions, all three Docker source shelves, details, Movies, Series, Anime, Favorites, Search and the complete catalog shortcut. Headless it checks the six-second focus-gated rotation and the long-press removal of a resume bookmark. Removing a bookmark from the TV shelf preserves the server's progress. New playback progress makes the title eligible for the shelf again.
+
+The [screen inventory](screens.md) tracks the detail page and the other TV views.
+
+## Android TV
+
+The 1920 × 1080 Android TV emulator ran the installed x86-64 Leanback APK against the same Emby fixture. These captures show the initial Play focus, the first resume bookmark after Down scrolled the page, and a recently added poster after moving Right and Down. The native accessibility tree reported each focused control. Select opened the featured details and Back returned to the home page.
+
+![Android TV remote focus on the hero, resume bookmark, and recent poster](images/tv-home-android-remote.png)
+
+With a connected test library and at least two saved bookmarks, start Waygu from Leanback and run `python3 build/android/tv-smoke.py --with-library` on the host. The script uses the connected emulator's Android serial. Physical TV and tvOS validation remain pending.

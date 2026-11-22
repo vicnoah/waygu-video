@@ -81,6 +81,9 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 	if idiom == core.IdiomTablet {
 		return a.tabletShell(cx)
 	}
+	if idiom == core.IdiomTV {
+		return a.tvShell(cx)
+	}
 	titles := []string{locales.Home(cx), locales.Library(cx), locales.Search(cx), locales.Settings(cx)}
 	icons := []func() *core.SVG{lucide.House, lucide.LibraryBig, lucide.Search, lucide.Settings}
 	pages := []screen{screenHome, screenLibrary, screenSearch, screenSettings}
@@ -108,20 +111,8 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 		}
 		a.tab.Set(index)
 	}
-	if idiom == core.IdiomDesktop || idiom == core.IdiomTV {
+	if idiom == core.IdiomDesktop {
 		content := core.Dynamic(func(cx *core.Scope) core.Node { return page(cx, a.tab.Get()) })
-		if idiom == core.IdiomTV {
-			items := []core.Node{brand(locales.Brand(cx))}
-			for i := range titles {
-				if pages[i] == screenSettings {
-					items = append(items, ui.Button{Text: locales.Favorites(cx), Icon: lucide.Heart, Variant: ui.ButtonGhost,
-						Size: ui.SizeLarge, TestID: "tv-tab-favorites", OnPress: func() { a.openPersonalLibrary(screenFavorites) }})
-				}
-				items = append(items, ui.Button{Text: titles[i], Icon: icons[i], Variant: ui.ButtonGhost,
-					Size: ui.SizeLarge, TestID: "tv-tab-" + string(pages[i]), OnPress: func() { selectTab(i) }})
-			}
-			return pageFrame(core.View{Class: "flex-row items-center gap-4 px-8 py-4", Children: items}, content)
-		}
 		var items []ui.SidebarItem
 		for i, title := range titles {
 			items = append(items, ui.SidebarItem{ID: string(pages[i]), Text: title, Icon: icons[i], TestID: "tab-" + string(pages[i])})
@@ -189,7 +180,8 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 		sources := a.sources.Get()
 		term := query.Get()
 		request := catalogRequest{sources: sources, filter: a.sourceFilter.Get(), library: library.Get(), search: term,
-			limit: limit.Get(), home: page == screenHome, personal: personal, category: category.Get(), merge: a.mergeTitles.Get()}
+			limit: limit.Get(), home: page == screenHome, personal: personal, category: category.Get(), merge: a.mergeTitles.Get(),
+			libraryFacts: page == screenHome && idiom == core.IdiomTV}
 		if request.home {
 			request.cachedResume = core.Untracked(cx, func() map[string][]media.Item { return a.readResumeCache(sources) })
 		}
@@ -233,6 +225,9 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 		})
 		if idiom == core.IdiomPhone || idiom == core.IdiomTablet {
 			return a.home(cx, results, limit, idiom == core.IdiomTablet)
+		}
+		if idiom == core.IdiomTV {
+			return a.tvHome(cx, results)
 		}
 	}
 	title, empty := locales.Home(cx), locales.EmptyLibrary(cx)

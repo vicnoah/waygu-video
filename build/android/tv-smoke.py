@@ -1,5 +1,6 @@
 """Exercise the installed Android TV launcher APK through its visible UI."""
 
+import argparse
 import os
 import subprocess
 import time
@@ -39,12 +40,37 @@ def visible(test_id):
     raise RuntimeError(f"{test_id!r} did not appear: {diagnostic}")
 
 
+def focused_id():
+    deadline = time.monotonic() + 12
+    while time.monotonic() < deadline:
+        try:
+            return next((node.get("resource-id", "") for node in nodes_on_screen()
+                         if node.get("focused") == "true"), "")
+        except (RuntimeError, subprocess.TimeoutExpired, ET.ParseError):
+            time.sleep(0.3)
+    raise RuntimeError("The active Android accessibility tree did not respond.")
+
+
+def expect_focus(prefix):
+    deadline = time.monotonic() + 15
+    focused = ""
+    while time.monotonic() < deadline:
+        focused = focused_id()
+        if focused.startswith(prefix):
+            return focused
+        time.sleep(0.3)
+    raise RuntimeError(f"D-pad focus remained at {focused!r}, expected {prefix!r}.")
+
+
+def key(*codes):
+    adb("shell", "input", "keyevent", *(f"KEYCODE_{code}" for code in codes))
+
+
 def select_with_remote(test_id, direction="KEYCODE_DPAD_DOWN"):
     visible(test_id)
     focused = ""
     for _ in range(8):
-        focused = next((node.get("resource-id") for node in nodes_on_screen()
-                        if node.get("focused") == "true"), "")
+        focused = focused_id()
         if focused == test_id:
             adb("shell", "input", "keyevent", "KEYCODE_DPAD_CENTER")
             return
@@ -52,7 +78,7 @@ def select_with_remote(test_id, direction="KEYCODE_DPAD_DOWN"):
     raise RuntimeError(f"D-pad focus did not reach {test_id!r}. Last focus was {focused!r}.")
 
 
-if __name__ == "__main__":
+def onboarding_smoke():
     select_with_remote("add-source")
     visible("scan-again")
     select_with_remote("choose-emby")
@@ -68,3 +94,31 @@ if __name__ == "__main__":
     adb("shell", "input", "keyevent", "KEYCODE_BACK")
     visible("settings-add-source")
     print("Android TV onboarding, server setup and settings passed using only the remote.")
+
+def library_smoke():
+    visible("home-hero-play")
+    expect_focus("home-hero-play")
+    key("DPAD_RIGHT")
+    expect_focus("home-hero-details")
+    key("DPAD_CENTER")
+    visible("detail-play")
+    key("BACK")
+    expect_focus("home-hero-play")
+    key("DPAD_DOWN")
+    first_resume = expect_focus("resume-")
+    key("DPAD_RIGHT")
+    if expect_focus("resume-") == first_resume:
+        raise RuntimeError("Right did not focus the next bookmark.")
+    key("DPAD_DOWN")
+    expect_focus("title-")
+    print("Android TV home opened details and moved between both media shelves using the remote.")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--with-library", action="store_true",
+                        help="test the home screen with a connected media library and two resume bookmarks")
+    if parser.parse_args().with_library:
+        library_smoke()
+    else:
+        onboarding_smoke()

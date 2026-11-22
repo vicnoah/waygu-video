@@ -74,7 +74,7 @@ func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult]
 				recent := slices.Clone(result.items)
 				slices.SortStableFunc(recent, func(a, b catalogItem) int { return b.item.AddedAt.Compare(a.item.AddedAt) })
 				if len(recent) > 0 {
-					sections = append(sections, a.homeHeroCarousel(cx, recommendHomeTitles(recent), tablet))
+					sections = append(sections, a.homeHeroCarousel(cx, recommendHomeTitles(recent, 4), tablet))
 				}
 				if len(resume) > 0 {
 					cards := make([]core.Node, 0, len(resume))

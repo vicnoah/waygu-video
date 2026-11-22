@@ -499,3 +499,7 @@ phonePlayerRemoveRule: "Remove {rule}"
 phonePlayerAddFilter: "+ Add"
 phonePlayerHideColored: Hide colored danmaku
 phonePlayerDanmakuSpeed: Danmaku follows the current playback speed.
+tvAllTitles: "All {count} titles"
+tvFromSource: "From {source}"
+tvAddedThisWeek: "Added this week"
+tvRemoveFromContinueWatching: "Remove from Continue Watching"
