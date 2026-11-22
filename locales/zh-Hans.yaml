@@ -417,10 +417,13 @@ downloadBusy: 请先暂停正在下载的任务。
 settingsPlaybackExperience: 播放体验
 settingsUnavailable: 暂不可用
 settingsAlwaysOn: 始终开启
-settingsWifiQuality: 流媒体画质
+settingsWifiQuality: Wi-Fi 下画质
 settingsCellularQuality: 移动网络画质
 settingsPreferDirect: 优先直接播放
 settingsCellularWarning: 移动网络播放前提醒
+playbackCellularConfirmTitle: 使用移动网络播放？
+playbackCellularConfirmDescription: 播放会消耗你的移动数据流量。
+playbackCellularContinue: 继续播放
 settingsDecoderDisplay: 解码与显示
 settingsHardwareDecode: 硬件解码
 settingsDecoder: 解码器

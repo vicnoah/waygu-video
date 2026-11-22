@@ -38,6 +38,12 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 		cx.RequestOrientation(core.OrientationLandscape)
 	}
 	offline := current.downloadID != ""
+	prefs := a.playbackPrefs.GetUntracked()
+	network := playbackNetwork(cx, offline || current.recovery != nil)
+	cellularAllowed := core.NewSignal(cx, false)
+	confirmCellular := func() bool {
+		return prefs.WarnOnCellular && network.Get() == transportCellular && !cellularAllowed.Get()
+	}
 	if current.resume && !offline && !current.resumeLocal {
 		if entry := a.localCheckpoint(current.source, current.item); entry.Revision != "" {
 			current.item = applyProgressCheckpoint(current.item, entry)
@@ -55,7 +61,7 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	subtitlePrefs := a.subtitlePrefs.GetUntracked()
 	restrictions := core.Untracked(cx, a.parentalRules)
 	approved := a.parentalApprovals.GetUntracked()[copyKey{current.source.ID, current.item.ID}]
-	load := func(ctx context.Context, skip string) (playerMedia, error) {
+	load := func(ctx context.Context, skip string, cellular bool) (playerMedia, error) {
 		client, endpoint, err := a.selectSourceClient(ctx, current.source, skip)
 		if err != nil {
 			return playerMedia{}, err
@@ -78,6 +84,9 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 			}
 		}
 		options := options
+		if cellular {
+			options.MaxBitrate = prefs.CellularBitrate
+		}
 		preset := options.MaxBitrate
 		options.MaxHeight = playbackPresetHeight(preset)
 		options.MaxBitrate = current.source.capBitrate(endpoint, options.MaxBitrate)
@@ -100,16 +109,19 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 		active.requestedBitrate = preset
 		return active, err
 	}
-	resource := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (playerMedia, error) {
+	resource := core.NewResource(cx, func() (bool, bool) {
+		transport := network.Get()
+		return transport == transportCellular, transport != transportPending && !confirmCellular()
+	}, func(ctx context.Context, cellular bool, _ core.ResourceInfo) (playerMedia, error) {
 		if offline {
 			return a.downloadedMedia(download, current.source, platform)
 		}
 		if current.recovery != nil {
-			return load(ctx, current.recovery.from)
+			return load(ctx, current.recovery.from, cellular)
 		}
-		active, err := load(ctx, "")
+		active, err := load(ctx, "", cellular)
 		if err != nil && active.endpoint.address != "" && a.routesEnabled.Load() && current.source.automaticRoute() && playbackRouteError(err) && ctx.Err() == nil {
-			return load(ctx, active.endpoint.address)
+			return load(ctx, active.endpoint.address, cellular)
 		}
 		return active, err
 	})
@@ -134,6 +146,7 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 				Class: "flex-1 items-center justify-center p-4", Children: []core.Node{state},
 			})
 		}),
+		playbackCellularWarning(cx, confirmCellular, a.back, func() { cellularAllowed.Set(true) }),
 	}}
 }
 

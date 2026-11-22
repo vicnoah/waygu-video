@@ -25,7 +25,7 @@ func TestPhonePlaybackAndSubtitleSettingsReview(t *testing.T) {
 				cx.SetSubtreeAppearance(variant.appearance)
 				return Root(cx)
 			}, nsgotest.Size(390, height), nsgotest.Environment(core.Environment{Locale: "zh-Hans"}),
-				nsgotest.Storage(map[string]string{seenKey: "true"}))
+				nsgotest.Storage(map[string]string{seenKey: "true", playbackPreferencesKey: `{"Rate":1}`}))
 			capture := func(name string) {
 				if nsgotest.Target() != "" {
 					app.Advance(450 * time.Millisecond)
@@ -35,7 +35,23 @@ func TestPhonePlaybackAndSubtitleSettingsReview(t *testing.T) {
 			app.Press("id:tab-settings")
 			app.Press("id:open-phone-playback-settings")
 			app.WaitFor("id:phone-playback-settings", time.Second)
+			app.WaitFor("id:phone-streaming-quality >> text:原画", time.Second)
+			app.WaitFor("id:phone-cellular-quality >> text:4 Mbps", time.Second)
 			capture("settings-playback")
+			app.Press("id:phone-cellular-quality")
+			app.WaitFor("role:option 8 Mbps", time.Second)
+			app.Press("role:option 8 Mbps")
+			app.Press("id:phone-cellular-warning")
+			if p := readPlaybackPreferences(app.Storage()); p.CellularBitrate != 8_000_000 || !p.WarnOnCellular {
+				t.Fatalf("saved mobile playback settings = %+v", p)
+			}
+			app.WaitFor("id:phone-streaming-quality >> text:原画", time.Second)
+			app.Press("id:phone-cellular-quality")
+			app.WaitFor("role:option 原画", time.Second)
+			app.Press("role:option 原画")
+			if readPlaybackPreferences(app.Storage()).CellularBitrate != 0 {
+				t.Fatal("saving original quality on cellular should preserve the explicit zero limit")
+			}
 			app.Press("id:phone-auto-next")
 			if stored, _ := app.Storage().GetItem(autoNextKey); stored != "false" {
 				t.Fatalf("auto-next preference = %q", stored)

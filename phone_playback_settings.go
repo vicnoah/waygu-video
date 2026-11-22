@@ -69,10 +69,14 @@ func (a *application) phonePlaybackSettings(cx *core.Scope) core.Node {
 				"phone-streaming-quality", quality, a.bitrateLimit.Get, func(value int) {
 					failure.Set(storeSettingValue(a.storage, bitrateKey, a.bitrateLimit, value, strconv.Itoa(value)))
 				}),
-			unavailable(locales.SettingsCellularQuality(cx), "", "bg-violet-500", lucide.Signal),
+			phoneSettingChoice(cx, phoneSetting{locales.SettingsCellularQuality(cx), "", "bg-violet-500", lucide.Signal},
+				"phone-cellular-quality", quality, func() int { return a.playbackPrefs.Get().CellularBitrate },
+				func(value int) { save(func(p *playbackPreferences) { p.CellularBitrate = value }) }),
 			(phoneSetting{locales.SettingsPreferDirect(cx), "", "bg-emerald-500", lucide.Zap}).
 				toggle(cx, "", func() bool { return true }, nil),
-			unavailableSwitch(locales.SettingsCellularWarning(cx), "", "bg-amber-500", lucide.TriangleAlert),
+			(phoneSetting{locales.SettingsCellularWarning(cx), "", "bg-amber-500", lucide.TriangleAlert}).
+				toggle(cx, "phone-cellular-warning", func() bool { return a.playbackPrefs.Get().WarnOnCellular },
+					func(enabled bool) { save(func(p *playbackPreferences) { p.WarnOnCellular = enabled }) }),
 		),
 		setupGroup(locales.SettingsDecoderDisplay(cx), "",
 			unavailableSwitch(locales.SettingsHardwareDecode(cx), "", "bg-sky-500", lucide.Cpu),

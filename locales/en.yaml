@@ -417,10 +417,13 @@ downloadBusy: Pause active downloads before deleting them.
 settingsPlaybackExperience: Playback experience
 settingsUnavailable: Unavailable
 settingsAlwaysOn: Always on
-settingsWifiQuality: Streaming quality
+settingsWifiQuality: Wi-Fi quality
 settingsCellularQuality: Cellular quality
 settingsPreferDirect: Prefer direct play
 settingsCellularWarning: Warn before streaming on cellular
+playbackCellularConfirmTitle: Play on cellular data?
+playbackCellularConfirmDescription: Streaming uses your mobile data allowance.
+playbackCellularContinue: Continue playing
 settingsDecoderDisplay: Decoder and display
 settingsHardwareDecode: Hardware decoding
 settingsDecoder: Decoder

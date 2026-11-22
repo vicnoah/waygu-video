@@ -678,6 +678,9 @@ const (
 	textSettingsCellularQuality
 	textSettingsPreferDirect
 	textSettingsCellularWarning
+	textPlaybackCellularConfirmTitle
+	textPlaybackCellularConfirmDescription
+	textPlaybackCellularContinue
 	textSettingsDecoderDisplay
 	textSettingsHardwareDecode
 	textSettingsDecoder
@@ -1554,6 +1557,9 @@ var keyOfText = [numTexts]string{
 	"settingsCellularQuality",
 	"settingsPreferDirect",
 	"settingsCellularWarning",
+	"playbackCellularConfirmTitle",
+	"playbackCellularConfirmDescription",
+	"playbackCellularContinue",
 	"settingsDecoderDisplay",
 	"settingsHardwareDecode",
 	"settingsDecoder",
@@ -2424,10 +2430,13 @@ var textsEn = i18n.NewTexts(""+
 	"Playback experience"+
 	"Unavailable"+
 	"Always on"+
-	"Streaming quality"+
+	"Wi-Fi quality"+
 	"Cellular quality"+
 	"Prefer direct play"+
 	"Warn before streaming on cellular"+
+	"Play on cellular data?"+
+	"Streaming uses your mobile data allowance."+
+	"Continue playing"+
 	"Decoder and display"+
 	"Hardware decoding"+
 	"Decoder"+
@@ -3295,10 +3304,13 @@ var textsEn = i18n.NewTexts(""+
 		19,
 		11,
 		9,
-		17,
+		13,
 		16,
 		18,
 		33,
+		22,
+		42,
+		16,
 		19,
 		17,
 		7,
@@ -4169,10 +4181,13 @@ var textsZhHans = i18n.NewTexts(""+
 	"播放体验"+
 	"暂不可用"+
 	"始终开启"+
-	"流媒体画质"+
+	"Wi-Fi 下画质"+
 	"移动网络画质"+
 	"优先直接播放"+
 	"移动网络播放前提醒"+
+	"使用移动网络播放？"+
+	"播放会消耗你的移动数据流量。"+
+	"继续播放"+
 	"解码与显示"+
 	"硬件解码"+
 	"解码器"+
@@ -5044,6 +5059,9 @@ var textsZhHans = i18n.NewTexts(""+
 		18,
 		18,
 		27,
+		27,
+		42,
+		12,
 		15,
 		12,
 		9,
@@ -10029,7 +10047,7 @@ func SettingsAlwaysOn(cx *core.Scope) string { return For(cx).SettingsAlwaysOn()
 // SettingsAlwaysOn is the package's SettingsAlwaysOn in the language of msgs.
 func (msgs Messages) SettingsAlwaysOn() string { return msgs.text(textSettingsAlwaysOn) }
 
-// SettingsWifiQuality says "Streaming quality"
+// SettingsWifiQuality says "Wi-Fi quality"
 // in the language the app shows under cx.
 func SettingsWifiQuality(cx *core.Scope) string { return For(cx).SettingsWifiQuality() }
 
@@ -10056,6 +10074,37 @@ func SettingsCellularWarning(cx *core.Scope) string { return For(cx).SettingsCel
 
 // SettingsCellularWarning is the package's SettingsCellularWarning in the language of msgs.
 func (msgs Messages) SettingsCellularWarning() string { return msgs.text(textSettingsCellularWarning) }
+
+// PlaybackCellularConfirmTitle says "Play on cellular data?"
+// in the language the app shows under cx.
+func PlaybackCellularConfirmTitle(cx *core.Scope) string {
+	return For(cx).PlaybackCellularConfirmTitle()
+}
+
+// PlaybackCellularConfirmTitle is the package's PlaybackCellularConfirmTitle in the language of msgs.
+func (msgs Messages) PlaybackCellularConfirmTitle() string {
+	return msgs.text(textPlaybackCellularConfirmTitle)
+}
+
+// PlaybackCellularConfirmDescription says "Streaming uses your mobile data allowance."
+// in the language the app shows under cx.
+func PlaybackCellularConfirmDescription(cx *core.Scope) string {
+	return For(cx).PlaybackCellularConfirmDescription()
+}
+
+// PlaybackCellularConfirmDescription is the package's PlaybackCellularConfirmDescription in the language of msgs.
+func (msgs Messages) PlaybackCellularConfirmDescription() string {
+	return msgs.text(textPlaybackCellularConfirmDescription)
+}
+
+// PlaybackCellularContinue says "Continue playing"
+// in the language the app shows under cx.
+func PlaybackCellularContinue(cx *core.Scope) string { return For(cx).PlaybackCellularContinue() }
+
+// PlaybackCellularContinue is the package's PlaybackCellularContinue in the language of msgs.
+func (msgs Messages) PlaybackCellularContinue() string {
+	return msgs.text(textPlaybackCellularContinue)
+}
 
 // SettingsDecoderDisplay says "Decoder and display"
 // in the language the app shows under cx.

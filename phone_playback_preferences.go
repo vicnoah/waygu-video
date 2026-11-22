@@ -16,6 +16,8 @@ var seekIntervals = []int{5, 10, 15, 30, 60}
 type playbackPreferences struct {
 	BackSeconds      int
 	NextSeconds      int
+	CellularBitrate  int
+	WarnOnCellular   bool
 	Rate             float32
 	Picture          string
 	DisableAutoPiP   bool
@@ -23,12 +25,16 @@ type playbackPreferences struct {
 }
 
 func readPlaybackPreferences(storage core.Storage) playbackPreferences {
-	prefs := playbackPreferences{BackSeconds: 10, NextSeconds: 30, Rate: 1}
+	prefs := playbackPreferences{BackSeconds: 10, NextSeconds: 30, Rate: 1, CellularBitrate: 4_000_000}
 	if raw, ok := storage.GetItem(playbackPreferencesKey); ok {
-		var saved playbackPreferences
+		saved := prefs
 		if json.Unmarshal([]byte(raw), &saved) == nil {
 			prefs.DisableAutoPiP = saved.DisableAutoPiP
 			prefs.KeepIntroCredits = saved.KeepIntroCredits
+			prefs.WarnOnCellular = saved.WarnOnCellular
+			if slices.Contains(playbackBitrates, saved.CellularBitrate) {
+				prefs.CellularBitrate = saved.CellularBitrate
+			}
 			if slices.Contains(seekIntervals, saved.BackSeconds) {
 				prefs.BackSeconds = saved.BackSeconds
 			}
