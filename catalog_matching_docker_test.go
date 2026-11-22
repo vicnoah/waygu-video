@@ -126,12 +126,8 @@ func TestDockerCrossSourceTitles(t *testing.T) {
 	app.WaitForGone(alternate, time.Second)
 	app.Press(preferred)
 	app.WaitFor("id:playback-source", 5*time.Second)
-	// The playback options rebuild when the server reports its file versions.
-	app.WaitUntil(5*time.Second, func() bool {
-		version := app.Find("id:playback-version-value").Text
-		return version != "" && version != "Unavailable"
-	})
 	app.Press("id:playback-source")
+	app.WaitFor("id:playback-source-1", 3*time.Second)
 	app.Press("id:playback-source-1")
 	app.Press("id:detail-play")
 	video := app.WaitFor("id:video-player", 5*time.Second)

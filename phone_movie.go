@@ -75,13 +75,10 @@ func (a *application) phoneMovieDetail(cx *core.Scope, current route, copies fun
 			core.View{Class: "flex-row rounded-2xl bg-white py-3 shadow-sm shadow-black/5 dark:bg-[#1a1b25] " + setupBorder, Children: tools},
 		}}
 	})
-	body := core.Dynamic(func(cx *core.Scope) core.Node {
+	moreDetails := core.Dynamic(func(cx *core.Scope) core.Node {
 		item, version := state.item(), state.active()
 		result, ready := state.loaded.Get()
-		children := []core.Node{
-			phoneMovieSynopsis(cx, item),
-			phoneMovieOptions(cx, current, state, version, copies, selectCopy, match),
-		}
+		var children []core.Node
 		if len(item.People) != 0 {
 			children = append(children, phoneMovieCast(cx, item.People, func() { castOpen.Set(true) }))
 		}
@@ -121,8 +118,13 @@ func (a *application) phoneMovieDetail(cx *core.Scope, current route, copies fun
 				ui.Button{Text: locales.ReloadPlaybackVersions(cx), Variant: ui.ButtonOutline, OnPress: state.available.Refetch},
 			}})
 		}
-		return core.View{Class: "gap-7", Children: children}
+		return core.Group(children)
 	})
+	body := core.View{Class: "gap-7", Children: []core.Node{
+		core.Dynamic(func(cx *core.Scope) core.Node { return phoneMovieSynopsis(cx, state.item()) }),
+		phoneMovieOptions(cx, current, state, copies, selectCopy, match),
+		moreDetails,
+	}}
 	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Children: []core.Node{
 		core.Scroll{Class: "flex-1", TestID: "phone-movie-scroll", Children: []core.Node{
 			core.View{Class: "relative", Style: core.Style{PaddingEnv: core.EnvEdges{
@@ -323,38 +325,45 @@ func phoneMovieSynopsis(cx *core.Scope, item media.Item) core.Node {
 	return core.View{Class: "gap-2 px-5", Children: rows}
 }
 
-func phoneMovieOptions(cx *core.Scope, current route, state movieDetailState, version media.Version,
+func phoneMovieOptions(cx *core.Scope, current route, state movieDetailState,
 	copies func() []ui.Option[copyKey], selectCopy func(copyKey), match core.Node) core.Node {
-	versions, _ := state.available.Get()
-	versionOptions := []ui.Option[string]{{Label: locales.AutomaticPlaybackVersion(cx)}}
-	for i, candidate := range versions {
-		versionOptions = append(versionOptions, ui.Option[string]{Label: versionLabel(cx, candidate, i+1), Value: candidate.ID})
-	}
-	versionText := locales.MetadataUnavailable(cx)
-	if version.ID != "" {
-		versionText = versionLabel(cx, version, 1)
-	}
-	var sources []ui.Option[copyKey]
-	if copies != nil {
-		sources = copies()
-	}
-	choice := state.tracks.Get()
-	if choice.version != version.ID {
-		choice = detailTrackChoice{version: version.ID}
-	}
-	audio, audioLabel, audioValue := detailTrackOptions(cx, version, choice, "audio")
-	subtitles, subtitleLabel, subtitleValue := detailTrackOptions(cx, version, choice, "subtitle")
-	return setupGroup(locales.PlaybackOptions(cx), "",
-		phoneMovieChoice(cx, "playback-version", locales.VersionShort(cx), versionText, lucide.Layers(), "bg-violet-500",
-			versionOptions, state.selected.Get(), state.chooseVersion),
-		phoneMovieChoice(cx, "playback-source", locales.MovieSource(cx), current.source.Name, lucide.Server(), "bg-emerald-500",
-			sources, (catalogCopy{current.source, current.item}).key(), selectCopy),
-		phoneMovieChoice(cx, "detail-audio", locales.DetailAudio(cx), audioLabel, lucide.AudioLines(), "bg-sky-500",
-			audio, audioValue, func(id string) { choice.audio = id; state.tracks.Set(choice) }),
-		phoneMovieChoice(cx, "detail-subtitle", locales.Subtitles(cx), subtitleLabel, lucide.Captions(), "bg-amber-500",
-			subtitles, subtitleValue, func(id string) { choice.subtitle = id; state.tracks.Set(choice) }),
-		match,
-	)
+	versionChoice := core.Dynamic(func(cx *core.Scope) core.Node {
+		versions, _ := state.available.Get()
+		options := []ui.Option[string]{{Label: locales.AutomaticPlaybackVersion(cx)}}
+		for i, candidate := range versions {
+			options = append(options, ui.Option[string]{Label: versionLabel(cx, candidate, i+1), Value: candidate.ID})
+		}
+		label := locales.MetadataUnavailable(cx)
+		if version := state.active(); version.ID != "" {
+			label = versionLabel(cx, version, 1)
+		}
+		return phoneMovieChoice(cx, "playback-version", locales.VersionShort(cx), label, lucide.Layers(), "bg-violet-500",
+			options, state.selected.Get(), state.chooseVersion)
+	})
+	// Source selection stays available while track details and extras load.
+	sourceChoice := core.Dynamic(func(cx *core.Scope) core.Node {
+		var options []ui.Option[copyKey]
+		if copies != nil {
+			options = copies()
+		}
+		return phoneMovieChoice(cx, "playback-source", locales.MovieSource(cx), current.source.Name, lucide.Server(), "bg-emerald-500",
+			options, (catalogCopy{current.source, current.item}).key(), selectCopy)
+	})
+	tracks := core.Dynamic(func(cx *core.Scope) core.Node {
+		version, choice := state.active(), state.tracks.Get()
+		if choice.version != version.ID {
+			choice = detailTrackChoice{version: version.ID}
+		}
+		audio, audioLabel, audioValue := detailTrackOptions(cx, version, choice, "audio")
+		subtitles, subtitleLabel, subtitleValue := detailTrackOptions(cx, version, choice, "subtitle")
+		return core.Group([]core.Node{
+			phoneMovieChoice(cx, "detail-audio", locales.DetailAudio(cx), audioLabel, lucide.AudioLines(), "bg-sky-500",
+				audio, audioValue, func(id string) { choice.audio = id; state.tracks.Set(choice) }),
+			phoneMovieChoice(cx, "detail-subtitle", locales.Subtitles(cx), subtitleLabel, lucide.Captions(), "bg-amber-500",
+				subtitles, subtitleValue, func(id string) { choice.subtitle = id; state.tracks.Set(choice) }),
+		})
+	})
+	return setupGroup(locales.PlaybackOptions(cx), "", versionChoice, sourceChoice, tracks, match)
 }
 
 func (a *application) phoneMovieDanmaku(cx *core.Scope, current route, open func()) core.Node {
