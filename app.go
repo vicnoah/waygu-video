@@ -34,6 +34,7 @@ const (
 	screenManageLibraries screen = "manage-libraries"
 	screenDetail          screen = "detail"
 	screenPlayer          screen = "player"
+	screenDownloads       screen = "downloads"
 )
 
 type route struct {
@@ -46,6 +47,7 @@ type route struct {
 	versionID     string
 	audioTrack    string
 	subtitleTrack string
+	downloadID    string
 	match         *catalogMatch
 }
 
@@ -93,6 +95,7 @@ type application struct {
 	autoNext       *core.Signal[bool]
 	danmakuPrefs   *core.Signal[danmakuPreferences]
 	progress       *progressOutbox
+	downloads      *downloadQueue
 	tokens         sync.Map
 }
 
@@ -159,6 +162,8 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 	}
 	a.progress = core.Untracked(cx, func() *progressOutbox { return newProgressOutbox(cx, storage) })
 	a.scheduleProgressReplay(time.Second)
+	a.downloads = core.Untracked(cx, func() *downloadQueue { return newDownloadQueue(cx, a) })
+	a.downloads.pump()
 	cx.OnBackPress(func() bool {
 		if len(a.routes.GetUntracked()) <= 1 {
 			return false
@@ -189,6 +194,8 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 				return a.detail(screenScope, current)
 			case screenPlayer:
 				return a.player(screenScope, current)
+			case screenDownloads:
+				return a.downloadStorage(screenScope)
 			default:
 				return a.shell(screenScope)
 			}

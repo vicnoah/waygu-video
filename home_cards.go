@@ -189,6 +189,7 @@ func (a *application) homePosterCard(cx *core.Scope, entry catalogItem) core.Nod
 	item := entry.item
 	cover := core.View{Class: "relative h-40 overflow-hidden rounded-xl shadow-lg shadow-black/15", Children: []core.Node{
 		homeArtwork(item.Poster, "absolute inset-0 justify-center"),
+		a.downloadBadge(entry),
 	}}
 	if item.Watched {
 		cover.Children = append(cover.Children, core.View{Class: "absolute top-1.5 right-1.5 size-5 items-center justify-center rounded-full bg-violet-500 shadow-md",

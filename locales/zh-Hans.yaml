@@ -268,3 +268,38 @@ watchHistory: 观看记录
 emptyFavorites: 所选媒体库暂无收藏。
 emptyWatchHistory: 所选媒体库暂无观看记录。
 allTitles: 全部影片
+storageDownloads: 存储与下载
+storageCache: 缓存
+offlineDownloads: 离线下载
+downloadAction: 下载
+downloaded: 已下载
+downloadRunning: 下载中
+downloadQueued: 等待下载
+downloadPaused: 已暂停
+downloadFailed: 下载失败
+downloadPercent: "已下载 {percent}%"
+downloadFileUnavailable: 下载文件缺失或不完整。
+downloadSourceUnavailable: 媒体源或所选版本已不可用。
+downloadNoSpace: 设备空间不足或超出下载限额。
+downloadSaveError: 无法保存下载队列。
+downloadRemoveError: 部分下载未能移除。
+downloadTransferError: 未能完成下载。
+downloadNone: 暂无下载。
+downloadOptions: 下载选项
+downloadQuality: 下载画质
+downloadConcurrency: 同时下载数
+downloadQuota: 下载空间限制
+downloadUnlimited: 不限
+downloadLocation: 下载位置
+downloadThisDevice: 本机
+downloadDeleteAll: 删除全部下载
+downloadDeleteAllPrompt: 删除本机保存的视频文件及下载队列？
+downloadStorageUsed: "Waygu 占用 {size}"
+downloadStorageAvailable: "设备可用 {size}"
+downloadUsage: "离线下载 {size}"
+downloadPlay: "离线播放 {title}"
+downloadPause: 暂停下载
+downloadResume: 继续下载
+downloadRemove: 删除下载文件
+downloadOfflinePlayback: 离线播放
+downloadBusy: 请先暂停正在下载的任务。

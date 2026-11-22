@@ -188,7 +188,7 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 				label = locales.Resume(cx)
 			}
 			start := func(resume bool) {
-				a.push(route{screen: screenPlayer, source: current.source, item: item, resume: resume, versionID: versionID.GetUntracked(), match: current.match})
+				a.push(route{screen: screenPlayer, source: current.source, item: item, resume: resume, versionID: versionID.GetUntracked(), match: current.match, downloadID: current.downloadID})
 			}
 			actions := []core.Node{ui.Button{Text: label, Icon: lucide.Play, Size: ui.SizeLarge, TestID: "detail-play",
 				OnPress: func() { start(true) }}}
@@ -199,7 +199,17 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 			rows = append(rows, core.View{Class: "flex-row flex-wrap gap-3", Children: actions})
 			rows = append(rows, versions)
 		}
-		if buttons := personal.buttons(cx, result, false); len(buttons) != 0 {
+		buttons := personal.buttons(cx, result, false)
+		if ready {
+			if download := a.downloadAction(cx, current, false, func() route {
+				selected := current
+				selected.item, selected.versionID = item, versionID.GetUntracked()
+				return selected
+			}); download != nil {
+				buttons = append(buttons, download)
+			}
+		}
+		if len(buttons) != 0 {
 			rows = append(rows, core.View{Class: "flex-row flex-wrap gap-3", Children: buttons})
 		}
 		rows = append(rows, personal.error)

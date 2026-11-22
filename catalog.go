@@ -19,10 +19,11 @@ import (
 )
 
 type catalogItem struct {
-	source  source
-	item    media.Item
-	match   *catalogMatch
-	pending bool
+	source     source
+	item       media.Item
+	match      *catalogMatch
+	pending    bool
+	downloadID string
 }
 
 type catalogRequest struct {
@@ -115,6 +116,9 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 			{ID: string(screenFavorites), Text: locales.Favorites(cx), Icon: lucide.Heart, TestID: "tab-favorites"},
 			{ID: string(screenHistory), Text: locales.WatchHistory(cx), Icon: lucide.Clock, TestID: "tab-history"},
 		}
+		if a.downloads.available() {
+			personal = append(personal, ui.SidebarItem{ID: string(screenDownloads), Text: locales.OfflineDownloads(cx), Icon: lucide.Download, TestID: "tab-downloads"})
+		}
 		sidebar := ui.Sidebar{Sections: []ui.SidebarSection{{Items: items}, {Title: locales.MyLibrary(cx), Items: personal}},
 			Selected: func() string {
 				if a.tab.Get() == 1 {
@@ -123,7 +127,9 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 				return string(pages[a.tab.Get()])
 			}, OnSelect: func(id string) {
 				view := screen(id)
-				if view == screenFavorites || view == screenHistory {
+				if view == screenDownloads {
+					a.push(route{screen: screenDownloads})
+				} else if view == screenFavorites || view == screenHistory {
 					a.openPersonalLibrary(view)
 				} else if index := slices.Index(pages, view); index >= 0 {
 					selectTab(index)
@@ -301,17 +307,22 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 		if page == screenSearch && query.Get() == "" {
 			return nil
 		}
+		var local []catalogItem
+		if page == screenLibrary {
+			local = a.libraryDownloads(catalogRequest{filter: a.sourceFilter.Get(), library: library.Get(), category: category.Get()})
+		}
 		loading := results.Loading()
-		if loading && page != screenHome {
+		if loading && page != screenHome && len(local) == 0 {
 			return hint(locales.Loading(cx))
 		}
 		result, ok := results.Get()
-		if !ok && !loading {
+		if !ok && !loading && len(local) == 0 {
 			return nil
 		}
 		if loading {
 			result = catalogResult{}
 		}
+		result.items = addLibraryDownloads(result.items, local)
 		var children []core.Node
 		if result.failure != nil {
 			children = append(children, notice(errorText(cx, result.failure)), ui.Button{Text: locales.Retry(cx),
@@ -517,7 +528,7 @@ func (a *application) hero(cx *core.Scope, entry catalogItem) core.Node {
 }
 
 func (a *application) openCatalogEntry(entry catalogItem) {
-	a.push(route{screen: screenDetail, source: entry.source, item: entry.item, match: entry.match})
+	a.push(route{screen: screenDetail, source: entry.source, item: entry.item, match: entry.match, downloadID: entry.downloadID})
 }
 
 func (a *application) playCatalogEntry(entry catalogItem) {
@@ -561,11 +572,12 @@ func (a *application) posterCard(cx *core.Scope, entry catalogItem) core.Node {
 	if item.Poster != "" {
 		art = core.Image{Class: "absolute inset-0", Source: core.Src(item.Poster), ResizeMode: core.Cover, ElementsHidden: true}
 	}
+	artwork := []core.Node{art, a.downloadBadge(entry)}
 	return base.Button{Label: label, Style: style, TestID: id,
 		OnPress: func(core.PressEvent) {
 			a.openCatalogEntry(entry)
 		}, Children: []core.Node{core.View{Class: "w-full gap-2", Children: []core.Node{
-			core.View{Class: "relative h-52 items-center justify-center overflow-hidden rounded-2xl border border-border bg-card", Children: []core.Node{art}},
+			core.View{Class: "relative h-52 items-center justify-center overflow-hidden rounded-2xl border border-border bg-card", Children: artwork},
 			core.Text{Content: item.Title, Class: "line-clamp-1 text-sm font-semibold"},
 			hint(description),
 		}}}}

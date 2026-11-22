@@ -79,6 +79,11 @@ var Parameters = map[string][]string{
 	"DetailResumeAt":            {"time_"},
 	"FileSource":                {"source"},
 	"FileSubtitleCount":         {"count"},
+	"DownloadPercent":           {"percent"},
+	"DownloadStorageUsed":       {"size"},
+	"DownloadStorageAvailable":  {"size"},
+	"DownloadUsage":             {"size"},
+	"DownloadPlay":              {"title"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -123,6 +128,11 @@ type Translation struct {
 	DetailResumeAt            func(time_ string) string
 	FileSource                func(source string) string
 	FileSubtitleCount         func(count string) string
+	DownloadPercent           func(percent string) string
+	DownloadStorageUsed       func(size string) string
+	DownloadStorageAvailable  func(size string) string
+	DownloadUsage             func(size string) string
+	DownloadPlay              func(title string) string
 }
 
 var supplied = map[string]Translation{}
@@ -363,6 +373,36 @@ const (
 	textEmptyFavorites
 	textEmptyWatchHistory
 	textAllTitles
+	textStorageDownloads
+	textStorageCache
+	textOfflineDownloads
+	textDownloadAction
+	textDownloaded
+	textDownloadRunning
+	textDownloadQueued
+	textDownloadPaused
+	textDownloadFailed
+	textDownloadFileUnavailable
+	textDownloadSourceUnavailable
+	textDownloadNoSpace
+	textDownloadSaveError
+	textDownloadRemoveError
+	textDownloadTransferError
+	textDownloadNone
+	textDownloadOptions
+	textDownloadQuality
+	textDownloadConcurrency
+	textDownloadQuota
+	textDownloadUnlimited
+	textDownloadLocation
+	textDownloadThisDevice
+	textDownloadDeleteAll
+	textDownloadDeleteAllPrompt
+	textDownloadPause
+	textDownloadResume
+	textDownloadRemove
+	textDownloadOfflinePlayback
+	textDownloadBusy
 	numTexts
 )
 
@@ -603,6 +643,36 @@ var keyOfText = [numTexts]string{
 	"emptyFavorites",
 	"emptyWatchHistory",
 	"allTitles",
+	"storageDownloads",
+	"storageCache",
+	"offlineDownloads",
+	"downloadAction",
+	"downloaded",
+	"downloadRunning",
+	"downloadQueued",
+	"downloadPaused",
+	"downloadFailed",
+	"downloadFileUnavailable",
+	"downloadSourceUnavailable",
+	"downloadNoSpace",
+	"downloadSaveError",
+	"downloadRemoveError",
+	"downloadTransferError",
+	"downloadNone",
+	"downloadOptions",
+	"downloadQuality",
+	"downloadConcurrency",
+	"downloadQuota",
+	"downloadUnlimited",
+	"downloadLocation",
+	"downloadThisDevice",
+	"downloadDeleteAll",
+	"downloadDeleteAllPrompt",
+	"downloadPause",
+	"downloadResume",
+	"downloadRemove",
+	"downloadOfflinePlayback",
+	"downloadBusy",
 }
 
 // textsEn are the messages without arguments in en.
@@ -840,7 +910,37 @@ var textsEn = i18n.NewTexts(""+
 	"Watch history"+
 	"No favorites in the selected libraries."+
 	"No viewed titles in the selected libraries."+
-	"All titles",
+	"All titles"+
+	"Storage and downloads"+
+	"Cache"+
+	"Offline downloads"+
+	"Download"+
+	"Downloaded"+
+	"Downloading"+
+	"Queued"+
+	"Paused"+
+	"Download failed"+
+	"The downloaded file is missing or incomplete."+
+	"The media source or selected version is unavailable."+
+	"The device or download quota has insufficient space."+
+	"Unable to save the download queue."+
+	"Unable to remove some downloads."+
+	"The download could not be completed."+
+	"There are no downloads yet."+
+	"Download options"+
+	"Download quality"+
+	"Concurrent downloads"+
+	"Download space limit"+
+	"Unlimited"+
+	"Download location"+
+	"On this device"+
+	"Delete all downloads"+
+	"Remove all saved video files and queued downloads from this device?"+
+	"Pause download"+
+	"Resume download"+
+	"Delete downloaded file"+
+	"Offline playback"+
+	"Pause active downloads before deleting them.",
 	[]uint16{
 		11,
 		47,
@@ -1076,6 +1176,36 @@ var textsEn = i18n.NewTexts(""+
 		39,
 		43,
 		10,
+		21,
+		5,
+		17,
+		8,
+		10,
+		11,
+		6,
+		6,
+		15,
+		45,
+		52,
+		52,
+		34,
+		32,
+		36,
+		27,
+		16,
+		16,
+		20,
+		20,
+		9,
+		17,
+		14,
+		20,
+		67,
+		14,
+		15,
+		22,
+		16,
+		44,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -1313,7 +1443,37 @@ var textsZhHans = i18n.NewTexts(""+
 	"观看记录"+
 	"所选媒体库暂无收藏。"+
 	"所选媒体库暂无观看记录。"+
-	"全部影片",
+	"全部影片"+
+	"存储与下载"+
+	"缓存"+
+	"离线下载"+
+	"下载"+
+	"已下载"+
+	"下载中"+
+	"等待下载"+
+	"已暂停"+
+	"下载失败"+
+	"下载文件缺失或不完整。"+
+	"媒体源或所选版本已不可用。"+
+	"设备空间不足或超出下载限额。"+
+	"无法保存下载队列。"+
+	"部分下载未能移除。"+
+	"未能完成下载。"+
+	"暂无下载。"+
+	"下载选项"+
+	"下载画质"+
+	"同时下载数"+
+	"下载空间限制"+
+	"不限"+
+	"下载位置"+
+	"本机"+
+	"删除全部下载"+
+	"删除本机保存的视频文件及下载队列？"+
+	"暂停下载"+
+	"继续下载"+
+	"删除下载文件"+
+	"离线播放"+
+	"请先暂停正在下载的任务。",
 	[]uint16{
 		12,
 		45,
@@ -1549,6 +1709,36 @@ var textsZhHans = i18n.NewTexts(""+
 		30,
 		36,
 		12,
+		15,
+		6,
+		12,
+		6,
+		9,
+		9,
+		12,
+		9,
+		12,
+		33,
+		39,
+		42,
+		27,
+		27,
+		21,
+		15,
+		12,
+		12,
+		15,
+		18,
+		6,
+		12,
+		6,
+		18,
+		51,
+		12,
+		12,
+		18,
+		12,
+		36,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -1712,6 +1902,21 @@ func Supply(lang string, t Translation) {
 	}
 	if t.FileSubtitleCount != nil {
 		s.FileSubtitleCount = t.FileSubtitleCount
+	}
+	if t.DownloadPercent != nil {
+		s.DownloadPercent = t.DownloadPercent
+	}
+	if t.DownloadStorageUsed != nil {
+		s.DownloadStorageUsed = t.DownloadStorageUsed
+	}
+	if t.DownloadStorageAvailable != nil {
+		s.DownloadStorageAvailable = t.DownloadStorageAvailable
+	}
+	if t.DownloadUsage != nil {
+		s.DownloadUsage = t.DownloadUsage
+	}
+	if t.DownloadPlay != nil {
+		s.DownloadPlay = t.DownloadPlay
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -4205,3 +4410,329 @@ func AllTitles(cx *core.Scope) string { return For(cx).AllTitles() }
 
 // AllTitles is the package's AllTitles in the language of msgs.
 func (msgs Messages) AllTitles() string { return msgs.text(textAllTitles) }
+
+// StorageDownloads says "Storage and downloads"
+// in the language the app shows under cx.
+func StorageDownloads(cx *core.Scope) string { return For(cx).StorageDownloads() }
+
+// StorageDownloads is the package's StorageDownloads in the language of msgs.
+func (msgs Messages) StorageDownloads() string { return msgs.text(textStorageDownloads) }
+
+// StorageCache says "Cache"
+// in the language the app shows under cx.
+func StorageCache(cx *core.Scope) string { return For(cx).StorageCache() }
+
+// StorageCache is the package's StorageCache in the language of msgs.
+func (msgs Messages) StorageCache() string { return msgs.text(textStorageCache) }
+
+// OfflineDownloads says "Offline downloads"
+// in the language the app shows under cx.
+func OfflineDownloads(cx *core.Scope) string { return For(cx).OfflineDownloads() }
+
+// OfflineDownloads is the package's OfflineDownloads in the language of msgs.
+func (msgs Messages) OfflineDownloads() string { return msgs.text(textOfflineDownloads) }
+
+// DownloadAction says "Download"
+// in the language the app shows under cx.
+func DownloadAction(cx *core.Scope) string { return For(cx).DownloadAction() }
+
+// DownloadAction is the package's DownloadAction in the language of msgs.
+func (msgs Messages) DownloadAction() string { return msgs.text(textDownloadAction) }
+
+// Downloaded says "Downloaded"
+// in the language the app shows under cx.
+func Downloaded(cx *core.Scope) string { return For(cx).Downloaded() }
+
+// Downloaded is the package's Downloaded in the language of msgs.
+func (msgs Messages) Downloaded() string { return msgs.text(textDownloaded) }
+
+// DownloadRunning says "Downloading"
+// in the language the app shows under cx.
+func DownloadRunning(cx *core.Scope) string { return For(cx).DownloadRunning() }
+
+// DownloadRunning is the package's DownloadRunning in the language of msgs.
+func (msgs Messages) DownloadRunning() string { return msgs.text(textDownloadRunning) }
+
+// DownloadQueued says "Queued"
+// in the language the app shows under cx.
+func DownloadQueued(cx *core.Scope) string { return For(cx).DownloadQueued() }
+
+// DownloadQueued is the package's DownloadQueued in the language of msgs.
+func (msgs Messages) DownloadQueued() string { return msgs.text(textDownloadQueued) }
+
+// DownloadPaused says "Paused"
+// in the language the app shows under cx.
+func DownloadPaused(cx *core.Scope) string { return For(cx).DownloadPaused() }
+
+// DownloadPaused is the package's DownloadPaused in the language of msgs.
+func (msgs Messages) DownloadPaused() string { return msgs.text(textDownloadPaused) }
+
+// DownloadFailed says "Download failed"
+// in the language the app shows under cx.
+func DownloadFailed(cx *core.Scope) string { return For(cx).DownloadFailed() }
+
+// DownloadFailed is the package's DownloadFailed in the language of msgs.
+func (msgs Messages) DownloadFailed() string { return msgs.text(textDownloadFailed) }
+
+// DownloadPercent says "{percent}% downloaded"
+// in the language the app shows under cx.
+func DownloadPercent(cx *core.Scope, percent string) string { return For(cx).DownloadPercent(percent) }
+
+// DownloadPercent is the package's DownloadPercent in the language of msgs.
+func (msgs Messages) DownloadPercent(percent string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DownloadPercent(percent))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DownloadPercent; f != nil {
+			return f(percent)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(percent) + "% downloaded"
+		case "zh-Hans":
+			return "已下载 " + percent + "%"
+		}
+	}
+}
+
+// DownloadFileUnavailable says "The downloaded file is missing or incomplete."
+// in the language the app shows under cx.
+func DownloadFileUnavailable(cx *core.Scope) string { return For(cx).DownloadFileUnavailable() }
+
+// DownloadFileUnavailable is the package's DownloadFileUnavailable in the language of msgs.
+func (msgs Messages) DownloadFileUnavailable() string { return msgs.text(textDownloadFileUnavailable) }
+
+// DownloadSourceUnavailable says "The media source or selected version is unavailable."
+// in the language the app shows under cx.
+func DownloadSourceUnavailable(cx *core.Scope) string { return For(cx).DownloadSourceUnavailable() }
+
+// DownloadSourceUnavailable is the package's DownloadSourceUnavailable in the language of msgs.
+func (msgs Messages) DownloadSourceUnavailable() string {
+	return msgs.text(textDownloadSourceUnavailable)
+}
+
+// DownloadNoSpace says "The device or download quota has insufficient space."
+// in the language the app shows under cx.
+func DownloadNoSpace(cx *core.Scope) string { return For(cx).DownloadNoSpace() }
+
+// DownloadNoSpace is the package's DownloadNoSpace in the language of msgs.
+func (msgs Messages) DownloadNoSpace() string { return msgs.text(textDownloadNoSpace) }
+
+// DownloadSaveError says "Unable to save the download queue."
+// in the language the app shows under cx.
+func DownloadSaveError(cx *core.Scope) string { return For(cx).DownloadSaveError() }
+
+// DownloadSaveError is the package's DownloadSaveError in the language of msgs.
+func (msgs Messages) DownloadSaveError() string { return msgs.text(textDownloadSaveError) }
+
+// DownloadRemoveError says "Unable to remove some downloads."
+// in the language the app shows under cx.
+func DownloadRemoveError(cx *core.Scope) string { return For(cx).DownloadRemoveError() }
+
+// DownloadRemoveError is the package's DownloadRemoveError in the language of msgs.
+func (msgs Messages) DownloadRemoveError() string { return msgs.text(textDownloadRemoveError) }
+
+// DownloadTransferError says "The download could not be completed."
+// in the language the app shows under cx.
+func DownloadTransferError(cx *core.Scope) string { return For(cx).DownloadTransferError() }
+
+// DownloadTransferError is the package's DownloadTransferError in the language of msgs.
+func (msgs Messages) DownloadTransferError() string { return msgs.text(textDownloadTransferError) }
+
+// DownloadNone says "There are no downloads yet."
+// in the language the app shows under cx.
+func DownloadNone(cx *core.Scope) string { return For(cx).DownloadNone() }
+
+// DownloadNone is the package's DownloadNone in the language of msgs.
+func (msgs Messages) DownloadNone() string { return msgs.text(textDownloadNone) }
+
+// DownloadOptions says "Download options"
+// in the language the app shows under cx.
+func DownloadOptions(cx *core.Scope) string { return For(cx).DownloadOptions() }
+
+// DownloadOptions is the package's DownloadOptions in the language of msgs.
+func (msgs Messages) DownloadOptions() string { return msgs.text(textDownloadOptions) }
+
+// DownloadQuality says "Download quality"
+// in the language the app shows under cx.
+func DownloadQuality(cx *core.Scope) string { return For(cx).DownloadQuality() }
+
+// DownloadQuality is the package's DownloadQuality in the language of msgs.
+func (msgs Messages) DownloadQuality() string { return msgs.text(textDownloadQuality) }
+
+// DownloadConcurrency says "Concurrent downloads"
+// in the language the app shows under cx.
+func DownloadConcurrency(cx *core.Scope) string { return For(cx).DownloadConcurrency() }
+
+// DownloadConcurrency is the package's DownloadConcurrency in the language of msgs.
+func (msgs Messages) DownloadConcurrency() string { return msgs.text(textDownloadConcurrency) }
+
+// DownloadQuota says "Download space limit"
+// in the language the app shows under cx.
+func DownloadQuota(cx *core.Scope) string { return For(cx).DownloadQuota() }
+
+// DownloadQuota is the package's DownloadQuota in the language of msgs.
+func (msgs Messages) DownloadQuota() string { return msgs.text(textDownloadQuota) }
+
+// DownloadUnlimited says "Unlimited"
+// in the language the app shows under cx.
+func DownloadUnlimited(cx *core.Scope) string { return For(cx).DownloadUnlimited() }
+
+// DownloadUnlimited is the package's DownloadUnlimited in the language of msgs.
+func (msgs Messages) DownloadUnlimited() string { return msgs.text(textDownloadUnlimited) }
+
+// DownloadLocation says "Download location"
+// in the language the app shows under cx.
+func DownloadLocation(cx *core.Scope) string { return For(cx).DownloadLocation() }
+
+// DownloadLocation is the package's DownloadLocation in the language of msgs.
+func (msgs Messages) DownloadLocation() string { return msgs.text(textDownloadLocation) }
+
+// DownloadThisDevice says "On this device"
+// in the language the app shows under cx.
+func DownloadThisDevice(cx *core.Scope) string { return For(cx).DownloadThisDevice() }
+
+// DownloadThisDevice is the package's DownloadThisDevice in the language of msgs.
+func (msgs Messages) DownloadThisDevice() string { return msgs.text(textDownloadThisDevice) }
+
+// DownloadDeleteAll says "Delete all downloads"
+// in the language the app shows under cx.
+func DownloadDeleteAll(cx *core.Scope) string { return For(cx).DownloadDeleteAll() }
+
+// DownloadDeleteAll is the package's DownloadDeleteAll in the language of msgs.
+func (msgs Messages) DownloadDeleteAll() string { return msgs.text(textDownloadDeleteAll) }
+
+// DownloadDeleteAllPrompt says "Remove all saved video files and queued downloads from this device?"
+// in the language the app shows under cx.
+func DownloadDeleteAllPrompt(cx *core.Scope) string { return For(cx).DownloadDeleteAllPrompt() }
+
+// DownloadDeleteAllPrompt is the package's DownloadDeleteAllPrompt in the language of msgs.
+func (msgs Messages) DownloadDeleteAllPrompt() string { return msgs.text(textDownloadDeleteAllPrompt) }
+
+// DownloadStorageUsed says "Waygu uses {size}"
+// in the language the app shows under cx.
+func DownloadStorageUsed(cx *core.Scope, size string) string {
+	return For(cx).DownloadStorageUsed(size)
+}
+
+// DownloadStorageUsed is the package's DownloadStorageUsed in the language of msgs.
+func (msgs Messages) DownloadStorageUsed(size string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DownloadStorageUsed(size))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DownloadStorageUsed; f != nil {
+			return f(size)
+		}
+		switch lang {
+		case "", "en":
+			return "Waygu uses " + msgs.arg(size)
+		case "zh-Hans":
+			return "Waygu 占用 " + size
+		}
+	}
+}
+
+// DownloadStorageAvailable says "{size} available"
+// in the language the app shows under cx.
+func DownloadStorageAvailable(cx *core.Scope, size string) string {
+	return For(cx).DownloadStorageAvailable(size)
+}
+
+// DownloadStorageAvailable is the package's DownloadStorageAvailable in the language of msgs.
+func (msgs Messages) DownloadStorageAvailable(size string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DownloadStorageAvailable(size))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DownloadStorageAvailable; f != nil {
+			return f(size)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(size) + " available"
+		case "zh-Hans":
+			return "设备可用 " + size
+		}
+	}
+}
+
+// DownloadUsage says "Offline downloads {size}"
+// in the language the app shows under cx.
+func DownloadUsage(cx *core.Scope, size string) string { return For(cx).DownloadUsage(size) }
+
+// DownloadUsage is the package's DownloadUsage in the language of msgs.
+func (msgs Messages) DownloadUsage(size string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DownloadUsage(size))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DownloadUsage; f != nil {
+			return f(size)
+		}
+		switch lang {
+		case "", "en":
+			return "Offline downloads " + msgs.arg(size)
+		case "zh-Hans":
+			return "离线下载 " + size
+		}
+	}
+}
+
+// DownloadPlay says "Play {title} offline"
+// in the language the app shows under cx.
+func DownloadPlay(cx *core.Scope, title string) string { return For(cx).DownloadPlay(title) }
+
+// DownloadPlay is the package's DownloadPlay in the language of msgs.
+func (msgs Messages) DownloadPlay(title string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DownloadPlay(title))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DownloadPlay; f != nil {
+			return f(title)
+		}
+		switch lang {
+		case "", "en":
+			return "Play " + msgs.arg(title) + " offline"
+		case "zh-Hans":
+			return "离线播放 " + title
+		}
+	}
+}
+
+// DownloadPause says "Pause download"
+// in the language the app shows under cx.
+func DownloadPause(cx *core.Scope) string { return For(cx).DownloadPause() }
+
+// DownloadPause is the package's DownloadPause in the language of msgs.
+func (msgs Messages) DownloadPause() string { return msgs.text(textDownloadPause) }
+
+// DownloadResume says "Resume download"
+// in the language the app shows under cx.
+func DownloadResume(cx *core.Scope) string { return For(cx).DownloadResume() }
+
+// DownloadResume is the package's DownloadResume in the language of msgs.
+func (msgs Messages) DownloadResume() string { return msgs.text(textDownloadResume) }
+
+// DownloadRemove says "Delete downloaded file"
+// in the language the app shows under cx.
+func DownloadRemove(cx *core.Scope) string { return For(cx).DownloadRemove() }
+
+// DownloadRemove is the package's DownloadRemove in the language of msgs.
+func (msgs Messages) DownloadRemove() string { return msgs.text(textDownloadRemove) }
+
+// DownloadOfflinePlayback says "Offline playback"
+// in the language the app shows under cx.
+func DownloadOfflinePlayback(cx *core.Scope) string { return For(cx).DownloadOfflinePlayback() }
+
+// DownloadOfflinePlayback is the package's DownloadOfflinePlayback in the language of msgs.
+func (msgs Messages) DownloadOfflinePlayback() string { return msgs.text(textDownloadOfflinePlayback) }
+
+// DownloadBusy says "Pause active downloads before deleting them."
+// in the language the app shows under cx.
+func DownloadBusy(cx *core.Scope) string { return For(cx).DownloadBusy() }
+
+// DownloadBusy is the package's DownloadBusy in the language of msgs.
+func (msgs Messages) DownloadBusy() string { return msgs.text(textDownloadBusy) }

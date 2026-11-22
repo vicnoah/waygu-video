@@ -76,9 +76,14 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 	busy := core.NewSignal(cx, false)
 	clock := core.NewSignal(cx, time.Duration(0))
 	viewContext := cx.Context()
-	source := a.onlineDanmaku(cx, current, stream, func(comments []danmaku.Comment, shift float64) {
-		remote.Set(remoteComments{comments, shift})
-	}, func() { panel.Set(false) })
+	var source core.Node
+	if current.downloadID == "" {
+		source = a.onlineDanmaku(cx, current, stream, func(comments []danmaku.Comment, shift float64) {
+			remote.Set(remoteComments{comments, shift})
+		}, func() { panel.Set(false) })
+	} else {
+		source = hint(locales.DownloadOfflinePlayback(cx))
+	}
 
 	choose := func() {
 		cx.PickFiles(core.PickFilesOptions{Types: []string{".xml", ".json"}, Title: locales.AddDanmaku(cx)}, func(files []core.File, err error) {

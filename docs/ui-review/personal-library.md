@@ -14,8 +14,8 @@ The GTK captures use the tablet layout at 1180 × 820 pt and 1× scale in `zh-Ha
 
 | Area | Evidence and remaining differences |
 | --- | --- |
-| Sidebar | Favorites and Watch history use the 36 pt navigation rows and violet selection treatment of the shared sidebar. Download management remains pending. The updated [tablet home strips](tablet-home.md) show their placement in both appearances. |
-| Poster actions | The 82 × 56 pt buttons use the heart and check icons from the detail drawing. The active state uses a violet accent and a reversible action label. The [tablet detail strips](tablet-detail.md) show the default actions and the saved-position state. Download remains pending. |
+| Sidebar | Favorites and Watch history use the 36 pt navigation rows and violet selection treatment of the shared sidebar. The Downloads row opens the local queue. The updated [tablet home strips](tablet-home.md) show their placement in both appearances. |
+| Poster actions | The 82 × 56 pt buttons use the heart and check icons from the detail drawing. The active state uses a violet accent and a reversible action label. The [tablet detail strips](tablet-detail.md) show the default actions and the saved-position state. The fourth action adds the source version to the local queue. |
 | Personal results | Favorites follows the connected account's server state and the app's visible libraries. Watch history groups viewed titles in reverse order of the confirmed timestamps where supplied. These destinations use the shared catalog grid. |
 | Provider behavior | Emby, Jellyfin, and Flymoo support favorite actions. Plex supports the watched action and watch history. Flymoo uses the watched list from the reference protocol and can omit viewing timestamps. Both its favorite and watched mutations were checked against protocol fixtures. |
 | Responsive entry points | The desktop and tablet sidebars have entries for both views. TV has a remote-focusable Favorites entry, and the phone and TV library screens expose the three library views. The GTK captures verify the tablet screens. Phone, TV, and tablet device checks remain pending. |

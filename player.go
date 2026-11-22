@@ -30,10 +30,18 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	theme.Light = theme.Dark
 	cx.SetTheme(theme)
 	platform := cx.Env().OS()
+	offline := current.downloadID != ""
+	var download downloadEntry
+	if offline {
+		download, _ = a.downloads.find(current.downloadID, a.downloads.entries.GetUntracked())
+	}
 	noServerSubtitles := -1
 	options, remembered := a.initialPlaybackOptions(current)
 	options.SubtitleIndex = &noServerSubtitles
 	resource := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (playerMedia, error) {
+		if offline {
+			return a.downloadedMedia(download, current.source, platform)
+		}
 		client, err := a.client(current.source)
 		if err != nil {
 			return playerMedia{}, err
@@ -51,8 +59,12 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 			}
 			var state core.Node = hint(locales.Loading(cx))
 			if err := resource.Err(); err != nil {
+				message := errorText(cx, err)
+				if offline {
+					message = locales.DownloadFileUnavailable(cx)
+				}
 				state = core.View{Class: "items-center gap-4", Children: []core.Node{
-					notice(errorText(cx, err)), ui.Button{Text: locales.Retry(cx), OnPress: resource.Refetch},
+					notice(message), ui.Button{Text: locales.Retry(cx), OnPress: resource.Refetch},
 				}}
 			}
 			return pageFrame(pageHeader(cx, current.item.Title, a.back), core.View{
@@ -94,7 +106,11 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	}
 	duration := core.NewSignal(cx, initial.stream.Duration)
 	ended := core.NewSignal(cx, false)
-	nextEpisode := a.nextEpisodeCard(cx, current, initial.client, position, duration, ended)
+	offline := current.downloadID != ""
+	var nextEpisode core.Node
+	if !offline {
+		nextEpisode = a.nextEpisodeCard(cx, current, initial.client, position, duration, ended)
+	}
 	sample := core.NewSignal(cx, videoSample{})
 	picture := core.NewSignal(cx, core.Size{})
 	paused := core.NewSignal(cx, false)
@@ -110,7 +126,13 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	loaded := false
 	var lastReport time.Time
 	watch := a.beginProgressWatch(current, initial)
-	enqueue, finish := playbackReports(initial.client, watch)
+	var enqueue func(media.PlaybackState)
+	var finish func(*media.PlaybackState)
+	if offline {
+		enqueue, finish = a.localPlaybackReports(current, watch)
+	} else {
+		enqueue, finish = playbackReports(initial.client, watch)
+	}
 	snapshot := func(event media.PlaybackEvent) media.PlaybackState {
 		stream := medium.GetUntracked().stream
 		stream.Duration = duration.GetUntracked()
@@ -205,8 +227,10 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 					duration.Set(info.Duration)
 				}
 				loaded = true
-				a.rememberPlayedCopy(current)
-				a.rememberPlaybackVersion(current, active.client, active.stream.VersionID())
+				if !offline {
+					a.rememberPlayedCopy(current)
+					a.rememberPlaybackVersion(current, active.client, active.stream.VersionID())
+				}
 				buffering.Set(false)
 				canChangeRate.Set(info.RateChangeable)
 				if !info.RateChangeable {
@@ -287,9 +311,12 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		return decoder
 	}
 	activeStream := func() media.Stream { return medium.Get().stream }
-	tracks := playerTracks(cx, activeStream, directDecoder, current.subtitleTrack, position, rate, canChangeRate, switchingPlayback, audioError, chooseAudio,
-		playerQuality(current, initial.client, activeStream, bitrate.Get, switchingPlayback.Get, qualityError.Get,
-			func(options media.PlaybackOptions) { switchStream(options, qualityError) }))
+	var quality func(*core.Scope) core.Node
+	if !offline {
+		quality = playerQuality(current, initial.client, activeStream, bitrate.Get, switchingPlayback.Get, qualityError.Get,
+			func(options media.PlaybackOptions) { switchStream(options, qualityError) })
+	}
+	tracks := playerTracks(cx, activeStream, directDecoder, current.subtitleTrack, position, rate, canChangeRate, switchingPlayback, audioError, chooseAudio, quality)
 	toggle := func() {
 		if ended.GetUntracked() {
 			seek(0)
@@ -307,7 +334,12 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				ui.Button{Label: locales.ClosePlayer(cx), Icon: lucide.ChevronLeft, Variant: ui.ButtonSecondary, OnPress: a.back, TestID: "close-player"},
 				core.View{Class: "flex-1 gap-1", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
 					core.Text{Content: current.item.Title, Class: "text-lg font-semibold text-white", TestID: "player-title"},
-					core.Text{ContentFunc: func() string { return current.source.Name + " · " + playMethod(cx, medium.Get().stream.Method) }, Class: "text-xs text-zinc-300"},
+					core.Text{TestID: "player-mode", ContentFunc: func() string {
+						if offline {
+							return locales.DownloadOfflinePlayback(cx)
+						}
+						return current.source.Name + " · " + playMethod(cx, medium.Get().stream.Method)
+					}, Class: "text-xs text-zinc-300"},
 				}},
 				comments.buttons,
 				tracks.button,

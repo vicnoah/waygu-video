@@ -19,6 +19,7 @@ REVIEWS = {
     "home.scenra": "home.md",
     "tablet-home.scenra": "tablet-home.md",
     "tablet-detail.scenra": "tablet-detail.md",
+    "settings-storage.scenra": "storage-downloads.md",
 }
 
 

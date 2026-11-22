@@ -148,6 +148,10 @@ func (a *application) settings(cx *core.Scope) core.Node {
 				}
 				return core.View{Class: "gap-4", Children: cards}
 			}),
+			core.Show{When: a.downloads.available, Then: func(cx *core.Scope) core.Node {
+				return ui.Button{Text: locales.StorageDownloads(cx), Icon: lucide.HardDrive, TestID: "settings-downloads",
+					Variant: ui.ButtonOutline, OnPress: func() { a.push(route{screen: screenDownloads}) }}
+			}},
 			core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: playbackControls},
 			a.danmakuSettings(cx),
 			a.danmakuDefaults(cx),

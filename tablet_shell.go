@@ -132,6 +132,11 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 			afterSelect()
 		})
 	}
+	var downloads core.Node
+	if a.downloads.available() {
+		downloads = tabletSidebarLink(cx, "tab-downloads", locales.OfflineDownloads(cx), lucide.Download,
+			func() bool { return false }, func() { afterSelect(); a.push(route{screen: screenDownloads}) })
+	}
 	header := core.View{Class: "flex-row items-center justify-between pr-1", Children: []core.Node{
 		tabletBrand(cx), tabletPanelButton(cx, locales.CloseSidebar(cx), "tablet-sidebar-close", lucide.PanelLeftClose(), closePanel),
 	}}
@@ -169,6 +174,7 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 						tabletSidebarLink(cx, "tab-history", locales.WatchHistory(cx), lucide.Clock,
 							func() bool { return a.tab.Get() == 1 && a.libraryView.Get() == screenHistory },
 							func() { a.openPersonalLibrary(screenHistory); afterSelect() }),
+						downloads,
 					}},
 					a.tabletSidebarSources(cx, afterSelect),
 				}},

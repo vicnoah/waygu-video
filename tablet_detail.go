@@ -50,7 +50,7 @@ func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies fu
 	play := func(resume bool) {
 		version := core.Untracked(cx, active)
 		choice := tracks.GetUntracked()
-		next := route{screen: screenPlayer, source: current.source, item: core.Untracked(cx, item), resume: resume, match: current.match}
+		next := route{screen: screenPlayer, source: current.source, item: core.Untracked(cx, item), resume: resume, match: current.match, downloadID: current.downloadID}
 		if version.ID != "" {
 			if selected.GetUntracked() == version.ID {
 				next.versionID = version.ID
@@ -71,7 +71,18 @@ func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies fu
 					dot = "bg-amber-400"
 				}
 			}
-			return a.tabletDetailPoster(cx, current, item(), compact, dot, copies, selectCopy, play, personal.buttons(cx, result, true))
+			entry := item()
+			buttons := personal.buttons(cx, result, true)
+			if ready {
+				if download := a.downloadAction(cx, current, true, func() route {
+					selectedRoute := current
+					selectedRoute.item, selectedRoute.versionID = entry, selected.GetUntracked()
+					return selectedRoute
+				}); download != nil {
+					buttons = append(buttons, download)
+				}
+			}
+			return a.tabletDetailPoster(cx, current, entry, compact, dot, copies, selectCopy, play, buttons)
 		})
 	}
 	body := core.Dynamic(func(cx *core.Scope) core.Node {

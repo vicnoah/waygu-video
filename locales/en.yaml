@@ -268,3 +268,38 @@ watchHistory: Watch history
 emptyFavorites: No favorites in the selected libraries.
 emptyWatchHistory: No viewed titles in the selected libraries.
 allTitles: All titles
+storageDownloads: Storage and downloads
+storageCache: Cache
+offlineDownloads: Offline downloads
+downloadAction: Download
+downloaded: Downloaded
+downloadRunning: Downloading
+downloadQueued: Queued
+downloadPaused: Paused
+downloadFailed: Download failed
+downloadPercent: "{percent}% downloaded"
+downloadFileUnavailable: The downloaded file is missing or incomplete.
+downloadSourceUnavailable: The media source or selected version is unavailable.
+downloadNoSpace: The device or download quota has insufficient space.
+downloadSaveError: Unable to save the download queue.
+downloadRemoveError: Unable to remove some downloads.
+downloadTransferError: The download could not be completed.
+downloadNone: There are no downloads yet.
+downloadOptions: Download options
+downloadQuality: Download quality
+downloadConcurrency: Concurrent downloads
+downloadQuota: Download space limit
+downloadUnlimited: Unlimited
+downloadLocation: Download location
+downloadThisDevice: On this device
+downloadDeleteAll: Delete all downloads
+downloadDeleteAllPrompt: Remove all saved video files and queued downloads from this device?
+downloadStorageUsed: "Waygu uses {size}"
+downloadStorageAvailable: "{size} available"
+downloadUsage: "Offline downloads {size}"
+downloadPlay: "Play {title} offline"
+downloadPause: Pause download
+downloadResume: Resume download
+downloadRemove: Delete downloaded file
+downloadOfflinePlayback: Offline playback
+downloadBusy: Pause active downloads before deleting them.
