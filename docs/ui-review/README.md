@@ -5,7 +5,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Screen | Evidence | Status |
 | --- | --- | --- |
 | Welcome · light and dark | [Screenshots and interaction checks](welcome.md) | Compared on the Linux native backend at phone width. Phone system UI remains pending. |
-| Add source · light and dark | [Screenshots and discovery checks](add-source.md) | Compared on Linux GTK with Emby and Jellyfin Docker responders. Several design rows and mobile verification remain pending. |
+| Add source · light and dark | [Screenshots and discovery checks](add-source.md) | Compared on Linux GTK with Emby and Jellyfin Docker responders and a Flymoo mDNS fixture. Several design rows and mobile verification remain pending. |
 | Connect to server · both appearances and all provider tabs | [Screenshots and sign-in checks](source-login.md) | Compared on Linux GTK. The Flymoo FN ID dialog, Advanced settings, connection status, and compact library selection have light and dark captures. Real device checks remain pending. The Plex form lacks a Scenra variant. |
 | Phone home · light and dark | [Screenshots and media server checks](home.md) | The compact layout was compared on Linux GTK with three Docker media servers. Phone device captures and some metadata details remain pending. |
 | Phone media library · light and dark | [Category, poster and list comparisons](phone-library.md) | Compared on GTK with categorized Docker libraries. Mobile device captures remain pending. |

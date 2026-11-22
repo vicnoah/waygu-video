@@ -4,6 +4,7 @@ go 1.27.3
 
 require (
 	github.com/ebitengine/purego v0.11.3
+	github.com/miekg/dns v1.1.73
 	github.com/mozillazg/go-pinyin v0.21.0
 	github.com/nsgo-dev/nsgo v0.2.1-0.20261121221132-091984681603
 	golang.org/x/net v0.62.0

@@ -163,3 +163,16 @@ go tool nsgo test -target linux -run '^TestFlymooGatewayConnectionReview$' \
   -env "WAYGU_TEST_FLYMOO_CLIP=$PWD/integration/servers/media/Movies/Waygu Track Test (2025)/Waygu Track Test (2025).mp4" \
   -screenshots .nsgo/ui-review/flymoo-gateway
 ```
+
+
+## Flymoo LAN discovery
+
+`TestDiscoverFlymooDNS` supplies separate PTR, SRV and address responses for the Flymoo media service. It covers a custom display name containing a dot and the advertised HTTPS port. `TestFlymooDNSIPv6LinkLocal` verifies that the resolved URL retains its interface scope. `TestFlymooDefaultPortsAndFNID` opens that URL in the form and rebuilds it without dropping the scope. [DNS-SD service records](https://datatracker.ietf.org/doc/html/rfc6763#section-4) · [mDNS legacy unicast replies](https://datatracker.ietf.org/doc/html/rfc6762#section-6.7) · [Feiniu TV Lite resolve behavior](https://github.com/greatbody/feiniu-tv-lite/blob/7688390e3bb6207d0fb806d9b8648257afecf229/app/src/main/java/ink/sunrui/feiniutv/modules/server/ScanDeviceActivity.kt#L148-L155)
+
+`TestFlymooLANSourceReview` listens on the test host’s multicast network and sends a real DNS response to the app’s discovery query. The native test checks Scan again, then verifies the name, address and port in the form and signs into a local Flymoo media fixture. Set `WAYGU_TEST_SERVERS=1` for the accompanying live Docker results. [Add source comparison](../../docs/ui-review/add-source.md#flymoo-discovered-source)
+
+```sh
+go tool nsgo test ./... -run '^(TestDiscoverFlymooDNS|TestFlymooDNSIPv6LinkLocal|TestFlymooDefaultPortsAndFNID)$' -count=1
+go tool nsgo test -target linux -env WAYGU_TEST_FLYMOO_LAN=1 -env WAYGU_TEST_SERVERS=1 \
+  -run '^(TestFlymooLANSourceReview|TestDockerSourceReview)$' -screenshots .nsgo/ui-review/flymoo-lan
+```

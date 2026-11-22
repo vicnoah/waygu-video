@@ -3,6 +3,7 @@ package media
 import (
 	"context"
 	"encoding/json"
+	"iter"
 	"net"
 	"net/netip"
 	"strings"
@@ -14,21 +15,23 @@ type DiscoveredServer struct {
 	Name     string
 }
 
-// DiscoverLocal sends the advertised Emby and Jellyfin discovery queries.
+// DiscoverLocal uses the Emby and Jellyfin UDP queries and Flymoo DNS-SD.
 // Callers set the discovery window with ctx. No credentials are exchanged.
 func DiscoverLocal(ctx context.Context, found func(DiscoveredServer)) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	destinations := discoveryDestinations()
+	probes := []iter.Seq[DiscoveredServer]{
+		discoverUDP(ctx, Emby, "who is EmbyServer?", destinations),
+		discoverUDP(ctx, Jellyfin, "who is JellyfinServer?", destinations),
+		discoverFlymooLAN(ctx),
+	}
 	results := make(chan DiscoveredServer)
-	finished := make(chan struct{}, 2)
-	for _, probe := range []struct {
-		provider Provider
-		query    string
-	}{{Emby, "who is EmbyServer?"}, {Jellyfin, "who is JellyfinServer?"}} {
+	finished := make(chan struct{}, len(probes))
+	for _, probe := range probes {
 		go func() {
 			defer func() { finished <- struct{}{} }()
-			for server := range discoverUDP(ctx, probe.provider, probe.query, destinations) {
+			for server := range probe {
 				select {
 				case results <- server:
 				case <-ctx.Done():
@@ -38,7 +41,7 @@ func DiscoverLocal(ctx context.Context, found func(DiscoveredServer)) {
 		}()
 	}
 	seen := make(map[DiscoveredServer]bool)
-	for pending := 2; pending > 0; {
+	for pending := len(probes); pending > 0; {
 		select {
 		case <-ctx.Done():
 			return

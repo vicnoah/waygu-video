@@ -699,7 +699,7 @@ func splitServerAddress(raw string) (host, port string, https bool) {
 	}
 	host = address.Hostname()
 	if strings.Contains(host, ":") {
-		host = "[" + host + "]"
+		host = strings.TrimPrefix((&url.URL{Host: "[" + host + "]"}).String(), "//")
 	}
 	return host + address.EscapedPath(), address.Port(), address.Scheme == "https"
 }

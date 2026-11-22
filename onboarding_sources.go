@@ -125,13 +125,16 @@ func discoveryPanel(cx *core.Scope, open func(media.DiscoveredServer)) core.Node
 					name = provider
 				}
 				address := strings.TrimPrefix(strings.TrimPrefix(server.Address, "http://"), "https://")
+				if server.Provider == media.Flymoo {
+					address = strings.TrimSuffix(address, "/v")
+				}
 				return core.View{Class: "flex-row items-center gap-3 rounded-xl bg-white p-3 shadow-sm shadow-black/5 dark:bg-[#1a1b25] " + setupBorder, Children: []core.Node{
 					core.View{Class: "size-9 items-center justify-center rounded-lg " + entry.result, Children: []core.Node{
 						core.Icon{SVG: entry.icon(), Class: "size-4 " + entry.tint},
 					}},
 					core.View{Class: "flex-1", Children: []core.Node{
 						core.Text{Content: name, Class: "text-sm font-medium " + setupTitle, MaxLines: 1},
-						core.Text{Content: provider + " · " + address, Class: "text-xs " + setupMuted, MaxLines: 1},
+						core.Text{Content: provider + " · " + address, Class: "text-xs " + setupMuted},
 					}},
 					base.Button{Label: locales.AddDiscoveredSource(cx, name), TestID: "local-" + string(server.Provider),
 						Class: "rounded-full bg-violet-500 px-3.5 py-1.5 shadow-md shadow-violet-500/30",

@@ -254,6 +254,7 @@ func TestFlymooDefaultPortsAndFNID(t *testing.T) {
 	}{
 		{"192.0.2.1", "", false, "http://192.0.2.1:5666"},
 		{"[2001:db8::1]", "", true, "https://[2001:db8::1]:5667"},
+		{"[fe80::246%25eth5]/v", "5666", false, "http://[fe80::246%25eth5]:5666/v"},
 		{"nas.local", "", true, "https://nas.local:5667"},
 		{"nas.example.net", "", true, "https://nas.example.net"},
 		{"http://192.0.2.1", "", true, "http://192.0.2.1"},
