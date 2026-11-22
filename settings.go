@@ -26,40 +26,35 @@ func (a *application) settings(cx *core.Scope) core.Node {
 		hint(locales.StreamingQuality(cx)),
 		ui.Select[int]{Label: locales.StreamingQuality(cx), Options: bitrateOptions,
 			TestID: "bitrate-limit", Value: a.bitrateLimit.Get, OnChange: func(bitrate int) {
-				if err := a.storage.SetItem(bitrateKey, strconv.Itoa(bitrate)); err != nil {
-					failure.Set(err)
-					return
-				}
-				a.bitrateLimit.Set(bitrate)
+				failure.Set(storeSettingValue(a.storage, bitrateKey, a.bitrateLimit, bitrate, strconv.Itoa(bitrate)))
 			}},
 		hint(locales.StreamingQualityProviders(cx)),
 		hint(locales.PreferredPlaybackVersion(cx)),
 		playbackChoice(cx, locales.PreferredPlaybackVersion(cx), "playback-version-policy", versionPolicyOptions(cx),
 			a.versionPolicy.Get, func(policy media.VersionPolicy) {
-				if err := a.storage.SetItem(versionPolicyKey, string(policy)); err != nil {
-					failure.Set(err)
-					return
-				}
-				a.versionPolicy.Set(policy)
+				failure.Set(storeSettingValue(a.storage, versionPolicyKey, a.versionPolicy, policy, string(policy)))
 			}),
 		ui.Checkbox{Text: locales.AutoNextEpisode(cx), Checked: a.autoNext.Get, OnChange: func(enabled bool) {
-			if err := a.storage.SetItem(autoNextKey, strconv.FormatBool(enabled)); err != nil {
-				failure.Set(err)
-				return
-			}
-			a.autoNext.Set(enabled)
+			failure.Set(storeSettingValue(a.storage, autoNextKey, a.autoNext, enabled, strconv.FormatBool(enabled)))
 		}},
 	}
 	if cx.Env().Desktop() {
 		playbackControls = append(playbackControls,
 			ui.Checkbox{Text: locales.PreferMPV(cx), Checked: a.mpvPreferred.Get, OnChange: func(enabled bool) {
-				if err := a.storage.SetItem(mpvKey, strconv.FormatBool(enabled)); err != nil {
-					failure.Set(err)
-					return
-				}
-				a.mpvPreferred.Set(enabled)
+				failure.Set(storeSettingValue(a.storage, mpvKey, a.mpvPreferred, enabled, strconv.FormatBool(enabled)))
 			}},
 		)
+	}
+	var playbackPage core.Node = core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: playbackControls}
+	var phoneControls core.Node
+	if appLayoutIdiom(cx) == core.IdiomPhone {
+		phoneControls = setupGroup(locales.SettingsPlaybackExperience(cx), "",
+			(phoneSetting{locales.PlaybackSettings(cx), "", "bg-violet-500", lucide.Play}).
+				link(cx, "open-phone-playback-settings", "", func() { a.push(route{screen: screenPlaybackSettings}) }),
+			(phoneSetting{locales.Subtitles(cx), "", "bg-sky-500", lucide.Captions}).
+				link(cx, "open-phone-subtitle-settings", "", func() { a.push(route{screen: screenSubtitleSettings}) }),
+		)
+		playbackPage = nil
 	}
 	return core.Scroll{Class: "flex-1", Children: []core.Node{core.View{
 		Class: "gap-5 p-5 md:p-8", StyleFunc: func() core.Style {
@@ -67,6 +62,7 @@ func (a *application) settings(cx *core.Scope) core.Node {
 				Padding: core.Edges{Bottom: 24 + tabBarInset(cx)}}
 		}, Children: []core.Node{
 			heading(locales.Settings(cx)),
+			phoneControls,
 			core.View{Class: "flex-row flex-wrap items-center justify-between gap-3", Children: []core.Node{
 				heading(locales.MediaSources(cx)),
 				ui.Button{Text: locales.AddSource(cx), Icon: lucide.Plus, TestID: "settings-add-source",
@@ -152,7 +148,7 @@ func (a *application) settings(cx *core.Scope) core.Node {
 				return ui.Button{Text: locales.StorageDownloads(cx), Icon: lucide.HardDrive, TestID: "settings-downloads",
 					Variant: ui.ButtonOutline, OnPress: func() { a.push(route{screen: screenDownloads}) }}
 			}},
-			core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: playbackControls},
+			playbackPage,
 			a.danmakuSettings(cx),
 			a.danmakuDefaults(cx),
 		},

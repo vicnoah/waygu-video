@@ -40,7 +40,7 @@ func TestDecoderTracksAndLocalCaptionsAreExclusive(t *testing.T) {
 		}
 		ui := playerTracks(cx, func() media.Stream {
 			return media.Stream{Tracks: []media.Track{{ID: "99", Type: "audio"}, {ID: "77", Type: "subtitle", URL: "https://example.test/embedded.vtt"}}}
-		}, func() *desktopVideo { return decoder }, "", core.NewSignal(cx, 2*time.Second),
+		}, func() *desktopVideo { return decoder }, "", readSubtitlePreferences(cx.Storage()), core.NewSignal(cx, 2*time.Second),
 			core.NewSignal(cx, float32(1)), core.NewSignal(cx, true), core.NewSignal(cx, false), core.NewSignal(cx, false),
 			func(media.Track) { t.Error("decoder audio selection went to the server") }, nil)
 		return core.View{Class: "flex-1", Children: []core.Node{ui.button, ui.dialog, ui.captions}}

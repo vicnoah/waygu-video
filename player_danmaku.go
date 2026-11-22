@@ -32,7 +32,7 @@ type videoSample struct {
 
 func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.Stream,
 	sample *core.Signal[videoSample], size *core.Signal[core.Size], paused, buffering *core.Signal[bool],
-	rate func() float32, useCanvas func() bool, showOnMPV func(*danmaku.Track)) danmakuControls {
+	resize core.ResizeMode, rate func() float32, useCanvas func() bool, showOnMPV func(*danmaku.Track)) danmakuControls {
 	type remoteComments struct {
 		comments []danmaku.Comment
 		shift    float64
@@ -212,7 +212,7 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 				return core.Canvas{Class: "absolute inset-0", TestID: "danmaku-canvas", Draw: func(d *core.Drawing, bounds core.Size) {
 					comments, _ := track.Get()
 					if comments != nil {
-						drawDanmaku(d, bounds, size.Get(), *comments, clock.Get())
+						drawDanmaku(d, bounds, size.Get(), resize, *comments, clock.Get())
 					}
 				}}
 			}},
@@ -262,14 +262,10 @@ func (a *application) danmakuOffset(cx *core.Scope, current route) (*core.Signal
 	}}
 }
 
-func drawDanmaku(d *core.Drawing, bounds, video core.Size, track danmaku.Track, at time.Duration) {
-	width, height := float32(bounds.Width), float32(bounds.Height)
-	if video.Width > 0 && video.Height > 0 {
-		ratio := float32(video.Width / video.Height)
-		width, height = min(width, height*ratio), min(height, width/ratio)
-	}
-	x := (float32(bounds.Width) - width) / 2
-	y := (float32(bounds.Height) - height) / 2
+func drawDanmaku(d *core.Drawing, bounds, video core.Size, resize core.ResizeMode, track danmaku.Track, at time.Duration) {
+	frame := resize.Fit(video, bounds, core.ObjectPosition{})
+	width, height := float32(frame.Size.Width), float32(frame.Size.Height)
+	x, y := float32(frame.Origin.X), float32(frame.Origin.Y)
 	scaleX, scaleY := width/float32(track.Width), height/float32(track.Height)
 	scale := min(scaleX, scaleY)
 	font := core.Font{Size: core.Points(max(6, float32(track.FontSize)*scale)), Weight: core.FontWeightNormal}

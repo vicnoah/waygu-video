@@ -366,3 +366,77 @@ downloadResume: Resume download
 downloadRemove: Delete downloaded file
 downloadOfflinePlayback: Offline playback
 downloadBusy: Pause active downloads before deleting them.
+settingsPlaybackExperience: Playback experience
+settingsUnavailable: Unavailable
+settingsAlwaysOn: Always on
+settingsWifiQuality: Streaming quality
+settingsCellularQuality: Cellular quality
+settingsPreferDirect: Prefer direct play
+settingsCellularWarning: Warn before streaming on cellular
+settingsDecoderDisplay: Decoder and display
+settingsHardwareDecode: Hardware decoding
+settingsDecoder: Decoder
+settingsMatchHDR: Match dynamic range
+settingsMatchHDRDescription: Switch display mode for HDR10 and Dolby Vision
+settingsToneMap: HDR tone mapping
+settingsMatchRate: Match frame rate
+settingsMatchRateDescription: Switch TV output to the video's native refresh rate
+settingsPicture: Default picture mode
+settingsPictureOriginal: Original
+settingsPictureCrop: Fill and crop
+settingsPictureStretch: Stretch
+settingsPassthrough: Audio passthrough
+settingsPassthroughDescription: Send AC3, DTS, TrueHD and Atmos to a receiver
+settingsPassthroughFormats: Passthrough formats
+settingsBoostVolume: Volume boost
+settingsNightAudio: Night mode
+settingsSkipIntro: Skip intros and credits
+settingsIdentifyIntro: Intro and credit detection
+settingsControls: Controls
+settingsRememberProgress: Remember playback position
+settingsSeekBack: Rewind interval
+settingsSeekForward: Forward interval
+settingsSeconds: "{seconds} s"
+settingsDefaultRate: Default speed
+settingsPlaybackGestures: Gestures
+settingsBackgroundNetwork: Background and network
+settingsAutoPiP: Automatic picture in picture
+settingsBackgroundAudio: Continue playing audio in background
+settingsPlaybackBuffer: Buffer size
+settingsLanguages: Language
+settingsPreferredSubtitles: Preferred subtitle languages
+settingsPreferredAudio: Preferred audio language
+settingsOriginalLanguage: Original language
+settingsAutoSubtitle: Automatically select subtitles
+settingsSubtitleForeign: For foreign audio
+settingsSubtitleConvert: Convert between Simplified and Traditional Chinese
+settingsSubtitleStyle: Subtitle style
+settingsSubtitleFont: Font
+settingsSubtitleSystemFont: System
+settingsSubtitleSize: Text size
+settingsSubtitleColor: Color
+settingsSubtitleStroke: Outline and shadow
+settingsSubtitleBackground: Background
+settingsSubtitleBackgroundNone: None
+settingsSubtitleBackgroundDim: Translucent
+settingsSubtitleBackgroundSolid: Black
+settingsSubtitlePosition: Position
+settingsSubtitleDistance: "{distance}% from bottom"
+settingsSubtitleBilingual: Show bilingual subtitles on separate lines
+settingsSubtitleASS: Keep original ASS styling
+settingsSubtitleEmbeddedFonts: Load embedded fonts
+settingsOnlineSubtitles: Online subtitles
+settingsDownloadSubtitles: Automatically download missing subtitles
+settingsSubtitleShooter: Shooter
+settingsSubtitleSidecar: Match external subtitles by file name
+settingsSubtitlePreview: Preview
+settingsSubtitleSample: “We choose hope.”
+settingsAddSubtitleLanguage: Add a language
+settingsSimplifiedChinese: Simplified Chinese
+settingsTraditionalChinese: Traditional Chinese
+settingsRemoveSubtitleLanguage: "Remove {name}"
+settingsRaiseSubtitleLanguage: "Move {name} up"
+settingsLowerSubtitleLanguage: "Move {name} down"
+settingsAudio: Audio
+settingsCustomSubtitleColor: Custom color
+settingsSubtitleASSDescription: Desktop libmpv renders the original styling of embedded ASS subtitles.

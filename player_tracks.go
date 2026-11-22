@@ -30,7 +30,7 @@ type subtitleSelection struct {
 	cues *playback.Captions
 }
 
-func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *desktopVideo, initialSubtitle string, position *core.Signal[time.Duration],
+func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *desktopVideo, initialSubtitle string, prefs subtitlePreferences, position *core.Signal[time.Duration],
 	rate *core.Signal[float32], canChangeRate, switchingPlayback, audioError *core.Signal[bool],
 	chooseAudio func(media.Track), quality func(*core.Scope) core.Node) trackControls {
 	open := core.NewSignal(cx, false)
@@ -82,20 +82,29 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			return playback.FetchCaptions(ctx, track.URL)
 		})
 	}
+	firstStream := true
 	cx.Effect(func() {
 		trackSource.Get()
 		if choice := subtitles.GetUntracked(); choice.id != "local" {
 			subtitles.Set(subtitleSelection{})
 		}
+		if !firstStream {
+			return
+		}
+		firstStream = false
+		available := core.Untracked(cx, stream).Tracks
 		if initialSubtitle != "" {
 			id := initialSubtitle
 			initialSubtitle = ""
-			for _, track := range core.Untracked(cx, stream).Tracks {
+			for _, track := range available {
 				if track.ID == id && track.Type == "subtitle" && track.URL != "" {
 					selectServerSubtitle(track)
-					break
+					return
 				}
 			}
+		}
+		if track := automaticSubtitle(available, prefs); track.ID != "" {
+			selectServerSubtitle(track)
 		}
 	})
 	pick := func() {
@@ -262,9 +271,12 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			TestID: "player-tracks", OnPress: func() { open.Set(true) }},
 		dialog: dialog,
 		captions: core.Show{When: func() bool { return text.Get() != "" }, Then: func(cx *core.Scope) core.Node {
-			return core.View{Class: "absolute inset-x-0 bottom-[132px] items-center px-8", PointerEvents: core.PointerEventsNone,
-				Children: []core.Node{core.Text{ContentFunc: text.Get, TestID: "subtitle-caption",
-					Class: "rounded-lg bg-black/80 px-3 py-1.5 text-center text-lg font-semibold text-white md:text-2xl"}}}
+			return core.View{Class: "absolute inset-x-0 items-center px-8", PointerEvents: core.PointerEventsNone,
+				StyleFunc: func() core.Style {
+					bottom := cx.Env().Window().Height * core.Points(prefs.Position) / 100
+					return core.Style{Bottom: core.Pt(104 + bottom)}
+				}, Children: []core.Node{core.Text{ContentFunc: text.Get, TestID: "subtitle-caption",
+					Class: "rounded px-3 py-1 text-center font-semibold", Style: prefs.captionStyle()}}}
 		}},
 	}
 }
@@ -328,7 +340,7 @@ func audioChoices(cx *core.Scope, tracks []media.Track, defaultToFirst bool, bus
 
 func speedChoices(cx *core.Scope, rate *core.Signal[float32], supported func() bool) core.Node {
 	var rows []core.Node
-	for _, speed := range []float32{0.5, 0.75, 1, 1.25, 1.5, 1.75, 2} {
+	for _, speed := range playbackRates {
 		label := strconv.FormatFloat(float64(speed), 'f', -1, 32)
 		rows = append(rows, ui.Radio{Text: label + "×", TestID: "playback-speed-" + label,
 			Disabled: func() bool { return !supported() },

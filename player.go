@@ -38,6 +38,7 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	noServerSubtitles := -1
 	options, remembered := a.initialPlaybackOptions(current)
 	options.SubtitleIndex = &noServerSubtitles
+	subtitlePrefs := a.subtitlePrefs.GetUntracked()
 	resource := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (playerMedia, error) {
 		if offline {
 			return a.downloadedMedia(download, current.source, platform)
@@ -49,6 +50,16 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 		stream, err := openPlaybackVersion(ctx, client, current.item, options, remembered)
 		if err != nil {
 			return playerMedia{}, err
+		}
+		if options.AudioIndex == nil {
+			if index := preferredAudio(stream.Tracks, subtitlePrefs.Audio); index != nil {
+				preferred := options
+				preferred.AudioIndex = index
+				preferred.SourceID = stream.VersionID()
+				if updated, err := client.Playback(ctx, current.item, preferred); err == nil {
+					stream = updated
+				}
+			}
 		}
 		return prepareVideo(ctx, client, stream, platform == core.OSAndroid)
 	})
@@ -114,7 +125,8 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	sample := core.NewSignal(cx, videoSample{})
 	picture := core.NewSignal(cx, core.Size{})
 	paused := core.NewSignal(cx, false)
-	rate := core.NewSignal(cx, float32(1))
+	prefs := a.playbackPrefs.GetUntracked()
+	rate := core.NewSignal(cx, prefs.Rate)
 	canChangeRate := core.NewSignal(cx, false)
 	failure := core.NewSignal(cx, false)
 	buffering := core.NewSignal(cx, false)
@@ -219,8 +231,10 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	image := core.Dynamic(func(cx *core.Scope) core.Node {
 		active := medium.Get()
 		video := core.Video{Source: active.url, PausedFunc: paused.Get, RateFunc: rate.Get, Ref: ref,
-			TestID: "video-player", Class: "absolute inset-0", ResizeMode: core.Contain, ProgressInterval: 150 * time.Millisecond,
-			AudioSession: core.AudioSessionPlayback,
+			TestID: "video-player", Class: "absolute inset-0", ResizeMode: prefs.resizeMode(), ProgressInterval: 150 * time.Millisecond,
+			AudioSession:         core.AudioSessionPlayback,
+			PictureInPicture:     cx.Env().OS() == core.OSIOS,
+			AutoPictureInPicture: cx.Env().OS() == core.OSIOS && !prefs.DisableAutoPiP,
 			OnLoad: func(info core.VideoInfo) {
 				picture.Set(info.Size)
 				if info.Duration > 0 {
@@ -294,7 +308,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		}
 		return video
 	})
-	comments := a.playerDanmaku(cx, current, initial.stream, sample, picture, paused, buffering, rate.Get, func() bool {
+	comments := a.playerDanmaku(cx, current, initial.stream, sample, picture, paused, buffering, prefs.resizeMode(), rate.Get, func() bool {
 		decoder := desktop.Get()
 		return decoder == nil || !decoder.active()
 	}, func(track *danmaku.Track) {
@@ -316,7 +330,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		quality = playerQuality(current, initial.client, activeStream, bitrate.Get, switchingPlayback.Get, qualityError.Get,
 			func(options media.PlaybackOptions) { switchStream(options, qualityError) })
 	}
-	tracks := playerTracks(cx, activeStream, directDecoder, current.subtitleTrack, position, rate, canChangeRate, switchingPlayback, audioError, chooseAudio, quality)
+	tracks := playerTracks(cx, activeStream, directDecoder, current.subtitleTrack, a.subtitlePrefs.GetUntracked(), position, rate, canChangeRate, switchingPlayback, audioError, chooseAudio, quality)
 	toggle := func() {
 		if ended.GetUntracked() {
 			seek(0)
@@ -367,7 +381,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				}},
 				core.View{Class: "flex-row items-center justify-center gap-4", Children: []core.Node{
 					ui.Button{Label: locales.SeekBack(cx), Icon: lucide.RotateCcw, Variant: ui.ButtonSecondary, Size: ui.SizeLarge,
-						OnPress: func() { seek(position.GetUntracked() - 10*time.Second) }},
+						TestID: "player-seek-back", OnPress: func() { seek(position.GetUntracked() - prefs.backStep()) }},
 					core.Dynamic(func(cx *core.Scope) core.Node {
 						label, icon := locales.Pause(cx), lucide.Pause
 						if paused.Get() {
@@ -376,7 +390,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 						return ui.Button{Label: label, Icon: icon, Size: ui.SizeLarge, TestID: "toggle-play", OnPress: toggle}
 					}),
 					ui.Button{Label: locales.SeekForward(cx), Icon: lucide.RotateCw, Variant: ui.ButtonSecondary, Size: ui.SizeLarge,
-						OnPress: func() { seek(position.GetUntracked() + 10*time.Second) }},
+						TestID: "player-seek-forward", OnPress: func() { seek(position.GetUntracked() + prefs.forwardStep()) }},
 				}},
 			}},
 		tracks.dialog,

@@ -36,14 +36,14 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [媒体库与元数据 · 深色](../../design/settings-library.scenra#L46) | dark | `phone · auto × 1400` | — | Pending |
 | [设置/家长控制](../../design/settings-parental.scenra#L1) | light | `phone · auto × 1080` | — | Pending |
 | [家长控制 · 深色](../../design/settings-parental.scenra#L38) | dark | `phone · auto × 1080` | — | Pending |
-| [设置/播放](../../design/settings-playback.scenra#L1) | light | `phone · auto × 1760` | — | Pending |
-| [播放 · 深色](../../design/settings-playback.scenra#L59) | dark | `phone · auto × 1760` | — | Pending |
+| [设置/播放](../../design/settings-playback.scenra#L1) | light | `phone · auto × 1760` | — | [Compared](phone-player-settings.md) |
+| [播放 · 深色](../../design/settings-playback.scenra#L59) | dark | `phone · auto × 1760` | — | [Compared](phone-player-settings.md) |
 | [设置/媒体源](../../design/settings-sources.scenra#L1) | light | `phone · auto × 1320` | — | Pending |
 | [媒体源 · 深色](../../design/settings-sources.scenra#L143) | dark | `phone · auto × 1320` | — | Pending |
 | [设置/存储与下载](../../design/settings-storage.scenra#L1) | light | `phone · auto × 1380` | — | [Compared](storage-downloads.md) |
 | [存储与下载 · 深色](../../design/settings-storage.scenra#L87) | dark | `phone · auto × 1380` | — | [Compared](storage-downloads.md) |
-| [设置/字幕](../../design/settings-subtitles.scenra#L1) | light | `phone · auto × 1780` | — | Pending |
-| [字幕 · 深色](../../design/settings-subtitles.scenra#L77) | dark | `phone · auto × 1780` | — | Pending |
+| [设置/字幕](../../design/settings-subtitles.scenra#L1) | light | `phone · auto × 1780` | — | [Compared](phone-player-settings.md) |
+| [字幕 · 深色](../../design/settings-subtitles.scenra#L77) | dark | `phone · auto × 1780` | — | [Compared](phone-player-settings.md) |
 | [设置/同步与账户](../../design/settings-sync.scenra#L1) | light | `phone · auto × 1560` | — | Pending |
 | [同步与账户 · 深色](../../design/settings-sync.scenra#L101) | dark | `phone · auto × 1560` | — | Pending |
 | [设置/设置](../../design/settings.scenra#L1) | light | `phone · auto × 1160` | — | Pending |

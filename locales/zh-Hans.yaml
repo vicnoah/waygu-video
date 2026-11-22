@@ -366,3 +366,77 @@ downloadResume: 继续下载
 downloadRemove: 删除下载文件
 downloadOfflinePlayback: 离线播放
 downloadBusy: 请先暂停正在下载的任务。
+settingsPlaybackExperience: 播放体验
+settingsUnavailable: 暂不可用
+settingsAlwaysOn: 始终开启
+settingsWifiQuality: 流媒体画质
+settingsCellularQuality: 移动网络画质
+settingsPreferDirect: 优先直接播放
+settingsCellularWarning: 移动网络播放前提醒
+settingsDecoderDisplay: 解码与显示
+settingsHardwareDecode: 硬件解码
+settingsDecoder: 解码器
+settingsMatchHDR: 匹配动态范围
+settingsMatchHDRDescription: 播放 HDR10 / 杜比视界时切换显示模式
+settingsToneMap: HDR 色调映射
+settingsMatchRate: 匹配帧率
+settingsMatchRateDescription: 电视端切换为影片原生帧率，如 23.976 Hz
+settingsPicture: 默认画面比例
+settingsPictureOriginal: 原始
+settingsPictureCrop: 铺满裁切
+settingsPictureStretch: 拉伸
+settingsPassthrough: 音频直通
+settingsPassthroughDescription: 将 AC3、DTS、TrueHD、Atmos 原样输出到功放
+settingsPassthroughFormats: 直通格式
+settingsBoostVolume: 音量增强
+settingsNightAudio: 夜间模式（压缩动态范围）
+settingsSkipIntro: 跳过片头片尾
+settingsIdentifyIntro: 片头片尾识别
+settingsControls: 控制
+settingsRememberProgress: 记住播放进度
+settingsSeekBack: 快退步长
+settingsSeekForward: 快进步长
+settingsSeconds: "{seconds} 秒"
+settingsDefaultRate: 默认倍速
+settingsPlaybackGestures: 手势
+settingsBackgroundNetwork: 后台与网络
+settingsAutoPiP: 自动画中画
+settingsBackgroundAudio: 后台继续播放音频
+settingsPlaybackBuffer: 缓冲大小
+settingsLanguages: 语言
+settingsPreferredSubtitles: 首选字幕语言
+settingsPreferredAudio: 首选音频语言
+settingsOriginalLanguage: 原始语言
+settingsAutoSubtitle: 自动选择字幕
+settingsSubtitleForeign: 仅外语时
+settingsSubtitleConvert: 简繁自动转换
+settingsSubtitleStyle: 字幕样式
+settingsSubtitleFont: 字体
+settingsSubtitleSystemFont: 系统默认
+settingsSubtitleSize: 字号
+settingsSubtitleColor: 颜色
+settingsSubtitleStroke: 描边 / 阴影
+settingsSubtitleBackground: 背景
+settingsSubtitleBackgroundNone: 无
+settingsSubtitleBackgroundDim: 半透明
+settingsSubtitleBackgroundSolid: 黑色
+settingsSubtitlePosition: 位置
+settingsSubtitleDistance: "底部 · 距边 {distance}%"
+settingsSubtitleBilingual: 双语字幕上下分行
+settingsSubtitleASS: 按原样式渲染 ASS 字幕
+settingsSubtitleEmbeddedFonts: 加载内嵌字体
+settingsOnlineSubtitles: 在线字幕
+settingsDownloadSubtitles: 缺少字幕时自动下载
+settingsSubtitleShooter: 射手网（伪）
+settingsSubtitleSidecar: 外挂字幕匹配
+settingsSubtitlePreview: 预览
+settingsSubtitleSample: “我们选择希望。”
+settingsAddSubtitleLanguage: 添加语言
+settingsSimplifiedChinese: 简中
+settingsTraditionalChinese: 繁中
+settingsRemoveSubtitleLanguage: "移除{name}"
+settingsRaiseSubtitleLanguage: "上移{name}"
+settingsLowerSubtitleLanguage: "下移{name}"
+settingsAudio: 音频
+settingsCustomSubtitleColor: 自定义颜色
+settingsSubtitleASSDescription: 桌面端 libmpv 会保留内嵌 ASS 字幕的原始样式。

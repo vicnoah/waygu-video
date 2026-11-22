@@ -43,66 +43,71 @@ func For(cx *core.Scope) Messages {
 // its method, for the TSX declarations of the messages
 // (tsx.RegisterMessages).
 var Parameters = map[string][]string{
-	"WelcomeMediaSourcesDetail": {"flymoo"},
-	"AddDiscoveredSource":       {"name"},
-	"Connected":                 {"name"},
-	"SignedInAs":                {"name"},
-	"SourcesOnline":             {"count"},
-	"HomeSummary":               {"sources", "count"},
-	"HomeItemCount":             {"count"},
-	"HomeDuration":              {"minutes"},
-	"HomeEpisode":               {"season", "episode"},
-	"LibraryLoadedCount":        {"count"},
-	"LibraryTitleCount":         {"count", "sources"},
-	"LibraryMovieCount":         {"count", "sources"},
-	"LibrarySeriesCount":        {"count"},
-	"LibrarySeriesUnplayed":     {"count"},
-	"LibraryEpisodePosition":    {"season", "episode"},
-	"LibraryEpisodeCount":       {"count"},
-	"LibraryUnplayedEpisodes":   {"count"},
-	"MoveSourceUp":              {"name"},
-	"MoveSourceDown":            {"name"},
-	"ShowNamedLibrary":          {"name"},
-	"ShowNamedLibraryOnHome":    {"name"},
-	"MoveLibraryUp":             {"name"},
-	"MoveLibraryDown":           {"name"},
-	"SearchGroupCount":          {"group", "count"},
-	"SearchCreditCount":         {"role", "count"},
-	"ResumeCardLabel":           {"title"},
-	"ResumePercent":             {"number"},
-	"ResumeRemaining":           {"time_"},
-	"SubtitleDelay":             {"seconds"},
-	"TrackNumber":               {"number"},
-	"NumberedPlaybackVersion":   {"number"},
-	"EpisodeDetails":            {"episode"},
-	"SeriesSeasonCount":         {"count"},
-	"SeriesResumeEpisode":       {"season", "episode"},
-	"SeriesWatchedTime":         {"episode", "time_"},
-	"SeriesEpisodesLeft":        {"count"},
-	"SeriesDanmakuCount":        {"count"},
-	"DanmakuBoundEpisode":       {"episode"},
-	"DanmakuDecrease":           {"control"},
-	"DanmakuIncrease":           {"control"},
-	"DanmakuOffset":             {"seconds"},
-	"DanmakuPercent":            {"value"},
-	"DanmakuInvalidPattern":     {"pattern"},
-	"BitrateMegabits":           {"bitrate"},
-	"NextEpisodeCountdown":      {"seconds"},
-	"EpisodeLabel":              {"number"},
-	"SeasonLabel":               {"number"},
-	"QuickConnectInstruction":   {"code"},
-	"PhoneMovieResumeAt":        {"time_"},
-	"MovieDirectorLine":         {"name"},
-	"MovieCastLine":             {"names"},
-	"MovieViewAll":              {"count"},
-	"DetailResumeAt":            {"time_"},
-	"FileSource":                {"source"},
-	"FileSubtitleCount":         {"count"},
-	"DownloadPercent":           {"percent"},
-	"DownloadStorageUsed":       {"size"},
-	"DownloadStorageAvailable":  {"size"},
-	"DownloadUsage":             {"size"},
-	"DownloadPlay":              {"title"},
+	"WelcomeMediaSourcesDetail":      {"flymoo"},
+	"AddDiscoveredSource":            {"name"},
+	"Connected":                      {"name"},
+	"SignedInAs":                     {"name"},
+	"SourcesOnline":                  {"count"},
+	"HomeSummary":                    {"sources", "count"},
+	"HomeItemCount":                  {"count"},
+	"HomeDuration":                   {"minutes"},
+	"HomeEpisode":                    {"season", "episode"},
+	"LibraryLoadedCount":             {"count"},
+	"LibraryTitleCount":              {"count", "sources"},
+	"LibraryMovieCount":              {"count", "sources"},
+	"LibrarySeriesCount":             {"count"},
+	"LibrarySeriesUnplayed":          {"count"},
+	"LibraryEpisodePosition":         {"season", "episode"},
+	"LibraryEpisodeCount":            {"count"},
+	"LibraryUnplayedEpisodes":        {"count"},
+	"MoveSourceUp":                   {"name"},
+	"MoveSourceDown":                 {"name"},
+	"ShowNamedLibrary":               {"name"},
+	"ShowNamedLibraryOnHome":         {"name"},
+	"MoveLibraryUp":                  {"name"},
+	"MoveLibraryDown":                {"name"},
+	"SearchGroupCount":               {"group", "count"},
+	"SearchCreditCount":              {"role", "count"},
+	"ResumeCardLabel":                {"title"},
+	"ResumePercent":                  {"number"},
+	"ResumeRemaining":                {"time_"},
+	"SubtitleDelay":                  {"seconds"},
+	"TrackNumber":                    {"number"},
+	"NumberedPlaybackVersion":        {"number"},
+	"EpisodeDetails":                 {"episode"},
+	"SeriesSeasonCount":              {"count"},
+	"SeriesResumeEpisode":            {"season", "episode"},
+	"SeriesWatchedTime":              {"episode", "time_"},
+	"SeriesEpisodesLeft":             {"count"},
+	"SeriesDanmakuCount":             {"count"},
+	"DanmakuBoundEpisode":            {"episode"},
+	"DanmakuDecrease":                {"control"},
+	"DanmakuIncrease":                {"control"},
+	"DanmakuOffset":                  {"seconds"},
+	"DanmakuPercent":                 {"value"},
+	"DanmakuInvalidPattern":          {"pattern"},
+	"BitrateMegabits":                {"bitrate"},
+	"NextEpisodeCountdown":           {"seconds"},
+	"EpisodeLabel":                   {"number"},
+	"SeasonLabel":                    {"number"},
+	"QuickConnectInstruction":        {"code"},
+	"PhoneMovieResumeAt":             {"time_"},
+	"MovieDirectorLine":              {"name"},
+	"MovieCastLine":                  {"names"},
+	"MovieViewAll":                   {"count"},
+	"DetailResumeAt":                 {"time_"},
+	"FileSource":                     {"source"},
+	"FileSubtitleCount":              {"count"},
+	"DownloadPercent":                {"percent"},
+	"DownloadStorageUsed":            {"size"},
+	"DownloadStorageAvailable":       {"size"},
+	"DownloadUsage":                  {"size"},
+	"DownloadPlay":                   {"title"},
+	"SettingsSeconds":                {"seconds"},
+	"SettingsSubtitleDistance":       {"distance"},
+	"SettingsRemoveSubtitleLanguage": {"name"},
+	"SettingsRaiseSubtitleLanguage":  {"name"},
+	"SettingsLowerSubtitleLanguage":  {"name"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -110,67 +115,72 @@ var Parameters = map[string][]string{
 // of the others; a key or a field left out leaves the message to the
 // catalog.
 type Translation struct {
-	Texts                     map[string]string
-	WelcomeMediaSourcesDetail func(flymoo string) string
-	AddDiscoveredSource       func(name string) string
-	Connected                 func(name string) string
-	SignedInAs                func(name string) string
-	SourcesOnline             func(count string) string
-	HomeSummary               func(sources string, count string) string
-	HomeItemCount             func(count string) string
-	HomeDuration              func(minutes string) string
-	HomeEpisode               func(season string, episode string) string
-	LibraryLoadedCount        func(count string) string
-	LibraryTitleCount         func(count string, sources string) string
-	LibraryMovieCount         func(count string, sources string) string
-	LibrarySeriesCount        func(count string) string
-	LibrarySeriesUnplayed     func(count string) string
-	LibraryEpisodePosition    func(season string, episode string) string
-	LibraryEpisodeCount       func(count string) string
-	LibraryUnplayedEpisodes   func(count string) string
-	MoveSourceUp              func(name string) string
-	MoveSourceDown            func(name string) string
-	ShowNamedLibrary          func(name string) string
-	ShowNamedLibraryOnHome    func(name string) string
-	MoveLibraryUp             func(name string) string
-	MoveLibraryDown           func(name string) string
-	SearchGroupCount          func(group string, count string) string
-	SearchCreditCount         func(role string, count string) string
-	ResumeCardLabel           func(title string) string
-	ResumePercent             func(number string) string
-	ResumeRemaining           func(time_ string) string
-	SubtitleDelay             func(seconds string) string
-	TrackNumber               func(number string) string
-	NumberedPlaybackVersion   func(number string) string
-	EpisodeDetails            func(episode string) string
-	SeriesSeasonCount         func(count string) string
-	SeriesResumeEpisode       func(season string, episode string) string
-	SeriesWatchedTime         func(episode string, time_ string) string
-	SeriesEpisodesLeft        func(count string) string
-	SeriesDanmakuCount        func(count string) string
-	DanmakuBoundEpisode       func(episode string) string
-	DanmakuDecrease           func(control string) string
-	DanmakuIncrease           func(control string) string
-	DanmakuOffset             func(seconds string) string
-	DanmakuPercent            func(value string) string
-	DanmakuInvalidPattern     func(pattern string) string
-	BitrateMegabits           func(bitrate string) string
-	NextEpisodeCountdown      func(seconds string) string
-	EpisodeLabel              func(number string) string
-	SeasonLabel               func(number string) string
-	QuickConnectInstruction   func(code string) string
-	PhoneMovieResumeAt        func(time_ string) string
-	MovieDirectorLine         func(name string) string
-	MovieCastLine             func(names string) string
-	MovieViewAll              func(count string) string
-	DetailResumeAt            func(time_ string) string
-	FileSource                func(source string) string
-	FileSubtitleCount         func(count string) string
-	DownloadPercent           func(percent string) string
-	DownloadStorageUsed       func(size string) string
-	DownloadStorageAvailable  func(size string) string
-	DownloadUsage             func(size string) string
-	DownloadPlay              func(title string) string
+	Texts                          map[string]string
+	WelcomeMediaSourcesDetail      func(flymoo string) string
+	AddDiscoveredSource            func(name string) string
+	Connected                      func(name string) string
+	SignedInAs                     func(name string) string
+	SourcesOnline                  func(count string) string
+	HomeSummary                    func(sources string, count string) string
+	HomeItemCount                  func(count string) string
+	HomeDuration                   func(minutes string) string
+	HomeEpisode                    func(season string, episode string) string
+	LibraryLoadedCount             func(count string) string
+	LibraryTitleCount              func(count string, sources string) string
+	LibraryMovieCount              func(count string, sources string) string
+	LibrarySeriesCount             func(count string) string
+	LibrarySeriesUnplayed          func(count string) string
+	LibraryEpisodePosition         func(season string, episode string) string
+	LibraryEpisodeCount            func(count string) string
+	LibraryUnplayedEpisodes        func(count string) string
+	MoveSourceUp                   func(name string) string
+	MoveSourceDown                 func(name string) string
+	ShowNamedLibrary               func(name string) string
+	ShowNamedLibraryOnHome         func(name string) string
+	MoveLibraryUp                  func(name string) string
+	MoveLibraryDown                func(name string) string
+	SearchGroupCount               func(group string, count string) string
+	SearchCreditCount              func(role string, count string) string
+	ResumeCardLabel                func(title string) string
+	ResumePercent                  func(number string) string
+	ResumeRemaining                func(time_ string) string
+	SubtitleDelay                  func(seconds string) string
+	TrackNumber                    func(number string) string
+	NumberedPlaybackVersion        func(number string) string
+	EpisodeDetails                 func(episode string) string
+	SeriesSeasonCount              func(count string) string
+	SeriesResumeEpisode            func(season string, episode string) string
+	SeriesWatchedTime              func(episode string, time_ string) string
+	SeriesEpisodesLeft             func(count string) string
+	SeriesDanmakuCount             func(count string) string
+	DanmakuBoundEpisode            func(episode string) string
+	DanmakuDecrease                func(control string) string
+	DanmakuIncrease                func(control string) string
+	DanmakuOffset                  func(seconds string) string
+	DanmakuPercent                 func(value string) string
+	DanmakuInvalidPattern          func(pattern string) string
+	BitrateMegabits                func(bitrate string) string
+	NextEpisodeCountdown           func(seconds string) string
+	EpisodeLabel                   func(number string) string
+	SeasonLabel                    func(number string) string
+	QuickConnectInstruction        func(code string) string
+	PhoneMovieResumeAt             func(time_ string) string
+	MovieDirectorLine              func(name string) string
+	MovieCastLine                  func(names string) string
+	MovieViewAll                   func(count string) string
+	DetailResumeAt                 func(time_ string) string
+	FileSource                     func(source string) string
+	FileSubtitleCount              func(count string) string
+	DownloadPercent                func(percent string) string
+	DownloadStorageUsed            func(size string) string
+	DownloadStorageAvailable       func(size string) string
+	DownloadUsage                  func(size string) string
+	DownloadPlay                   func(title string) string
+	SettingsSeconds                func(seconds string) string
+	SettingsSubtitleDistance       func(distance string) string
+	SettingsRemoveSubtitleLanguage func(name string) string
+	SettingsRaiseSubtitleLanguage  func(name string) string
+	SettingsLowerSubtitleLanguage  func(name string) string
 }
 
 var supplied = map[string]Translation{}
@@ -485,6 +495,75 @@ const (
 	textDownloadRemove
 	textDownloadOfflinePlayback
 	textDownloadBusy
+	textSettingsPlaybackExperience
+	textSettingsUnavailable
+	textSettingsAlwaysOn
+	textSettingsWifiQuality
+	textSettingsCellularQuality
+	textSettingsPreferDirect
+	textSettingsCellularWarning
+	textSettingsDecoderDisplay
+	textSettingsHardwareDecode
+	textSettingsDecoder
+	textSettingsMatchHDR
+	textSettingsMatchHDRDescription
+	textSettingsToneMap
+	textSettingsMatchRate
+	textSettingsMatchRateDescription
+	textSettingsPicture
+	textSettingsPictureOriginal
+	textSettingsPictureCrop
+	textSettingsPictureStretch
+	textSettingsPassthrough
+	textSettingsPassthroughDescription
+	textSettingsPassthroughFormats
+	textSettingsBoostVolume
+	textSettingsNightAudio
+	textSettingsSkipIntro
+	textSettingsIdentifyIntro
+	textSettingsControls
+	textSettingsRememberProgress
+	textSettingsSeekBack
+	textSettingsSeekForward
+	textSettingsDefaultRate
+	textSettingsPlaybackGestures
+	textSettingsBackgroundNetwork
+	textSettingsAutoPiP
+	textSettingsBackgroundAudio
+	textSettingsPlaybackBuffer
+	textSettingsLanguages
+	textSettingsPreferredSubtitles
+	textSettingsPreferredAudio
+	textSettingsOriginalLanguage
+	textSettingsAutoSubtitle
+	textSettingsSubtitleForeign
+	textSettingsSubtitleConvert
+	textSettingsSubtitleStyle
+	textSettingsSubtitleFont
+	textSettingsSubtitleSystemFont
+	textSettingsSubtitleSize
+	textSettingsSubtitleColor
+	textSettingsSubtitleStroke
+	textSettingsSubtitleBackground
+	textSettingsSubtitleBackgroundNone
+	textSettingsSubtitleBackgroundDim
+	textSettingsSubtitleBackgroundSolid
+	textSettingsSubtitlePosition
+	textSettingsSubtitleBilingual
+	textSettingsSubtitleASS
+	textSettingsSubtitleEmbeddedFonts
+	textSettingsOnlineSubtitles
+	textSettingsDownloadSubtitles
+	textSettingsSubtitleShooter
+	textSettingsSubtitleSidecar
+	textSettingsSubtitlePreview
+	textSettingsSubtitleSample
+	textSettingsAddSubtitleLanguage
+	textSettingsSimplifiedChinese
+	textSettingsTraditionalChinese
+	textSettingsAudio
+	textSettingsCustomSubtitleColor
+	textSettingsSubtitleASSDescription
 	numTexts
 )
 
@@ -799,6 +878,75 @@ var keyOfText = [numTexts]string{
 	"downloadRemove",
 	"downloadOfflinePlayback",
 	"downloadBusy",
+	"settingsPlaybackExperience",
+	"settingsUnavailable",
+	"settingsAlwaysOn",
+	"settingsWifiQuality",
+	"settingsCellularQuality",
+	"settingsPreferDirect",
+	"settingsCellularWarning",
+	"settingsDecoderDisplay",
+	"settingsHardwareDecode",
+	"settingsDecoder",
+	"settingsMatchHDR",
+	"settingsMatchHDRDescription",
+	"settingsToneMap",
+	"settingsMatchRate",
+	"settingsMatchRateDescription",
+	"settingsPicture",
+	"settingsPictureOriginal",
+	"settingsPictureCrop",
+	"settingsPictureStretch",
+	"settingsPassthrough",
+	"settingsPassthroughDescription",
+	"settingsPassthroughFormats",
+	"settingsBoostVolume",
+	"settingsNightAudio",
+	"settingsSkipIntro",
+	"settingsIdentifyIntro",
+	"settingsControls",
+	"settingsRememberProgress",
+	"settingsSeekBack",
+	"settingsSeekForward",
+	"settingsDefaultRate",
+	"settingsPlaybackGestures",
+	"settingsBackgroundNetwork",
+	"settingsAutoPiP",
+	"settingsBackgroundAudio",
+	"settingsPlaybackBuffer",
+	"settingsLanguages",
+	"settingsPreferredSubtitles",
+	"settingsPreferredAudio",
+	"settingsOriginalLanguage",
+	"settingsAutoSubtitle",
+	"settingsSubtitleForeign",
+	"settingsSubtitleConvert",
+	"settingsSubtitleStyle",
+	"settingsSubtitleFont",
+	"settingsSubtitleSystemFont",
+	"settingsSubtitleSize",
+	"settingsSubtitleColor",
+	"settingsSubtitleStroke",
+	"settingsSubtitleBackground",
+	"settingsSubtitleBackgroundNone",
+	"settingsSubtitleBackgroundDim",
+	"settingsSubtitleBackgroundSolid",
+	"settingsSubtitlePosition",
+	"settingsSubtitleBilingual",
+	"settingsSubtitleASS",
+	"settingsSubtitleEmbeddedFonts",
+	"settingsOnlineSubtitles",
+	"settingsDownloadSubtitles",
+	"settingsSubtitleShooter",
+	"settingsSubtitleSidecar",
+	"settingsSubtitlePreview",
+	"settingsSubtitleSample",
+	"settingsAddSubtitleLanguage",
+	"settingsSimplifiedChinese",
+	"settingsTraditionalChinese",
+	"settingsAudio",
+	"settingsCustomSubtitleColor",
+	"settingsSubtitleASSDescription",
 }
 
 // textsEn are the messages without arguments in en.
@@ -1110,7 +1258,76 @@ var textsEn = i18n.NewTexts(""+
 	"Resume download"+
 	"Delete downloaded file"+
 	"Offline playback"+
-	"Pause active downloads before deleting them.",
+	"Pause active downloads before deleting them."+
+	"Playback experience"+
+	"Unavailable"+
+	"Always on"+
+	"Streaming quality"+
+	"Cellular quality"+
+	"Prefer direct play"+
+	"Warn before streaming on cellular"+
+	"Decoder and display"+
+	"Hardware decoding"+
+	"Decoder"+
+	"Match dynamic range"+
+	"Switch display mode for HDR10 and Dolby Vision"+
+	"HDR tone mapping"+
+	"Match frame rate"+
+	"Switch TV output to the video's native refresh rate"+
+	"Default picture mode"+
+	"Original"+
+	"Fill and crop"+
+	"Stretch"+
+	"Audio passthrough"+
+	"Send AC3, DTS, TrueHD and Atmos to a receiver"+
+	"Passthrough formats"+
+	"Volume boost"+
+	"Night mode"+
+	"Skip intros and credits"+
+	"Intro and credit detection"+
+	"Controls"+
+	"Remember playback position"+
+	"Rewind interval"+
+	"Forward interval"+
+	"Default speed"+
+	"Gestures"+
+	"Background and network"+
+	"Automatic picture in picture"+
+	"Continue playing audio in background"+
+	"Buffer size"+
+	"Language"+
+	"Preferred subtitle languages"+
+	"Preferred audio language"+
+	"Original language"+
+	"Automatically select subtitles"+
+	"For foreign audio"+
+	"Convert between Simplified and Traditional Chinese"+
+	"Subtitle style"+
+	"Font"+
+	"System"+
+	"Text size"+
+	"Color"+
+	"Outline and shadow"+
+	"Background"+
+	"None"+
+	"Translucent"+
+	"Black"+
+	"Position"+
+	"Show bilingual subtitles on separate lines"+
+	"Keep original ASS styling"+
+	"Load embedded fonts"+
+	"Online subtitles"+
+	"Automatically download missing subtitles"+
+	"Shooter"+
+	"Match external subtitles by file name"+
+	"Preview"+
+	"“We choose hope.”"+
+	"Add a language"+
+	"Simplified Chinese"+
+	"Traditional Chinese"+
+	"Audio"+
+	"Custom color"+
+	"Desktop libmpv renders the original styling of embedded ASS subtitles.",
 	[]uint16{
 		11,
 		47,
@@ -1420,6 +1637,75 @@ var textsEn = i18n.NewTexts(""+
 		22,
 		16,
 		44,
+		19,
+		11,
+		9,
+		17,
+		16,
+		18,
+		33,
+		19,
+		17,
+		7,
+		19,
+		46,
+		16,
+		16,
+		51,
+		20,
+		8,
+		13,
+		7,
+		17,
+		45,
+		19,
+		12,
+		10,
+		23,
+		26,
+		8,
+		26,
+		15,
+		16,
+		13,
+		8,
+		22,
+		28,
+		36,
+		11,
+		8,
+		28,
+		24,
+		17,
+		30,
+		17,
+		50,
+		14,
+		4,
+		6,
+		9,
+		5,
+		18,
+		10,
+		4,
+		11,
+		5,
+		8,
+		42,
+		25,
+		19,
+		16,
+		40,
+		7,
+		37,
+		7,
+		21,
+		14,
+		18,
+		19,
+		5,
+		12,
+		70,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -1731,7 +2017,76 @@ var textsZhHans = i18n.NewTexts(""+
 	"继续下载"+
 	"删除下载文件"+
 	"离线播放"+
-	"请先暂停正在下载的任务。",
+	"请先暂停正在下载的任务。"+
+	"播放体验"+
+	"暂不可用"+
+	"始终开启"+
+	"流媒体画质"+
+	"移动网络画质"+
+	"优先直接播放"+
+	"移动网络播放前提醒"+
+	"解码与显示"+
+	"硬件解码"+
+	"解码器"+
+	"匹配动态范围"+
+	"播放 HDR10 / 杜比视界时切换显示模式"+
+	"HDR 色调映射"+
+	"匹配帧率"+
+	"电视端切换为影片原生帧率，如 23.976 Hz"+
+	"默认画面比例"+
+	"原始"+
+	"铺满裁切"+
+	"拉伸"+
+	"音频直通"+
+	"将 AC3、DTS、TrueHD、Atmos 原样输出到功放"+
+	"直通格式"+
+	"音量增强"+
+	"夜间模式（压缩动态范围）"+
+	"跳过片头片尾"+
+	"片头片尾识别"+
+	"控制"+
+	"记住播放进度"+
+	"快退步长"+
+	"快进步长"+
+	"默认倍速"+
+	"手势"+
+	"后台与网络"+
+	"自动画中画"+
+	"后台继续播放音频"+
+	"缓冲大小"+
+	"语言"+
+	"首选字幕语言"+
+	"首选音频语言"+
+	"原始语言"+
+	"自动选择字幕"+
+	"仅外语时"+
+	"简繁自动转换"+
+	"字幕样式"+
+	"字体"+
+	"系统默认"+
+	"字号"+
+	"颜色"+
+	"描边 / 阴影"+
+	"背景"+
+	"无"+
+	"半透明"+
+	"黑色"+
+	"位置"+
+	"双语字幕上下分行"+
+	"按原样式渲染 ASS 字幕"+
+	"加载内嵌字体"+
+	"在线字幕"+
+	"缺少字幕时自动下载"+
+	"射手网（伪）"+
+	"外挂字幕匹配"+
+	"预览"+
+	"“我们选择希望。”"+
+	"添加语言"+
+	"简中"+
+	"繁中"+
+	"音频"+
+	"自定义颜色"+
+	"桌面端 libmpv 会保留内嵌 ASS 字幕的原始样式。",
 	[]uint16{
 		12,
 		45,
@@ -2041,6 +2396,75 @@ var textsZhHans = i18n.NewTexts(""+
 		18,
 		12,
 		36,
+		12,
+		12,
+		12,
+		15,
+		18,
+		18,
+		27,
+		15,
+		12,
+		9,
+		18,
+		48,
+		16,
+		12,
+		52,
+		18,
+		6,
+		12,
+		6,
+		12,
+		52,
+		12,
+		12,
+		36,
+		18,
+		18,
+		6,
+		18,
+		12,
+		12,
+		12,
+		6,
+		15,
+		15,
+		24,
+		12,
+		6,
+		18,
+		18,
+		12,
+		18,
+		12,
+		18,
+		12,
+		6,
+		12,
+		6,
+		6,
+		15,
+		6,
+		3,
+		9,
+		6,
+		6,
+		24,
+		29,
+		18,
+		12,
+		27,
+		18,
+		18,
+		6,
+		27,
+		12,
+		6,
+		6,
+		6,
+		15,
+		61,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -2276,6 +2700,21 @@ func Supply(lang string, t Translation) {
 	}
 	if t.DownloadPlay != nil {
 		s.DownloadPlay = t.DownloadPlay
+	}
+	if t.SettingsSeconds != nil {
+		s.SettingsSeconds = t.SettingsSeconds
+	}
+	if t.SettingsSubtitleDistance != nil {
+		s.SettingsSubtitleDistance = t.SettingsSubtitleDistance
+	}
+	if t.SettingsRemoveSubtitleLanguage != nil {
+		s.SettingsRemoveSubtitleLanguage = t.SettingsRemoveSubtitleLanguage
+	}
+	if t.SettingsRaiseSubtitleLanguage != nil {
+		s.SettingsRaiseSubtitleLanguage = t.SettingsRaiseSubtitleLanguage
+	}
+	if t.SettingsLowerSubtitleLanguage != nil {
+		s.SettingsLowerSubtitleLanguage = t.SettingsLowerSubtitleLanguage
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -5851,3 +6290,666 @@ func DownloadBusy(cx *core.Scope) string { return For(cx).DownloadBusy() }
 
 // DownloadBusy is the package's DownloadBusy in the language of msgs.
 func (msgs Messages) DownloadBusy() string { return msgs.text(textDownloadBusy) }
+
+// SettingsPlaybackExperience says "Playback experience"
+// in the language the app shows under cx.
+func SettingsPlaybackExperience(cx *core.Scope) string { return For(cx).SettingsPlaybackExperience() }
+
+// SettingsPlaybackExperience is the package's SettingsPlaybackExperience in the language of msgs.
+func (msgs Messages) SettingsPlaybackExperience() string {
+	return msgs.text(textSettingsPlaybackExperience)
+}
+
+// SettingsUnavailable says "Unavailable"
+// in the language the app shows under cx.
+func SettingsUnavailable(cx *core.Scope) string { return For(cx).SettingsUnavailable() }
+
+// SettingsUnavailable is the package's SettingsUnavailable in the language of msgs.
+func (msgs Messages) SettingsUnavailable() string { return msgs.text(textSettingsUnavailable) }
+
+// SettingsAlwaysOn says "Always on"
+// in the language the app shows under cx.
+func SettingsAlwaysOn(cx *core.Scope) string { return For(cx).SettingsAlwaysOn() }
+
+// SettingsAlwaysOn is the package's SettingsAlwaysOn in the language of msgs.
+func (msgs Messages) SettingsAlwaysOn() string { return msgs.text(textSettingsAlwaysOn) }
+
+// SettingsWifiQuality says "Streaming quality"
+// in the language the app shows under cx.
+func SettingsWifiQuality(cx *core.Scope) string { return For(cx).SettingsWifiQuality() }
+
+// SettingsWifiQuality is the package's SettingsWifiQuality in the language of msgs.
+func (msgs Messages) SettingsWifiQuality() string { return msgs.text(textSettingsWifiQuality) }
+
+// SettingsCellularQuality says "Cellular quality"
+// in the language the app shows under cx.
+func SettingsCellularQuality(cx *core.Scope) string { return For(cx).SettingsCellularQuality() }
+
+// SettingsCellularQuality is the package's SettingsCellularQuality in the language of msgs.
+func (msgs Messages) SettingsCellularQuality() string { return msgs.text(textSettingsCellularQuality) }
+
+// SettingsPreferDirect says "Prefer direct play"
+// in the language the app shows under cx.
+func SettingsPreferDirect(cx *core.Scope) string { return For(cx).SettingsPreferDirect() }
+
+// SettingsPreferDirect is the package's SettingsPreferDirect in the language of msgs.
+func (msgs Messages) SettingsPreferDirect() string { return msgs.text(textSettingsPreferDirect) }
+
+// SettingsCellularWarning says "Warn before streaming on cellular"
+// in the language the app shows under cx.
+func SettingsCellularWarning(cx *core.Scope) string { return For(cx).SettingsCellularWarning() }
+
+// SettingsCellularWarning is the package's SettingsCellularWarning in the language of msgs.
+func (msgs Messages) SettingsCellularWarning() string { return msgs.text(textSettingsCellularWarning) }
+
+// SettingsDecoderDisplay says "Decoder and display"
+// in the language the app shows under cx.
+func SettingsDecoderDisplay(cx *core.Scope) string { return For(cx).SettingsDecoderDisplay() }
+
+// SettingsDecoderDisplay is the package's SettingsDecoderDisplay in the language of msgs.
+func (msgs Messages) SettingsDecoderDisplay() string { return msgs.text(textSettingsDecoderDisplay) }
+
+// SettingsHardwareDecode says "Hardware decoding"
+// in the language the app shows under cx.
+func SettingsHardwareDecode(cx *core.Scope) string { return For(cx).SettingsHardwareDecode() }
+
+// SettingsHardwareDecode is the package's SettingsHardwareDecode in the language of msgs.
+func (msgs Messages) SettingsHardwareDecode() string { return msgs.text(textSettingsHardwareDecode) }
+
+// SettingsDecoder says "Decoder"
+// in the language the app shows under cx.
+func SettingsDecoder(cx *core.Scope) string { return For(cx).SettingsDecoder() }
+
+// SettingsDecoder is the package's SettingsDecoder in the language of msgs.
+func (msgs Messages) SettingsDecoder() string { return msgs.text(textSettingsDecoder) }
+
+// SettingsMatchHDR says "Match dynamic range"
+// in the language the app shows under cx.
+func SettingsMatchHDR(cx *core.Scope) string { return For(cx).SettingsMatchHDR() }
+
+// SettingsMatchHDR is the package's SettingsMatchHDR in the language of msgs.
+func (msgs Messages) SettingsMatchHDR() string { return msgs.text(textSettingsMatchHDR) }
+
+// SettingsMatchHDRDescription says "Switch display mode for HDR10 and Dolby Vision"
+// in the language the app shows under cx.
+func SettingsMatchHDRDescription(cx *core.Scope) string { return For(cx).SettingsMatchHDRDescription() }
+
+// SettingsMatchHDRDescription is the package's SettingsMatchHDRDescription in the language of msgs.
+func (msgs Messages) SettingsMatchHDRDescription() string {
+	return msgs.text(textSettingsMatchHDRDescription)
+}
+
+// SettingsToneMap says "HDR tone mapping"
+// in the language the app shows under cx.
+func SettingsToneMap(cx *core.Scope) string { return For(cx).SettingsToneMap() }
+
+// SettingsToneMap is the package's SettingsToneMap in the language of msgs.
+func (msgs Messages) SettingsToneMap() string { return msgs.text(textSettingsToneMap) }
+
+// SettingsMatchRate says "Match frame rate"
+// in the language the app shows under cx.
+func SettingsMatchRate(cx *core.Scope) string { return For(cx).SettingsMatchRate() }
+
+// SettingsMatchRate is the package's SettingsMatchRate in the language of msgs.
+func (msgs Messages) SettingsMatchRate() string { return msgs.text(textSettingsMatchRate) }
+
+// SettingsMatchRateDescription says "Switch TV output to the video's native refresh rate"
+// in the language the app shows under cx.
+func SettingsMatchRateDescription(cx *core.Scope) string {
+	return For(cx).SettingsMatchRateDescription()
+}
+
+// SettingsMatchRateDescription is the package's SettingsMatchRateDescription in the language of msgs.
+func (msgs Messages) SettingsMatchRateDescription() string {
+	return msgs.text(textSettingsMatchRateDescription)
+}
+
+// SettingsPicture says "Default picture mode"
+// in the language the app shows under cx.
+func SettingsPicture(cx *core.Scope) string { return For(cx).SettingsPicture() }
+
+// SettingsPicture is the package's SettingsPicture in the language of msgs.
+func (msgs Messages) SettingsPicture() string { return msgs.text(textSettingsPicture) }
+
+// SettingsPictureOriginal says "Original"
+// in the language the app shows under cx.
+func SettingsPictureOriginal(cx *core.Scope) string { return For(cx).SettingsPictureOriginal() }
+
+// SettingsPictureOriginal is the package's SettingsPictureOriginal in the language of msgs.
+func (msgs Messages) SettingsPictureOriginal() string { return msgs.text(textSettingsPictureOriginal) }
+
+// SettingsPictureCrop says "Fill and crop"
+// in the language the app shows under cx.
+func SettingsPictureCrop(cx *core.Scope) string { return For(cx).SettingsPictureCrop() }
+
+// SettingsPictureCrop is the package's SettingsPictureCrop in the language of msgs.
+func (msgs Messages) SettingsPictureCrop() string { return msgs.text(textSettingsPictureCrop) }
+
+// SettingsPictureStretch says "Stretch"
+// in the language the app shows under cx.
+func SettingsPictureStretch(cx *core.Scope) string { return For(cx).SettingsPictureStretch() }
+
+// SettingsPictureStretch is the package's SettingsPictureStretch in the language of msgs.
+func (msgs Messages) SettingsPictureStretch() string { return msgs.text(textSettingsPictureStretch) }
+
+// SettingsPassthrough says "Audio passthrough"
+// in the language the app shows under cx.
+func SettingsPassthrough(cx *core.Scope) string { return For(cx).SettingsPassthrough() }
+
+// SettingsPassthrough is the package's SettingsPassthrough in the language of msgs.
+func (msgs Messages) SettingsPassthrough() string { return msgs.text(textSettingsPassthrough) }
+
+// SettingsPassthroughDescription says "Send AC3, DTS, TrueHD and Atmos to a receiver"
+// in the language the app shows under cx.
+func SettingsPassthroughDescription(cx *core.Scope) string {
+	return For(cx).SettingsPassthroughDescription()
+}
+
+// SettingsPassthroughDescription is the package's SettingsPassthroughDescription in the language of msgs.
+func (msgs Messages) SettingsPassthroughDescription() string {
+	return msgs.text(textSettingsPassthroughDescription)
+}
+
+// SettingsPassthroughFormats says "Passthrough formats"
+// in the language the app shows under cx.
+func SettingsPassthroughFormats(cx *core.Scope) string { return For(cx).SettingsPassthroughFormats() }
+
+// SettingsPassthroughFormats is the package's SettingsPassthroughFormats in the language of msgs.
+func (msgs Messages) SettingsPassthroughFormats() string {
+	return msgs.text(textSettingsPassthroughFormats)
+}
+
+// SettingsBoostVolume says "Volume boost"
+// in the language the app shows under cx.
+func SettingsBoostVolume(cx *core.Scope) string { return For(cx).SettingsBoostVolume() }
+
+// SettingsBoostVolume is the package's SettingsBoostVolume in the language of msgs.
+func (msgs Messages) SettingsBoostVolume() string { return msgs.text(textSettingsBoostVolume) }
+
+// SettingsNightAudio says "Night mode"
+// in the language the app shows under cx.
+func SettingsNightAudio(cx *core.Scope) string { return For(cx).SettingsNightAudio() }
+
+// SettingsNightAudio is the package's SettingsNightAudio in the language of msgs.
+func (msgs Messages) SettingsNightAudio() string { return msgs.text(textSettingsNightAudio) }
+
+// SettingsSkipIntro says "Skip intros and credits"
+// in the language the app shows under cx.
+func SettingsSkipIntro(cx *core.Scope) string { return For(cx).SettingsSkipIntro() }
+
+// SettingsSkipIntro is the package's SettingsSkipIntro in the language of msgs.
+func (msgs Messages) SettingsSkipIntro() string { return msgs.text(textSettingsSkipIntro) }
+
+// SettingsIdentifyIntro says "Intro and credit detection"
+// in the language the app shows under cx.
+func SettingsIdentifyIntro(cx *core.Scope) string { return For(cx).SettingsIdentifyIntro() }
+
+// SettingsIdentifyIntro is the package's SettingsIdentifyIntro in the language of msgs.
+func (msgs Messages) SettingsIdentifyIntro() string { return msgs.text(textSettingsIdentifyIntro) }
+
+// SettingsControls says "Controls"
+// in the language the app shows under cx.
+func SettingsControls(cx *core.Scope) string { return For(cx).SettingsControls() }
+
+// SettingsControls is the package's SettingsControls in the language of msgs.
+func (msgs Messages) SettingsControls() string { return msgs.text(textSettingsControls) }
+
+// SettingsRememberProgress says "Remember playback position"
+// in the language the app shows under cx.
+func SettingsRememberProgress(cx *core.Scope) string { return For(cx).SettingsRememberProgress() }
+
+// SettingsRememberProgress is the package's SettingsRememberProgress in the language of msgs.
+func (msgs Messages) SettingsRememberProgress() string {
+	return msgs.text(textSettingsRememberProgress)
+}
+
+// SettingsSeekBack says "Rewind interval"
+// in the language the app shows under cx.
+func SettingsSeekBack(cx *core.Scope) string { return For(cx).SettingsSeekBack() }
+
+// SettingsSeekBack is the package's SettingsSeekBack in the language of msgs.
+func (msgs Messages) SettingsSeekBack() string { return msgs.text(textSettingsSeekBack) }
+
+// SettingsSeekForward says "Forward interval"
+// in the language the app shows under cx.
+func SettingsSeekForward(cx *core.Scope) string { return For(cx).SettingsSeekForward() }
+
+// SettingsSeekForward is the package's SettingsSeekForward in the language of msgs.
+func (msgs Messages) SettingsSeekForward() string { return msgs.text(textSettingsSeekForward) }
+
+// SettingsSeconds says "{seconds} s"
+// in the language the app shows under cx.
+func SettingsSeconds(cx *core.Scope, seconds string) string { return For(cx).SettingsSeconds(seconds) }
+
+// SettingsSeconds is the package's SettingsSeconds in the language of msgs.
+func (msgs Messages) SettingsSeconds(seconds string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SettingsSeconds(seconds))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SettingsSeconds; f != nil {
+			return f(seconds)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(seconds) + " s"
+		case "zh-Hans":
+			return seconds + " 秒"
+		}
+	}
+}
+
+// SettingsDefaultRate says "Default speed"
+// in the language the app shows under cx.
+func SettingsDefaultRate(cx *core.Scope) string { return For(cx).SettingsDefaultRate() }
+
+// SettingsDefaultRate is the package's SettingsDefaultRate in the language of msgs.
+func (msgs Messages) SettingsDefaultRate() string { return msgs.text(textSettingsDefaultRate) }
+
+// SettingsPlaybackGestures says "Gestures"
+// in the language the app shows under cx.
+func SettingsPlaybackGestures(cx *core.Scope) string { return For(cx).SettingsPlaybackGestures() }
+
+// SettingsPlaybackGestures is the package's SettingsPlaybackGestures in the language of msgs.
+func (msgs Messages) SettingsPlaybackGestures() string {
+	return msgs.text(textSettingsPlaybackGestures)
+}
+
+// SettingsBackgroundNetwork says "Background and network"
+// in the language the app shows under cx.
+func SettingsBackgroundNetwork(cx *core.Scope) string { return For(cx).SettingsBackgroundNetwork() }
+
+// SettingsBackgroundNetwork is the package's SettingsBackgroundNetwork in the language of msgs.
+func (msgs Messages) SettingsBackgroundNetwork() string {
+	return msgs.text(textSettingsBackgroundNetwork)
+}
+
+// SettingsAutoPiP says "Automatic picture in picture"
+// in the language the app shows under cx.
+func SettingsAutoPiP(cx *core.Scope) string { return For(cx).SettingsAutoPiP() }
+
+// SettingsAutoPiP is the package's SettingsAutoPiP in the language of msgs.
+func (msgs Messages) SettingsAutoPiP() string { return msgs.text(textSettingsAutoPiP) }
+
+// SettingsBackgroundAudio says "Continue playing audio in background"
+// in the language the app shows under cx.
+func SettingsBackgroundAudio(cx *core.Scope) string { return For(cx).SettingsBackgroundAudio() }
+
+// SettingsBackgroundAudio is the package's SettingsBackgroundAudio in the language of msgs.
+func (msgs Messages) SettingsBackgroundAudio() string { return msgs.text(textSettingsBackgroundAudio) }
+
+// SettingsPlaybackBuffer says "Buffer size"
+// in the language the app shows under cx.
+func SettingsPlaybackBuffer(cx *core.Scope) string { return For(cx).SettingsPlaybackBuffer() }
+
+// SettingsPlaybackBuffer is the package's SettingsPlaybackBuffer in the language of msgs.
+func (msgs Messages) SettingsPlaybackBuffer() string { return msgs.text(textSettingsPlaybackBuffer) }
+
+// SettingsLanguages says "Language"
+// in the language the app shows under cx.
+func SettingsLanguages(cx *core.Scope) string { return For(cx).SettingsLanguages() }
+
+// SettingsLanguages is the package's SettingsLanguages in the language of msgs.
+func (msgs Messages) SettingsLanguages() string { return msgs.text(textSettingsLanguages) }
+
+// SettingsPreferredSubtitles says "Preferred subtitle languages"
+// in the language the app shows under cx.
+func SettingsPreferredSubtitles(cx *core.Scope) string { return For(cx).SettingsPreferredSubtitles() }
+
+// SettingsPreferredSubtitles is the package's SettingsPreferredSubtitles in the language of msgs.
+func (msgs Messages) SettingsPreferredSubtitles() string {
+	return msgs.text(textSettingsPreferredSubtitles)
+}
+
+// SettingsPreferredAudio says "Preferred audio language"
+// in the language the app shows under cx.
+func SettingsPreferredAudio(cx *core.Scope) string { return For(cx).SettingsPreferredAudio() }
+
+// SettingsPreferredAudio is the package's SettingsPreferredAudio in the language of msgs.
+func (msgs Messages) SettingsPreferredAudio() string { return msgs.text(textSettingsPreferredAudio) }
+
+// SettingsOriginalLanguage says "Original language"
+// in the language the app shows under cx.
+func SettingsOriginalLanguage(cx *core.Scope) string { return For(cx).SettingsOriginalLanguage() }
+
+// SettingsOriginalLanguage is the package's SettingsOriginalLanguage in the language of msgs.
+func (msgs Messages) SettingsOriginalLanguage() string {
+	return msgs.text(textSettingsOriginalLanguage)
+}
+
+// SettingsAutoSubtitle says "Automatically select subtitles"
+// in the language the app shows under cx.
+func SettingsAutoSubtitle(cx *core.Scope) string { return For(cx).SettingsAutoSubtitle() }
+
+// SettingsAutoSubtitle is the package's SettingsAutoSubtitle in the language of msgs.
+func (msgs Messages) SettingsAutoSubtitle() string { return msgs.text(textSettingsAutoSubtitle) }
+
+// SettingsSubtitleForeign says "For foreign audio"
+// in the language the app shows under cx.
+func SettingsSubtitleForeign(cx *core.Scope) string { return For(cx).SettingsSubtitleForeign() }
+
+// SettingsSubtitleForeign is the package's SettingsSubtitleForeign in the language of msgs.
+func (msgs Messages) SettingsSubtitleForeign() string { return msgs.text(textSettingsSubtitleForeign) }
+
+// SettingsSubtitleConvert says "Convert between Simplified and Traditional Chinese"
+// in the language the app shows under cx.
+func SettingsSubtitleConvert(cx *core.Scope) string { return For(cx).SettingsSubtitleConvert() }
+
+// SettingsSubtitleConvert is the package's SettingsSubtitleConvert in the language of msgs.
+func (msgs Messages) SettingsSubtitleConvert() string { return msgs.text(textSettingsSubtitleConvert) }
+
+// SettingsSubtitleStyle says "Subtitle style"
+// in the language the app shows under cx.
+func SettingsSubtitleStyle(cx *core.Scope) string { return For(cx).SettingsSubtitleStyle() }
+
+// SettingsSubtitleStyle is the package's SettingsSubtitleStyle in the language of msgs.
+func (msgs Messages) SettingsSubtitleStyle() string { return msgs.text(textSettingsSubtitleStyle) }
+
+// SettingsSubtitleFont says "Font"
+// in the language the app shows under cx.
+func SettingsSubtitleFont(cx *core.Scope) string { return For(cx).SettingsSubtitleFont() }
+
+// SettingsSubtitleFont is the package's SettingsSubtitleFont in the language of msgs.
+func (msgs Messages) SettingsSubtitleFont() string { return msgs.text(textSettingsSubtitleFont) }
+
+// SettingsSubtitleSystemFont says "System"
+// in the language the app shows under cx.
+func SettingsSubtitleSystemFont(cx *core.Scope) string { return For(cx).SettingsSubtitleSystemFont() }
+
+// SettingsSubtitleSystemFont is the package's SettingsSubtitleSystemFont in the language of msgs.
+func (msgs Messages) SettingsSubtitleSystemFont() string {
+	return msgs.text(textSettingsSubtitleSystemFont)
+}
+
+// SettingsSubtitleSize says "Text size"
+// in the language the app shows under cx.
+func SettingsSubtitleSize(cx *core.Scope) string { return For(cx).SettingsSubtitleSize() }
+
+// SettingsSubtitleSize is the package's SettingsSubtitleSize in the language of msgs.
+func (msgs Messages) SettingsSubtitleSize() string { return msgs.text(textSettingsSubtitleSize) }
+
+// SettingsSubtitleColor says "Color"
+// in the language the app shows under cx.
+func SettingsSubtitleColor(cx *core.Scope) string { return For(cx).SettingsSubtitleColor() }
+
+// SettingsSubtitleColor is the package's SettingsSubtitleColor in the language of msgs.
+func (msgs Messages) SettingsSubtitleColor() string { return msgs.text(textSettingsSubtitleColor) }
+
+// SettingsSubtitleStroke says "Outline and shadow"
+// in the language the app shows under cx.
+func SettingsSubtitleStroke(cx *core.Scope) string { return For(cx).SettingsSubtitleStroke() }
+
+// SettingsSubtitleStroke is the package's SettingsSubtitleStroke in the language of msgs.
+func (msgs Messages) SettingsSubtitleStroke() string { return msgs.text(textSettingsSubtitleStroke) }
+
+// SettingsSubtitleBackground says "Background"
+// in the language the app shows under cx.
+func SettingsSubtitleBackground(cx *core.Scope) string { return For(cx).SettingsSubtitleBackground() }
+
+// SettingsSubtitleBackground is the package's SettingsSubtitleBackground in the language of msgs.
+func (msgs Messages) SettingsSubtitleBackground() string {
+	return msgs.text(textSettingsSubtitleBackground)
+}
+
+// SettingsSubtitleBackgroundNone says "None"
+// in the language the app shows under cx.
+func SettingsSubtitleBackgroundNone(cx *core.Scope) string {
+	return For(cx).SettingsSubtitleBackgroundNone()
+}
+
+// SettingsSubtitleBackgroundNone is the package's SettingsSubtitleBackgroundNone in the language of msgs.
+func (msgs Messages) SettingsSubtitleBackgroundNone() string {
+	return msgs.text(textSettingsSubtitleBackgroundNone)
+}
+
+// SettingsSubtitleBackgroundDim says "Translucent"
+// in the language the app shows under cx.
+func SettingsSubtitleBackgroundDim(cx *core.Scope) string {
+	return For(cx).SettingsSubtitleBackgroundDim()
+}
+
+// SettingsSubtitleBackgroundDim is the package's SettingsSubtitleBackgroundDim in the language of msgs.
+func (msgs Messages) SettingsSubtitleBackgroundDim() string {
+	return msgs.text(textSettingsSubtitleBackgroundDim)
+}
+
+// SettingsSubtitleBackgroundSolid says "Black"
+// in the language the app shows under cx.
+func SettingsSubtitleBackgroundSolid(cx *core.Scope) string {
+	return For(cx).SettingsSubtitleBackgroundSolid()
+}
+
+// SettingsSubtitleBackgroundSolid is the package's SettingsSubtitleBackgroundSolid in the language of msgs.
+func (msgs Messages) SettingsSubtitleBackgroundSolid() string {
+	return msgs.text(textSettingsSubtitleBackgroundSolid)
+}
+
+// SettingsSubtitlePosition says "Position"
+// in the language the app shows under cx.
+func SettingsSubtitlePosition(cx *core.Scope) string { return For(cx).SettingsSubtitlePosition() }
+
+// SettingsSubtitlePosition is the package's SettingsSubtitlePosition in the language of msgs.
+func (msgs Messages) SettingsSubtitlePosition() string {
+	return msgs.text(textSettingsSubtitlePosition)
+}
+
+// SettingsSubtitleDistance says "{distance}% from bottom"
+// in the language the app shows under cx.
+func SettingsSubtitleDistance(cx *core.Scope, distance string) string {
+	return For(cx).SettingsSubtitleDistance(distance)
+}
+
+// SettingsSubtitleDistance is the package's SettingsSubtitleDistance in the language of msgs.
+func (msgs Messages) SettingsSubtitleDistance(distance string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SettingsSubtitleDistance(distance))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SettingsSubtitleDistance; f != nil {
+			return f(distance)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(distance) + "% from bottom"
+		case "zh-Hans":
+			return "底部 · 距边 " + distance + "%"
+		}
+	}
+}
+
+// SettingsSubtitleBilingual says "Show bilingual subtitles on separate lines"
+// in the language the app shows under cx.
+func SettingsSubtitleBilingual(cx *core.Scope) string { return For(cx).SettingsSubtitleBilingual() }
+
+// SettingsSubtitleBilingual is the package's SettingsSubtitleBilingual in the language of msgs.
+func (msgs Messages) SettingsSubtitleBilingual() string {
+	return msgs.text(textSettingsSubtitleBilingual)
+}
+
+// SettingsSubtitleASS says "Keep original ASS styling"
+// in the language the app shows under cx.
+func SettingsSubtitleASS(cx *core.Scope) string { return For(cx).SettingsSubtitleASS() }
+
+// SettingsSubtitleASS is the package's SettingsSubtitleASS in the language of msgs.
+func (msgs Messages) SettingsSubtitleASS() string { return msgs.text(textSettingsSubtitleASS) }
+
+// SettingsSubtitleEmbeddedFonts says "Load embedded fonts"
+// in the language the app shows under cx.
+func SettingsSubtitleEmbeddedFonts(cx *core.Scope) string {
+	return For(cx).SettingsSubtitleEmbeddedFonts()
+}
+
+// SettingsSubtitleEmbeddedFonts is the package's SettingsSubtitleEmbeddedFonts in the language of msgs.
+func (msgs Messages) SettingsSubtitleEmbeddedFonts() string {
+	return msgs.text(textSettingsSubtitleEmbeddedFonts)
+}
+
+// SettingsOnlineSubtitles says "Online subtitles"
+// in the language the app shows under cx.
+func SettingsOnlineSubtitles(cx *core.Scope) string { return For(cx).SettingsOnlineSubtitles() }
+
+// SettingsOnlineSubtitles is the package's SettingsOnlineSubtitles in the language of msgs.
+func (msgs Messages) SettingsOnlineSubtitles() string { return msgs.text(textSettingsOnlineSubtitles) }
+
+// SettingsDownloadSubtitles says "Automatically download missing subtitles"
+// in the language the app shows under cx.
+func SettingsDownloadSubtitles(cx *core.Scope) string { return For(cx).SettingsDownloadSubtitles() }
+
+// SettingsDownloadSubtitles is the package's SettingsDownloadSubtitles in the language of msgs.
+func (msgs Messages) SettingsDownloadSubtitles() string {
+	return msgs.text(textSettingsDownloadSubtitles)
+}
+
+// SettingsSubtitleShooter says "Shooter"
+// in the language the app shows under cx.
+func SettingsSubtitleShooter(cx *core.Scope) string { return For(cx).SettingsSubtitleShooter() }
+
+// SettingsSubtitleShooter is the package's SettingsSubtitleShooter in the language of msgs.
+func (msgs Messages) SettingsSubtitleShooter() string { return msgs.text(textSettingsSubtitleShooter) }
+
+// SettingsSubtitleSidecar says "Match external subtitles by file name"
+// in the language the app shows under cx.
+func SettingsSubtitleSidecar(cx *core.Scope) string { return For(cx).SettingsSubtitleSidecar() }
+
+// SettingsSubtitleSidecar is the package's SettingsSubtitleSidecar in the language of msgs.
+func (msgs Messages) SettingsSubtitleSidecar() string { return msgs.text(textSettingsSubtitleSidecar) }
+
+// SettingsSubtitlePreview says "Preview"
+// in the language the app shows under cx.
+func SettingsSubtitlePreview(cx *core.Scope) string { return For(cx).SettingsSubtitlePreview() }
+
+// SettingsSubtitlePreview is the package's SettingsSubtitlePreview in the language of msgs.
+func (msgs Messages) SettingsSubtitlePreview() string { return msgs.text(textSettingsSubtitlePreview) }
+
+// SettingsSubtitleSample says "“We choose hope.”"
+// in the language the app shows under cx.
+func SettingsSubtitleSample(cx *core.Scope) string { return For(cx).SettingsSubtitleSample() }
+
+// SettingsSubtitleSample is the package's SettingsSubtitleSample in the language of msgs.
+func (msgs Messages) SettingsSubtitleSample() string { return msgs.text(textSettingsSubtitleSample) }
+
+// SettingsAddSubtitleLanguage says "Add a language"
+// in the language the app shows under cx.
+func SettingsAddSubtitleLanguage(cx *core.Scope) string { return For(cx).SettingsAddSubtitleLanguage() }
+
+// SettingsAddSubtitleLanguage is the package's SettingsAddSubtitleLanguage in the language of msgs.
+func (msgs Messages) SettingsAddSubtitleLanguage() string {
+	return msgs.text(textSettingsAddSubtitleLanguage)
+}
+
+// SettingsSimplifiedChinese says "Simplified Chinese"
+// in the language the app shows under cx.
+func SettingsSimplifiedChinese(cx *core.Scope) string { return For(cx).SettingsSimplifiedChinese() }
+
+// SettingsSimplifiedChinese is the package's SettingsSimplifiedChinese in the language of msgs.
+func (msgs Messages) SettingsSimplifiedChinese() string {
+	return msgs.text(textSettingsSimplifiedChinese)
+}
+
+// SettingsTraditionalChinese says "Traditional Chinese"
+// in the language the app shows under cx.
+func SettingsTraditionalChinese(cx *core.Scope) string { return For(cx).SettingsTraditionalChinese() }
+
+// SettingsTraditionalChinese is the package's SettingsTraditionalChinese in the language of msgs.
+func (msgs Messages) SettingsTraditionalChinese() string {
+	return msgs.text(textSettingsTraditionalChinese)
+}
+
+// SettingsRemoveSubtitleLanguage says "Remove {name}"
+// in the language the app shows under cx.
+func SettingsRemoveSubtitleLanguage(cx *core.Scope, name string) string {
+	return For(cx).SettingsRemoveSubtitleLanguage(name)
+}
+
+// SettingsRemoveSubtitleLanguage is the package's SettingsRemoveSubtitleLanguage in the language of msgs.
+func (msgs Messages) SettingsRemoveSubtitleLanguage(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SettingsRemoveSubtitleLanguage(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SettingsRemoveSubtitleLanguage; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Remove " + msgs.arg(name)
+		case "zh-Hans":
+			return "移除" + name
+		}
+	}
+}
+
+// SettingsRaiseSubtitleLanguage says "Move {name} up"
+// in the language the app shows under cx.
+func SettingsRaiseSubtitleLanguage(cx *core.Scope, name string) string {
+	return For(cx).SettingsRaiseSubtitleLanguage(name)
+}
+
+// SettingsRaiseSubtitleLanguage is the package's SettingsRaiseSubtitleLanguage in the language of msgs.
+func (msgs Messages) SettingsRaiseSubtitleLanguage(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SettingsRaiseSubtitleLanguage(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SettingsRaiseSubtitleLanguage; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Move " + msgs.arg(name) + " up"
+		case "zh-Hans":
+			return "上移" + name
+		}
+	}
+}
+
+// SettingsLowerSubtitleLanguage says "Move {name} down"
+// in the language the app shows under cx.
+func SettingsLowerSubtitleLanguage(cx *core.Scope, name string) string {
+	return For(cx).SettingsLowerSubtitleLanguage(name)
+}
+
+// SettingsLowerSubtitleLanguage is the package's SettingsLowerSubtitleLanguage in the language of msgs.
+func (msgs Messages) SettingsLowerSubtitleLanguage(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SettingsLowerSubtitleLanguage(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SettingsLowerSubtitleLanguage; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Move " + msgs.arg(name) + " down"
+		case "zh-Hans":
+			return "下移" + name
+		}
+	}
+}
+
+// SettingsAudio says "Audio"
+// in the language the app shows under cx.
+func SettingsAudio(cx *core.Scope) string { return For(cx).SettingsAudio() }
+
+// SettingsAudio is the package's SettingsAudio in the language of msgs.
+func (msgs Messages) SettingsAudio() string { return msgs.text(textSettingsAudio) }
+
+// SettingsCustomSubtitleColor says "Custom color"
+// in the language the app shows under cx.
+func SettingsCustomSubtitleColor(cx *core.Scope) string { return For(cx).SettingsCustomSubtitleColor() }
+
+// SettingsCustomSubtitleColor is the package's SettingsCustomSubtitleColor in the language of msgs.
+func (msgs Messages) SettingsCustomSubtitleColor() string {
+	return msgs.text(textSettingsCustomSubtitleColor)
+}
+
+// SettingsSubtitleASSDescription says "Desktop libmpv renders the original styling of embedded ASS subtitles."
+// in the language the app shows under cx.
+func SettingsSubtitleASSDescription(cx *core.Scope) string {
+	return For(cx).SettingsSubtitleASSDescription()
+}
+
+// SettingsSubtitleASSDescription is the package's SettingsSubtitleASSDescription in the language of msgs.
+func (msgs Messages) SettingsSubtitleASSDescription() string {
+	return msgs.text(textSettingsSubtitleASSDescription)
+}

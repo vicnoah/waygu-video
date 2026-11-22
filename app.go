@@ -21,20 +21,23 @@ import (
 type screen string
 
 const (
-	screenWelcome         screen = "welcome"
-	screenSources         screen = "sources"
-	screenConnect         screen = "connect"
-	screenPlexLink        screen = "plex-link"
-	screenHome            screen = "home"
-	screenLibrary         screen = "library"
-	screenSearch          screen = "search"
-	screenFavorites       screen = "favorites"
-	screenHistory         screen = "history"
-	screenSettings        screen = "settings"
-	screenManageLibraries screen = "manage-libraries"
-	screenDetail          screen = "detail"
-	screenPlayer          screen = "player"
-	screenDownloads       screen = "downloads"
+	screenWelcome           screen = "welcome"
+	screenSources           screen = "sources"
+	screenConnect           screen = "connect"
+	screenPlexLink          screen = "plex-link"
+	screenHome              screen = "home"
+	screenLibrary           screen = "library"
+	screenSearch            screen = "search"
+	screenFavorites         screen = "favorites"
+	screenHistory           screen = "history"
+	screenSettings          screen = "settings"
+	screenPlaybackSettings  screen = "settings-playback"
+	screenSubtitleSettings  screen = "settings-subtitles"
+	screenSubtitleLanguages screen = "settings-subtitle-languages"
+	screenManageLibraries   screen = "manage-libraries"
+	screenDetail            screen = "detail"
+	screenPlayer            screen = "player"
+	screenDownloads         screen = "downloads"
 )
 
 type route struct {
@@ -96,6 +99,8 @@ type application struct {
 	bitrateLimit   *core.Signal[int]
 	versionPolicy  *core.Signal[media.VersionPolicy]
 	autoNext       *core.Signal[bool]
+	playbackPrefs  *core.Signal[playbackPreferences]
+	subtitlePrefs  *core.Signal[subtitlePreferences]
 	danmakuPrefs   *core.Signal[danmakuPreferences]
 	progress       *progressOutbox
 	downloads      *downloadQueue
@@ -164,6 +169,8 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 		danmakuPrefs:  core.NewSignal(cx, core.Untracked(cx, func() danmakuPreferences { return readDanmakuPreferences(storage) })),
 	}
 	a.progress = core.Untracked(cx, func() *progressOutbox { return newProgressOutbox(cx, storage) })
+	a.playbackPrefs = core.NewSignal(cx, core.Untracked(cx, func() playbackPreferences { return readPlaybackPreferences(storage) }))
+	a.subtitlePrefs = core.NewSignalFunc(cx, core.Untracked(cx, func() subtitlePreferences { return readSubtitlePreferences(storage) }), nil)
 	a.phoneLibrary = core.NewSignal(cx, phoneLibraryState{})
 	a.phoneSearch = newPhoneSearchState(cx)
 	a.scheduleProgressReplay(time.Second)
@@ -199,6 +206,12 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 				return a.detail(screenScope, current)
 			case screenPlayer:
 				return a.player(screenScope, current)
+			case screenPlaybackSettings:
+				return a.phonePlaybackSettings(screenScope)
+			case screenSubtitleSettings:
+				return a.phoneSubtitleSettings(screenScope)
+			case screenSubtitleLanguages:
+				return a.phoneSubtitleLanguages(screenScope)
 			case screenDownloads:
 				return a.downloadStorage(screenScope)
 			default:

@@ -70,11 +70,13 @@ func TestConnectLibraryAndOpenPlayer(t *testing.T) {
 		t.Fatal("source configuration exposed credentials")
 	}
 	app.Press("role:tab Settings")
-	app.Press("id:bitrate-limit")
-	app.Press("id:bitrate-limit-1")
+	app.Press("id:open-phone-playback-settings")
+	app.Press("id:phone-streaming-quality")
+	app.Press("role:option 4 Mbps")
 	if bitrate, _ := app.Storage().GetItem(bitrateKey); bitrate != "4000000" {
 		t.Fatalf("streaming bitrate was not saved: %q", bitrate)
 	}
+	app.Press("id:back")
 	app.Press("role:tab Home")
 	app.WaitFor("id:title-test-film", time.Second)
 	app.Press("id:title-test-film")

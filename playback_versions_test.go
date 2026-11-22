@@ -24,11 +24,14 @@ func TestPlaybackVersionSelectionAndRememberedFallback(t *testing.T) {
 
 	app.WaitFor("id:title-test-film", time.Second)
 	app.Press("role:tab Settings")
-	app.Press("id:playback-version-policy")
-	app.Press("id:playback-version-policy-3")
+	app.Press("id:open-phone-playback-settings")
+	app.Scroll("id:phone-playback-settings", 1400)
+	app.Press("id:phone-playback-version-policy")
+	app.Press("role:option Remember the last version")
 	if policy, _ := app.Storage().GetItem(versionPolicyKey); policy != string(media.VersionRemember) {
 		t.Fatal("preferred playback version was not saved")
 	}
+	app.Press("id:back")
 	app.Press("role:tab Home")
 	app.WaitFor("id:title-test-film", time.Second)
 	app.Press("id:title-test-film")

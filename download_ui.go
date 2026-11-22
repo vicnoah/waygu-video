@@ -176,25 +176,14 @@ func (a *application) downloadStorage(cx *core.Scope) core.Node {
 			return nil
 		}),
 	}}
-	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Style: core.Style{
-		FlexShrink: 1, PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea, Bottom: core.EnvKeyboard},
-	}, Children: []core.Node{
-		homeAmbient(false, false), homeAmbient(true, false),
-		core.View{Class: "gap-1 pb-2", Children: []core.Node{
-			core.View{Class: "h-11 flex-row items-center px-2", Children: []core.Node{
-				base.Button{Label: locales.Settings(cx), TestID: "back", Class: "h-11 flex-row items-center gap-0.5 rounded px-2",
-					Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)}, OnPress: func(core.PressEvent) { a.back() }, Children: []core.Node{
-						core.Icon{SVG: lucide.ChevronLeft(), Class: "size-6 " + setupAccent},
-						core.Text{Content: locales.Settings(cx), Class: "text-[17px] " + setupAccent},
-					}},
-			}},
-			core.Text{Content: locales.StorageDownloads(cx), Class: "px-5 text-3xl font-bold " + setupTitle},
-		}},
-		core.Scroll{Class: "flex-1", Children: []core.Node{body}},
-	}}
+	return phoneSettingsFrame(cx, locales.StorageDownloads(cx), a.back, "storage-downloads-scroll", body)
 }
 
 func downloadPicker[T comparable](cx *core.Scope, id, label string, options []ui.Option[T], value func() T, change func(T)) core.Node {
+	return settingPicker(cx, id, label, options, value, change, nil)
+}
+
+func settingPicker[T comparable](cx *core.Scope, id, label string, options []ui.Option[T], value func() T, change func(T), parts []core.Node) core.Node {
 	items := make([]base.SelectItem, 0, len(options))
 	for i, option := range options {
 		items = append(items, base.SelectItem{Value: strconv.Itoa(i), Title: option.Label})
@@ -208,7 +197,24 @@ func downloadPicker[T comparable](cx *core.Scope, id, label string, options []ui
 		}
 		return nil
 	}
-	return base.Select{Label: label, TestID: id, RootClass: "shrink-0", Class: "min-h-9 justify-center rounded",
+	trigger := core.View{Class: "shrink-0 flex-row items-center gap-3", Children: []core.Node{
+		core.Text{ContentFunc: func() string {
+			current := value()
+			for _, option := range options {
+				if option.Value == current {
+					return option.Label
+				}
+			}
+			return ""
+		}, Class: "shrink text-right text-[15px] " + setupMuted},
+		core.Icon{SVG: lucide.ChevronRight(), Class: "size-4 opacity-60 " + setupMuted},
+	}}
+	rootClass, class := "shrink-0", "min-h-9 justify-center rounded"
+	if len(parts) > 0 {
+		rootClass, class = "w-full", "w-full "+setupRow+" py-2.5"
+		trigger = core.View{Class: "w-full flex-row items-center gap-3", Children: append(parts, trigger)}
+	}
+	return base.Select{Label: label, TestID: id, RootClass: rootClass, Class: class,
 		Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, PopupClass: tabletDetailPopup, ItemClass: tabletDetailOption,
 		Items: func() []base.SelectItem { return items }, Value: selected, RenderItem: tabletDetailOptionText,
 		OnChange: func(value *string) {
@@ -218,18 +224,7 @@ func downloadPicker[T comparable](cx *core.Scope, id, label string, options []ui
 				}
 			}
 		},
-		Trigger: core.View{Class: "flex-row items-center gap-3", Children: []core.Node{
-			core.Text{ContentFunc: func() string {
-				current := value()
-				for _, option := range options {
-					if option.Value == current {
-						return option.Label
-					}
-				}
-				return ""
-			}, Class: "text-[15px] " + setupMuted},
-			core.Icon{SVG: lucide.ChevronRight(), Class: "size-4 opacity-60 " + setupMuted},
-		}},
+		Trigger: trigger,
 	}
 }
 

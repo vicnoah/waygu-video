@@ -78,7 +78,7 @@ func mpvVideo(cx *core.Scope, native core.Video) desktopVideo {
 		case mpvFallback:
 			return native
 		case mpvActive:
-			return core.Image{Class: "absolute inset-0", ResizeMode: core.Contain, TestID: native.TestID,
+			return core.Image{Class: "absolute inset-0", ResizeMode: native.ResizeMode, TestID: native.TestID,
 				SourceFunc: func() core.ImageSource { return core.ImageSource{Pixels: pixels.Get()} }}
 		default:
 			return nil
