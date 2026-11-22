@@ -164,7 +164,10 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+          cache: false
       - name: Free disk space for Android virtual devices
+        env:
+          ANDROID_API: ${{ matrix.api }}
         run: |
           retained_ndk=$(realpath "$ANDROID_NDK_HOME")
           unused=()
@@ -173,8 +176,16 @@ jobs:
               unused+=("ndk;${ndk##*/}")
             fi
           done
+          for platform in "$ANDROID_HOME"/platforms/*; do
+            if [ -f "$platform/source.properties" ] && [ "${platform##*/}" != "android-$ANDROID_API" ]; then
+              unused+=("platforms;${platform##*/}")
+            fi
+          done
           if (( ${#unused[@]} )); then
             "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --uninstall "${unused[@]}"
+          fi
+          if command -v rustup >/dev/null; then
+            rustup toolchain list | awk 'NF && $1 !~ /^no$/ {print $1}' | xargs -r rustup toolchain uninstall
           fi
           df -h "$ANDROID_HOME"
       - name: Enable KVM
