@@ -26,10 +26,12 @@ type playerMedia struct {
 }
 
 func (a *application) player(cx *core.Scope, current route) core.Node {
-	theme := wayguTheme()
-	theme.Light = theme.Dark
-	cx.SetTheme(theme)
+	cx.SetTheme(wayguTheme())
+	cx.SetSubtreeAppearance(core.AppearanceDark)
 	platform := cx.Env().OS()
+	if (platform == core.OSIOS || platform == core.OSAndroid) && appLayoutIdiom(cx) == core.IdiomPhone {
+		cx.RequestOrientation(core.OrientationLandscape)
+	}
 	offline := current.downloadID != ""
 	var download downloadEntry
 	if offline {
@@ -118,7 +120,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	duration := core.NewSignal(cx, initial.stream.Duration)
 	ended := core.NewSignal(cx, false)
 	offline := current.downloadID != ""
-	var nextEpisode core.Node
+	nextEpisode := nextEpisodeControls{unavailable: func() bool { return true }}
 	if !offline {
 		nextEpisode = a.nextEpisodeCard(cx, current, initial.client, position, duration, ended)
 	}
@@ -126,6 +128,8 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	picture := core.NewSignal(cx, core.Size{})
 	paused := core.NewSignal(cx, false)
 	prefs := a.playbackPrefs.GetUntracked()
+	fit := core.NewSignal(cx, prefs.resizeMode())
+	pip := core.NewSignal(cx, core.PictureInPictureState{})
 	rate := core.NewSignal(cx, prefs.Rate)
 	canChangeRate := core.NewSignal(cx, false)
 	failure := core.NewSignal(cx, false)
@@ -231,10 +235,11 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	image := core.Dynamic(func(cx *core.Scope) core.Node {
 		active := medium.Get()
 		video := core.Video{Source: active.url, PausedFunc: paused.Get, RateFunc: rate.Get, Ref: ref,
-			TestID: "video-player", Class: "absolute inset-0", ResizeMode: prefs.resizeMode(), ProgressInterval: 150 * time.Millisecond,
+			TestID: "video-player", Class: "absolute inset-0", ResizeModeFunc: fit.Get, ProgressInterval: 150 * time.Millisecond,
 			AudioSession:         core.AudioSessionPlayback,
 			PictureInPicture:     cx.Env().OS() == core.OSIOS,
 			AutoPictureInPicture: cx.Env().OS() == core.OSIOS && !prefs.DisableAutoPiP,
+			OnPictureInPicture:   pip.Set,
 			OnLoad: func(info core.VideoInfo) {
 				picture.Set(info.Size)
 				if info.Duration > 0 {
@@ -308,7 +313,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		}
 		return video
 	})
-	comments := a.playerDanmaku(cx, current, initial.stream, sample, picture, paused, buffering, prefs.resizeMode(), rate.Get, func() bool {
+	comments := a.playerDanmaku(cx, current, initial.stream, sample, picture, paused, buffering, fit.Get, rate.Get, func() bool {
 		decoder := desktop.Get()
 		return decoder == nil || !decoder.active()
 	}, func(track *danmaku.Track) {
@@ -330,7 +335,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		quality = playerQuality(current, initial.client, activeStream, bitrate.Get, switchingPlayback.Get, qualityError.Get,
 			func(options media.PlaybackOptions) { switchStream(options, qualityError) })
 	}
-	tracks := playerTracks(cx, activeStream, directDecoder, current.subtitleTrack, a.subtitlePrefs.GetUntracked(), position, rate, canChangeRate, switchingPlayback, audioError, chooseAudio, quality)
+	tracks := playerTracks(cx, activeStream, directDecoder, current.subtitleTrack, a.subtitlePrefs.Get, position, rate, canChangeRate, switchingPlayback, audioError, chooseAudio, quality, a.playerSubtitleStyle)
 	toggle := func() {
 		if ended.GetUntracked() {
 			seek(0)
@@ -339,10 +344,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		paused.Update(func(value bool) bool { return !value })
 		report(media.Progress)
 	}
-	return core.View{Class: "relative flex-1 overflow-hidden bg-black", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
-		image,
-		comments.overlay,
-		tracks.captions,
+	legacyChrome := core.Group([]core.Node{
 		core.View{Class: "absolute left-0 right-0 top-0 flex-row items-center gap-3 bg-linear-to-b from-black/90 to-transparent p-5",
 			Style: core.Style{PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea}}, Children: []core.Node{
 				ui.Button{Label: locales.ClosePlayer(cx), Icon: lucide.ChevronLeft, Variant: ui.ButtonSecondary, OnPress: a.back, TestID: "close-player"},
@@ -358,19 +360,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				comments.buttons,
 				tracks.button,
 			}},
-		core.Show{When: func() bool { return buffering.Get() || failure.Get() }, Then: func(cx *core.Scope) core.Node {
-			return core.View{Class: "absolute inset-0 items-center justify-center", Children: []core.Node{
-				core.Text{Class: "rounded-xl bg-black/75 p-4 text-white", ContentFunc: func() string {
-					if failure.Get() {
-						return locales.VideoError(cx)
-					}
-					return locales.Loading(cx)
-				}},
-			}}
-		}},
 		core.View{Class: "absolute bottom-0 left-0 right-0 gap-3 bg-linear-to-t from-black to-transparent p-5",
 			Style: core.Style{PaddingEnv: core.EnvEdges{Bottom: core.EnvSafeArea}}, Children: []core.Node{
-				nextEpisode,
+				nextEpisode.card,
 				core.View{Class: "flex-row items-center gap-3", Children: []core.Node{
 					core.Text{ContentFunc: func() string { return playbackClock(position.Get()) }, Class: "text-xs text-white", TestID: "player-position"},
 					ui.Slider{Label: locales.PlaybackPosition(cx), Value: func() float64 { return position.Get().Seconds() },
@@ -393,9 +385,33 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 						TestID: "player-seek-forward", OnPress: func() { seek(position.GetUntracked() + prefs.forwardStep()) }},
 				}},
 			}},
-		tracks.dialog,
-		comments.dialog,
-	}}
+	})
+	chrome := core.Dynamic(func(cx *core.Scope) core.Node {
+		if !phoneLandscape(cx) {
+			return legacyChrome
+		}
+		return (phonePlayerControls{
+			current: current, position: position, duration: duration, paused: paused,
+			canRate: canChangeRate, rate: rate, fit: fit, picture: picture, pip: pip,
+			seek: seek, toggle: toggle, back: a.back, startPiP: ref.StartPictureInPicture,
+			prefs: prefs, stream: activeStream, next: nextEpisode, comments: comments, tracks: tracks,
+		}).render(cx)
+	})
+	return core.View{Class: "relative flex-1 overflow-hidden bg-black", Style: core.Style{FlexShrink: 1},
+		Children: []core.Node{
+			image, comments.overlay, tracks.captions, chrome,
+			core.Show{When: func() bool { return buffering.Get() || failure.Get() }, Then: func(cx *core.Scope) core.Node {
+				return core.View{Class: "absolute inset-0 items-center justify-center", Children: []core.Node{
+					core.Text{Class: "rounded-xl bg-black/75 p-4 text-white", ContentFunc: func() string {
+						if failure.Get() {
+							return locales.VideoError(cx)
+						}
+						return locales.Loading(cx)
+					}},
+				}}
+			}},
+			tracks.dialog, comments.dialog,
+		}}
 }
 
 func playbackReports(client media.Client, watch *progressWatch) (func(media.PlaybackState), func(*media.PlaybackState)) {

@@ -480,3 +480,22 @@ settingsSourceMatchDetail: Identify matching titles by TMDB or IMDb ID
 settingsSourceRemoveConfirm: "Remove {name} and its saved sign-in from this device?"
 settingsSourceNeedsLogin: Sign in required
 settingsSourceUser: "User {name}"
+phonePlayerControls: Show or hide player controls
+phonePlayerSource: "From {name}"
+phonePlayerCast: Cast
+phonePlayerInfo: Playback information
+phonePlayerLock: Lock controls
+phonePlayerUnlock: Unlock controls
+phonePlayerDanmakuBadge: D
+phonePlayerDanmakuSettings: Danmaku settings
+phonePlayerTracks: Subtitles and audio
+phonePlayerSubtitleDelay: Subtitle delay
+phonePlayerDanmakuLoaded: "{count} comments loaded"
+phonePlayerDanmakuTiming: Danmaku timing
+phonePlayerDandan: DandanPlay
+phonePlayerLocalDanmaku: Local danmaku file
+phonePlayerDanmakuRegex: "Regex {rule}"
+phonePlayerRemoveRule: "Remove {rule}"
+phonePlayerAddFilter: "+ Add"
+phonePlayerHideColored: Hide colored danmaku
+phonePlayerDanmakuSpeed: Danmaku follows the current playback speed.

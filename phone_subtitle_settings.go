@@ -34,27 +34,6 @@ func (a *application) phoneSubtitleSettings(cx *core.Scope) core.Node {
 		{Value: "off", Label: locales.SubtitlesOff(cx)},
 	}
 	languages := phoneSetting{locales.SettingsPreferredSubtitles(cx), "", "bg-sky-500", lucide.Languages}
-	backgrounds := []ui.Option[string]{
-		{Value: "none", Label: locales.SettingsSubtitleBackgroundNone(cx)},
-		{Value: "dim", Label: locales.SettingsSubtitleBackgroundDim(cx)},
-		{Value: "solid", Label: locales.SettingsSubtitleBackgroundSolid(cx)},
-	}
-	positions := make([]ui.Option[int], 0, len(subtitlePositions))
-	for _, distance := range subtitlePositions {
-		positions = append(positions, ui.Option[int]{Value: distance, Label: locales.SettingsSubtitleDistance(cx, strconv.Itoa(distance))})
-	}
-	styles := []core.Node{
-		subtitleStylePreview(cx, prefs),
-		(phoneSetting{label: locales.SettingsSubtitleFont(cx)}).row(core.Text{Content: locales.SettingsSubtitleSystemFont(cx), Class: "text-[15px] " + setupMuted}),
-		subtitleSizeSetting(cx, prefs, func(value int) { save(func(p *subtitlePreferences) { p.Scale = value }) }),
-		subtitleColorSetting(cx, prefs, func(value uint32) { save(func(p *subtitlePreferences) { p.Color = value }) }),
-		(phoneSetting{label: locales.SettingsSubtitleStroke(cx)}).unavailable(cx),
-		phoneSettingChoice(cx, phoneSetting{label: locales.SettingsSubtitleBackground(cx)}, "subtitle-background", backgrounds,
-			func() string { return prefs().Background }, func(value string) { save(func(p *subtitlePreferences) { p.Background = value }) }),
-		phoneSettingChoice(cx, phoneSetting{label: locales.SettingsSubtitlePosition(cx)}, "subtitle-position", positions,
-			func() int { return prefs().Position }, func(value int) { save(func(p *subtitlePreferences) { p.Position = value }) }),
-		(phoneSetting{label: locales.SettingsSubtitleBilingual(cx)}).toggle(cx, "", func() bool { return false }, nil),
-	}
 	unavailable := func(label, tint string, icon func() *core.SVG) core.Node {
 		return (phoneSetting{label, "", tint, icon}).unavailable(cx)
 	}
@@ -80,7 +59,7 @@ func (a *application) phoneSubtitleSettings(cx *core.Scope) core.Node {
 				func(value string) { save(func(p *subtitlePreferences) { p.Mode = value }) }),
 			unavailableSwitch(locales.SettingsSubtitleConvert(cx), "bg-teal-500", lucide.Repeat),
 		),
-		setupGroup(locales.SettingsSubtitleStyle(cx), "", styles...),
+		setupGroup(locales.SettingsSubtitleStyle(cx), "", subtitleStyleRows(cx, prefs, save)...),
 		setupGroup("ASS / SSA", locales.SettingsSubtitleASSDescription(cx),
 			unavailableSwitch(locales.SettingsSubtitleASS(cx), "bg-fuchsia-500", lucide.Sparkles),
 			unavailableSwitch(locales.SettingsSubtitleEmbeddedFonts(cx), "bg-fuchsia-500", lucide.Type),
@@ -94,6 +73,43 @@ func (a *application) phoneSubtitleSettings(cx *core.Scope) core.Node {
 		),
 		settingsFailure(cx, failure),
 	)
+}
+
+func (a *application) playerSubtitleStyle(cx *core.Scope) core.Node {
+	failure := core.NewSignal[error](cx, nil)
+	save := func(change func(*subtitlePreferences)) {
+		value := a.subtitlePrefs.GetUntracked()
+		change(&value)
+		failure.Set(storeSettings(a.storage, subtitlePreferencesKey, a.subtitlePrefs, value))
+	}
+	return core.View{Class: "gap-2", Children: []core.Node{
+		core.View{Class: "gap-px overflow-hidden rounded-xl bg-white/10", Children: subtitleStyleRows(cx, a.subtitlePrefs.Get, save)},
+		settingsFailure(cx, failure),
+	}}
+}
+
+func subtitleStyleRows(cx *core.Scope, prefs func() subtitlePreferences, save func(func(*subtitlePreferences))) []core.Node {
+	backgrounds := []ui.Option[string]{
+		{Value: "none", Label: locales.SettingsSubtitleBackgroundNone(cx)},
+		{Value: "dim", Label: locales.SettingsSubtitleBackgroundDim(cx)},
+		{Value: "solid", Label: locales.SettingsSubtitleBackgroundSolid(cx)},
+	}
+	positions := make([]ui.Option[int], 0, len(subtitlePositions))
+	for _, distance := range subtitlePositions {
+		positions = append(positions, ui.Option[int]{Value: distance, Label: locales.SettingsSubtitleDistance(cx, strconv.Itoa(distance))})
+	}
+	return []core.Node{
+		subtitleStylePreview(cx, prefs),
+		(phoneSetting{label: locales.SettingsSubtitleFont(cx)}).row(core.Text{Content: locales.SettingsSubtitleSystemFont(cx), Class: "text-[15px] " + setupMuted}),
+		subtitleSizeSetting(cx, prefs, func(value int) { save(func(p *subtitlePreferences) { p.Scale = value }) }),
+		subtitleColorSetting(cx, prefs, func(value uint32) { save(func(p *subtitlePreferences) { p.Color = value }) }),
+		(phoneSetting{label: locales.SettingsSubtitleStroke(cx)}).unavailable(cx),
+		phoneSettingChoice(cx, phoneSetting{label: locales.SettingsSubtitleBackground(cx)}, "subtitle-background", backgrounds,
+			func() string { return prefs().Background }, func(value string) { save(func(p *subtitlePreferences) { p.Background = value }) }),
+		phoneSettingChoice(cx, phoneSetting{label: locales.SettingsSubtitlePosition(cx)}, "subtitle-position", positions,
+			func() int { return prefs().Position }, func(value int) { save(func(p *subtitlePreferences) { p.Position = value }) }),
+		(phoneSetting{label: locales.SettingsSubtitleBilingual(cx)}).toggle(cx, "", func() bool { return false }, nil),
+	}
 }
 
 func (a *application) phoneSubtitleLanguages(cx *core.Scope) core.Node {

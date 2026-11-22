@@ -15,11 +15,17 @@ import (
 	"waygu-video/locales"
 )
 
+type nextEpisodeControls struct {
+	card        core.Node
+	play        func()
+	unavailable func() bool
+}
+
 func (a *application) nextEpisodeCard(cx *core.Scope, current route, client media.Client,
-	position, duration *core.Signal[time.Duration], finished *core.Signal[bool]) core.Node {
+	position, duration *core.Signal[time.Duration], finished *core.Signal[bool]) nextEpisodeControls {
 	episode := current.item
 	if episode.Kind != media.Episode || episode.SeriesID == "" || episode.Episode <= 0 {
-		return nil
+		return nextEpisodeControls{unavailable: func() bool { return true }}
 	}
 	upcoming := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (media.Item, error) {
 		return findNextEpisode(ctx, client, episode)
@@ -70,7 +76,7 @@ func (a *application) nextEpisodeCard(cx *core.Scope, current route, client medi
 		length, at := duration.Get(), position.Get()
 		return length > 0 && at > 0 && length-at <= 30*time.Second
 	})
-	return core.Dynamic(func(cx *core.Scope) core.Node {
+	card := core.Dynamic(func(cx *core.Scope) core.Node {
 		next, ready := upcoming.Get()
 		if !ready || next.ID == "" || !visible.Get() {
 			return nil
@@ -89,6 +95,20 @@ func (a *application) nextEpisodeCard(cx *core.Scope, current route, client medi
 			}},
 		}}
 	})
+	return nextEpisodeControls{
+		card: card,
+		play: func() {
+			cx.Untrack(func() {
+				if next, ready := upcoming.Get(); ready && next.ID != "" {
+					play(next)
+				}
+			})
+		},
+		unavailable: func() bool {
+			next, ready := upcoming.Get()
+			return !ready || next.ID == ""
+		},
+	}
 }
 
 func findNextEpisode(ctx context.Context, client media.Client, current media.Item) (media.Item, error) {

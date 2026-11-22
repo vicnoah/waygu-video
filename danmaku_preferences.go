@@ -122,21 +122,26 @@ func (e danmakuEditor) toggle(label, id string, field func(*danmakuPreferences) 
 		OnChange: func(value bool) { e.save(func(p *danmakuPreferences) { *field(p) = value }) }}
 }
 
-func (e danmakuEditor) display(cx *core.Scope, visibility, offset core.Node) core.Node {
+type danmakuAdjustment struct {
+	label, id      string
+	min, max, step float64
+	field          func(*danmakuPreferences) *int
+	format         func(float64) string
+}
+
+func danmakuAdjustments(cx *core.Scope) []danmakuAdjustment {
 	percent := func(value float64) string { return locales.DanmakuPercent(cx, strconv.Itoa(int(value))) }
 	count := func(value float64) string { return strconv.Itoa(int(value)) }
-	type adjustment struct {
-		label, id      string
-		min, max, step float64
-		field          func(*danmakuPreferences) *int
-		format         func(float64) string
-	}
-	adjustments := []adjustment{
+	return []danmakuAdjustment{
 		{locales.DanmakuOpacity(cx), "danmaku-opacity", 10, 100, 5, func(p *danmakuPreferences) *int { return &p.Opacity }, percent},
 		{locales.DanmakuFontSize(cx), "danmaku-font-size", 50, 150, 5, func(p *danmakuPreferences) *int { return &p.FontScale }, percent},
 		{locales.DanmakuSpeed(cx), "danmaku-speed", 50, 200, 10, func(p *danmakuPreferences) *int { return &p.Speed }, percent},
 		{locales.DanmakuDensity(cx), "danmaku-density", 5, 80, 1, func(p *danmakuPreferences) *int { return &p.Density }, count},
 	}
+}
+
+func (e danmakuEditor) display(cx *core.Scope, visibility, offset core.Node) core.Node {
+	adjustments := danmakuAdjustments(cx)
 	rows := []core.Node{visibility, offset}
 	sliders := make([]core.Node, 0, len(adjustments))
 	for _, spec := range adjustments {
@@ -189,6 +194,13 @@ func (e danmakuEditor) display(cx *core.Scope, visibility, offset core.Node) cor
 }
 
 func (e danmakuEditor) filters(cx *core.Scope) core.Node {
+	return core.View{Class: "gap-3", Children: []core.Node{
+		e.filterEditor(cx, nil),
+		e.toggle(locales.DanmakuDeduplicate(cx), "danmaku-deduplicate", func(p *danmakuPreferences) *bool { return &p.Deduplicate }),
+	}}
+}
+
+func (e danmakuEditor) filterEditor(cx *core.Scope, saved func()) core.Node {
 	prefs := e.prefs.GetUntracked()
 	keywords := core.NewSignal(cx, prefs.Keywords)
 	patterns := core.NewSignal(cx, prefs.Patterns)
@@ -207,6 +219,9 @@ func (e danmakuEditor) filters(cx *core.Scope) core.Node {
 		if e.save(func(p *danmakuPreferences) { p.Keywords, p.Patterns = words, regex }) {
 			keywords.Set(words)
 			patterns.Set(regex)
+			if saved != nil {
+				saved()
+			}
 		}
 	}
 	return core.View{Class: "gap-3", Children: []core.Node{
@@ -223,6 +238,5 @@ func (e danmakuEditor) filters(cx *core.Scope) core.Node {
 			return core.Text{ContentFunc: func() string { return locales.DanmakuInvalidPattern(cx, badPattern.Get()) },
 				Class: "text-sm", StyleFunc: func() core.Style { return core.Style{Color: cx.Palette().Danger} }}
 		}},
-		e.toggle(locales.DanmakuDeduplicate(cx), "danmaku-deduplicate", func(p *danmakuPreferences) *bool { return &p.Deduplicate }),
 	}}
 }

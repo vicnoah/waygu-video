@@ -20,8 +20,17 @@ import (
 	"waygu-video/locales"
 )
 
+const (
+	trackSubtitleTab = iota
+	trackAudioTab
+	trackSpeedTab
+	trackQualityTab
+)
+
 type trackControls struct {
 	button, dialog, captions core.Node
+	show                     func(int)
+	panelOpen                func() bool
 }
 
 type subtitleSelection struct {
@@ -30,11 +39,21 @@ type subtitleSelection struct {
 	cues *playback.Captions
 }
 
-func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *desktopVideo, initialSubtitle string, prefs subtitlePreferences, position *core.Signal[time.Duration],
+func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *desktopVideo, initialSubtitle string, prefs func() subtitlePreferences, position *core.Signal[time.Duration],
 	rate *core.Signal[float32], canChangeRate, switchingPlayback, audioError *core.Signal[bool],
-	chooseAudio func(media.Track), quality func(*core.Scope) core.Node) trackControls {
+	chooseAudio func(media.Track), quality, styleSettings func(*core.Scope) core.Node) trackControls {
 	open := core.NewSignal(cx, false)
-	tab := core.NewSignal(cx, 0)
+	tab := core.NewSignal(cx, trackSubtitleTab)
+	showingStyle := core.NewSignal(cx, false)
+	close := func() {
+		open.Set(false)
+		showingStyle.Set(false)
+	}
+	show := func(tabID int) {
+		tab.Set(tabID)
+		showingStyle.Set(false)
+		open.Set(true)
+	}
 	subtitles := core.NewSignal(cx, subtitleSelection{})
 	delay := core.NewSignal(cx, time.Duration(0))
 	loading := core.NewSignal(cx, false)
@@ -103,7 +122,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 				}
 			}
 		}
-		if track := automaticSubtitle(available, prefs); track.ID != "" {
+		if track := automaticSubtitle(available, core.Untracked(cx, prefs)); track.ID != "" {
 			selectServerSubtitle(track)
 		}
 	})
@@ -143,16 +162,16 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		}
 	})
 	tabs := []ui.Option[int]{
-		{Value: 0, Label: locales.Subtitles(cx), TestID: "track-tab-subtitles"},
-		{Value: 1, Label: locales.AudioTracks(cx), TestID: "track-tab-audio"},
+		{Value: trackSubtitleTab, Label: locales.Subtitles(cx), TestID: "track-tab-subtitles"},
+		{Value: trackAudioTab, Label: locales.AudioTracks(cx), TestID: "track-tab-audio"},
 	}
 	if quality != nil {
-		tabs = append(tabs, ui.Option[int]{Value: 3, Label: locales.PlayerQuality(cx), TestID: "track-tab-quality"})
+		tabs = append(tabs, ui.Option[int]{Value: trackQualityTab, Label: locales.PlayerQuality(cx), TestID: "track-tab-quality"})
 	}
-	tabs = append(tabs, ui.Option[int]{Value: 2, Label: locales.PlaybackSpeed(cx), TestID: "track-tab-speed"})
+	tabs = append(tabs, ui.Option[int]{Value: trackSpeedTab, Label: locales.PlaybackSpeed(cx), TestID: "track-tab-speed"})
 	rows := core.Dynamic(func(cx *core.Scope) core.Node {
 		activeTab := tab.Get()
-		if activeTab == 3 {
+		if activeTab == trackQualityTab {
 			return quality(cx)
 		}
 		d := decoder()
@@ -161,7 +180,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			local = d.tracks.Get()
 		}
 		switch activeTab {
-		case 1:
+		case trackAudioTab:
 			if options := decoderAudio(local); len(options) != 0 {
 				return audioChoices(cx, options, false, switchingPlayback.Get, audioError.Get, func(track media.Track) {
 					id, err := strconv.ParseInt(track.ID, 10, 64)
@@ -177,16 +196,16 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 				})
 			}
 			return audioChoices(cx, stream().Tracks, true, switchingPlayback.Get, audioError.Get, chooseAudio)
-		case 2:
+		case trackSpeedTab:
 			return speedChoices(cx, rate, canChangeRate.Get)
 		}
 		selection := subtitles.Get()
 		nativeSubtitles := false
 		decoderSelected := slices.ContainsFunc(local, selectedSubtitle)
 		choices := []core.Node{
-			ui.Radio{Text: locales.SubtitlesOff(cx), TestID: "subtitles-off", Disabled: loading.Get,
+			playerRadio(cx, ui.Radio{Text: locales.SubtitlesOff(cx), TestID: "subtitles-off", Disabled: loading.Get,
 				Checked:  func() bool { return !decoderSelected && subtitles.Get().id == "" },
-				OnChange: func(bool) { applySubtitles(subtitleSelection{}) }},
+				OnChange: func(bool) { applySubtitles(subtitleSelection{}) }}, "", false),
 		}
 		for _, track := range local {
 			if track.Kind != mpv.SubtitleTrack {
@@ -198,7 +217,10 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			if !track.External {
 				label += " · " + locales.EmbeddedSubtitle(cx)
 			}
-			choices = append(choices, ui.Radio{Text: label, TestID: "decoder-subtitle-" + descriptor.ID,
+			if phoneLandscape(cx) {
+				label = playerTrackTitle(cx, descriptor)
+			}
+			choices = append(choices, playerRadio(cx, ui.Radio{Text: label, TestID: "decoder-subtitle-" + descriptor.ID,
 				Checked: func() bool { return track.Selected }, Disabled: loading.Get,
 				OnChange: func(bool) {
 					loading.Set(true)
@@ -206,44 +228,67 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 					d.selectTrack(mpv.SubtitleTrack, track.ID, func(err error) {
 						finishSubtitles(subtitleSelection{}, err)
 					})
-				}})
+				}}, playerSubtitleDetails(cx, descriptor), false))
 		}
 		for _, track := range stream().Tracks {
 			if track.Type != "subtitle" || track.URL == "" || (nativeSubtitles && !track.External) {
 				continue
 			}
 			label := trackLabel(cx, track)
-			choices = append(choices, ui.Radio{
+			if phoneLandscape(cx) {
+				label = playerTrackTitle(cx, track)
+			}
+			choices = append(choices, playerRadio(cx, ui.Radio{
 				Text: label, TestID: "subtitle-track-" + track.ID, Disabled: loading.Get,
 				Checked: func() bool { return subtitles.Get().id == track.ID },
 				OnChange: func(bool) {
 					selectServerSubtitle(track)
 				},
-			})
+			}, playerSubtitleDetails(cx, track), false))
 		}
 		if selection.id == "local" {
-			choices = append(choices, ui.Radio{Text: selection.name, Checked: func() bool { return true }})
+			choices = append(choices, playerRadio(cx, ui.Radio{Text: selection.name, Checked: func() bool { return true }},
+				locales.ExternalSubtitle(cx), false))
 		}
-		rows := []core.Node{
-			ui.RadioGroup{Label: locales.Subtitles(cx), Children: choices},
-			ui.Button{Text: locales.OpenSubtitleFile(cx), Icon: lucide.FolderOpen, Variant: ui.ButtonOutline,
-				Busy: loading.Get, TestID: "open-subtitle-file", OnPress: pick},
+		landscape := phoneLandscape(cx)
+		available := selection.cues != nil || decoderSelected
+		var rows []core.Node
+		if landscape {
+			choices = append(choices, playerPanelAction(cx, "open-subtitle-file", locales.OpenSubtitleFile(cx), lucide.FolderOpen, true, loading.Get, pick))
+			rows = append(rows, playerRadioList(cx, locales.Subtitles(cx), choices))
+		} else {
+			rows = []core.Node{
+				ui.RadioGroup{Label: locales.Subtitles(cx), Children: choices},
+				ui.Button{Text: locales.OpenSubtitleFile(cx), Icon: lucide.FolderOpen, Variant: ui.ButtonOutline,
+					Busy: loading.Get, TestID: "open-subtitle-file", OnPress: pick},
+			}
 		}
-		if selection.cues != nil || decoderSelected {
+		if landscape || available {
 			shift := func(delta time.Duration) {
 				delay.Update(func(before time.Duration) time.Duration {
 					return min(max(before+delta, -10*time.Second), 10*time.Second)
 				})
 			}
-			rows = append(rows, core.View{Class: "flex-row flex-wrap items-center gap-2", Children: []core.Node{
-				core.Text{ContentFunc: func() string {
-					return locales.SubtitleDelay(cx, fmt.Sprintf("%+.1f", delay.Get().Seconds()))
-				}, Class: "flex-1 text-sm"},
-				ui.IconButton{Label: locales.SubtitleEarlier(cx), Icon: lucide.Minus, Size: 44,
-					TestID: "subtitle-earlier", OnPress: func() { shift(-500 * time.Millisecond) }},
-				ui.IconButton{Label: locales.SubtitleLater(cx), Icon: lucide.Plus, Size: 44,
-					TestID: "subtitle-later", OnPress: func() { shift(500 * time.Millisecond) }},
-			}})
+			if landscape {
+				rows = append(rows, playerStepRow(cx, locales.PhonePlayerSubtitleDelay(cx), func() string {
+					return fmt.Sprintf("%+.1fs", delay.Get().Seconds())
+				}, "subtitle-earlier", locales.SubtitleEarlier(cx), "subtitle-later", locales.SubtitleLater(cx),
+					func() bool { return !available }, func(delta int) { shift(time.Duration(delta) * 500 * time.Millisecond) }))
+			} else {
+				rows = append(rows, core.View{Class: "flex-row flex-wrap items-center gap-2", Children: []core.Node{
+					core.Text{ContentFunc: func() string {
+						return locales.SubtitleDelay(cx, fmt.Sprintf("%+.1f", delay.Get().Seconds()))
+					}, Class: "flex-1 text-sm"},
+					ui.IconButton{Label: locales.SubtitleEarlier(cx), Icon: lucide.Minus, Size: 44,
+						TestID: "subtitle-earlier", OnPress: func() { shift(-500 * time.Millisecond) }},
+					ui.IconButton{Label: locales.SubtitleLater(cx), Icon: lucide.Plus, Size: 44,
+						TestID: "subtitle-later", OnPress: func() { shift(500 * time.Millisecond) }},
+				}})
+			}
+		}
+		if landscape && styleSettings != nil {
+			rows = append(rows, playerPanelAction(cx, "player-subtitle-style", locales.SettingsSubtitleStyle(cx),
+				lucide.Paintbrush, false, nil, func() { showingStyle.Set(true) }))
 		}
 		if failed.Get() {
 			rows = append(rows, notice(locales.SubtitleLoadError(cx)))
@@ -260,23 +305,47 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		},
 		Footer: []core.Node{ui.Button{Text: locales.TracksDone(cx), TestID: "close-player-tracks", OnPress: func() { open.Set(false) }}},
 	}
-	var dialog core.Node = sheet
-	if cx.Env().OS() == core.OSLinux {
-		// A GTK video surface can leave the dialog's exit transition
-		// unfinished. Remove the closed layer so playback controls get input.
-		dialog = core.Show{When: open.Get, Then: func(*core.Scope) core.Node { return sheet }}
-	}
+	dialog := core.Dynamic(func(cx *core.Scope) core.Node {
+		if phoneLandscape(cx) {
+			title := locales.PlayerTracks(cx)
+			heading := core.Dynamic(func(cx *core.Scope) core.Node {
+				if showingStyle.Get() {
+					return playerLabeledAction(cx, "player-subtitle-style-back", locales.SettingsSubtitleStyle(cx),
+						lucide.ChevronLeft, func() { showingStyle.Set(false) })
+				}
+				return panelHeading(title)
+			})
+			panelTabs := core.Show{When: func() bool { return !showingStyle.Get() }, Then: func(cx *core.Scope) core.Node {
+				return playerPanelTabs(cx, "player-track-tabs", title, tabs, tab)
+			}}
+			body := core.Dynamic(func(cx *core.Scope) core.Node {
+				if showingStyle.Get() && styleSettings != nil {
+					return styleSettings(cx)
+				}
+				return rows
+			})
+			return playerSidePanel(cx, "player-tracks-dialog", "close-player-tracks", title, open.Get, close, heading, panelTabs, body)
+		}
+		if cx.Env().OS() == core.OSLinux {
+			// Remove the closed layer before the GTK video handles input again.
+			return core.Show{When: open.Get, Then: func(*core.Scope) core.Node { return sheet }}
+		}
+		return sheet
+	})
 	return trackControls{
 		button: ui.Button{Label: locales.PlayerTracks(cx), Icon: lucide.Captions, Variant: ui.ButtonSecondary,
-			TestID: "player-tracks", OnPress: func() { open.Set(true) }},
-		dialog: dialog,
+			TestID: "player-tracks", OnPress: func() { show(trackSubtitleTab) }},
+		dialog: dialog, show: show, panelOpen: open.Get,
 		captions: core.Show{When: func() bool { return text.Get() != "" }, Then: func(cx *core.Scope) core.Node {
 			return core.View{Class: "absolute inset-x-0 items-center px-8", PointerEvents: core.PointerEventsNone,
 				StyleFunc: func() core.Style {
-					bottom := cx.Env().Window().Height * core.Points(prefs.Position) / 100
+					bottom := cx.Env().Window().Height * core.Points(prefs().Position) / 100
+					if phoneLandscape(cx) && open.Get() {
+						return core.Style{Right: core.Pt(360), Bottom: core.Pt(16 + bottom)}
+					}
 					return core.Style{Bottom: core.Pt(104 + bottom)}
 				}, Children: []core.Node{core.Text{ContentFunc: text.Get, TestID: "subtitle-caption",
-					Class: "rounded px-3 py-1 text-center font-semibold", Style: prefs.captionStyle()}}}
+					Class: "rounded px-3 py-1 text-center font-semibold", StyleFunc: func() core.Style { return prefs().captionStyle() }}}}
 		}},
 	}
 }
@@ -330,24 +399,48 @@ func audioChoices(cx *core.Scope, tracks []media.Track, defaultToFirst bool, bus
 	}
 	var rows []core.Node
 	for _, track := range options {
-		rows = append(rows, ui.Radio{Text: trackLabel(cx, track), TestID: "audio-track-" + track.ID, Disabled: busy,
-			Checked: func() bool { return selected == track.ID }, OnChange: func(bool) { choose(track) }})
+		title := trackLabel(cx, track)
+		detail := strings.ToUpper(track.Codec)
+		if phoneLandscape(cx) {
+			title = playerTrackTitle(cx, track)
+		}
+		rows = append(rows, playerRadio(cx, ui.Radio{Text: title, TestID: "audio-track-" + track.ID, Disabled: busy,
+			Checked: func() bool { return selected == track.ID }, OnChange: func(bool) { choose(track) }}, detail, true))
 	}
-	rows = append(rows, core.Show{When: busy, Then: func(cx *core.Scope) core.Node { return hint(locales.Loading(cx)) }},
-		core.Show{When: failed, Then: func(cx *core.Scope) core.Node { return notice(locales.AudioSwitchError(cx)) }})
-	return ui.RadioGroup{Label: locales.AudioTracks(cx), Children: rows}
+	return core.View{Class: "gap-2.5", Children: []core.Node{
+		playerRadioList(cx, locales.AudioTracks(cx), rows),
+		core.Show{When: busy, Then: func(cx *core.Scope) core.Node { return hint(locales.Loading(cx)) }},
+		core.Show{When: failed, Then: func(cx *core.Scope) core.Node { return notice(locales.AudioSwitchError(cx)) }},
+	}}
 }
 
 func speedChoices(cx *core.Scope, rate *core.Signal[float32], supported func() bool) core.Node {
 	var rows []core.Node
-	for _, speed := range playbackRates {
+	rates := playbackRates
+	if phoneLandscape(cx) {
+		rates = []float32{0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3}
+	}
+	for _, speed := range rates {
 		label := strconv.FormatFloat(float64(speed), 'f', -1, 32)
-		rows = append(rows, ui.Radio{Text: label + "×", TestID: "playback-speed-" + label,
-			Disabled: func() bool { return !supported() },
-			Checked:  func() bool { return rate.Get() == speed }, OnChange: func(bool) { rate.Set(speed) }})
+		id := "playback-speed-" + label
+		checked := func() bool { return rate.Get() == speed }
+		disabled := func() bool { return !supported() }
+		choose := func(bool) { rate.Set(speed) }
+		if phoneLandscape(cx) {
+			rows = append(rows, playerChoice(cx, id, playbackRateLabel(speed), "h-10 w-[72px]", checked, disabled, choose))
+		} else {
+			rows = append(rows, ui.Radio{Text: label + "×", TestID: id, Disabled: disabled, Checked: checked, OnChange: choose})
+		}
+	}
+	var choices core.Node = ui.RadioGroup{Label: locales.PlaybackSpeed(cx), Horizontal: true, Children: rows}
+	if phoneLandscape(cx) {
+		choices = base.RadioGroup{Label: locales.PlaybackSpeed(cx), Class: "flex-row flex-wrap gap-2", Children: rows}
 	}
 	return core.View{Class: "gap-3", Children: []core.Node{
-		ui.RadioGroup{Label: locales.PlaybackSpeed(cx), Horizontal: true, Children: rows},
+		choices,
+		core.Show{When: func() bool { return phoneLandscape(cx) && supported() }, Then: func(cx *core.Scope) core.Node {
+			return core.Text{Content: locales.PhonePlayerDanmakuSpeed(cx), Class: "text-xs leading-relaxed text-zinc-500"}
+		}},
 		core.Show{When: func() bool { return !supported() }, Then: func(cx *core.Scope) core.Node {
 			return hint(locales.PlaybackSpeedUnavailable(cx))
 		}},

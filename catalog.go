@@ -54,10 +54,13 @@ type catalogResult struct {
 	sources       map[string]homeSourceStatus
 }
 
-var shellIdiom = core.NewKey("waygu.shellIdiom", core.Idiom(0))
+// Phone is NSGo's zero idiom, so an unset override needs its own value.
+const inheritedShellIdiom = core.Idiom(255)
+
+var shellIdiom = core.NewKey("waygu.shellIdiom", inheritedShellIdiom)
 
 func appLayoutIdiom(cx *core.Scope) core.Idiom {
-	if override := shellIdiom.Use(cx); override != 0 {
+	if override := shellIdiom.Use(cx); override != inheritedShellIdiom {
 		return override
 	}
 	idiom := cx.Env().Idiom()

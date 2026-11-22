@@ -113,6 +113,10 @@ var Parameters = map[string][]string{
 	"SettingsSourceLibraries":        {"count"},
 	"SettingsSourceRemoveConfirm":    {"name"},
 	"SettingsSourceUser":             {"name"},
+	"PhonePlayerSource":              {"name"},
+	"PhonePlayerDanmakuLoaded":       {"count"},
+	"PhonePlayerDanmakuRegex":        {"rule"},
+	"PhonePlayerRemoveRule":          {"rule"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -191,6 +195,10 @@ type Translation struct {
 	SettingsSourceLibraries        func(count string) string
 	SettingsSourceRemoveConfirm    func(name string) string
 	SettingsSourceUser             func(name string) string
+	PhonePlayerSource              func(name string) string
+	PhonePlayerDanmakuLoaded       func(count string) string
+	PhonePlayerDanmakuRegex        func(rule string) string
+	PhonePlayerRemoveRule          func(rule string) string
 }
 
 var supplied = map[string]Translation{}
@@ -609,6 +617,21 @@ const (
 	textSettingsSourcePriorityFooter
 	textSettingsSourceMatchDetail
 	textSettingsSourceNeedsLogin
+	textPhonePlayerControls
+	textPhonePlayerCast
+	textPhonePlayerInfo
+	textPhonePlayerLock
+	textPhonePlayerUnlock
+	textPhonePlayerDanmakuBadge
+	textPhonePlayerDanmakuSettings
+	textPhonePlayerTracks
+	textPhonePlayerSubtitleDelay
+	textPhonePlayerDanmakuTiming
+	textPhonePlayerDandan
+	textPhonePlayerLocalDanmaku
+	textPhonePlayerAddFilter
+	textPhonePlayerHideColored
+	textPhonePlayerDanmakuSpeed
 	numTexts
 )
 
@@ -1027,6 +1050,21 @@ var keyOfText = [numTexts]string{
 	"settingsSourcePriorityFooter",
 	"settingsSourceMatchDetail",
 	"settingsSourceNeedsLogin",
+	"phonePlayerControls",
+	"phonePlayerCast",
+	"phonePlayerInfo",
+	"phonePlayerLock",
+	"phonePlayerUnlock",
+	"phonePlayerDanmakuBadge",
+	"phonePlayerDanmakuSettings",
+	"phonePlayerTracks",
+	"phonePlayerSubtitleDelay",
+	"phonePlayerDanmakuTiming",
+	"phonePlayerDandan",
+	"phonePlayerLocalDanmaku",
+	"phonePlayerAddFilter",
+	"phonePlayerHideColored",
+	"phonePlayerDanmakuSpeed",
 }
 
 // textsEn are the messages without arguments in en.
@@ -1442,7 +1480,22 @@ var textsEn = i18n.NewTexts(""+
 	"Multiple media sources"+
 	"When several sources have the same title, the source order sets playback priority. Change the source on a title’s detail page."+
 	"Identify matching titles by TMDB or IMDb ID"+
-	"Sign in required",
+	"Sign in required"+
+	"Show or hide player controls"+
+	"Cast"+
+	"Playback information"+
+	"Lock controls"+
+	"Unlock controls"+
+	"D"+
+	"Danmaku settings"+
+	"Subtitles and audio"+
+	"Subtitle delay"+
+	"Danmaku timing"+
+	"DandanPlay"+
+	"Local danmaku file"+
+	"+ Add"+
+	"Hide colored danmaku"+
+	"Danmaku follows the current playback speed.",
 	[]uint16{
 		11,
 		47,
@@ -1856,6 +1909,21 @@ var textsEn = i18n.NewTexts(""+
 		128,
 		43,
 		16,
+		28,
+		4,
+		20,
+		13,
+		15,
+		1,
+		16,
+		19,
+		14,
+		14,
+		10,
+		18,
+		5,
+		20,
+		43,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -2271,7 +2339,22 @@ var textsZhHans = i18n.NewTexts(""+
 	"多个媒体源"+
 	"同一部影片在多个媒体源中存在时，按上方卡片顺序优先播放，也可在详情页手动切换媒体源。"+
 	"按 TMDB / IMDb ID 识别同一影片"+
-	"需要登录",
+	"需要登录"+
+	"显示或隐藏播放控件"+
+	"投屏"+
+	"播放信息"+
+	"锁定控件"+
+	"解锁控件"+
+	"弹"+
+	"弹幕设置"+
+	"字幕/音轨"+
+	"字幕延迟"+
+	"弹幕时间偏移"+
+	"弹弹play"+
+	"本地弹幕文件"+
+	"+ 添加"+
+	"屏蔽彩色弹幕"+
+	"弹幕速度随播放倍速同步。",
 	[]uint16{
 		12,
 		45,
@@ -2685,6 +2768,21 @@ var textsZhHans = i18n.NewTexts(""+
 		126,
 		37,
 		12,
+		27,
+		6,
+		12,
+		12,
+		12,
+		3,
+		12,
+		13,
+		12,
+		18,
+		10,
+		18,
+		8,
+		18,
+		36,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -2950,6 +3048,18 @@ func Supply(lang string, t Translation) {
 	}
 	if t.SettingsSourceUser != nil {
 		s.SettingsSourceUser = t.SettingsSourceUser
+	}
+	if t.PhonePlayerSource != nil {
+		s.PhonePlayerSource = t.PhonePlayerSource
+	}
+	if t.PhonePlayerDanmakuLoaded != nil {
+		s.PhonePlayerDanmakuLoaded = t.PhonePlayerDanmakuLoaded
+	}
+	if t.PhonePlayerDanmakuRegex != nil {
+		s.PhonePlayerDanmakuRegex = t.PhonePlayerDanmakuRegex
+	}
+	if t.PhonePlayerRemoveRule != nil {
+		s.PhonePlayerRemoveRule = t.PhonePlayerRemoveRule
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -7569,3 +7679,208 @@ func (msgs Messages) SettingsSourceUser(name string) string {
 		}
 	}
 }
+
+// PhonePlayerControls says "Show or hide player controls"
+// in the language the app shows under cx.
+func PhonePlayerControls(cx *core.Scope) string { return For(cx).PhonePlayerControls() }
+
+// PhonePlayerControls is the package's PhonePlayerControls in the language of msgs.
+func (msgs Messages) PhonePlayerControls() string { return msgs.text(textPhonePlayerControls) }
+
+// PhonePlayerSource says "From {name}"
+// in the language the app shows under cx.
+func PhonePlayerSource(cx *core.Scope, name string) string { return For(cx).PhonePlayerSource(name) }
+
+// PhonePlayerSource is the package's PhonePlayerSource in the language of msgs.
+func (msgs Messages) PhonePlayerSource(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhonePlayerSource(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhonePlayerSource; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "From " + msgs.arg(name)
+		case "zh-Hans":
+			return "来自 " + name
+		}
+	}
+}
+
+// PhonePlayerCast says "Cast"
+// in the language the app shows under cx.
+func PhonePlayerCast(cx *core.Scope) string { return For(cx).PhonePlayerCast() }
+
+// PhonePlayerCast is the package's PhonePlayerCast in the language of msgs.
+func (msgs Messages) PhonePlayerCast() string { return msgs.text(textPhonePlayerCast) }
+
+// PhonePlayerInfo says "Playback information"
+// in the language the app shows under cx.
+func PhonePlayerInfo(cx *core.Scope) string { return For(cx).PhonePlayerInfo() }
+
+// PhonePlayerInfo is the package's PhonePlayerInfo in the language of msgs.
+func (msgs Messages) PhonePlayerInfo() string { return msgs.text(textPhonePlayerInfo) }
+
+// PhonePlayerLock says "Lock controls"
+// in the language the app shows under cx.
+func PhonePlayerLock(cx *core.Scope) string { return For(cx).PhonePlayerLock() }
+
+// PhonePlayerLock is the package's PhonePlayerLock in the language of msgs.
+func (msgs Messages) PhonePlayerLock() string { return msgs.text(textPhonePlayerLock) }
+
+// PhonePlayerUnlock says "Unlock controls"
+// in the language the app shows under cx.
+func PhonePlayerUnlock(cx *core.Scope) string { return For(cx).PhonePlayerUnlock() }
+
+// PhonePlayerUnlock is the package's PhonePlayerUnlock in the language of msgs.
+func (msgs Messages) PhonePlayerUnlock() string { return msgs.text(textPhonePlayerUnlock) }
+
+// PhonePlayerDanmakuBadge says "D"
+// in the language the app shows under cx.
+func PhonePlayerDanmakuBadge(cx *core.Scope) string { return For(cx).PhonePlayerDanmakuBadge() }
+
+// PhonePlayerDanmakuBadge is the package's PhonePlayerDanmakuBadge in the language of msgs.
+func (msgs Messages) PhonePlayerDanmakuBadge() string { return msgs.text(textPhonePlayerDanmakuBadge) }
+
+// PhonePlayerDanmakuSettings says "Danmaku settings"
+// in the language the app shows under cx.
+func PhonePlayerDanmakuSettings(cx *core.Scope) string { return For(cx).PhonePlayerDanmakuSettings() }
+
+// PhonePlayerDanmakuSettings is the package's PhonePlayerDanmakuSettings in the language of msgs.
+func (msgs Messages) PhonePlayerDanmakuSettings() string {
+	return msgs.text(textPhonePlayerDanmakuSettings)
+}
+
+// PhonePlayerTracks says "Subtitles and audio"
+// in the language the app shows under cx.
+func PhonePlayerTracks(cx *core.Scope) string { return For(cx).PhonePlayerTracks() }
+
+// PhonePlayerTracks is the package's PhonePlayerTracks in the language of msgs.
+func (msgs Messages) PhonePlayerTracks() string { return msgs.text(textPhonePlayerTracks) }
+
+// PhonePlayerSubtitleDelay says "Subtitle delay"
+// in the language the app shows under cx.
+func PhonePlayerSubtitleDelay(cx *core.Scope) string { return For(cx).PhonePlayerSubtitleDelay() }
+
+// PhonePlayerSubtitleDelay is the package's PhonePlayerSubtitleDelay in the language of msgs.
+func (msgs Messages) PhonePlayerSubtitleDelay() string {
+	return msgs.text(textPhonePlayerSubtitleDelay)
+}
+
+// PhonePlayerDanmakuLoaded says "{count} comments loaded"
+// in the language the app shows under cx.
+func PhonePlayerDanmakuLoaded(cx *core.Scope, count string) string {
+	return For(cx).PhonePlayerDanmakuLoaded(count)
+}
+
+// PhonePlayerDanmakuLoaded is the package's PhonePlayerDanmakuLoaded in the language of msgs.
+func (msgs Messages) PhonePlayerDanmakuLoaded(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhonePlayerDanmakuLoaded(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhonePlayerDanmakuLoaded; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " comments loaded"
+		case "zh-Hans":
+			return "已加载 " + count + " 条"
+		}
+	}
+}
+
+// PhonePlayerDanmakuTiming says "Danmaku timing"
+// in the language the app shows under cx.
+func PhonePlayerDanmakuTiming(cx *core.Scope) string { return For(cx).PhonePlayerDanmakuTiming() }
+
+// PhonePlayerDanmakuTiming is the package's PhonePlayerDanmakuTiming in the language of msgs.
+func (msgs Messages) PhonePlayerDanmakuTiming() string {
+	return msgs.text(textPhonePlayerDanmakuTiming)
+}
+
+// PhonePlayerDandan says "DandanPlay"
+// in the language the app shows under cx.
+func PhonePlayerDandan(cx *core.Scope) string { return For(cx).PhonePlayerDandan() }
+
+// PhonePlayerDandan is the package's PhonePlayerDandan in the language of msgs.
+func (msgs Messages) PhonePlayerDandan() string { return msgs.text(textPhonePlayerDandan) }
+
+// PhonePlayerLocalDanmaku says "Local danmaku file"
+// in the language the app shows under cx.
+func PhonePlayerLocalDanmaku(cx *core.Scope) string { return For(cx).PhonePlayerLocalDanmaku() }
+
+// PhonePlayerLocalDanmaku is the package's PhonePlayerLocalDanmaku in the language of msgs.
+func (msgs Messages) PhonePlayerLocalDanmaku() string { return msgs.text(textPhonePlayerLocalDanmaku) }
+
+// PhonePlayerDanmakuRegex says "Regex {rule}"
+// in the language the app shows under cx.
+func PhonePlayerDanmakuRegex(cx *core.Scope, rule string) string {
+	return For(cx).PhonePlayerDanmakuRegex(rule)
+}
+
+// PhonePlayerDanmakuRegex is the package's PhonePlayerDanmakuRegex in the language of msgs.
+func (msgs Messages) PhonePlayerDanmakuRegex(rule string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhonePlayerDanmakuRegex(rule))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhonePlayerDanmakuRegex; f != nil {
+			return f(rule)
+		}
+		switch lang {
+		case "", "en":
+			return "Regex " + msgs.arg(rule)
+		case "zh-Hans":
+			return "正则 " + rule
+		}
+	}
+}
+
+// PhonePlayerRemoveRule says "Remove {rule}"
+// in the language the app shows under cx.
+func PhonePlayerRemoveRule(cx *core.Scope, rule string) string {
+	return For(cx).PhonePlayerRemoveRule(rule)
+}
+
+// PhonePlayerRemoveRule is the package's PhonePlayerRemoveRule in the language of msgs.
+func (msgs Messages) PhonePlayerRemoveRule(rule string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhonePlayerRemoveRule(rule))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhonePlayerRemoveRule; f != nil {
+			return f(rule)
+		}
+		switch lang {
+		case "", "en":
+			return "Remove " + msgs.arg(rule)
+		case "zh-Hans":
+			return "移除 " + rule
+		}
+	}
+}
+
+// PhonePlayerAddFilter says "+ Add"
+// in the language the app shows under cx.
+func PhonePlayerAddFilter(cx *core.Scope) string { return For(cx).PhonePlayerAddFilter() }
+
+// PhonePlayerAddFilter is the package's PhonePlayerAddFilter in the language of msgs.
+func (msgs Messages) PhonePlayerAddFilter() string { return msgs.text(textPhonePlayerAddFilter) }
+
+// PhonePlayerHideColored says "Hide colored danmaku"
+// in the language the app shows under cx.
+func PhonePlayerHideColored(cx *core.Scope) string { return For(cx).PhonePlayerHideColored() }
+
+// PhonePlayerHideColored is the package's PhonePlayerHideColored in the language of msgs.
+func (msgs Messages) PhonePlayerHideColored() string { return msgs.text(textPhonePlayerHideColored) }
+
+// PhonePlayerDanmakuSpeed says "Danmaku follows the current playback speed."
+// in the language the app shows under cx.
+func PhonePlayerDanmakuSpeed(cx *core.Scope) string { return For(cx).PhonePlayerDanmakuSpeed() }
+
+// PhonePlayerDanmakuSpeed is the package's PhonePlayerDanmakuSpeed in the language of msgs.
+func (msgs Messages) PhonePlayerDanmakuSpeed() string { return msgs.text(textPhonePlayerDanmakuSpeed) }

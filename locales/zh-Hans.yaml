@@ -480,3 +480,22 @@ settingsSourceMatchDetail: 按 TMDB / IMDb ID 识别同一影片
 settingsSourceRemoveConfirm: "从此设备移除{name}及其登录凭据？"
 settingsSourceNeedsLogin: 需要登录
 settingsSourceUser: "用户 {name}"
+phonePlayerControls: 显示或隐藏播放控件
+phonePlayerSource: "来自 {name}"
+phonePlayerCast: 投屏
+phonePlayerInfo: 播放信息
+phonePlayerLock: 锁定控件
+phonePlayerUnlock: 解锁控件
+phonePlayerDanmakuBadge: 弹
+phonePlayerDanmakuSettings: 弹幕设置
+phonePlayerTracks: 字幕/音轨
+phonePlayerSubtitleDelay: 字幕延迟
+phonePlayerDanmakuLoaded: "已加载 {count} 条"
+phonePlayerDanmakuTiming: 弹幕时间偏移
+phonePlayerDandan: 弹弹play
+phonePlayerLocalDanmaku: 本地弹幕文件
+phonePlayerDanmakuRegex: "正则 {rule}"
+phonePlayerRemoveRule: "移除 {rule}"
+phonePlayerAddFilter: "+ 添加"
+phonePlayerHideColored: 屏蔽彩色弹幕
+phonePlayerDanmakuSpeed: 弹幕速度随播放倍速同步。

@@ -19,9 +19,9 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [媒体库 · 深色](../../design/library.scenra#L94) | dark | `phone · auto × 1100` | anime, docs, movies, shows | [Compared](phone-library.md) |
 | [手机/电影详情](../../design/movie-detail.scenra#L1) | light | `phone · auto × 1960` | — | [Compared](phone-movie.md) |
 | [电影详情 · 深色](../../design/movie-detail.scenra#L185) | dark | `phone · auto × 1960` | — | [Compared](phone-movie.md) |
-| [手机/弹幕面板](../../design/player-danmaku.scenra#L1) | default | `phone · 844 × 390` | block, show, source | Pending |
-| [手机/字幕与音轨](../../design/player-tracks.scenra#L1) | default | `phone · 844 × 390` | audio, quality, speed, subs | Pending |
-| [手机/播放器](../../design/player.scenra#L1) | default | `phone · 844 × 390` | — | Pending |
+| [手机/弹幕面板](../../design/player-danmaku.scenra#L1) | default | `phone · 844 × 390` | block, show, source | [Compared](phone-player.md) |
+| [手机/字幕与音轨](../../design/player-tracks.scenra#L1) | default | `phone · 844 × 390` | audio, quality, speed, subs | [Compared](phone-player.md) |
+| [手机/播放器](../../design/player.scenra#L1) | default | `phone · 844 × 390` | — | [Compared](phone-player.md) |
 | [手机/搜索](../../design/search.scenra#L1) | light | `phone` | — | [Compared](phone-search.md) |
 | [搜索 · 深色](../../design/search.scenra#L81) | dark | `phone` | — | [Compared](phone-search.md) |
 | [手机/剧集详情](../../design/series-detail.scenra#L1) | light | `phone · auto × 1500` | extras, s1, s2 | [Compared](phone-series.md) |
