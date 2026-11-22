@@ -134,12 +134,12 @@ func TestDockerApprovedServerCertificates(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			mapArtwork, revokeArtwork, err := playback.OpenArtwork(address, pin)
+			artwork, err := playback.OpenArtwork(address, nil, pin)
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer revokeArtwork()
-			if err := media.ConfigureTrust(client, pin, mapArtwork); err != nil {
+			defer artwork.Close()
+			if err := media.ConfigureEndpoint(client, pin, nil, artwork.Resolve); err != nil {
 				t.Fatal(err)
 			}
 			item, err := client.Detail(ctx, movie)
@@ -172,7 +172,7 @@ func TestDockerApprovedServerCertificates(t *testing.T) {
 				var testedCaptions bool
 				for _, track := range stream.Tracks {
 					if track.Type == "subtitle" && track.URL != "" && track.External {
-						if _, err := playback.FetchCaptions(ctx, track.URL, stream.Trust); err != nil {
+						if _, err := playback.FetchCaptions(ctx, track.URL, stream.SubtitleHeaders, stream.Trust); err != nil {
 							t.Fatalf("subtitles through pinned transport: %v", err)
 						}
 						testedCaptions = true

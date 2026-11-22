@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net"
+	"net/netip"
 	"net/url"
 	"runtime"
 	"slices"
@@ -35,6 +36,8 @@ type candidateSource struct {
 	info      media.ServerInfo
 	session   media.Session
 	libraries []media.Library
+	endpoint  sourceEndpoint
+	latency   time.Duration
 }
 
 func (a *application) connect(cx *core.Scope, current route) core.Node {
@@ -74,8 +77,9 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 	password := core.NewSignal(cx, "")
 	showPassword := core.NewSignal(cx, false)
 	busy := core.NewSignal(cx, false)
+	saving := core.NewSignal(cx, false)
 	failure := core.NewSignal[error](cx, nil)
-	preview := core.NewSignal[*media.ServerInfo](cx, nil)
+	preview := core.NewSignal[*candidateSource](cx, nil)
 	candidate := core.NewSignal[*candidateSource](cx, nil)
 	quickCode := core.NewSignal(cx, "")
 	approved := core.NewSignalFunc(cx, slices.Clone(current.Certificates), slices.Equal)
@@ -95,6 +99,24 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 		}
 	}
 	viewContext := cx.Context()
+	headers := core.NewSignalFunc[endpointHeaders](cx, endpointHeaders{}, nil)
+	storedHeaders := core.NewSignalFunc[endpointHeaders](cx, endpointHeaders{}, nil)
+	storedHeadersReady := core.NewSignal(cx, current.HeaderSecret == "")
+	editHeaders := core.NewSignal[*endpointHeaders](cx, nil)
+	savedOrigin := sourceOrigin(current.Address)
+	if canTrust && current.HeaderSecret != "" {
+		go func() {
+			values, err := a.requestHeaders(current, current.Address)
+			cx.Post(func() {
+				cx.Batch(func() {
+					if err == nil {
+						storedHeaders.Set(endpointHeaders{savedOrigin, values})
+					}
+					storedHeadersReady.Set(true)
+				})
+			})
+		}()
+	}
 	plex := provider == media.Plex
 
 	clearResult := func() {
@@ -103,7 +125,8 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 	}
 	var submit func(connectionMethod)
 	submit = func(method connectionMethod) {
-		if busy.GetUntracked() || candidate.GetUntracked() != nil {
+		pending := candidate.GetUntracked()
+		if busy.GetUntracked() || saving.GetUntracked() || (pending != nil && method != probeConnection) {
 			return
 		}
 		base, err := serverAddress(address.GetUntracked(), port.GetUntracked(), https.GetUntracked())
@@ -120,6 +143,16 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			RemoteDisabled: current.RemoteDisabled, RemoteBitrate: current.RemoteBitrate,
 			Name: strings.TrimSpace(name.GetUntracked()), Username: strings.TrimSpace(user.GetUntracked())}
 		form.Certificates = routeCertificates(approved.GetUntracked(), form.Address, form.RemoteAddress)
+		if origin := sourceOrigin(form.Address); origin == savedOrigin {
+			form.HeaderSecret = current.HeaderSecret
+		}
+		if draft := headers.GetUntracked(); draft.origin == sourceOrigin(form.Address) {
+			form.headerDraft = draft.values
+		}
+		if pending != nil {
+			form = pending.source
+			form.Certificates = routeCertificates(approved.GetUntracked(), form.Address, form.RemoteAddress)
+		}
 		if form.Address == current.Address {
 			form.ServerID = current.ServerID
 		}
@@ -143,6 +176,12 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 					}
 				})
 			})
+			if err == nil && pending != nil && pending.info.ID != "" && result.info.ID != pending.info.ID {
+				err = errDifferentServer
+			}
+			if method == probeConnection && errors.Is(err, media.ErrAuthentication) {
+				err = errSourceProbeDenied
+			}
 			cx.Post(func() {
 				if viewContext.Err() != nil {
 					return
@@ -152,7 +191,10 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 					quickCode.Set("")
 					showError(err, func() { submit(probeConnection) })
 					if err == nil {
-						preview.Set(&result.info)
+						preview.Set(&candidateSource{info: result.info, endpoint: result.endpoint, latency: result.latency})
+						if pending != nil {
+							pending.source.Certificates = form.Certificates
+						}
 						if method != probeConnection {
 							password.Set("")
 							showPassword.Set(false)
@@ -163,7 +205,7 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 			})
 		}()
 	}
-	disabled := func() bool { return busy.Get() || candidate.Get() != nil }
+	disabled := func() bool { return busy.Get() || candidate.Get() != nil || editHeaders.Get() != nil }
 	httpsLabel := locales.UseHTTPS(cx)
 	updateAddress := func(value string) {
 		address.Set(value)
@@ -299,10 +341,88 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 		TrackClass: "h-[31px] w-[51px] flex-row items-center justify-start rounded-full bg-zinc-900/15 px-0.5 checked:justify-end checked:bg-violet-500 dark:bg-white/15 dark:checked:bg-violet-500",
 		ThumbClass: "size-[27px] rounded-full bg-white shadow-md", Children: []core.Node{core.Text{Content: trustLabel, Class: "text-[15px] " + setupTitle}},
 	}
-	advancedRows := []core.Node{trustRow, core.View{Class: setupRow, Children: []core.Node{
+	formOrigin := func() string {
+		base, err := serverAddress(address.Get(), port.Get(), https.Get())
+		if err != nil {
+			return ""
+		}
+		return sourceOrigin(base.String())
+	}
+	headerDraft := func() endpointHeaders {
+		origin := formOrigin()
+		if draft := headers.Get(); draft.origin == origin {
+			return draft
+		}
+		if stored := storedHeaders.Get(); stored.origin == origin {
+			return stored
+		}
+		return endpointHeaders{origin: origin}
+	}
+	label := locales.SourceRequestHeaders(cx)
+	headerTrigger := &core.Ref{}
+	headersRow := base.Button{Label: label, Ref: headerTrigger, TestID: "source-request-headers", Class: setupRow + " py-2.5",
+		Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)},
+		Disabled: func() bool {
+			origin := formOrigin()
+			return !canTrust || disabled() || origin == "" || (origin == savedOrigin && !storedHeadersReady.Get())
+		},
+		OnPress: func(core.PressEvent) {
+			draft := core.Untracked(cx, headerDraft)
+			editHeaders.Set(&draft)
+		},
+		Children: []core.Node{
+			core.Text{Content: label, Class: "flex-1 text-[15px] " + setupTitle},
+			core.Text{ContentFunc: func() string {
+				n := len(headerDraft().values)
+				if n == 0 {
+					return locales.BackupAddressUnset(cx)
+				}
+				return locales.SourceHeaderCount(cx, strconv.Itoa(n))
+			}, Class: "text-[15px] " + setupMuted},
+			core.Icon{SVG: lucide.ChevronRight(), Class: "size-4 text-zinc-500/60 dark:text-zinc-400/60"},
+		},
+	}
+	requestHeadersEditor := core.Dynamic(func(cx *core.Scope) core.Node {
+		if draft := editHeaders.Get(); draft != nil {
+			return headerEditor(cx, *draft, func() {
+				editHeaders.Set(nil)
+				if appLayoutIdiom(cx) == core.IdiomTV {
+					a.scope.Post(headerTrigger.Focus)
+				}
+			}, func(changes endpointHeaders) {
+				headers.Set(changes)
+				clearResult()
+			})
+		}
+		return nil
+	})
+	advancedRows := []core.Node{headersRow, trustRow, core.View{Class: setupRow, Children: []core.Node{
 		core.Text{Content: locales.BackupServerAddress(cx), Class: "w-32 shrink-0 text-[15px] " + setupTitle}, remoteEntry,
 	}}}
 	if current.ID != "" {
+		var saveHeaders func()
+		saveHeaders = func() {
+			draft := current
+			draft.headerDraft = headers.GetUntracked().values
+			draft.Certificates = routeCertificates(approved.GetUntracked(), current.Address, current.RemoteAddress)
+			busy.Set(true)
+			failure.Set(nil)
+			a.saveExistingSourceHeaders(viewContext, current, draft, func(err error) {
+				busy.Set(false)
+				if err != nil {
+					showError(err, saveHeaders)
+					return
+				}
+				a.back()
+			})
+		}
+		showHeaderSave := func() bool { return headers.Get().origin == savedOrigin && formOrigin() == savedOrigin }
+		advancedRows = append(advancedRows, core.Show{When: showHeaderSave, Then: func(cx *core.Scope) core.Node {
+			return core.View{Class: setupRow, Children: []core.Node{
+				ui.Button{Text: locales.SaveSourceHeaders(cx), Variant: ui.ButtonGhost, TestID: "save-source-headers",
+					Disabled: disabled, OnPress: saveHeaders},
+			}}
+		}})
 		var saveRemote func()
 		saveRemote = func() {
 			alternate, err := backupAddress(remote.GetUntracked(), current.Address)
@@ -403,45 +523,85 @@ func (a *application) connectionForm(cx *core.Scope, provider media.Provider, cu
 	return core.View{Class: "gap-6", Children: []core.Node{
 		server,
 		review,
+		requestHeadersEditor,
 		setupGroup(locales.LoginGroup(cx), footer, loginRows...),
 		setupGroup(locales.SourceAdvanced(cx), "", advancedRows...),
 		core.Dynamic(func(cx *core.Scope) core.Node {
+			receipt := preview.Get()
 			if err := failure.Get(); err != nil {
-				return core.View{Class: "mx-4", Children: []core.Node{notice(errorText(cx, err))}}
+				nodes := []core.Node{notice(errorText(cx, err))}
+				if receipt != nil {
+					nodes = append(nodes, sourceRetest(cx, busy.Get, saving.Get, func() { submit(probeConnection) }))
+				}
+				return core.View{Class: "mx-4 gap-2", Children: nodes}
 			}
 			if code := quickCode.Get(); code != "" {
 				return core.View{Class: "mx-4", Children: []core.Node{notice(locales.QuickConnectInstruction(cx, code))}}
 			}
-			if info := preview.Get(); info != nil {
-				name := info.Name
-				if name == "" {
-					name = providerName(cx, provider)
+			if receipt != nil {
+				user := ""
+				if result := candidate.Get(); result != nil {
+					user = result.source.Username
 				}
-				label := locales.Connected(cx, strings.TrimSpace(name+" "+info.Version))
-				detail := locales.ConnectionVerified(cx)
-				if result := candidate.Get(); result != nil && result.source.Username != "" {
-					detail = locales.SignedInAs(cx, result.source.Username)
-				}
-				return core.View{TestID: "connection-verified", Class: "mx-4 flex-row items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4", Children: []core.Node{
-					core.Icon{SVG: lucide.CircleCheck(), Class: "size-5 text-emerald-500"},
-					core.View{Class: "flex-1", Children: []core.Node{
-						core.Text{Content: label, Class: "text-sm font-medium " + setupTitle},
-						core.Text{Content: detail, Class: "text-xs " + setupMuted},
-					}},
-				}}
+				return sourceConnectionReceipt(cx, provider, *receipt, user, busy.Get, saving.Get, func() { submit(probeConnection) })
 			}
 			return nil
 		}),
 		core.Dynamic(func(cx *core.Scope) core.Node {
 			if result := candidate.Get(); result != nil {
-				return a.importSource(cx, *result, func() { candidate.Set(nil) })
+				return a.importSource(cx, func() candidateSource { return *result }, func() { candidate.Set(nil) }, func() bool { return busy.Get() || failure.Get() != nil }, saving)
 			}
 			return core.View{Class: "mx-4 gap-2", Children: []core.Node{
-				ui.Button{Text: locales.TestConnection(cx), Variant: ui.ButtonGhost, Disabled: busy.Get,
-					TestID: "test-connection", OnPress: func() { submit(probeConnection) }},
+				core.Show{When: func() bool { return preview.Get() == nil }, Then: func(cx *core.Scope) core.Node {
+					return ui.Button{Text: locales.TestConnection(cx), Variant: ui.ButtonGhost, Disabled: busy.Get,
+						TestID: "test-connection", OnPress: func() { submit(probeConnection) }}
+				}},
 				setupPrimary(cx, "sign-in", locales.SignIn(cx), busy.Get, nil, func() { submit(passwordConnection) }),
 			}}
 		}),
+	}}
+}
+
+func sourceRetest(cx *core.Scope, busy, saving func() bool, run func()) core.Node {
+	label := func() string {
+		if busy() {
+			return locales.ConnectionTesting(cx)
+		}
+		return locales.ConnectionRetest(cx)
+	}
+	return base.Button{LabelFunc: label, TestID: "retest-connection", Disabled: func() bool { return busy() || saving() },
+		Class: "shrink-0 rounded", Style: core.Style{FocusVisible: ui.FocusRing(cx, 3)},
+		OnPress:  func(core.PressEvent) { run() },
+		Children: []core.Node{core.Text{ContentFunc: label, Class: "text-xs text-emerald-500 dark:text-emerald-400"}}}
+}
+
+func sourceConnectionReceipt(cx *core.Scope, provider media.Provider, receipt candidateSource, user string, busy, saving func() bool, retest func()) core.Node {
+	info := receipt.info
+	name := info.Name
+	if name == "" {
+		name = providerName(cx, provider)
+	}
+	label := locales.Connected(cx, strings.TrimSpace(name+" "+info.Version))
+	details := []string{locales.ConnectionLatency(cx, strconv.FormatInt(max(1, receipt.latency.Round(time.Millisecond).Milliseconds()), 10))}
+	if receipt.endpoint.remote {
+		details = append(details, locales.ConnectionRemote(cx))
+	} else if endpoint, err := media.NormalizeAddress(receipt.endpoint.address); err == nil {
+		ip, _ := netip.ParseAddr(endpoint.Hostname())
+		if ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() ||
+			strings.HasSuffix(strings.ToLower(endpoint.Hostname()), ".local") {
+			details = append(details, locales.ConnectionLAN(cx))
+		}
+	}
+	if user != "" {
+		details = append(details, locales.SignedInAs(cx, user))
+	}
+	return core.View{TestID: "connection-verified", Class: "mx-4 flex-row items-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4", Children: []core.Node{
+		core.Icon{SVG: lucide.CircleCheck(), Class: "size-5 text-emerald-500"},
+		core.View{Class: "min-w-0 flex-1", Children: []core.Node{
+			core.Text{Content: label, Class: "text-sm font-medium " + setupTitle, MaxLines: 1},
+			core.Text{Content: strings.Join(details, " · "), TestID: "connection-detail", Class: "text-xs " + setupMuted},
+		}},
+		sourceRetest(cx, busy, saving, retest),
 	}}
 }
 

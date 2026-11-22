@@ -139,7 +139,7 @@ func (c *Captions) At(position time.Duration) string {
 	return text.String()
 }
 
-func FetchCaptions(ctx context.Context, address string, pins ...mediatls.Trust) (*Captions, error) {
+func FetchCaptions(ctx context.Context, address string, header http.Header, pins ...mediatls.Trust) (*Captions, error) {
 	origin, err := url.Parse(address)
 	if err != nil || origin.User != nil || origin.Hostname() == "" || (origin.Scheme != "http" && origin.Scheme != "https") {
 		return nil, errCaptions
@@ -162,6 +162,7 @@ func FetchCaptions(ctx context.Context, address string, pins ...mediatls.Trust) 
 	if err != nil {
 		return nil, errCaptions
 	}
+	req.Header = header.Clone()
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, errCaptions

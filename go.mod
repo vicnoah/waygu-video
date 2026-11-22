@@ -6,6 +6,7 @@ require (
 	github.com/ebitengine/purego v0.11.3
 	github.com/mozillazg/go-pinyin v0.21.0
 	github.com/nsgo-dev/nsgo v0.2.1-0.20261121221132-091984681603
+	golang.org/x/net v0.62.0
 	golang.org/x/sys v0.50.0
 	golang.org/x/text v0.44.0
 	rsc.io/qr v0.2.0
@@ -28,7 +29,6 @@ require (
 	github.com/yuin/goldmark v1.8.7 // indirect
 	go.yaml.in/yaml/v3 v3.0.6 // indirect
 	golang.org/x/image v0.48.0 // indirect
-	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
 	golang.org/x/time v0.15.0 // indirect

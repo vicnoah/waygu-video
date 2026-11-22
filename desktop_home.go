@@ -77,7 +77,7 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 		if featured := recommendHomeTitles(recent, 4); len(featured) > 0 {
 			nodes = append(nodes, core.Func(func(cx *core.Scope) core.Node {
 				return a.desktopFeatured(cx, featured, func(entry catalogItem) {
-					backdrop.Set(homeBackdrop{entry.source.Address, cmp.Or(entry.item.Backdrop, entry.item.Poster)})
+					backdrop.Set(a.sourceBackdrop(entry))
 				})
 			}))
 		}

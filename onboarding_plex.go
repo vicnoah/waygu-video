@@ -128,12 +128,15 @@ func (a *application) plexServerImport(cx *core.Scope, current source, account p
 				form.RemoteBitrate = current.RemoteBitrate
 			}
 			form.Certificates = routeCertificates(current.Certificates, form.Address, form.RemoteAddress)
+			if sourceOrigin(current.Address) == sourceOrigin(form.Address) {
+				form.HeaderSecret = current.HeaderSecret
+			}
 		}
 		return candidateSource{source: form, info: link.Info, session: link.Session, libraries: link.Libraries}, nil
 	})
 	return core.Dynamic(func(cx *core.Scope) core.Node {
 		if result, ok := connected.Get(); ok {
-			return a.importSource(cx, result, back)
+			return a.importSource(cx, func() candidateSource { return result }, back, nil, nil)
 		}
 		rows := []core.Node{heading(server.Name)}
 		if err := connected.Err(); err != nil && !connected.Loading() {

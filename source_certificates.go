@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"errors"
+	"net/http"
 	"slices"
 	"sync"
 
@@ -42,55 +43,67 @@ func routeCertificates(approved []mediatls.Trust, endpoint ...string) []mediatls
 	})
 }
 
-type artworkRoute struct {
-	mapURL func(string) string
-	close  func()
+type artworkAccess struct {
+	origin, key string
+	trust       mediatls.Trust
+}
+
+func (s source) artworkAccess(address string) artworkAccess {
+	var key string
+	origin := sourceOrigin(address)
+	if origin == sourceOrigin(s.Address) {
+		key = s.HeaderSecret
+	}
+	return artworkAccess{origin, key, s.certificateFor(address)}
 }
 
 type sourceArtwork struct {
 	mu     sync.Mutex
-	active map[mediatls.Trust]bool
-	routes map[mediatls.Trust]artworkRoute
+	active map[artworkAccess]bool
+	routes map[artworkAccess]playback.ArtworkProxy
 }
 
 func (a *application) artworkSources(entries []source) {
-	active := make(map[mediatls.Trust]bool)
+	active := make(map[artworkAccess]bool)
 	for _, entry := range entries {
-		for _, pin := range entry.Certificates {
-			active[pin] = true
+		for _, endpoint := range []string{entry.Address, entry.RemoteAddress} {
+			access := entry.artworkAccess(endpoint)
+			if access.trust.Certificate != "" || access.key != "" {
+				active[access] = true
+			}
 		}
 	}
 	art := &a.sourceArtwork
 	art.mu.Lock()
 	defer art.mu.Unlock()
-	for pin, route := range art.routes {
-		if !active[pin] {
-			route.close()
-			delete(art.routes, pin)
+	for access, route := range art.routes {
+		if !active[access] {
+			route.Close()
+			delete(art.routes, access)
 		}
 	}
 	art.active = active
 }
 
-func (a *application) trustedArtwork(pin mediatls.Trust) func(string) string {
+func (a *application) proxyArtwork(access artworkAccess, headers http.Header) func(string) string {
 	art := &a.sourceArtwork
 	art.mu.Lock()
 	defer art.mu.Unlock()
-	if !art.active[pin] {
+	if !art.active[access] {
 		return nil
 	}
-	if route, ok := art.routes[pin]; ok {
-		return route.mapURL
+	if route, ok := art.routes[access]; ok {
+		return route.Resolve
 	}
-	mapURL, close, err := playback.OpenArtwork(pin.Origin, pin)
+	route, err := playback.OpenArtwork(access.origin, headers, access.trust)
 	if err != nil {
 		return nil
 	}
 	if art.routes == nil {
-		art.routes = make(map[mediatls.Trust]artworkRoute)
+		art.routes = make(map[artworkAccess]playback.ArtworkProxy)
 	}
-	art.routes[pin] = artworkRoute{mapURL, close}
-	return mapURL
+	art.routes[access] = route
+	return route.Resolve
 }
 
 func (a *application) sourceClient(s source, address string, session media.Session, includeArtwork bool) (media.Client, error) {
@@ -98,14 +111,17 @@ func (a *application) sourceClient(s source, address string, session media.Sessi
 	if err != nil {
 		return nil, err
 	}
-	if pin := s.certificateFor(address); pin.Certificate != "" {
-		var mapper func(string) string
-		if includeArtwork {
-			mapper = a.trustedArtwork(pin)
-		}
-		if err := media.ConfigureTrust(client, pin, mapper); err != nil {
-			return nil, sourceAddressError(address, err)
-		}
+	headers, err := a.requestHeaders(s, address)
+	if err != nil {
+		return nil, err
+	}
+	access := s.artworkAccess(address)
+	var mapper func(string) string
+	if includeArtwork && (access.trust.Certificate != "" || len(headers) > 0) {
+		mapper = a.proxyArtwork(access, headers)
+	}
+	if err := media.ConfigureEndpoint(client, access.trust, headers, mapper); err != nil {
+		return nil, sourceAddressError(address, err)
 	}
 	return client, nil
 }

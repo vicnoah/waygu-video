@@ -111,6 +111,19 @@ func TestAppearanceNightAndPosterColor(t *testing.T) {
 	if other := sampleHomePoster(t.Context(), homeBackdrop{"http://localhost:1", server.URL}); other != core.Transparent {
 		t.Fatalf("a poster at a different origin supplied color %#x", other)
 	}
+	a := application{}
+	entry := source{Address: server.URL, HeaderSecret: "artwork-credential"}
+	a.artworkSources([]source{entry})
+	defer a.artworkSources(nil)
+	mapped := a.proxyArtwork(entry.artworkAccess(server.URL), http.Header{"X-Artwork-Key": {"fixture"}})
+	item := catalogItem{source: entry, item: media.Item{Poster: mapped(server.URL + "/poster")}}
+	if color := sampleHomePoster(t.Context(), a.sourceBackdrop(item)); color != got {
+		t.Fatalf("source-owned artwork proxy supplied color %#x, want %#x", color, got)
+	}
+	item.source.HeaderSecret = "different-artwork-credential"
+	if color := sampleHomePoster(t.Context(), a.sourceBackdrop(item)); color != core.Transparent {
+		t.Fatalf("another source's artwork proxy supplied color %#x", color)
+	}
 }
 
 func TestAppearanceNightResolvesRunningTheme(t *testing.T) {

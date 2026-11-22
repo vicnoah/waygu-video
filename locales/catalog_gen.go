@@ -45,6 +45,8 @@ func For(cx *core.Scope) Messages {
 var Parameters = map[string][]string{
 	"WelcomeMediaSourcesDetail":       {"flymoo"},
 	"AddDiscoveredSource":             {"name"},
+	"SourceHeaderCount":               {"count"},
+	"ConnectionLatency":               {"milliseconds"},
 	"SourceCertificateDetails":        {"origin", "fingerprint"},
 	"SourceAddresses":                 {"local", "remote"},
 	"Connected":                       {"name"},
@@ -182,6 +184,8 @@ type Translation struct {
 	Texts                           map[string]string
 	WelcomeMediaSourcesDetail       func(flymoo string) string
 	AddDiscoveredSource             func(name string) string
+	SourceHeaderCount               func(count string) string
+	ConnectionLatency               func(milliseconds string) string
 	SourceCertificateDetails        func(origin string, fingerprint string) string
 	SourceAddresses                 func(local string, remote string) string
 	Connected                       func(name string) string
@@ -348,6 +352,20 @@ const (
 	textUseHTTPS
 	textScanServerAddress
 	textSourceName
+	textSourceRequestHeaders
+	textSourceHeaderName
+	textSourceHeaderValue
+	textSourceHeaderAdd
+	textSourceHeaderRemove
+	textSourceHeaderInvalid
+	textSourceHeadersUnavailable
+	textSourceHeadersApply
+	textSaveSourceHeaders
+	textSourceProbeDenied
+	textConnectionRetest
+	textConnectionTesting
+	textConnectionLAN
+	textConnectionRemote
 	textTrustSourceCertificate
 	textSourceCertificateRejected
 	textApproveSourceCertificate
@@ -380,7 +398,6 @@ const (
 	textPlexServerUnreachable
 	textTestConnection
 	textSignIn
-	textConnectionVerified
 	textImportLibraries
 	textCompleteSource
 	textNoLibraries
@@ -1196,6 +1213,20 @@ var keyOfText = [numTexts]string{
 	"useHTTPS",
 	"scanServerAddress",
 	"sourceName",
+	"sourceRequestHeaders",
+	"sourceHeaderName",
+	"sourceHeaderValue",
+	"sourceHeaderAdd",
+	"sourceHeaderRemove",
+	"sourceHeaderInvalid",
+	"sourceHeadersUnavailable",
+	"sourceHeadersApply",
+	"saveSourceHeaders",
+	"sourceProbeDenied",
+	"connectionRetest",
+	"connectionTesting",
+	"connectionLAN",
+	"connectionRemote",
 	"trustSourceCertificate",
 	"sourceCertificateRejected",
 	"approveSourceCertificate",
@@ -1228,7 +1259,6 @@ var keyOfText = [numTexts]string{
 	"plexServerUnreachable",
 	"testConnection",
 	"signIn",
-	"connectionVerified",
 	"importLibraries",
 	"completeSource",
 	"noLibraries",
@@ -2042,6 +2072,20 @@ var textsEn = i18n.NewTexts(""+
 	"Use HTTPS"+
 	"Scan server address"+
 	"Display name"+
+	"Custom request headers"+
+	"Header name"+
+	"Header value"+
+	"Add header"+
+	"Remove header"+
+	"Enter a unique header name and a valid value. Connection headers are reserved."+
+	"Could not access the secure store for request headers."+
+	"Apply"+
+	"Save request headers"+
+	"The server denied the connection test. Check the address and any required request headers."+
+	"Test again"+
+	"Testing…"+
+	"Local network"+
+	"Remote"+
 	"Trust server certificate"+
 	"The server certificate could not be verified."+
 	"Trust certificate"+
@@ -2074,7 +2118,6 @@ var textsEn = i18n.NewTexts(""+
 	"Could not connect to the selected Plex server."+
 	"Test connection"+
 	"Sign in"+
-	"The server responded to the connection test."+
 	"Choose libraries to import"+
 	"Done"+
 	"This account has no video libraries."+
@@ -2885,6 +2928,20 @@ var textsEn = i18n.NewTexts(""+
 		9,
 		19,
 		12,
+		22,
+		11,
+		12,
+		10,
+		13,
+		78,
+		54,
+		5,
+		20,
+		90,
+		10,
+		10,
+		13,
+		6,
 		24,
 		45,
 		17,
@@ -2917,7 +2974,6 @@ var textsEn = i18n.NewTexts(""+
 		46,
 		15,
 		7,
-		44,
 		26,
 		4,
 		36,
@@ -3731,6 +3787,20 @@ var textsZhHans = i18n.NewTexts(""+
 	"使用 HTTPS"+
 	"扫描服务器地址"+
 	"显示名称"+
+	"自定义请求头"+
+	"请求头名称"+
+	"请求头值"+
+	"添加请求头"+
+	"移除请求头"+
+	"请填写唯一的名称和有效的值。连接相关的请求头由应用管理。"+
+	"无法访问存储请求头的安全凭据库。"+
+	"应用"+
+	"保存请求头"+
+	"服务器拒绝了连接测试。请检查地址和服务器要求的请求头。"+
+	"重新测试"+
+	"测试中…"+
+	"局域网"+
+	"外网"+
 	"信任服务器证书"+
 	"无法验证服务器证书。"+
 	"信任证书"+
@@ -3763,7 +3833,6 @@ var textsZhHans = i18n.NewTexts(""+
 	"无法连接到所选 Plex 服务器。"+
 	"测试连接"+
 	"登录"+
-	"服务器已响应连接测试。"+
 	"选择要导入的媒体库"+
 	"完成"+
 	"此账号没有可导入的影视库。"+
@@ -4574,6 +4643,20 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		21,
 		12,
+		18,
+		15,
+		12,
+		15,
+		15,
+		84,
+		48,
+		6,
+		15,
+		81,
+		12,
+		12,
+		9,
+		6,
 		21,
 		30,
 		12,
@@ -4606,7 +4689,6 @@ var textsZhHans = i18n.NewTexts(""+
 		39,
 		12,
 		6,
-		33,
 		27,
 		6,
 		39,
@@ -5445,6 +5527,12 @@ func Supply(lang string, t Translation) {
 	if t.AddDiscoveredSource != nil {
 		s.AddDiscoveredSource = t.AddDiscoveredSource
 	}
+	if t.SourceHeaderCount != nil {
+		s.SourceHeaderCount = t.SourceHeaderCount
+	}
+	if t.ConnectionLatency != nil {
+		s.ConnectionLatency = t.ConnectionLatency
+	}
 	if t.SourceCertificateDetails != nil {
 		s.SourceCertificateDetails = t.SourceCertificateDetails
 	}
@@ -6132,6 +6220,152 @@ func SourceName(cx *core.Scope) string { return For(cx).SourceName() }
 // SourceName is the package's SourceName in the language of msgs.
 func (msgs Messages) SourceName() string { return msgs.text(textSourceName) }
 
+// SourceRequestHeaders says "Custom request headers"
+// in the language the app shows under cx.
+func SourceRequestHeaders(cx *core.Scope) string { return For(cx).SourceRequestHeaders() }
+
+// SourceRequestHeaders is the package's SourceRequestHeaders in the language of msgs.
+func (msgs Messages) SourceRequestHeaders() string { return msgs.text(textSourceRequestHeaders) }
+
+// SourceHeaderCount says "{count} configured"
+// in the language the app shows under cx.
+func SourceHeaderCount(cx *core.Scope, count string) string { return For(cx).SourceHeaderCount(count) }
+
+// SourceHeaderCount is the package's SourceHeaderCount in the language of msgs.
+func (msgs Messages) SourceHeaderCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.SourceHeaderCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].SourceHeaderCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " configured"
+		case "zh-Hans":
+			return count + " 项"
+		}
+	}
+}
+
+// SourceHeaderName says "Header name"
+// in the language the app shows under cx.
+func SourceHeaderName(cx *core.Scope) string { return For(cx).SourceHeaderName() }
+
+// SourceHeaderName is the package's SourceHeaderName in the language of msgs.
+func (msgs Messages) SourceHeaderName() string { return msgs.text(textSourceHeaderName) }
+
+// SourceHeaderValue says "Header value"
+// in the language the app shows under cx.
+func SourceHeaderValue(cx *core.Scope) string { return For(cx).SourceHeaderValue() }
+
+// SourceHeaderValue is the package's SourceHeaderValue in the language of msgs.
+func (msgs Messages) SourceHeaderValue() string { return msgs.text(textSourceHeaderValue) }
+
+// SourceHeaderAdd says "Add header"
+// in the language the app shows under cx.
+func SourceHeaderAdd(cx *core.Scope) string { return For(cx).SourceHeaderAdd() }
+
+// SourceHeaderAdd is the package's SourceHeaderAdd in the language of msgs.
+func (msgs Messages) SourceHeaderAdd() string { return msgs.text(textSourceHeaderAdd) }
+
+// SourceHeaderRemove says "Remove header"
+// in the language the app shows under cx.
+func SourceHeaderRemove(cx *core.Scope) string { return For(cx).SourceHeaderRemove() }
+
+// SourceHeaderRemove is the package's SourceHeaderRemove in the language of msgs.
+func (msgs Messages) SourceHeaderRemove() string { return msgs.text(textSourceHeaderRemove) }
+
+// SourceHeaderInvalid says "Enter a unique header name and a valid value. Connection headers are reserved."
+// in the language the app shows under cx.
+func SourceHeaderInvalid(cx *core.Scope) string { return For(cx).SourceHeaderInvalid() }
+
+// SourceHeaderInvalid is the package's SourceHeaderInvalid in the language of msgs.
+func (msgs Messages) SourceHeaderInvalid() string { return msgs.text(textSourceHeaderInvalid) }
+
+// SourceHeadersUnavailable says "Could not access the secure store for request headers."
+// in the language the app shows under cx.
+func SourceHeadersUnavailable(cx *core.Scope) string { return For(cx).SourceHeadersUnavailable() }
+
+// SourceHeadersUnavailable is the package's SourceHeadersUnavailable in the language of msgs.
+func (msgs Messages) SourceHeadersUnavailable() string {
+	return msgs.text(textSourceHeadersUnavailable)
+}
+
+// SourceHeadersApply says "Apply"
+// in the language the app shows under cx.
+func SourceHeadersApply(cx *core.Scope) string { return For(cx).SourceHeadersApply() }
+
+// SourceHeadersApply is the package's SourceHeadersApply in the language of msgs.
+func (msgs Messages) SourceHeadersApply() string { return msgs.text(textSourceHeadersApply) }
+
+// SaveSourceHeaders says "Save request headers"
+// in the language the app shows under cx.
+func SaveSourceHeaders(cx *core.Scope) string { return For(cx).SaveSourceHeaders() }
+
+// SaveSourceHeaders is the package's SaveSourceHeaders in the language of msgs.
+func (msgs Messages) SaveSourceHeaders() string { return msgs.text(textSaveSourceHeaders) }
+
+// SourceProbeDenied says "The server denied the connection test. Check the address and any required request headers."
+// in the language the app shows under cx.
+func SourceProbeDenied(cx *core.Scope) string { return For(cx).SourceProbeDenied() }
+
+// SourceProbeDenied is the package's SourceProbeDenied in the language of msgs.
+func (msgs Messages) SourceProbeDenied() string { return msgs.text(textSourceProbeDenied) }
+
+// ConnectionRetest says "Test again"
+// in the language the app shows under cx.
+func ConnectionRetest(cx *core.Scope) string { return For(cx).ConnectionRetest() }
+
+// ConnectionRetest is the package's ConnectionRetest in the language of msgs.
+func (msgs Messages) ConnectionRetest() string { return msgs.text(textConnectionRetest) }
+
+// ConnectionTesting says "Testing…"
+// in the language the app shows under cx.
+func ConnectionTesting(cx *core.Scope) string { return For(cx).ConnectionTesting() }
+
+// ConnectionTesting is the package's ConnectionTesting in the language of msgs.
+func (msgs Messages) ConnectionTesting() string { return msgs.text(textConnectionTesting) }
+
+// ConnectionLatency says "Latency {milliseconds} ms"
+// in the language the app shows under cx.
+func ConnectionLatency(cx *core.Scope, milliseconds string) string {
+	return For(cx).ConnectionLatency(milliseconds)
+}
+
+// ConnectionLatency is the package's ConnectionLatency in the language of msgs.
+func (msgs Messages) ConnectionLatency(milliseconds string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.ConnectionLatency(milliseconds))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].ConnectionLatency; f != nil {
+			return f(milliseconds)
+		}
+		switch lang {
+		case "", "en":
+			return "Latency " + msgs.arg(milliseconds) + " ms"
+		case "zh-Hans":
+			return "延迟 " + milliseconds + "ms"
+		}
+	}
+}
+
+// ConnectionLAN says "Local network"
+// in the language the app shows under cx.
+func ConnectionLAN(cx *core.Scope) string { return For(cx).ConnectionLAN() }
+
+// ConnectionLAN is the package's ConnectionLAN in the language of msgs.
+func (msgs Messages) ConnectionLAN() string { return msgs.text(textConnectionLAN) }
+
+// ConnectionRemote says "Remote"
+// in the language the app shows under cx.
+func ConnectionRemote(cx *core.Scope) string { return For(cx).ConnectionRemote() }
+
+// ConnectionRemote is the package's ConnectionRemote in the language of msgs.
+func (msgs Messages) ConnectionRemote() string { return msgs.text(textConnectionRemote) }
+
 // TrustSourceCertificate says "Trust server certificate"
 // in the language the app shows under cx.
 func TrustSourceCertificate(cx *core.Scope) string { return For(cx).TrustSourceCertificate() }
@@ -6435,13 +6669,6 @@ func (msgs Messages) Connected(name string) string {
 		}
 	}
 }
-
-// ConnectionVerified says "The server responded to the connection test."
-// in the language the app shows under cx.
-func ConnectionVerified(cx *core.Scope) string { return For(cx).ConnectionVerified() }
-
-// ConnectionVerified is the package's ConnectionVerified in the language of msgs.
-func (msgs Messages) ConnectionVerified() string { return msgs.text(textConnectionVerified) }
 
 // SignedInAs says "Signed in as {name}"
 // in the language the app shows under cx.

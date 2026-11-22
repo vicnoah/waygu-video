@@ -309,7 +309,7 @@ func verifyDockerTracks(t *testing.T, ctx context.Context, client Client, librar
 	}
 	var checkedEmbedded, checkedExternal bool
 	for _, track := range availableCaptions {
-		cues, err := playback.FetchCaptions(ctx, track.URL)
+		cues, err := playback.FetchCaptions(ctx, track.URL, nil)
 		if err != nil || cues.At(2*time.Second) != "Waygu track selection fixture" {
 			t.Fatalf("read subtitle track %s: %v", track.ID, err)
 		}

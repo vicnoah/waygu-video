@@ -52,11 +52,11 @@ func TestFetchCaptionsKeepsRequestsOnTheMediaServer(t *testing.T) {
 		}
 	}))
 	defer source.Close()
-	track, err := FetchCaptions(t.Context(), source.URL+"/caption?credential=fixture")
+	track, err := FetchCaptions(t.Context(), source.URL+"/caption?credential=fixture", nil)
 	if err != nil || track.At(time.Second) != "Authenticated caption" {
 		t.Fatalf("fetch caption from the original server: %v", err)
 	}
-	if _, err := FetchCaptions(t.Context(), source.URL+"/redirect?credential=fixture"); err == nil ||
+	if _, err := FetchCaptions(t.Context(), source.URL+"/redirect?credential=fixture", nil); err == nil ||
 		strings.Contains(err.Error(), "fixture") {
 		t.Fatal("redirect did not return a credential-free error")
 	}

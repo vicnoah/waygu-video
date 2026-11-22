@@ -174,10 +174,10 @@ func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID 
 	params := url.Values{"Static": {"true"}, "MediaSourceId": {source.ID},
 		"DeviceId": {m.device.ID}, "PlaySessionId": {sessionID}}
 	original := m.mediaURL("Videos/"+url.PathEscape(item.ID)+"/stream", params)
-	stream := Stream{ItemID: item.ID, SourceID: source.ID, SessionID: sessionID, Trust: m.trust,
+	stream := Stream{ItemID: item.ID, SourceID: source.ID, SessionID: sessionID, Trust: m.trust, SubtitleHeaders: m.headers,
 		Position: item.Position, Duration: max(item.Duration, fromTicks(source.RunTimeTicks)),
 		Rendition: source.version(),
-		File:      SourceFile{Name: videoFileName(source.Path), Size: source.Size, URL: original}}
+		File:      SourceFile{Name: videoFileName(source.Path), Size: source.Size, URL: original, Headers: m.headers}}
 	if audio != nil {
 		if !slices.ContainsFunc(source.MediaStreams, func(stream browserStream) bool {
 			return stream.Index == *audio && strings.EqualFold(stream.Type, "audio")
@@ -206,6 +206,7 @@ func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID 
 	if selected == nil && stream.Method != DirectPlay {
 		selected = source.DefaultAudioStreamIndex
 	}
+	stream.Headers = m.withEndpointHeaders(stream.Headers)
 	stream.Tracks = m.browserTracks(item, source, selected)
 	return stream, true
 }

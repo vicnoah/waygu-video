@@ -177,18 +177,19 @@ type DirectProfile struct {
 }
 
 type Stream struct {
-	ItemID    string
-	SourceID  string
-	SessionID string
-	URL       string
-	Headers   http.Header
-	Method    PlayMethod
-	Position  time.Duration
-	Duration  time.Duration
-	Tracks    []Track
-	Rendition Version
-	File      SourceFile
-	Trust     mediatls.Trust
+	ItemID          string
+	SourceID        string
+	SessionID       string
+	URL             string
+	Headers         http.Header
+	Method          PlayMethod
+	Position        time.Duration
+	Duration        time.Duration
+	Tracks          []Track
+	Rendition       Version
+	File            SourceFile
+	Trust           mediatls.Trust
+	SubtitleHeaders http.Header
 }
 
 // SourceFile is the original file of the selected version, even when the

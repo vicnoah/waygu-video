@@ -22,6 +22,7 @@ type api struct {
 	client     *http.Client
 	observe    func(RequestMetric)
 	trust      mediatls.Trust
+	headers    http.Header
 	artworkURL func(string) string
 }
 
@@ -58,9 +59,9 @@ func newAPI(base *url.URL) api {
 	}}
 }
 
-// ConfigureTrust applies endpoint-local HTTPS trust to a newly constructed client.
-func ConfigureTrust(client Client, trust mediatls.Trust, artwork func(string) string) error {
-	if trust.Certificate == "" {
+// ConfigureEndpoint applies server-specific options to a newly constructed client.
+func ConfigureEndpoint(client Client, trust mediatls.Trust, headers http.Header, artwork func(string) string) error {
+	if trust.Certificate == "" && len(headers) == 0 && artwork == nil {
 		return nil
 	}
 	var inner *api
@@ -74,24 +75,38 @@ func ConfigureTrust(client Client, trust mediatls.Trust, artwork func(string) st
 	default:
 		return mediatls.ErrCertificate
 	}
-	address := inner.base.String()
-	if !trust.Matches(address) {
-		return mediatls.ErrCertificate
+	if trust.Certificate != "" {
+		address := inner.base.String()
+		if !trust.Matches(address) {
+			return mediatls.ErrCertificate
+		}
+		transport, err := mediatls.Transport(address, trust)
+		if err != nil {
+			return err
+		}
+		inner.client.Transport = transport
 	}
-	transport, err := mediatls.Transport(address, trust)
-	if err != nil {
-		return err
-	}
-	inner.client.Transport = transport
-	inner.trust, inner.artworkURL = trust, artwork
+	inner.trust, inner.headers, inner.artworkURL = trust, headers.Clone(), artwork
 	return nil
 }
 
 func (a api) artworkAddress(address string) string {
-	if a.artworkURL != nil && a.trust.Matches(address) {
+	if a.artworkURL != nil {
 		return a.artworkURL(address)
 	}
 	return address
+}
+
+// withEndpointHeaders preserves headers set by the provider or request.
+func (a api) withEndpointHeaders(header http.Header) http.Header {
+	if len(a.headers) == 0 {
+		return header
+	}
+	result := a.headers.Clone()
+	for name, values := range header {
+		result[name] = values
+	}
+	return result
 }
 
 func sameOrigin(a, b *url.URL) bool {
@@ -183,6 +198,9 @@ func (a api) send(ctx context.Context, method string, endpoint *url.URL, header 
 	}
 	for key, values := range header {
 		request.Header[key] = values
+	}
+	if sameOrigin(endpoint, a.base) {
+		request.Header = a.withEndpointHeaders(request.Header)
 	}
 	status := 0
 	if a.observe != nil {

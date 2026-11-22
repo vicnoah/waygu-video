@@ -49,12 +49,18 @@ func OpenForRenderer(address string, headers http.Header, receiver netip.Addr, c
 	return openProxy(address, headers, netip.AddrPortFrom(local, 0).String(), receiver.Unmap(), contentType, 0, pins...)
 }
 
-// OpenArtwork keeps an HTTPS origin available to native image views that use the
-// system trust store. Each signed media URL has its own opaque request path.
-func OpenArtwork(address string, trust mediatls.Trust) (func(string) string, func(), error) {
-	proxy, local, stop, err := startProxy(address, nil, "127.0.0.1:0", netip.Addr{}, "", 0, trust)
+type ArtworkProxy struct {
+	Address string
+	Resolve func(string) string
+	Close   func()
+}
+
+// OpenArtwork supplies server artwork to native image views that use their own
+// HTTP client. Each allowed media URL has its own opaque request path.
+func OpenArtwork(address string, headers http.Header, trust mediatls.Trust) (ArtworkProxy, error) {
+	proxy, local, stop, err := startProxy(address, headers, "127.0.0.1:0", netip.Addr{}, "", 0, trust)
 	if err != nil {
-		return nil, nil, err
+		return ArtworkProxy{}, err
 	}
 	resolve := func(raw string) string {
 		endpoint, err := url.Parse(raw)
@@ -63,7 +69,7 @@ func OpenArtwork(address string, trust mediatls.Trust) (func(string) string, fun
 		}
 		return local + proxy.add(endpoint)
 	}
-	return resolve, stop, nil
+	return ArtworkProxy{Address: local, Resolve: resolve, Close: stop}, nil
 }
 
 func openProxy(address string, headers http.Header, bind string, receiver netip.Addr, contentType string, limit int64, pins ...mediatls.Trust) (string, func(), error) {

@@ -18,14 +18,14 @@ const sourceTimeoutKey = "source-timeout-v1"
 var sourceTimeouts = []int{5, 10, 20, 30, 60}
 
 type sourceConnection struct {
-	localTrust, remoteTrust                      mediatls.Trust
-	address, remote, server, account, credential string
-	remoteDisabled                               bool
-	provider                                     media.Provider
+	localTrust, remoteTrust                               mediatls.Trust
+	address, remote, server, account, credential, headers string
+	remoteDisabled                                        bool
+	provider                                              media.Provider
 }
 
 func (s source) connection() sourceConnection {
-	return sourceConnection{s.certificateFor(s.Address), s.certificateFor(s.RemoteAddress), s.Address, s.RemoteAddress, s.ServerID, s.AccountID, s.credentialKey(), s.RemoteDisabled, s.Provider}
+	return sourceConnection{s.certificateFor(s.Address), s.certificateFor(s.RemoteAddress), s.Address, s.RemoteAddress, s.ServerID, s.AccountID, s.credentialKey(), s.HeaderSecret, s.RemoteDisabled, s.Provider}
 }
 
 type sourceCheck struct {
@@ -158,6 +158,7 @@ func (a *application) removeSource(entry source) error {
 		a.sourceFilter.Set("")
 	}
 	go func() { _ = a.secrets.Delete(key) }()
+	a.forgetSourceHeaders(entry.HeaderSecret)
 	return nil
 }
 

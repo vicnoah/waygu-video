@@ -120,3 +120,15 @@ GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 go tool nsgo test ./... \
 go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run "^TestDockerPhoneTrustsCertificateForLoginAndPlayback$" -screenshots .nsgo/ui-review/source-certificates
 ```
+
+
+## Custom request headers
+
+`TestDockerSourceAdvancedConnection` places a gateway in front of the Emby fixture that requires two request headers. It verifies rejection before configuration, validates reserved and duplicate names, checks a failed and recovered retest, and confirms the account and library selection survive. It verifies that profile storage contains a secure-store reference and that removing the headers removes the previous secret. GTK reads the poster and video through the same gateway and the playback clock advances. A separate loopback test verifies that a cross-origin redirect and the backup address receive neither header. [Go HTTP client](https://pkg.go.dev/net/http#Client) · [Emby authentication](https://dev.emby.media/doc/restapi/User-Authentication.html)
+
+```sh
+GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 go tool nsgo test . \
+  -run '^Test(SourceRequestHeadersStayOnTheirOrigin|DockerSourceAdvancedConnection)$' -count=1
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerSourceAdvancedConnection$' -screenshots .nsgo/ui-review/source-advanced
+```

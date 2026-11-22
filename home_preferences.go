@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"image"
 	_ "image/gif"
@@ -53,6 +54,28 @@ func homeSuggestions(entries []catalogItem, seed uint64) []catalogItem {
 }
 
 type homeBackdrop struct{ address, image string }
+
+func (a *application) sourceBackdrop(entry catalogItem) homeBackdrop {
+	backdrop := homeBackdrop{entry.source.Address, cmp.Or(entry.item.Backdrop, entry.item.Poster)}
+	target, err := url.Parse(backdrop.image)
+	if err != nil || target.User != nil {
+		return backdrop
+	}
+	origin := target.Scheme + "://" + target.Host
+	a.sourceArtwork.mu.Lock()
+	defer a.sourceArtwork.mu.Unlock()
+	for _, address := range []string{entry.source.Address, entry.source.RemoteAddress} {
+		if proxy, ok := a.sourceArtwork.routes[entry.source.artworkAccess(address)]; ok && origin == proxy.Address {
+			backdrop.address = proxy.Address
+			break
+		}
+		if address != "" && strings.EqualFold(origin, sourceOrigin(address)) {
+			backdrop.address = address
+			break
+		}
+	}
+	return backdrop
+}
 
 func homePosterGlow(cx *core.Scope, background func() (homeBackdrop, bool)) core.Node {
 	resource := core.NewResource(cx, background, func(ctx context.Context, backdrop homeBackdrop, _ core.ResourceInfo) (core.Color, error) {

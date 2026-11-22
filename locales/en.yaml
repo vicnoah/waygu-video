@@ -34,6 +34,22 @@ useHTTPS: Use HTTPS
 scanServerAddress: Scan server address
 sourceName: Display name
 
+sourceRequestHeaders: Custom request headers
+sourceHeaderCount: "{count} configured"
+sourceHeaderName: Header name
+sourceHeaderValue: Header value
+sourceHeaderAdd: Add header
+sourceHeaderRemove: Remove header
+sourceHeaderInvalid: Enter a unique header name and a valid value. Connection headers are reserved.
+sourceHeadersUnavailable: Could not access the secure store for request headers.
+sourceHeadersApply: Apply
+saveSourceHeaders: Save request headers
+sourceProbeDenied: The server denied the connection test. Check the address and any required request headers.
+connectionRetest: Test again
+connectionTesting: Testing…
+connectionLatency: "Latency {milliseconds} ms"
+connectionLAN: Local network
+connectionRemote: Remote
 trustSourceCertificate: Trust server certificate
 sourceCertificateRejected: The server certificate could not be verified.
 sourceCertificateDetails: |-
@@ -72,7 +88,6 @@ plexServerUnreachable: Could not connect to the selected Plex server.
 testConnection: Test connection
 signIn: Sign in
 connected: "Connected to {name}"
-connectionVerified: The server responded to the connection test.
 signedInAs: "Signed in as {name}"
 importLibraries: Choose libraries to import
 completeSource: Done

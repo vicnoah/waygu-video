@@ -1,7 +1,6 @@
 package main
 
 import (
-	"cmp"
 	"math/rand/v2"
 	"slices"
 	"strconv"
@@ -86,7 +85,7 @@ func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult]
 				if len(recent) > 0 {
 					sections = append(sections, core.Func(func(cx *core.Scope) core.Node {
 						return a.homeHeroCarousel(cx, recommendHomeTitles(recent, 4), tablet, func(entry catalogItem) {
-							backdrop.Set(homeBackdrop{entry.source.Address, cmp.Or(entry.item.Backdrop, entry.item.Poster)})
+							backdrop.Set(a.sourceBackdrop(entry))
 						})
 					}))
 				}

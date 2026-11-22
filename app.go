@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"maps"
+	"net/http"
 	"slices"
 	"strconv"
 	"sync"
@@ -82,6 +83,8 @@ type source struct {
 	RemoteBitrate     int    `json:",omitempty"`
 	Name              string
 	Certificates      []mediatls.Trust `json:",omitempty"`
+	HeaderSecret      string           `json:",omitempty"`
+	headerDraft       http.Header
 	ServerID          string
 	AccountID         string
 	Username          string
@@ -140,6 +143,7 @@ type application struct {
 	routesEnabled       atomic.Bool
 	sourceCheckSerial   uint64
 	sourceArtwork       sourceArtwork
+	sourceHeaders       sync.Map
 	libraryPrefs        *core.Signal[libraryPreferences]
 	metadata            *metadata.Cache
 	pairedDevices       *core.Signal[[]pairedDevice]
@@ -403,6 +407,10 @@ func errorText(cx *core.Scope, err error) string {
 	switch {
 	case errors.As(err, &certificate):
 		return locales.SourceCertificateRejected(cx)
+	case errors.Is(err, errSourceProbeDenied):
+		return locales.SourceProbeDenied(cx)
+	case errors.Is(err, errSourceHeadersUnavailable):
+		return locales.SourceHeadersUnavailable(cx)
 	case errors.Is(err, errDifferentServer):
 		return locales.SourceDifferentServer(cx)
 	case errors.Is(err, media.ErrInvalidAddress):

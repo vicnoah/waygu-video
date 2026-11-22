@@ -34,6 +34,22 @@ useHTTPS: 使用 HTTPS
 scanServerAddress: 扫描服务器地址
 sourceName: 显示名称
 
+sourceRequestHeaders: 自定义请求头
+sourceHeaderCount: "{count} 项"
+sourceHeaderName: 请求头名称
+sourceHeaderValue: 请求头值
+sourceHeaderAdd: 添加请求头
+sourceHeaderRemove: 移除请求头
+sourceHeaderInvalid: 请填写唯一的名称和有效的值。连接相关的请求头由应用管理。
+sourceHeadersUnavailable: 无法访问存储请求头的安全凭据库。
+sourceHeadersApply: 应用
+saveSourceHeaders: 保存请求头
+sourceProbeDenied: 服务器拒绝了连接测试。请检查地址和服务器要求的请求头。
+connectionRetest: 重新测试
+connectionTesting: 测试中…
+connectionLatency: "延迟 {milliseconds}ms"
+connectionLAN: 局域网
+connectionRemote: 外网
 trustSourceCertificate: 信任服务器证书
 sourceCertificateRejected: 无法验证服务器证书。
 sourceCertificateDetails: |-
@@ -72,7 +88,6 @@ plexServerUnreachable: 无法连接到所选 Plex 服务器。
 testConnection: 测试连接
 signIn: 登录
 connected: "已连接 {name}"
-connectionVerified: 服务器已响应连接测试。
 signedInAs: "已登录为 {name}"
 importLibraries: 选择要导入的媒体库
 completeSource: 完成

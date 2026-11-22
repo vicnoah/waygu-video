@@ -14,8 +14,8 @@ Each strip shows the original empty form on the left, the design's authenticated
 | --- | --- | --- |
 | Header and provider tabs | Generic header with a form for a provider selected on the prior screen. | The header is centered and the tabs use the reference's rounded selection. Plex adds a fourth segment. The reference includes a phone bezel and system bar. Verify safe-area placement and camera presentation on phones. |
 | Server and login | Labels above boxed fields. | Address, port, HTTPS, name, and login use the reference's grouped 48 pt rows. The app clears the password after successful authentication. The QR control appears when the target reports scanner support. |
-| Connection result and import | Testing and login were compact buttons. Successful login replaced the form with an import card. | The successful result is shown inline with an emerald status panel. Library rows use badges and visible selection circles. The fixture has two libraries, and the app keeps category and home visibility editing with each selected library. Counts, inline re-testing, and the latency indicator remain pending. |
-| Advanced and alternate sign-in | Only local password login for Emby. | The Advanced group has the certificate switch and backup address. Emby Connect PIN and custom headers remain pending. Jellyfin Quick Connect and Plex authorization are reachable from their corresponding tabs. |
+| Connection result and import | Testing and login were compact buttons. Successful login replaced the form with an import card. | The emerald status panel shows measured latency and the inline retest. Library rows use badges and visible selection circles. The fixture has two libraries. Each selected library keeps its category and home visibility controls. Per-library counts remain pending. |
+| Advanced and alternate sign-in | Only local password login for Emby. | The Advanced group has a header count, certificate switch, and editable backup address. Emby Connect PIN remains pending. Jellyfin Quick Connect and Plex authorization are reachable from their corresponding tabs. |
 
 ## Jellyfin and Flymoo
 
@@ -49,6 +49,18 @@ The installed Android TV x86-64 APK opened the Emby form from Settings, showed t
 The editable backup address row uses the same 48 pt form group as the login fields. Existing connections have an action to save the backup without re-entering the password. Both addresses must report the identity of the same media server. The app checks a proposed address using the public identity endpoint before it sends the stored account. The Docker review rejects a different server and confirms it received no account token. The left panel shows the edit form and the right panel shows the source after switching. [Source connection flow](../../design/flows/source-connect.scenra) · [Router checks](../../integration/servers/TESTING.md#media-source-routes)
 
 ![Phone backup address form and remote-online source state](images/phone-source-routes.png)
+
+### Advanced connection
+
+Each row shows the same Advanced and connection result areas in Scenra and GTK, followed by the native request header editor. The app uses the reference’s plain row and chevron with the configured count. The editor opens a dialog for the current scheme, host and port. It masks values and supports adding, replacing and removing headers. Existing sources can save a change with their current media account. The form and playback use values from the platform’s secure store. Each header applies only to the configured scheme, host, and port.
+
+![Scenra and native advanced form followed by the header editor in light and dark](images/source-advanced-connection.png)
+
+The inline result measures the public connection probe and labels private or loopback addresses as local. Retesting preserves the signed-in account and selected libraries. An unsuccessful retest pauses import until the source responds successfully again. In the GTK capture the fixture username wraps because the result also includes the live latency and local-network label. The request header editor is shown as an app-specific dialog. The Web and HarmonyOS WebView currently require server or reverse-proxy authentication that works without app-managed request headers. [Local verification](../../integration/servers/TESTING.md#custom-request-headers)
+
+The Android TV x86-64 emulator rechecked the editor at 1920 × 1080. The APK used a separate test application ID to preserve the existing installation. D-pad navigation opens the editor, moves from the header name to its masked value, and restores focus to the Advanced row on Back. The two English login labels still wrap at this scale.
+
+![Android TV emulator with focus on the masked header value](images/android-tv-source-headers.png)
 
 ### Server certificate
 

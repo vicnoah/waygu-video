@@ -451,10 +451,10 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			continue
 		}
 		original := p.mediaURL(part.Key, nil)
-		stream := Stream{ItemID: item.ID, SourceID: sourceID, SessionID: rand.Text(), Trust: p.trust,
+		stream := Stream{ItemID: item.ID, SourceID: sourceID, SessionID: rand.Text(), Trust: p.trust, SubtitleHeaders: p.headers,
 			Position: millis(entry.ViewOffset), Duration: millis(max(entry.Duration, part.Duration)),
 			URL: original, Method: DirectPlay,
-			File: SourceFile{Name: videoFileName(part.File), Size: part.Size, URL: original}}
+			File: SourceFile{Name: videoFileName(part.File), Size: part.Size, URL: original, Headers: p.headers}}
 		switchAudio := audio != nil || plexAlternativeAudio(part.Stream)
 		if switchAudio || options.ForceTranscode || !plexDirect(version, options) {
 			params := url.Values{"path": {plexItemRoute(item.ID)}, "mediaIndex": {strconv.Itoa(index)}, "partIndex": {"0"},
@@ -484,6 +484,7 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 				return Stream{}, err
 			}
 		}
+		stream.Headers = p.withEndpointHeaders(stream.Headers)
 		stream.Tracks = p.partTracks(part, audio)
 		if stream.Method == DirectPlay {
 			stream.Rendition = version.version()

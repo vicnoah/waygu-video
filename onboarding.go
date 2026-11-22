@@ -143,14 +143,16 @@ func (a *application) connectServer(ctx context.Context, form source, input medi
 	if err != nil {
 		return candidateSource{}, err
 	}
-	address := form.Address
+	endpoint := sourceEndpoint{address: form.Address}
 	probe := ctx
 	stop := func() {}
 	if form.RemoteAddress != "" {
 		probe, stop = context.WithTimeout(ctx, 2*time.Second)
 	}
+	started := time.Now()
 	info, err := guest.Probe(probe)
-	err = sourceAddressError(address, err)
+	latency := time.Since(started)
+	err = sourceAddressError(endpoint.address, err)
 	stop()
 	var verification *sourceCertificateError
 	if errors.As(err, &verification) {
@@ -161,10 +163,12 @@ func (a *application) connectServer(ctx context.Context, form source, input medi
 			if form.ServerID == "" || form.RemoteDisabled || !a.routesEnabled.Load() || ctx.Err() != nil {
 				return candidateSource{}, err
 			}
-			address = form.RemoteAddress
-			info, err = a.verifySourceAddress(ctx, form, address, form.ServerID, 3*time.Second)
+			endpoint = sourceEndpoint{address: form.RemoteAddress, remote: true}
+			started = time.Now()
+			info, err = a.verifySourceAddress(ctx, form, endpoint.address, form.ServerID, 3*time.Second)
+			latency = time.Since(started)
 			if err == nil {
-				guest, err = a.sourceClient(form, address, media.Session{}, false)
+				guest, err = a.sourceClient(form, endpoint.address, media.Session{}, false)
 			}
 		} else {
 			_, err = a.verifySourceAddress(ctx, form, form.RemoteAddress, info.ID, 3*time.Second)
@@ -176,7 +180,7 @@ func (a *application) connectServer(ctx context.Context, form source, input medi
 	if err != nil && (method == probeConnection || form.Provider != media.Flymoo) {
 		return candidateSource{}, err
 	}
-	result := candidateSource{source: form, info: info}
+	result := candidateSource{source: form, info: info, endpoint: endpoint, latency: latency}
 	if method == probeConnection {
 		return result, nil
 	}
@@ -187,15 +191,15 @@ func (a *application) connectServer(ctx context.Context, form source, input medi
 		session, err = guest.SignIn(ctx, input)
 	}
 	if err != nil {
-		return candidateSource{}, sourceAddressError(address, err)
+		return candidateSource{}, sourceAddressError(endpoint.address, err)
 	}
-	client, err := a.sourceClient(form, address, session, false)
+	client, err := a.sourceClient(form, endpoint.address, session, false)
 	if err != nil {
 		return candidateSource{}, err
 	}
 	libraries, err := client.Libraries(ctx)
 	if err != nil {
-		return candidateSource{}, sourceAddressError(address, err)
+		return candidateSource{}, sourceAddressError(endpoint.address, err)
 	}
 	if form.Name == "" {
 		form.Name = info.Name
@@ -204,7 +208,8 @@ func (a *application) connectServer(ctx context.Context, form source, input medi
 		}
 	}
 	form.AccountID, form.ServerID = session.UserID, info.ID
-	return candidateSource{source: form, info: info, session: session, libraries: libraries}, nil
+	result.source, result.session, result.libraries = form, session, libraries
+	return result, nil
 }
 
 func awaitQuickConnect(ctx context.Context, guest media.Client, showCode func(string)) (media.Session, error) {
@@ -232,7 +237,8 @@ func awaitQuickConnect(ctx context.Context, guest media.Client, showCode func(st
 	}
 }
 
-func (a *application) importSource(cx *core.Scope, candidate candidateSource, back func()) core.Node {
+func (a *application) importSource(cx *core.Scope, readCandidate func() candidateSource, back func(), blocked func() bool, busy *core.Signal[bool]) core.Node {
+	candidate := readCandidate()
 	previous := a.matchSource(candidate.source)
 	var saved []sourceLibrary
 	if previous.ID != "" && previous.Provider == candidate.source.Provider &&
@@ -242,20 +248,23 @@ func (a *application) importSource(cx *core.Scope, candidate candidateSource, ba
 	}
 	libraries := mergeLibraries(candidate.libraries, saved, false)
 	draft := core.NewSignalFunc(cx, libraries, nil)
-	busy := core.NewSignal(cx, false)
+	if busy == nil {
+		busy = core.NewSignal(cx, false)
+	}
 	failure := core.NewSignal[error](cx, nil)
 	viewContext := cx.Context()
 	list := []core.Node{}
 	if len(libraries) == 0 {
 		list = append(list, core.View{Class: setupRow, Children: []core.Node{hint(locales.NoLibraries(cx))}})
 	}
-	list = append(list, libraryEditor(cx, draft, true, busy.Get))
+	disabled := func() bool { return busy.Get() || (blocked != nil && blocked()) }
+	list = append(list, libraryEditor(cx, draft, true, disabled))
 	store := func() {
-		if busy.GetUntracked() {
+		if core.Untracked(cx, disabled) {
 			return
 		}
 		busy.Set(true)
-		a.saveCandidateSource(viewContext, candidate, draft.GetUntracked(), func(err error) {
+		a.saveCandidateSource(viewContext, readCandidate(), draft.GetUntracked(), func(err error) {
 			busy.Set(false)
 			if err != nil {
 				failure.Set(err)
@@ -279,7 +288,7 @@ func (a *application) importSource(cx *core.Scope, candidate candidateSource, ba
 		}),
 		core.View{Class: "mx-4 gap-2", Children: []core.Node{
 			ui.Button{Text: locales.Back(cx), Variant: ui.ButtonGhost, Disabled: busy.Get, TestID: "import-back", OnPress: back},
-			setupPrimary(cx, "import-libraries", locales.CompleteSource(cx), busy.Get, func() bool {
+			setupPrimary(cx, "import-libraries", locales.CompleteSource(cx), disabled, func() bool {
 				return !slices.ContainsFunc(draft.Get(), func(library sourceLibrary) bool { return !library.Hidden })
 			}, store),
 		}},
@@ -306,12 +315,22 @@ func (a *application) saveCandidateSource(lifetime context.Context, candidate ca
 	}
 	key, token := form.credentialKey(), candidate.session.Token
 	go func() {
+		staged, err := a.stageSourceHeaders(&form)
+		if err != nil {
+			a.scope.Post(func() {
+				if lifetime.Err() == nil {
+					done(err)
+				}
+			})
+			return
+		}
 		var stageError error
 		if token != "" {
 			stageError = a.secrets.Set(key, token)
 		}
 		form.Volatile = errors.Is(stageError, core.ErrSecretsUnavailable)
 		discard := func() {
+			a.forgetSourceHeaders(staged)
 			if token != "" && stageError == nil {
 				go func() { _ = a.secrets.Delete(key) }()
 			}
@@ -322,6 +341,7 @@ func (a *application) saveCandidateSource(lifetime context.Context, candidate ca
 				return
 			}
 			if stageError != nil && !form.Volatile {
+				discard()
 				done(stageError)
 				return
 			}
@@ -339,6 +359,9 @@ func (a *application) saveCandidateSource(lifetime context.Context, candidate ca
 				return
 			}
 			a.tokens.Store(key, token)
+			if previous.HeaderSecret != form.HeaderSecret {
+				a.forgetSourceHeaders(previous.HeaderSecret)
+			}
 			if previousKey != "" {
 				a.tokens.Delete(previousKey)
 				go func() { _ = a.secrets.Delete(previousKey) }()
