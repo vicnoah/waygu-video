@@ -2,6 +2,12 @@ name: Build and test
 
 on:
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Verification scope
+        type: choice
+        default: all
+        options: [all, apple]
 
 permissions:
   contents: read
@@ -12,6 +18,7 @@ concurrency:
 
 jobs:
   desktop:
+    if: inputs.scope == 'all'
     name: Desktop / ${{ matrix.target }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 25
@@ -126,13 +133,14 @@ jobs:
               navigation=TestTVNavigation
             fi
             echo "::group::$kind simulator tests"
-            run_simulator -target "$target" -device "$simulator" -run "^(TestChineseAppName|$navigation|TestNativeVideoDecodes)$" -timeout 2m . || failed=1
+            run_simulator -target "$target" -device "$simulator" -run "^(TestChineseAppName|$navigation|TestNativeVideoDecodes|TestApplePlaybackNetworkMonitor)$" -timeout 2m . || failed=1
             xcrun simctl shutdown "$simulator" || failed=1
             echo "::endgroup::"
           done
           exit "$failed"
 
   mobile-packages:
+    if: inputs.scope == 'all'
     name: Android, HarmonyOS and Web packages
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -157,6 +165,7 @@ jobs:
           if-no-files-found: error
 
   android:
+    if: inputs.scope == 'all'
     name: Android / ${{ matrix.form }}
     runs-on: ubuntu-24.04
     timeout-minutes: 35
@@ -230,6 +239,7 @@ jobs:
         run: sudo dmesg --ctime --level=err,warn | tail -80
 
   integration:
+    if: inputs.scope == 'all'
     name: Docker media servers and libmpv
     runs-on: ubuntu-24.04
     timeout-minutes: 20
