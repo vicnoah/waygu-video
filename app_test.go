@@ -32,10 +32,7 @@ func TestTVNavigation(t *testing.T) {
 }
 
 func TestChineseAppName(t *testing.T) {
-	app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
-		cx.SetLocale("zh-Hans")
-		return Root(cx)
-	})
+	app := nsgotest.Start(t, Root, nsgotest.Environment(core.Environment{Locale: "zh-Hans"}))
 	app.Find("text:肥牛视频")
 }
 

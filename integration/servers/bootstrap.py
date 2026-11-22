@@ -29,8 +29,8 @@ def request(base, path, *, method="GET", params=None, body=None, headers=None):
     return None
 
 
-def wait_until_ready(operation):
-    deadline = time.monotonic() + 90
+def wait_until_ready(operation, timeout=90):
+    deadline = time.monotonic() + timeout
     while True:
         try:
             result = operation()
@@ -51,7 +51,11 @@ def wait_for(base, path):
 
 
 def setup_media_browser(provider, base):
-    info = wait_for(base, "/System/Info/Public")
+    def public_info():
+        info = request(base, "/System/Info/Public")
+        return info if info and info.get("Version") else None
+
+    info = wait_until_ready(public_info)
     media_browser = 'MediaBrowser Client="Waygu Fixtures", Device="Docker", DeviceId="waygu-fixtures", Version="1.0"'
     headers = {"Authorization" if provider == "jellyfin" else "X-Emby-Authorization": media_browser}
 
@@ -64,6 +68,8 @@ def setup_media_browser(provider, base):
     except HTTPError as error:
         if error.code not in (400, 401, 403, 404) or info.get("StartupWizardCompleted"):
             raise
+        # Reading the wizard user creates its initial account on an empty data volume.
+        wait_for(base, "/Startup/User")
         request(base, "/Startup/User", method="POST", body={"Name": USERNAME, "Password": PASSWORD})
         request(base, "/Startup/Complete", method="POST", body={})
         user = wait_until_ready(lambda: login(PASSWORD))
@@ -93,7 +99,16 @@ def setup_media_browser(provider, base):
 
 
 def setup_plex(base):
-    info = wait_for(base, "/identity")["MediaContainer"]
+    def identity_when_ready():
+        identity = request(base, "/identity")
+        if not identity:
+            return None
+        container = identity["MediaContainer"]
+        if container.get("startState") in (None, "complete"):
+            return container
+        return None
+
+    info = wait_until_ready(identity_when_ready, timeout=180)
     sections = wait_for(base, "/library/sections")["MediaContainer"]
     names = {folder["title"] for folder in sections.get("Directory", [])}
     for name, kind, scanner, agent in (

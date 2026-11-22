@@ -17,6 +17,6 @@ The Scenra files in `design/` define the product. The current app connects to Em
 ## Platform verification
 
 - Test signed macOS packages and iOS and tvOS builds on a Mac with Xcode. Verify controller, keyboard and focus behavior on TV devices.
-- Add an Android TV launcher manifest and complete remote-control verification. Verify phones and tablets with real devices or emulators.
+- Complete Android TV remote-control and store-banner verification, and verify signed release builds on TVs, phones and tablets.
 - Verify HarmonyOS signing, authenticated LAN sessions and video playback on HarmonyOS phones and tablets, including secure credential persistence and authenticated streams.
 - Verify Linux and Windows runtime behavior across both architectures, including media codecs, hardware decoding and libmpv distribution.

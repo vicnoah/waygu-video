@@ -88,12 +88,23 @@ jobs:
               | map(.value[] | select(.deviceTypeIdentifier | contains($kind)))
               | first | .udid'
           }
+          run_simulator() {
+            report=$(mktemp)
+            if go tool nsgo test "$@" 2>&1 | tee "$report"; then
+              return
+            fi
+            if grep -Fq 'the simulator app ended without its exit code' "$report" && grep -Eq ' [0-9]+ passed, 1 failed, [0-9]+ skipped' "$report"; then
+              go tool nsgo test "$@"
+              return
+            fi
+            return 1
+          }
           for kind in iPhone iPad; do
             simulator=$(device "$kind")
-            go tool nsgo test -target ios_simulator -device "$simulator" -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes)$' -timeout 2m .
+            run_simulator -target ios_simulator -device "$simulator" -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes)$' -timeout 2m .
             xcrun simctl shutdown "$simulator"
           done
-          go tool nsgo test -target tvos_simulator -device "$(device Apple-TV)" -run '^(TestChineseAppName|TestNativeVideoDecodes)$' -timeout 2m .
+          run_simulator -target tvos_simulator -device "$(device Apple-TV)" -run '^(TestChineseAppName|TestTVNavigation|TestNativeVideoDecodes)$' -timeout 2m .
       - name: Archive simulator apps
         run: tar -czf waygu-video-apple-simulators.tar.gz -C dist .
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -117,7 +128,9 @@ jobs:
       - name: Check the packages
         run: go tool nsgo check -target android_arm64,harmonyos,web -jobs 2
       - name: Package the app
-        run: go tool nsgo build -target android_arm64,harmonyos,web -jobs 2 -installers=false
+        run: |
+          sh build/android/package.sh -installers=false
+          go tool nsgo build -target harmonyos,web -jobs 2 -installers=false
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: android-arm64-harmonyos-web
@@ -148,6 +161,7 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+          test -x "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android28-clang"
       - name: Run Android UI smoke tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
@@ -155,13 +169,7 @@ jobs:
           target: ${{ matrix.image }}
           profile: ${{ matrix.profile }}
           arch: x86_64
-          ndk: 27.2.12479018
-          script: |
-            if [ "${{ matrix.form }}" = tv ]; then
-              go tool nsgo test -target android -device emulator-5554 -run '^(TestChineseAppName|TestNativeVideoDecodes)$' -timeout 2m .
-            else
-              go tool nsgo test -target android -device emulator-5554 -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes)$' -timeout 2m .
-            fi
+          script: sh build/android/emulator-test.sh ${{ matrix.form }}
 
   integration:
     name: Docker media servers and libmpv
