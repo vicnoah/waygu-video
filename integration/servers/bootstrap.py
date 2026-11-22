@@ -29,18 +29,25 @@ def request(base, path, *, method="GET", params=None, body=None, headers=None):
     return None
 
 
-def wait_for(base, path):
+def wait_until_ready(operation):
     deadline = time.monotonic() + 90
     while True:
         try:
-            data = request(base, path)
-            if data is None:
+            result = operation()
+            if result is None:
                 raise ValueError("readiness endpoint returned no JSON")
-            return data
+            return result
+        except HTTPError as error:
+            if error.code not in (502, 503, 504) or time.monotonic() >= deadline:
+                raise
         except (OSError, HTTPException, ValueError):
             if time.monotonic() >= deadline:
                 raise
-            time.sleep(2)
+        time.sleep(2)
+
+
+def wait_for(base, path):
+    return wait_until_ready(lambda: request(base, path))
 
 
 def setup_media_browser(provider, base):
@@ -53,13 +60,13 @@ def setup_media_browser(provider, base):
                        body={"Username": USERNAME, "Pw": password})
 
     try:
-        user = login(PASSWORD)
+        user = wait_until_ready(lambda: login(PASSWORD))
     except HTTPError as error:
         if error.code not in (400, 401, 403, 404) or info.get("StartupWizardCompleted"):
             raise
         request(base, "/Startup/User", method="POST", body={"Name": USERNAME, "Password": PASSWORD})
         request(base, "/Startup/Complete", method="POST", body={})
-        user = login(PASSWORD)
+        user = wait_until_ready(lambda: login(PASSWORD))
 
     if provider == "jellyfin":
         headers["Authorization"] += ', Token="' + user["AccessToken"] + '"'

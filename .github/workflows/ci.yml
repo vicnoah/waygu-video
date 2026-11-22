@@ -181,7 +181,7 @@ jobs:
       - name: Start fixture servers
         run: |
           sh integration/servers/fixtures.sh
-          docker compose -f integration/servers/compose.yaml up -d
+          docker compose -f integration/servers/compose.yaml up -d --wait --wait-timeout 150
           python3 integration/servers/bootstrap.py
       - name: Test playback and server compatibility
         env:

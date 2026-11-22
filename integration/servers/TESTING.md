@@ -4,7 +4,7 @@ The Compose project starts dedicated loopback-only Jellyfin, Emby and Plex serve
 
 ```sh
 sh integration/servers/fixtures.sh
-docker compose -f integration/servers/compose.yaml up -d
+docker compose -f integration/servers/compose.yaml up -d --wait --wait-timeout 150
 python3 integration/servers/bootstrap.py
 WAYGU_TEST_SERVERS=1 go tool nsgo test . -count=1 -v
 ```
