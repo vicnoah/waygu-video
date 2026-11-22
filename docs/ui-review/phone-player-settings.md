@@ -40,6 +40,16 @@ The Pixel 7 Android 15 system screenshot records the bottom sheet. Disabling vol
 
 The player uses the saved options from the start of each session. Tap controls, double tap, hold for 2× and timeline dragging remain available, and screen lock continues to block surface gestures. [Player gesture evidence](phone-player.md)
 
+### Background audio
+
+![Background audio off on the left and on on the right, captured on the Android 15 Pixel 7 emulator](images/phone-settings-playback-background-android.png)
+
+The installed x86-64 APK matches the Scenra row's position under auto Picture in Picture, green headphone badge and default off switch. The screenshots also show the selected accent in the on state. The buffer size row below still displays “暂不可用” on Android. The packaged playback test uses a synthetic H.264/AAC clip to exercise Home, system pause and return to the activity. [Scenra background and network group](../../design/settings-playback.scenra#L49)
+
+Enabling the switch starts a media playback service while the player is visible. The audio continues from the same decoder after pressing Home, and the system media control can pause it. Returning to the app after pausing preserves the position and pause state. The Android player pauses in the background when the switch is off or the service cannot start. [Android build and checks](../../build/android/PACKAGING.md) · [Android background playback](https://developer.android.com/media/platform/mediaplayer/background)
+
+Ordinary iOS background audio remains pending because the current NSGo video backend pauses the player when the app enters the background. iOS Picture in Picture continues to use its own native playback path. [NSGo Picture in Picture](https://nsgo.dev/docs/picture-in-picture/)
+
 ## Subtitles
 
 ![Subtitle settings in light appearance](images/phone-settings-subtitles-light.png)
@@ -54,7 +64,7 @@ The player uses the saved options from the start of each session. Tap controls, 
 | --- | --- |
 | Header and groups | Both app pages use the 44 pt back row, 30 pt title, 16 pt group margin, 28 pt badges and 51 × 31 pt switches. GTK lacks the design's mobile status bar and rounded device frame. App content starts about 44 pt higher. |
 | Playback quality and version | The player picks the network profile when opening a streamed title. Its presets cap the resolution and bitrate on Emby, Jellyfin and Plex. The app retains a playback version section below the designed groups. The reference frame clips the end of the background and network group. |
-| Playback controls | The two network quality values, direct play preference, cellular warning, auto-next, skipping intros and credits, progress recording, screen swipes, speed, rewind and forward intervals, and picture mode save immediately. Decoder and HDR settings, passthrough, volume boost, night mode, background audio, and buffer controls still need implementation. |
+| Playback controls | The two network quality values, direct play preference, cellular warning, auto-next, skipping intros and credits, progress recording, screen swipes, speed, rewind and forward intervals, picture mode and Android background audio save immediately. Decoder and HDR settings, passthrough, volume boost, night mode, and buffer controls still need implementation. |
 | Intro and credit detection | The episode group has the violet badge and the 51 × 31 pt switch shown in both appearances. The detection row displays the design’s server-marker and audio-fingerprint label. The player uses typed markers and named chapters first. A missing range can be inferred from recurring audio in two other episodes from the same season. [Playback evidence](phone-player.md#intro-and-credit-skips) |
 | Picture in Picture | Automatic entry is wired to the iOS video backend. The GTK capture shows the unavailable switch. iPhone and iPad behavior remains to be checked. |
 | Subtitle languages and style | The first language with a matching text track wins. The app previews the chosen size, color, background and position, uses the system font and provides a custom color picker. The Scenra preview has an unresolved image and both captures show its placeholder. Font selection, outline customization, Simplified and Traditional conversion, bilingual display, ASS switches, online subtitle services and sidecar matching remain pending. Plain-text preferences apply to the app's caption overlay. |

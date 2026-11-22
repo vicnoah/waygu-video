@@ -20,7 +20,7 @@ apple:
 
 android:
   loopback_cleartext: true
-  permissions: [CAMERA, ACCESS_COARSE_LOCATION]
+  permissions: [CAMERA, ACCESS_COARSE_LOCATION, FOREGROUND_SERVICE, FOREGROUND_SERVICE_MEDIA_PLAYBACK, WAKE_LOCK]
 
 icon:
   png: assets/Icon.png

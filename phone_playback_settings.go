@@ -63,6 +63,7 @@ func (a *application) phonePlaybackSettings(cx *core.Scope) core.Node {
 		}))
 	}
 	gestures, gestureDialog := a.phoneGestureSettings(cx, failure, save)
+	backgroundAudio := a.phoneBackgroundAudioSetting(cx, save)
 
 	return phoneSettingsPage(cx, locales.PlaybackSettings(cx), a.back, "phone-playback-settings",
 		setupGroup(locales.PlayerQuality(cx), locales.SettingsDirectPlayHint(cx),
@@ -125,7 +126,7 @@ func (a *application) phonePlaybackSettings(cx *core.Scope) core.Node {
 		),
 		setupGroup(locales.SettingsBackgroundNetwork(cx), "",
 			pipControl,
-			unavailableSwitch(locales.SettingsBackgroundAudio(cx), "", "bg-emerald-500", lucide.Headphones),
+			backgroundAudio,
 			unavailable(locales.SettingsPlaybackBuffer(cx), "", "bg-zinc-500", lucide.HardDriveDownload),
 		),
 		setupGroup(locales.PlaybackVersion(cx), "", versionControls...),

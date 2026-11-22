@@ -15,6 +15,8 @@ cp -R "$source/$android/java" "$source/$android/runtime" "$staging/$android/"
 chmod -R u+w "$staging/$android"
 patch -d "$staging" -F 0 -p1 < build/android/nsgo-tv-focus.patch
 patch -d "$staging" -F 0 -p1 < build/android/nsgo-network.patch
+patch -d "$staging" -F 0 -p1 < build/android/nsgo-background-audio.patch
+cp build/android/WayguPlaybackService.java "$staging/$android/java/dev/oneo/nsgo/"
 sh "$staging/$android/runtime/build.sh"
 runtime="classes-$version.dex.gz"
 gzip -nc "$staging/$android/runtime/classes.dex" > "$staging/$runtime"

@@ -22,6 +22,7 @@ type playbackPreferences struct {
 	Picture                  string
 	DisableDirectPlay        bool
 	DisableAutoPiP           bool
+	BackgroundAudio          bool
 	DisableProgressRecording bool
 	KeepIntroCredits         bool
 	Gestures                 phoneGesturePreferences
@@ -40,6 +41,7 @@ func readPlaybackPreferences(storage core.Storage) playbackPreferences {
 		if json.Unmarshal([]byte(raw), &saved) == nil {
 			prefs.DisableDirectPlay = saved.DisableDirectPlay
 			prefs.DisableAutoPiP = saved.DisableAutoPiP
+			prefs.BackgroundAudio = saved.BackgroundAudio
 			prefs.DisableProgressRecording = saved.DisableProgressRecording
 			prefs.KeepIntroCredits = saved.KeepIntroCredits
 			prefs.WarnOnCellular = saved.WarnOnCellular

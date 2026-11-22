@@ -1,0 +1,9 @@
+--- a/internal/platform/android/runtime/AndroidManifest.xml
++++ b/internal/platform/android/runtime/AndroidManifest.xml
+@@ -43,2 +43,6 @@
+         </activity>
++        <service
++            android:name="dev.oneo.nsgo.WayguPlaybackService"
++            android:exported="false"
++            android:foregroundServiceType="mediaPlayback" />
+         <!-- Serves the app's files to the apps it hands them to: the

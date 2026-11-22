@@ -1,0 +1,10 @@
+--- a/internal/platform/android/java/dev/oneo/nsgo/NsgoActivity.java
++++ b/internal/platform/android/java/dev/oneo/nsgo/NsgoActivity.java
+@@ -73,2 +73,3 @@
++        WayguPlaybackService.bind(this, view);
+         setContentView(view);
+         if (!share) openNotification(intent);
+@@ -198,2 +199,3 @@
+     protected void onDestroy() {
++        WayguPlaybackService.detach(view);
+         if (view.keepOffScreen()) {

@@ -367,6 +367,12 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			}
 			seekPosition(position.GetUntracked())
 		}, func() bool { return !switchingPlayback.Get() })
+	androidBackgroundPlayback(cx, current.item.Title, prefs.BackgroundAudio, budgetReady.Get,
+		func() bool { return !paused.Get() && !ended.Get() && !failure.Get() && !projection.active() },
+		func() {
+			paused.Set(true)
+			report(media.Progress)
+		})
 	playerContext := cx.Context()
 	preferMPV := cx.Env().Desktop() && a.mpvPreferred.GetUntracked()
 	android := cx.Env().OS() == core.OSAndroid
