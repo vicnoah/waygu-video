@@ -41,6 +41,7 @@ type plexMetadata struct {
 	Year, Index, ParentIndex, LibrarySectionID  int
 	Rating                                      float64
 	Duration, ViewOffset                        int64
+	LastViewedAt                                int64
 	ViewCount                                   int
 	Genre                                       []struct{ Tag string }
 	PrimaryGuid                                 string                `json:"guid"`
@@ -225,7 +226,7 @@ func (p *plexClient) Children(ctx context.Context, parent Item) ([]Item, error) 
 }
 
 func (p *plexClient) Resume(ctx context.Context) ([]Item, error) {
-	container, err := p.get(ctx, "/hubs/home/continueWatching", url.Values{"count": {"24"}})
+	container, err := p.get(ctx, "/hubs/home/continueWatching", url.Values{"count": {"24"}, "includeGuids": {"1"}})
 	if err != nil {
 		return nil, err
 	}
@@ -248,6 +249,9 @@ func (p *plexClient) item(entry plexMetadata) Item {
 		Position: millis(entry.ViewOffset), Watched: entry.ViewCount > 0, SeriesTitle: entry.GrandparentTitle,
 		Poster: p.mediaURL(entry.Thumb, nil), Backdrop: p.mediaURL(entry.Art, nil),
 		ExternalIDs: make(map[string]string, len(entry.Guid))}
+	if entry.LastViewedAt > 0 {
+		item.LastPlayed = time.Unix(entry.LastViewedAt, 0).UTC()
+	}
 	for _, genre := range entry.Genre {
 		item.Genres = append(item.Genres, genre.Tag)
 	}

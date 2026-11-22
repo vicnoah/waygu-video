@@ -68,25 +68,27 @@ const (
 )
 
 type Item struct {
-	ID          string
-	LibraryID   string
-	Kind        Kind
-	Title       string
-	SeriesID    string
-	SeriesTitle string
-	Overview    string
-	Year        int
-	Season      int
-	Episode     int
-	Rating      float64
-	Genres      []string
-	Poster      string
-	Backdrop    string
-	ExternalIDs map[string]string
-	Duration    time.Duration
-	Position    time.Duration
-	Watched     bool
-	Favorite    bool
+	ID                string
+	LibraryID         string
+	Kind              Kind
+	Title             string
+	SeriesID          string
+	SeriesTitle       string
+	Overview          string
+	Year              int
+	Season            int
+	Episode           int
+	Rating            float64
+	Genres            []string
+	Poster            string
+	Backdrop          string
+	ExternalIDs       map[string]string
+	SeriesExternalIDs map[string]string
+	Duration          time.Duration
+	Position          time.Duration
+	LastPlayed        time.Time
+	Watched           bool
+	Favorite          bool
 }
 
 type Query struct {

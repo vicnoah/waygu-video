@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -33,6 +34,8 @@ func TestDockerCrossSourceTitles(t *testing.T) {
 		{ID: "plex", Name: "Plex fixture", Provider: media.Plex, Address: "http://127.0.0.1:32400"},
 	}
 	var movies []media.Item
+	var resumed []media.Item
+	var clients []media.Client
 	for i := range sources {
 		entry := &sources[i]
 		guest, err := media.NewClient(entry.Provider, entry.Address, device, media.Session{})
@@ -73,6 +76,21 @@ func TestDockerCrossSourceTitles(t *testing.T) {
 			t.Fatalf("%s did not return the expected fixture identity", entry.Provider)
 		}
 		movies = append(movies, page.Items[0])
+		clients = append(clients, client)
+		if entry.Provider != media.Plex {
+			page, err := client.Catalog(ctx, media.Query{LibraryID: entry.Libraries[0].ID, Search: "Waygu Resume Across Sources"})
+			if err != nil || len(page.Items) != 1 || identityOf(page.Items[0]).imdb != "tt90000003" {
+				t.Fatalf("%s cross-source resume fixture missing: %v", entry.Provider, err)
+			}
+			resumed = append(resumed, page.Items[0])
+		}
+	}
+	older := setDockerCopyProgress(t, ctx, clients[0], resumed[0], 82*time.Second)
+	// Replay the shorter copy afterward so order cannot be inferred from progress.
+	time.Sleep(1100 * time.Millisecond)
+	later := setDockerCopyProgress(t, ctx, clients[1], resumed[1], 34*time.Second)
+	if !later.After(older) {
+		t.Fatalf("expected newer Emby date, got Jellyfin %s and Emby %s", older, later)
 	}
 	encoded, err := json.Marshal(sources)
 	if err != nil {
@@ -89,6 +107,18 @@ func TestDockerCrossSourceTitles(t *testing.T) {
 		}, nil)
 	}, nsgotest.Size(960, 850), nsgotest.Offscreen(), nsgotest.Secrets(secrets),
 		nsgotest.Storage(map[string]string{sourcesKey: string(encoded), deviceKey: device.ID}))
+	newerResume := "id:resume-emby-" + resumed[1].ID
+	app.WaitFor(newerResume, 5*time.Second)
+	app.WaitForGone("id:resume-jellyfin-"+resumed[0].ID, time.Second)
+	app.Press(newerResume)
+	app.WaitFor("id:video-player", 5*time.Second)
+	app.Play("id:video-player", core.VideoInfo{Duration: 6 * time.Minute})
+	if player := app.FindMounted("id:video-player"); !slices.Contains(player.Seeks, 34*time.Second) {
+		t.Fatalf("latest copy did not resume at 34 seconds: %v", player.Seeks)
+	}
+	app.Press("id:close-player")
+	expectDockerCopyStop(t, reported, media.Emby, resumed[1].ID, 34*time.Second)
+
 	preferred, alternate := "id:title-jellyfin-"+movies[0].ID, "id:title-emby-"+movies[1].ID
 	app.Press("role:tab Library")
 	app.WaitFor(preferred, 5*time.Second)
@@ -108,24 +138,7 @@ func TestDockerCrossSourceTitles(t *testing.T) {
 	app.Play("id:video-player", core.VideoInfo{Duration: 18 * time.Second})
 	app.Progress("id:video-player", 8*time.Second, 18*time.Second)
 	app.Press("id:close-player")
-	deadline := time.After(5 * time.Second)
-	stopped := false
-	for !stopped {
-		select {
-		case report := <-reported:
-			if report.provider != media.Emby || report.state.Stream.ItemID != movies[1].ID || report.err != nil {
-				t.Fatalf("wrong target for playback progress: %s, %v", report.provider, report.err)
-			}
-			if report.state.Event == media.Stopped {
-				stopped = true
-				if report.state.Position != 8*time.Second {
-					t.Fatalf("Emby received progress %s", report.state.Position)
-				}
-			}
-		case <-deadline:
-			t.Fatal("Emby did not receive the selected copy's playback progress")
-		}
-	}
+	expectDockerCopyStop(t, reported, media.Emby, movies[1].ID, 8*time.Second)
 
 	app.Press("id:back")
 	app.Press("role:tab Settings")
@@ -138,6 +151,55 @@ func TestDockerCrossSourceTitles(t *testing.T) {
 	app.Press("role:tab Library")
 	app.WaitFor(preferred, 5*time.Second)
 	app.WaitFor(alternate, 5*time.Second)
+}
+
+func setDockerCopyProgress(t *testing.T, ctx context.Context, client media.Client, item media.Item, position time.Duration) time.Time {
+	t.Helper()
+	stream, err := client.Playback(ctx, item, media.PlaybackOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, state := range []media.PlaybackState{{Event: media.Started, Stream: stream},
+		{Event: media.Progress, Stream: stream, Position: position}, {Event: media.Stopped, Stream: stream, Position: position}} {
+		if err := client.Report(ctx, state); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for tries := 0; tries < 25 && ctx.Err() == nil; tries++ {
+		items, err := client.Resume(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, row := range items {
+			if row.ID == item.ID && row.Position == position && !row.LastPlayed.IsZero() {
+				return row.LastPlayed
+			}
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	t.Fatal("server did not confirm the new resume position and date")
+	return time.Time{}
+}
+
+func expectDockerCopyStop(t *testing.T, reported <-chan dockerCopyReport, provider media.Provider, id string, position time.Duration) {
+	t.Helper()
+	deadline := time.After(5 * time.Second)
+	for {
+		select {
+		case report := <-reported:
+			if report.provider != provider || report.state.Stream.ItemID != id || report.err != nil {
+				t.Fatalf("wrong target for playback progress: %s, %v", report.provider, report.err)
+			}
+			if report.state.Event == media.Stopped {
+				if report.state.Position != position {
+					t.Fatalf("Emby received progress %s", report.state.Position)
+				}
+				return
+			}
+		case <-deadline:
+			t.Fatal("Emby did not receive the selected copy's playback progress")
+		}
+	}
 }
 
 type dockerCopyReport struct {

@@ -50,6 +50,9 @@ var Parameters = map[string][]string{
 	"ShowNamedLibraryOnHome":  {"name"},
 	"MoveLibraryUp":           {"name"},
 	"MoveLibraryDown":         {"name"},
+	"ResumeCardLabel":         {"title"},
+	"ResumePercent":           {"number"},
+	"ResumeRemaining":         {"time_"},
 	"SubtitleDelay":           {"seconds"},
 	"TrackNumber":             {"number"},
 	"NumberedPlaybackVersion": {"number"},
@@ -74,6 +77,9 @@ type Translation struct {
 	ShowNamedLibraryOnHome  func(name string) string
 	MoveLibraryUp           func(name string) string
 	MoveLibraryDown         func(name string) string
+	ResumeCardLabel         func(title string) string
+	ResumePercent           func(number string) string
+	ResumeRemaining         func(time_ string) string
 	SubtitleDelay           func(seconds string) string
 	TrackNumber             func(number string) string
 	NumberedPlaybackVersion func(number string) string
@@ -974,6 +980,15 @@ func Supply(lang string, t Translation) {
 	if t.MoveLibraryDown != nil {
 		s.MoveLibraryDown = t.MoveLibraryDown
 	}
+	if t.ResumeCardLabel != nil {
+		s.ResumeCardLabel = t.ResumeCardLabel
+	}
+	if t.ResumePercent != nil {
+		s.ResumePercent = t.ResumePercent
+	}
+	if t.ResumeRemaining != nil {
+		s.ResumeRemaining = t.ResumeRemaining
+	}
 	if t.SubtitleDelay != nil {
 		s.SubtitleDelay = t.SubtitleDelay
 	}
@@ -1629,6 +1644,72 @@ func Resume(cx *core.Scope) string { return For(cx).Resume() }
 
 // Resume is the package's Resume in the language of msgs.
 func (msgs Messages) Resume() string { return msgs.text(textResume) }
+
+// ResumeCardLabel says "Resume {title}"
+// in the language the app shows under cx.
+func ResumeCardLabel(cx *core.Scope, title string) string { return For(cx).ResumeCardLabel(title) }
+
+// ResumeCardLabel is the package's ResumeCardLabel in the language of msgs.
+func (msgs Messages) ResumeCardLabel(title string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.ResumeCardLabel(title))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].ResumeCardLabel; f != nil {
+			return f(title)
+		}
+		switch lang {
+		case "", "en":
+			return "Resume " + msgs.arg(title)
+		case "zh-Hans":
+			return "继续播放《" + title + "》"
+		}
+	}
+}
+
+// ResumePercent says "{number}% watched"
+// in the language the app shows under cx.
+func ResumePercent(cx *core.Scope, number string) string { return For(cx).ResumePercent(number) }
+
+// ResumePercent is the package's ResumePercent in the language of msgs.
+func (msgs Messages) ResumePercent(number string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.ResumePercent(number))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].ResumePercent; f != nil {
+			return f(number)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(number) + "% watched"
+		case "zh-Hans":
+			return "已看 " + number + "%"
+		}
+	}
+}
+
+// ResumeRemaining says "{time} left"
+// in the language the app shows under cx.
+func ResumeRemaining(cx *core.Scope, time_ string) string { return For(cx).ResumeRemaining(time_) }
+
+// ResumeRemaining is the package's ResumeRemaining in the language of msgs.
+func (msgs Messages) ResumeRemaining(time_ string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.ResumeRemaining(time_))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].ResumeRemaining; f != nil {
+			return f(time_)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(time_) + " left"
+		case "zh-Hans":
+			return "剩余 " + time_
+		}
+	}
+}
 
 // FromStart says "Play from beginning"
 // in the language the app shows under cx.

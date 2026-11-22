@@ -149,15 +149,23 @@ type browserItem struct {
 	BackdropImageTags []string
 	UserData          struct {
 		PlaybackPositionTicks int64
+		LastPlayedDate        string
 		Played                bool
 		IsFavorite            bool
 	}
 }
 
+func (m *mediaBrowser) itemFields() string {
+	if m.kind == Emby {
+		return browserItemFields + ",UserDataLastPlayedDate"
+	}
+	return browserItemFields
+}
+
 func (m *mediaBrowser) Catalog(ctx context.Context, q Query) (Page, error) {
 	offset, limit := q.bounds()
 	params := m.userQuery()
-	params.Set("Fields", browserItemFields)
+	params.Set("Fields", m.itemFields())
 	params.Set("IncludeItemTypes", "Movie,Series,Video")
 	params.Set("Recursive", "true")
 	params.Set("SortBy", "DateCreated,SortName")
@@ -200,7 +208,7 @@ func (m *mediaBrowser) Detail(ctx context.Context, item Item) (Item, error) {
 
 func (m *mediaBrowser) Children(ctx context.Context, parent Item) ([]Item, error) {
 	params := m.userQuery()
-	params.Set("Fields", browserItemFields)
+	params.Set("Fields", m.itemFields())
 	route := "Items"
 	switch parent.Kind {
 	case Series:
@@ -229,7 +237,7 @@ func (m *mediaBrowser) Resume(ctx context.Context) ([]Item, error) {
 
 func (m *mediaBrowser) ResumeLibrary(ctx context.Context, libraryID string) ([]Item, error) {
 	params := m.userQuery()
-	params.Set("Fields", browserItemFields)
+	params.Set("Fields", m.itemFields())
 	params.Set("Limit", "24")
 	params.Set("MediaTypes", "Video")
 	if libraryID != "" {
@@ -257,12 +265,14 @@ func (m *mediaBrowser) items(entries []browserItem) []Item {
 }
 
 func (m *mediaBrowser) item(entry browserItem) Item {
+	lastPlayed, _ := time.Parse(time.RFC3339Nano, entry.UserData.LastPlayedDate)
 	item := Item{
 		ID: entry.ID, Kind: Kind(strings.ToLower(entry.Type)), Title: entry.Name,
 		SeriesID: entry.SeriesID, SeriesTitle: entry.SeriesName, Overview: entry.Overview,
 		Year: entry.ProductionYear, Rating: entry.CommunityRating, Genres: entry.Genres,
 		Duration: fromTicks(entry.RunTimeTicks), Position: fromTicks(entry.UserData.PlaybackPositionTicks),
-		Watched: entry.UserData.Played, Favorite: entry.UserData.IsFavorite,
+		LastPlayed: lastPlayed,
+		Watched:    entry.UserData.Played, Favorite: entry.UserData.IsFavorite,
 		ExternalIDs: make(map[string]string, len(entry.ProviderIds)),
 	}
 	for key, id := range entry.ProviderIds {

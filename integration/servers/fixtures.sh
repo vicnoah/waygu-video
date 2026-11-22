@@ -5,9 +5,10 @@ cd "$(dirname "$0")"
 movie='media/Movies/Waygu Test Movie (2025)'
 season='media/Shows/Waygu Test Series (2025)/Season 01'
 resume='media/Movies/Waygu Resume Test (2025)'
+resume_pair='media/Movies/Waygu Resume Across Sources (2025)'
 tracks='media/Movies/Waygu Track Test (2025)'
 versions='media/Movies/Waygu Version Test (2025)'
-mkdir -p "$movie" "$season" "$resume" "$tracks" "$versions"
+mkdir -p "$movie" "$season" "$resume" "$resume_pair" "$tracks" "$versions"
 
 make_clip() {
     picture=$1
@@ -43,6 +44,19 @@ if [ ! -s "$resume/Waygu Resume Test (2025).mp4" ]; then
         -t 360 -c:v libx264 -preset ultrafast -pix_fmt yuv420p \
         -c:a aac -b:a 24k -movflags +faststart "$resume/Waygu Resume Test (2025).mp4"
 fi
+
+if [ ! -s "$resume_pair/Waygu Resume Across Sources (2025).mp4" ]; then
+    cp "$resume/Waygu Resume Test (2025).mp4" "$resume_pair/Waygu Resume Across Sources (2025).mp4"
+fi
+cat > "$resume_pair/Waygu Resume Across Sources (2025).nfo" <<'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<movie>
+  <title>Waygu Resume Across Sources</title>
+  <year>2025</year>
+  <uniqueid type="imdb" default="true">tt90000003</uniqueid>
+  <uniqueid type="tmdb">900000992</uniqueid>
+</movie>
+EOF
 
 cat > "$movie/Waygu Test Movie (2025).en.srt" <<'EOF'
 1

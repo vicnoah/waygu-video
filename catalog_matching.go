@@ -19,8 +19,12 @@ func identityOf(item media.Item) titleIdentity {
 	if item.Kind != media.Movie && item.Kind != media.Series {
 		return titleIdentity{}
 	}
+	return identityWithIDs(item.Kind, item.ExternalIDs)
+}
+
+func identityWithIDs(kind media.Kind, externalIDs map[string]string) titleIdentity {
 	var ids titleIdentity
-	for provider, id := range item.ExternalIDs {
+	for provider, id := range externalIDs {
 		id = strings.ToLower(strings.TrimSpace(id))
 		switch strings.ToLower(provider) {
 		case "imdb":
@@ -36,7 +40,7 @@ func identityOf(item media.Item) titleIdentity {
 		}
 	}
 	if ids.imdb != "" || ids.tmdb != "" {
-		ids.kind = item.Kind
+		ids.kind = kind
 	}
 	return ids
 }
@@ -59,15 +63,21 @@ type titleAliases struct {
 	tmdbToIMDb map[titleIdentity]string
 }
 
-func aliasesFor(entries []catalogItem) titleAliases {
-	aliases := titleAliases{imdbToTMDB: make(map[titleIdentity]string), tmdbToIMDb: make(map[titleIdentity]string)}
-	for _, entry := range entries {
-		ids := identityOf(entry.item)
-		if ids.imdb == "" || ids.tmdb == "" {
-			continue
-		}
+func newTitleAliases() titleAliases {
+	return titleAliases{imdbToTMDB: make(map[titleIdentity]string), tmdbToIMDb: make(map[titleIdentity]string)}
+}
+
+func (aliases titleAliases) add(ids titleIdentity) {
+	if ids.imdb != "" && ids.tmdb != "" {
 		putAlias(aliases.imdbToTMDB, titleIdentity{kind: ids.kind, imdb: ids.imdb}, ids.tmdb)
 		putAlias(aliases.tmdbToIMDb, titleIdentity{kind: ids.kind, tmdb: ids.tmdb}, ids.imdb)
+	}
+}
+
+func aliasesFor(entries []catalogItem) titleAliases {
+	aliases := newTitleAliases()
+	for _, entry := range entries {
+		aliases.add(identityOf(entry.item))
 	}
 	return aliases
 }

@@ -314,6 +314,9 @@ func verifyDockerResume(t *testing.T, ctx context.Context, client Client, movieL
 		}
 		for _, item := range recent {
 			if item.ID == movie.ID && item.Position >= 63*time.Second && item.Position <= 65*time.Second {
+				if item.LastPlayed.IsZero() {
+					t.Fatal("continue watching did not return the fixture's last-played date")
+				}
 				if scoped, ok := client.(LibraryResumeClient); ok {
 					movies, err := scoped.ResumeLibrary(ctx, movieLibrary)
 					if err != nil || !slices.ContainsFunc(movies, func(item Item) bool { return item.ID == movie.ID }) {

@@ -24,21 +24,23 @@ type catalogItem struct {
 }
 
 type catalogRequest struct {
-	sources  []source
-	filter   string
-	library  string
-	search   string
-	limit    int
-	home     bool
-	category libraryCategory
-	merge    bool
+	sources      []source
+	filter       string
+	library      string
+	search       string
+	limit        int
+	home         bool
+	category     libraryCategory
+	merge        bool
+	cachedResume map[string][]media.Item
 }
 
 type catalogResult struct {
-	items   []catalogItem
-	resume  []catalogItem
-	hasMore bool
-	failure error
+	items       []catalogItem
+	resume      []catalogItem
+	hasMore     bool
+	failure     error
+	resumeCache []resumeCacheUpdate
 }
 
 func (a *application) shell(cx *core.Scope) core.Node {
@@ -94,11 +96,24 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 	results := core.NewResource(cx, func() (catalogRequest, bool) {
 		sources := a.sources.Get()
 		term := query.Get()
-		return catalogRequest{sources: sources, filter: a.sourceFilter.Get(), library: library.Get(), search: term,
-			limit: limit.Get(), home: page == screenHome, category: category.Get(), merge: a.mergeTitles.Get()}, len(sources) > 0 && (page != screenSearch || term != "")
+		request := catalogRequest{sources: sources, filter: a.sourceFilter.Get(), library: library.Get(), search: term,
+			limit: limit.Get(), home: page == screenHome, category: category.Get(), merge: a.mergeTitles.Get()}
+		if request.home {
+			request.cachedResume = core.Untracked(cx, func() map[string][]media.Item { return a.readResumeCache(sources) })
+		}
+		return request, len(sources) > 0 && (page != screenSearch || term != "")
 	}, func(ctx context.Context, request catalogRequest, _ core.ResourceInfo) (catalogResult, error) {
 		return a.loadCatalog(ctx, request), nil
 	})
+	if page == screenHome {
+		cx.Effect(func() {
+			if result, ready := results.Get(); ready {
+				for _, update := range result.resumeCache {
+					a.saveResumeCache(update)
+				}
+			}
+		})
+	}
 	title := locales.Home(cx)
 	if page == screenLibrary {
 		title = locales.Library(cx)
@@ -195,7 +210,7 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 				children = append(children, a.hero(cx, result.items[0]))
 			}
 			if len(result.resume) > 0 {
-				children = append(children, heading(locales.ContinueWatching(cx)), a.posterShelf(cx, result.resume))
+				children = append(children, heading(locales.ContinueWatching(cx)), a.resumeShelfView(cx, result.resume))
 			}
 			if len(result.items) > 0 {
 				children = append(children, heading(locales.Recent(cx)))
@@ -204,7 +219,7 @@ func (a *application) browse(cx *core.Scope, page screen) core.Node {
 		if len(result.items) > 0 {
 			cards := make([]core.Node, 0, len(result.items))
 			for _, entry := range result.items {
-				cards = append(cards, a.posterCard(cx, entry, false))
+				cards = append(cards, a.posterCard(cx, entry))
 			}
 			children = append(children, core.View{Class: "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6", Children: cards})
 		} else if result.failure == nil && len(result.resume) == 0 {
@@ -237,10 +252,15 @@ func (a *application) loadCatalog(ctx context.Context, q catalogRequest) catalog
 	for _, group := range groups {
 		all.items = append(all.items, group.items...)
 		all.resume = append(all.resume, group.resume...)
+		all.resumeCache = append(all.resumeCache, group.resumeCache...)
 		all.hasMore = all.hasMore || group.hasMore
 		all.failure = errors.Join(all.failure, group.failure)
 	}
-	if q.merge && len(q.sources) > 1 && q.filter == "" && q.library == "" {
+	merge := q.merge && len(q.sources) > 1 && q.filter == "" && q.library == ""
+	if q.home {
+		all.resume = continueWatching(all.resume, all.items, merge)
+	}
+	if merge {
 		all.items = mergeCatalogItems(all.items, q.home, q.category)
 	}
 	return all
@@ -266,7 +286,11 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 	}
 	client, err := a.client(source)
 	if err != nil {
-		return catalogResult{failure: err}
+		result := catalogResult{failure: err}
+		if q.home {
+			result.resume = cachedResumeShelf(source, libraries, q.cachedResume[source.ID])
+		}
+		return result
 	}
 	var result catalogResult
 	seen := make(map[string]bool)
@@ -293,46 +317,18 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 		result.hasMore = result.hasMore || page.Total > len(page.Items)
 	}
 	if q.home {
-		result.resume = resumeShelf(ctx, client, source, libraries)
+		var refreshed bool
+		var resumeError error
+		result.resume, refreshed, resumeError = resumeShelf(ctx, client, source, libraries, q.cachedResume[source.ID])
+		result.failure = errors.Join(result.failure, resumeError)
+		if q.merge && len(q.sources) > 1 && q.filter == "" {
+			enrichResumeSeries(ctx, client, result.resume, result.items)
+		}
+		if refreshed {
+			result.resumeCache = []resumeCacheUpdate{{source: source, items: result.resume}}
+		}
 	}
 	return result
-}
-
-func resumeShelf(ctx context.Context, client media.Client, source source, visible []sourceLibrary) []catalogItem {
-	const shelfLimit = 24
-	restricted := len(visible) < len(source.Libraries)
-	var shelf []catalogItem
-	seen := make(map[string]bool)
-	add := func(item media.Item) {
-		if len(shelf) < shelfLimit && item.ID != "" && item.Position > 0 && !seen[item.ID] {
-			shelf = append(shelf, catalogItem{source: source, item: item})
-			seen[item.ID] = true
-		}
-	}
-	if scoped, ok := client.(media.LibraryResumeClient); ok && restricted {
-		for _, library := range visible {
-			if len(shelf) == shelfLimit || ctx.Err() != nil {
-				break
-			}
-			items, err := scoped.ResumeLibrary(ctx, library.ID)
-			if err == nil {
-				for _, item := range items {
-					add(item)
-				}
-			}
-		}
-		return shelf
-	}
-	items, err := client.Resume(ctx)
-	if err == nil {
-		for _, item := range items {
-			visibleLibrary := slices.ContainsFunc(visible, func(library sourceLibrary) bool { return item.LibraryID == library.ID })
-			if visibleLibrary || (item.LibraryID == "" && !restricted) {
-				add(item)
-			}
-		}
-	}
-	return shelf
 }
 
 func (a *application) hero(cx *core.Scope, entry catalogItem) core.Node {
@@ -372,17 +368,7 @@ func (a *application) hero(cx *core.Scope, entry catalogItem) core.Node {
 	}}
 }
 
-func (a *application) posterShelf(cx *core.Scope, items []catalogItem) core.Node {
-	children := make([]core.Node, 0, len(items))
-	for _, entry := range items {
-		children = append(children, core.View{Class: "w-36", Children: []core.Node{a.posterCard(cx, entry, true)}})
-	}
-	return core.Scroll{Horizontal: true, Class: "flex-shrink-0", Children: []core.Node{
-		core.View{Class: "flex-row gap-4 pb-2", Children: children},
-	}}
-}
-
-func (a *application) posterCard(cx *core.Scope, entry catalogItem, resume bool) core.Node {
+func (a *application) posterCard(cx *core.Scope, entry catalogItem) core.Node {
 	item := entry.item
 	id := "title-" + item.ID
 	label := item.Title
@@ -402,11 +388,7 @@ func (a *application) posterCard(cx *core.Scope, entry catalogItem, resume bool)
 	}
 	return base.Button{Label: label, Style: style, TestID: id,
 		OnPress: func(core.PressEvent) {
-			if resume && playable(item) {
-				a.push(route{screen: screenPlayer, source: entry.source, item: item, resume: true})
-			} else {
-				a.push(route{screen: screenDetail, source: entry.source, item: item, match: entry.match})
-			}
+			a.push(route{screen: screenDetail, source: entry.source, item: item, match: entry.match})
 		}, Children: []core.Node{core.View{Class: "w-full gap-2", Children: []core.Node{
 			core.View{Class: "relative h-52 items-center justify-center overflow-hidden rounded-2xl border border-border bg-card", Children: []core.Node{art}},
 			core.Text{Content: item.Title, Class: "line-clamp-1 text-sm font-semibold"},

@@ -103,16 +103,17 @@ def setup_media_browser(provider, base):
 
 
 def wait_for_fixture_identity(base, user_id, headers):
-    def movie_identified():
+    def movies_identified():
         catalog = request(base, "/Items", headers=headers, params={
             "UserId": user_id, "Recursive": "true", "IncludeItemTypes": "Movie",
-            "SearchTerm": "Waygu Test Movie", "Fields": "ProviderIds",
+            "Fields": "ProviderIds",
         })
-        return next((item for item in catalog["Items"]
-                     if item["Name"].startswith("Waygu Test Movie")
-                     and item.get("ProviderIds", {}).get("Imdb") == "tt90000002"), None)
+        ids = {item.get("ProviderIds", {}).get("Imdb") for item in catalog["Items"]}
+        if {"tt90000002", "tt90000003"} <= ids:
+            return True
+        raise ValueError("the matching and cross-source resume fixtures need their NFO metadata")
 
-    wait_until_ready(movie_identified, timeout=120)
+    wait_until_ready(movies_identified, timeout=120)
 
 
 def scan_jellyfin_fixtures(base, user_id, headers):

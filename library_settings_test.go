@@ -23,7 +23,7 @@ func TestManageLibraryPreferences(t *testing.T) {
 		nsgotest.Storage(map[string]string{sourcesKey: saved}),
 		nsgotest.Secrets(map[string]string{"library-fixture": "fixture-token"}))
 	app.WaitFor("id:title-movies-title", time.Second)
-	app.WaitFor("id:title-movies-resume", time.Second)
+	app.WaitFor("id:resume-movies-resume", time.Second)
 	app.WaitFor("id:title-private-title", time.Second)
 	pressLibraryTestTab(app, screenSettings, "Settings")
 	app.Press("id:manage-libraries-library-fixture")
@@ -60,11 +60,11 @@ func TestManageLibraryPreferences(t *testing.T) {
 
 	pressLibraryTestTab(app, screenHome, "Home")
 	app.WaitFor("id:title-shows-title", time.Second)
-	app.WaitFor("id:title-shows-resume", time.Second)
+	app.WaitFor("id:resume-shows-resume", time.Second)
 	app.WaitForGone("id:title-movies-title", time.Second)
-	app.WaitForGone("id:title-movies-resume", time.Second)
+	app.WaitForGone("id:resume-movies-resume", time.Second)
 	app.WaitForGone("id:title-private-title", time.Second)
-	app.WaitForGone("id:title-private-resume", time.Second)
+	app.WaitForGone("id:resume-private-resume", time.Second)
 
 	pressLibraryTestTab(app, screenLibrary, "Library")
 	app.WaitFor("id:title-movies-title", time.Second)

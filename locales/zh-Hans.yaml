@@ -69,6 +69,9 @@ recent: 最近添加
 details: 详情
 play: 播放
 resume: 继续播放
+resumeCardLabel: "继续播放《{title}》"
+resumePercent: "已看 {number}%"
+resumeRemaining: "剩余 {time}"
 fromStart: 从头播放
 pause: 暂停
 closePlayer: 关闭播放器
