@@ -94,6 +94,8 @@ type Item struct {
 	Episode           int
 	Rating            float64
 	Genres            []string
+	Countries         []string
+	Writers           []string
 	VideoProfiles     []VideoProfile
 	SeasonCount       int
 	EpisodeCount      int

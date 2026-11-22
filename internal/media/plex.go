@@ -3,6 +3,7 @@ package media
 import (
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -51,7 +52,8 @@ type plexMetadata struct {
 	ViewCount                                   int
 	ChildCount, LeafCount, ViewedLeafCount      int
 	Genre                                       []struct{ Tag string }
-	Director, Role                              []struct{ Tag, Role, Thumb string }
+	Director, Writer, Role                      []struct{ Tag, Role, Thumb string }
+	Country                                     []struct{ Tag string }
 	PrimaryGuid                                 string                `json:"guid"`
 	Guid                                        []struct{ ID string } `json:"Guid"`
 	Media                                       []plexMedia
@@ -83,6 +85,7 @@ type plexTrack struct {
 	Title        string
 	DisplayTitle string
 	ColorTrc     string
+	FrameRate    json.Number
 	Key          string
 	Default      bool
 	Forced       bool
@@ -283,6 +286,16 @@ func (p *plexClient) item(entry plexMetadata) Item {
 			item.People = append(item.People, Person{Name: director.Tag, Director: true, Kind: "director", Portrait: p.mediaURL(director.Thumb, nil)})
 		}
 	}
+	for _, country := range entry.Country {
+		if country.Tag != "" {
+			item.Countries = append(item.Countries, country.Tag)
+		}
+	}
+	for _, writer := range entry.Writer {
+		if writer.Tag != "" {
+			item.Writers = append(item.Writers, writer.Tag)
+		}
+	}
 	for _, actor := range entry.Role {
 		if actor.Tag != "" {
 			item.People = append(item.People, Person{Name: actor.Tag, Role: actor.Role, Kind: "actor", Portrait: p.mediaURL(actor.Thumb, nil)})
@@ -314,24 +327,7 @@ func (p *plexClient) item(entry plexMetadata) Item {
 		item.Episode, item.Season, item.SeriesID = entry.Index, entry.ParentIndex, entry.GrandparentRatingKey
 	}
 	for _, medium := range entry.Media {
-		var size int64
-		var videoRange string
-		for _, part := range medium.Part {
-			size += max(0, part.Size)
-			for _, stream := range part.Stream {
-				if stream.StreamType != 1 {
-					continue
-				}
-				switch {
-				case strings.Contains(strings.ToLower(stream.DisplayTitle), "dolby vision"):
-					videoRange = "DOVI"
-				case videoRange == "" && stream.ColorTrc == "smpte2084":
-					videoRange = "HDR10"
-				case videoRange == "" && stream.ColorTrc == "arib-std-b67":
-					videoRange = "HLG"
-				}
-			}
-		}
+		size, videoRange, _ := medium.videoFacts()
 		item.FileSize = max(item.FileSize, size)
 		if medium.Width > 0 || medium.Height > 0 {
 			item.addVideoProfile(VideoProfile{Width: medium.Width, Height: medium.Height, Range: videoRange})
@@ -397,13 +393,36 @@ func (p *plexClient) Versions(ctx context.Context, item Item) ([]Version, error)
 func (m plexMedia) version() Version {
 	version := Version{ID: strconv.Itoa(m.ID), Width: m.Width, Height: m.Height, Bitrate: m.Bitrate * 1000,
 		VideoCodec: m.VideoCodec, Container: m.Container}
-	for _, part := range m.Part {
-		version.Size += part.Size
-	}
+	version.Size, version.VideoRange, version.FrameRate = m.videoFacts()
 	if len(m.Part) == 1 {
 		version.FileName = videoFileName(m.Part[0].File)
+		version.FilePath = localMediaPath(m.Part[0].File)
 	}
 	return version
+}
+
+func (m plexMedia) videoFacts() (size int64, videoRange string, fps float64) {
+	for _, part := range m.Part {
+		size += max(0, part.Size)
+		for _, stream := range part.Stream {
+			if stream.StreamType != 1 {
+				continue
+			}
+			if fps == 0 {
+				fps, _ = stream.FrameRate.Float64()
+			}
+			title := strings.ToLower(stream.DisplayTitle)
+			switch {
+			case strings.Contains(title, "dolby vision") || strings.Contains(title, "dovi"):
+				videoRange = "DOVI"
+			case videoRange == "" && stream.ColorTrc == "smpte2084":
+				videoRange = "HDR10"
+			case videoRange == "" && stream.ColorTrc == "arib-std-b67":
+				videoRange = "HLG"
+			}
+		}
+	}
+	return
 }
 
 func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOptions) (Stream, error) {

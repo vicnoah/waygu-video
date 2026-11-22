@@ -587,3 +587,19 @@ desktopLibraryTotalSize: "{summary} · 共 {size}"
 desktopLibraryKnownSize: "{summary} · 已知 {size}"
 desktopClearAll: 清除全部
 desktopMovieCount: "{count} 部 · 来自 {sources} 个媒体源"
+desktopMovieRuntime: "{hours} 小时 {minutes} 分"
+desktopMovieChineseSubtitles: 中字
+desktopMovieWriter: 编剧
+desktopMovieCountries: 制片国家
+desktopMoviePath: 路径
+desktopMovieContainer: 容器
+desktopMovieDynamicRange: 动态范围
+desktopMovieDolbyVision: 杜比视界
+desktopMovieAdded: 添加于
+desktopMovieDirectPlay: 直接播放
+desktopMovieMoreTracks: "另 {count} 条"
+desktopMovieEmbeddedSubtitles: "内封 {count} 条"
+desktopMovieExternalSubtitles: "外挂 {count} 条"
+desktopDanmakuMatch: 匹配
+desktopDanmakuMatched: 已匹配 · 弹弹play
+desktopDanmakuChange: 更换

@@ -84,7 +84,7 @@ func (a *application) shellLayout(cx *core.Scope, idiom core.Idiom) core.Node {
 		return a.tvShell(cx)
 	}
 	if idiom == core.IdiomDesktop {
-		return a.desktopShell(cx)
+		return a.desktopShell(cx, nil)
 	}
 	titles := []string{locales.Home(cx), locales.Library(cx), locales.Search(cx), locales.Settings(cx)}
 	icons := []func() *core.SVG{lucide.House, lucide.LibraryBig, lucide.Search, lucide.Settings}

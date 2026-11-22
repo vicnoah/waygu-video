@@ -13,7 +13,8 @@ import (
 type Version struct {
 	ID, Name, VideoCodec   string
 	Container, VideoRange  string
-	FileName               string
+	FileName, FilePath     string
+	FrameRate              float64
 	Tracks                 []Track
 	Width, Height, Bitrate int
 	Size                   int64
@@ -29,6 +30,14 @@ func (item *Item) addVideoProfile(profile VideoProfile) {
 	if !slices.Contains(item.VideoProfiles, profile) {
 		item.VideoProfiles = append(item.VideoProfiles, profile)
 	}
+}
+
+func localMediaPath(value string) string {
+	value = strings.TrimSpace(value)
+	if strings.Contains(value, "://") {
+		return ""
+	}
+	return value
 }
 
 func videoFileName(value string) string {

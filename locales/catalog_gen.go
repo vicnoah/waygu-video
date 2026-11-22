@@ -133,6 +133,10 @@ var Parameters = map[string][]string{
 	"DesktopLibraryTotalSize":        {"summary", "size"},
 	"DesktopLibraryKnownSize":        {"summary", "size"},
 	"DesktopMovieCount":              {"count", "sources"},
+	"DesktopMovieRuntime":            {"hours", "minutes"},
+	"DesktopMovieMoreTracks":         {"count"},
+	"DesktopMovieEmbeddedSubtitles":  {"count"},
+	"DesktopMovieExternalSubtitles":  {"count"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -231,6 +235,10 @@ type Translation struct {
 	DesktopLibraryTotalSize        func(summary string, size string) string
 	DesktopLibraryKnownSize        func(summary string, size string) string
 	DesktopMovieCount              func(count string, sources string) string
+	DesktopMovieRuntime            func(hours string, minutes string) string
+	DesktopMovieMoreTracks         func(count string) string
+	DesktopMovieEmbeddedSubtitles  func(count string) string
+	DesktopMovieExternalSubtitles  func(count string) string
 }
 
 var supplied = map[string]Translation{}
@@ -736,6 +744,18 @@ const (
 	textDesktopLibraryFileSize
 	textDesktopLibraryLastPlayed
 	textDesktopClearAll
+	textDesktopMovieChineseSubtitles
+	textDesktopMovieWriter
+	textDesktopMovieCountries
+	textDesktopMoviePath
+	textDesktopMovieContainer
+	textDesktopMovieDynamicRange
+	textDesktopMovieDolbyVision
+	textDesktopMovieAdded
+	textDesktopMovieDirectPlay
+	textDesktopDanmakuMatch
+	textDesktopDanmakuMatched
+	textDesktopDanmakuChange
 	numTexts
 )
 
@@ -1241,6 +1261,18 @@ var keyOfText = [numTexts]string{
 	"desktopLibraryFileSize",
 	"desktopLibraryLastPlayed",
 	"desktopClearAll",
+	"desktopMovieChineseSubtitles",
+	"desktopMovieWriter",
+	"desktopMovieCountries",
+	"desktopMoviePath",
+	"desktopMovieContainer",
+	"desktopMovieDynamicRange",
+	"desktopMovieDolbyVision",
+	"desktopMovieAdded",
+	"desktopMovieDirectPlay",
+	"desktopDanmakuMatch",
+	"desktopDanmakuMatched",
+	"desktopDanmakuChange",
 }
 
 // textsEn are the messages without arguments in en.
@@ -1743,7 +1775,19 @@ var textsEn = i18n.NewTexts(""+
 	"Runtime"+
 	"File size"+
 	"Recently played"+
-	"Clear all",
+	"Clear all"+
+	"Chinese subtitles"+
+	"Writer"+
+	"Production countries"+
+	"Path"+
+	"Container"+
+	"Dynamic range"+
+	"Dolby Vision"+
+	"Added"+
+	"Direct play"+
+	"Match"+
+	"Matched · DandanPlay"+
+	"Change",
 	[]uint16{
 		11,
 		47,
@@ -2244,6 +2288,18 @@ var textsEn = i18n.NewTexts(""+
 		9,
 		15,
 		9,
+		17,
+		6,
+		20,
+		4,
+		9,
+		13,
+		12,
+		5,
+		11,
+		5,
+		21,
+		6,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -2746,7 +2802,19 @@ var textsZhHans = i18n.NewTexts(""+
 	"时长"+
 	"文件大小"+
 	"最近播放"+
-	"清除全部",
+	"清除全部"+
+	"中字"+
+	"编剧"+
+	"制片国家"+
+	"路径"+
+	"容器"+
+	"动态范围"+
+	"杜比视界"+
+	"添加于"+
+	"直接播放"+
+	"匹配"+
+	"已匹配 · 弹弹play"+
+	"更换",
 	[]uint16{
 		12,
 		45,
@@ -3247,6 +3315,18 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		12,
 		12,
+		6,
+		6,
+		12,
+		6,
+		6,
+		12,
+		12,
+		9,
+		12,
+		6,
+		23,
+		6,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -3572,6 +3652,18 @@ func Supply(lang string, t Translation) {
 	}
 	if t.DesktopMovieCount != nil {
 		s.DesktopMovieCount = t.DesktopMovieCount
+	}
+	if t.DesktopMovieRuntime != nil {
+		s.DesktopMovieRuntime = t.DesktopMovieRuntime
+	}
+	if t.DesktopMovieMoreTracks != nil {
+		s.DesktopMovieMoreTracks = t.DesktopMovieMoreTracks
+	}
+	if t.DesktopMovieEmbeddedSubtitles != nil {
+		s.DesktopMovieEmbeddedSubtitles = t.DesktopMovieEmbeddedSubtitles
+	}
+	if t.DesktopMovieExternalSubtitles != nil {
+		s.DesktopMovieExternalSubtitles = t.DesktopMovieExternalSubtitles
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -9282,3 +9374,189 @@ func (msgs Messages) DesktopMovieCount(count string, sources string) string {
 		}
 	}
 }
+
+// DesktopMovieRuntime says "{hours} hr {minutes} min"
+// in the language the app shows under cx.
+func DesktopMovieRuntime(cx *core.Scope, hours string, minutes string) string {
+	return For(cx).DesktopMovieRuntime(hours, minutes)
+}
+
+// DesktopMovieRuntime is the package's DesktopMovieRuntime in the language of msgs.
+func (msgs Messages) DesktopMovieRuntime(hours string, minutes string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopMovieRuntime(hours, minutes))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopMovieRuntime; f != nil {
+			return f(hours, minutes)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(hours) + " hr " + msgs.arg(minutes) + " min"
+		case "zh-Hans":
+			return hours + " 小时 " + minutes + " 分"
+		}
+	}
+}
+
+// DesktopMovieChineseSubtitles says "Chinese subtitles"
+// in the language the app shows under cx.
+func DesktopMovieChineseSubtitles(cx *core.Scope) string {
+	return For(cx).DesktopMovieChineseSubtitles()
+}
+
+// DesktopMovieChineseSubtitles is the package's DesktopMovieChineseSubtitles in the language of msgs.
+func (msgs Messages) DesktopMovieChineseSubtitles() string {
+	return msgs.text(textDesktopMovieChineseSubtitles)
+}
+
+// DesktopMovieWriter says "Writer"
+// in the language the app shows under cx.
+func DesktopMovieWriter(cx *core.Scope) string { return For(cx).DesktopMovieWriter() }
+
+// DesktopMovieWriter is the package's DesktopMovieWriter in the language of msgs.
+func (msgs Messages) DesktopMovieWriter() string { return msgs.text(textDesktopMovieWriter) }
+
+// DesktopMovieCountries says "Production countries"
+// in the language the app shows under cx.
+func DesktopMovieCountries(cx *core.Scope) string { return For(cx).DesktopMovieCountries() }
+
+// DesktopMovieCountries is the package's DesktopMovieCountries in the language of msgs.
+func (msgs Messages) DesktopMovieCountries() string { return msgs.text(textDesktopMovieCountries) }
+
+// DesktopMoviePath says "Path"
+// in the language the app shows under cx.
+func DesktopMoviePath(cx *core.Scope) string { return For(cx).DesktopMoviePath() }
+
+// DesktopMoviePath is the package's DesktopMoviePath in the language of msgs.
+func (msgs Messages) DesktopMoviePath() string { return msgs.text(textDesktopMoviePath) }
+
+// DesktopMovieContainer says "Container"
+// in the language the app shows under cx.
+func DesktopMovieContainer(cx *core.Scope) string { return For(cx).DesktopMovieContainer() }
+
+// DesktopMovieContainer is the package's DesktopMovieContainer in the language of msgs.
+func (msgs Messages) DesktopMovieContainer() string { return msgs.text(textDesktopMovieContainer) }
+
+// DesktopMovieDynamicRange says "Dynamic range"
+// in the language the app shows under cx.
+func DesktopMovieDynamicRange(cx *core.Scope) string { return For(cx).DesktopMovieDynamicRange() }
+
+// DesktopMovieDynamicRange is the package's DesktopMovieDynamicRange in the language of msgs.
+func (msgs Messages) DesktopMovieDynamicRange() string {
+	return msgs.text(textDesktopMovieDynamicRange)
+}
+
+// DesktopMovieDolbyVision says "Dolby Vision"
+// in the language the app shows under cx.
+func DesktopMovieDolbyVision(cx *core.Scope) string { return For(cx).DesktopMovieDolbyVision() }
+
+// DesktopMovieDolbyVision is the package's DesktopMovieDolbyVision in the language of msgs.
+func (msgs Messages) DesktopMovieDolbyVision() string { return msgs.text(textDesktopMovieDolbyVision) }
+
+// DesktopMovieAdded says "Added"
+// in the language the app shows under cx.
+func DesktopMovieAdded(cx *core.Scope) string { return For(cx).DesktopMovieAdded() }
+
+// DesktopMovieAdded is the package's DesktopMovieAdded in the language of msgs.
+func (msgs Messages) DesktopMovieAdded() string { return msgs.text(textDesktopMovieAdded) }
+
+// DesktopMovieDirectPlay says "Direct play"
+// in the language the app shows under cx.
+func DesktopMovieDirectPlay(cx *core.Scope) string { return For(cx).DesktopMovieDirectPlay() }
+
+// DesktopMovieDirectPlay is the package's DesktopMovieDirectPlay in the language of msgs.
+func (msgs Messages) DesktopMovieDirectPlay() string { return msgs.text(textDesktopMovieDirectPlay) }
+
+// DesktopMovieMoreTracks says "{count} more"
+// in the language the app shows under cx.
+func DesktopMovieMoreTracks(cx *core.Scope, count string) string {
+	return For(cx).DesktopMovieMoreTracks(count)
+}
+
+// DesktopMovieMoreTracks is the package's DesktopMovieMoreTracks in the language of msgs.
+func (msgs Messages) DesktopMovieMoreTracks(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopMovieMoreTracks(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopMovieMoreTracks; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " more"
+		case "zh-Hans":
+			return "另 " + count + " 条"
+		}
+	}
+}
+
+// DesktopMovieEmbeddedSubtitles says "{count} embedded"
+// in the language the app shows under cx.
+func DesktopMovieEmbeddedSubtitles(cx *core.Scope, count string) string {
+	return For(cx).DesktopMovieEmbeddedSubtitles(count)
+}
+
+// DesktopMovieEmbeddedSubtitles is the package's DesktopMovieEmbeddedSubtitles in the language of msgs.
+func (msgs Messages) DesktopMovieEmbeddedSubtitles(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopMovieEmbeddedSubtitles(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopMovieEmbeddedSubtitles; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " embedded"
+		case "zh-Hans":
+			return "内封 " + count + " 条"
+		}
+	}
+}
+
+// DesktopMovieExternalSubtitles says "{count} external"
+// in the language the app shows under cx.
+func DesktopMovieExternalSubtitles(cx *core.Scope, count string) string {
+	return For(cx).DesktopMovieExternalSubtitles(count)
+}
+
+// DesktopMovieExternalSubtitles is the package's DesktopMovieExternalSubtitles in the language of msgs.
+func (msgs Messages) DesktopMovieExternalSubtitles(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopMovieExternalSubtitles(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopMovieExternalSubtitles; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " external"
+		case "zh-Hans":
+			return "外挂 " + count + " 条"
+		}
+	}
+}
+
+// DesktopDanmakuMatch says "Match"
+// in the language the app shows under cx.
+func DesktopDanmakuMatch(cx *core.Scope) string { return For(cx).DesktopDanmakuMatch() }
+
+// DesktopDanmakuMatch is the package's DesktopDanmakuMatch in the language of msgs.
+func (msgs Messages) DesktopDanmakuMatch() string { return msgs.text(textDesktopDanmakuMatch) }
+
+// DesktopDanmakuMatched says "Matched · DandanPlay"
+// in the language the app shows under cx.
+func DesktopDanmakuMatched(cx *core.Scope) string { return For(cx).DesktopDanmakuMatched() }
+
+// DesktopDanmakuMatched is the package's DesktopDanmakuMatched in the language of msgs.
+func (msgs Messages) DesktopDanmakuMatched() string { return msgs.text(textDesktopDanmakuMatched) }
+
+// DesktopDanmakuChange says "Change"
+// in the language the app shows under cx.
+func DesktopDanmakuChange(cx *core.Scope) string { return For(cx).DesktopDanmakuChange() }
+
+// DesktopDanmakuChange is the package's DesktopDanmakuChange in the language of msgs.
+func (msgs Messages) DesktopDanmakuChange() string { return msgs.text(textDesktopDanmakuChange) }

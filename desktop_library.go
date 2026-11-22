@@ -31,7 +31,7 @@ func (a *application) openDesktopLibrary(category libraryCategory, source string
 	})
 }
 
-func (a *application) desktopCollectionSidebar(cx *core.Scope) core.Node {
+func (a *application) desktopCollectionSidebar(cx *core.Scope, afterSelect func()) core.Node {
 	return core.Dynamic(func(cx *core.Scope) core.Node {
 		nodes := []core.Node{tabletSidebarHeading(locales.DesktopSmartCollections(cx))}
 		for _, collection := range a.desktopCollections.Get() {
@@ -48,6 +48,7 @@ func (a *application) desktopCollectionSidebar(cx *core.Scope) core.Node {
 						a.sourceFilter.Set(collection.Filters.Source)
 						a.libraryView.Set(screenLibrary)
 						a.tab.Set(1)
+						afterSelect()
 					})
 				}))
 		}

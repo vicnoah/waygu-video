@@ -26,7 +26,13 @@ type detailResult struct {
 func (a *application) detail(cx *core.Scope, current route) core.Node {
 	layout := core.NewMemo(cx, func() core.Idiom { return appLayoutIdiom(cx) })
 	return core.Dynamic(func(cx *core.Scope) core.Node {
-		return a.detailLayout(cx, current, layout.Get())
+		idiom := layout.Get()
+		if idiom == core.IdiomDesktop && current.item.Kind == media.Movie {
+			return a.desktopShell(cx, func(cx *core.Scope) core.Node {
+				return a.detailLayout(cx, current, idiom)
+			})
+		}
+		return a.detailLayout(cx, current, idiom)
 	})
 }
 
@@ -35,6 +41,8 @@ func (a *application) detailLayout(cx *core.Scope, current route, idiom core.Idi
 	switch current.item.Kind {
 	case media.Movie:
 		switch idiom {
+		case core.IdiomDesktop:
+			titleDetail = a.desktopMovieDetail
 		case core.IdiomTablet:
 			titleDetail = a.tabletMovieDetail
 		case core.IdiomPhone:

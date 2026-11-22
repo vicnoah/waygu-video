@@ -50,6 +50,7 @@ type detailActionRenderer func(*core.Scope, string, string, *core.SVG, bool, fun
 
 type detailPersonalActions struct {
 	favorite func()
+	watch    func()
 	busy     func() bool
 	buttons  func(*core.Scope, detailResult, detailActionRenderer) []core.Node
 	error    core.Node
@@ -77,10 +78,9 @@ func (a *application) detailPersonal(cx *core.Scope, current route, loaded *core
 			}
 		}
 		previous = p.entries[previous.key()]
-		lifetime := a.scope.Context()
 		go func() {
 			p.transport.Lock()
-			ctx, cancel := context.WithTimeout(lifetime, 15*time.Second)
+			ctx, cancel := context.WithTimeout(a.lifetime, 15*time.Second)
 			client, err := a.client(current.source)
 			if err == nil && watch {
 				if watcher, ok := client.(media.WatchedClient); ok {
@@ -132,6 +132,7 @@ func (a *application) detailPersonal(cx *core.Scope, current route, loaded *core
 	}
 	return detailPersonalActions{
 		favorite: func() { edit(false) },
+		watch:    func() { edit(true) },
 		busy:     func() bool { return busy.Get() || loaded.Loading() },
 		buttons: func(cx *core.Scope, result detailResult, render detailActionRenderer) []core.Node {
 			button := func(id string, label string, icon func() *core.SVG, selected, watch bool) core.Node {

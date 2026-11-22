@@ -151,14 +151,15 @@ type browserItem struct {
 		Size         int64
 		MediaStreams []browserStream
 	}
-	RunTimeTicks      int64
-	DateCreated       string
-	PremiereDate      string
-	Genres            []string
-	ProviderIds       map[string]string
-	ImageTags         map[string]string
-	BackdropImageTags []string
-	People            []struct {
+	RunTimeTicks        int64
+	DateCreated         string
+	PremiereDate        string
+	Genres              []string
+	ProductionLocations []string
+	ProviderIds         map[string]string
+	ImageTags           map[string]string
+	BackdropImageTags   []string
+	People              []struct {
 		ID, Name, Role, Type, PrimaryImageTag string
 	}
 	UserData struct {
@@ -226,7 +227,7 @@ func (m *mediaBrowser) Detail(ctx context.Context, item Item) (Item, error) {
 	}
 	var dto browserItem
 	params := m.userQuery()
-	params.Set("Fields", m.itemFields()+",OriginalTitle,People")
+	params.Set("Fields", m.itemFields()+",OriginalTitle,People,ProductionLocations")
 	err := m.get(ctx, route, params, &dto)
 	if errors.Is(err, StatusError(http.StatusNotFound)) && m.kind == Jellyfin {
 		err = m.get(ctx, m.userRoute()+"/"+route, params, &dto)
@@ -306,7 +307,7 @@ func (m *mediaBrowser) item(entry browserItem) Item {
 		ID: entry.ID, Kind: Kind(strings.ToLower(entry.Type)), Title: entry.Name,
 		SeriesID: entry.SeriesID, SeriesTitle: entry.SeriesName, Overview: entry.Overview,
 		OriginalTitle: entry.OriginalTitle, ContentRating: entry.OfficialRating,
-		Year: entry.ProductionYear, Rating: entry.CommunityRating, Genres: entry.Genres,
+		Year: entry.ProductionYear, Rating: entry.CommunityRating, Genres: entry.Genres, Countries: entry.ProductionLocations,
 		Duration: fromTicks(entry.RunTimeTicks), Position: fromTicks(entry.UserData.PlaybackPositionTicks),
 		AddedAt: addedAt, LastPlayed: lastPlayed, ReleasedAt: releasedAt,
 		Watched: entry.UserData.Played, Favorite: entry.UserData.IsFavorite,

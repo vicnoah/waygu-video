@@ -7,13 +7,19 @@ import (
 	"waygu-video/locales"
 )
 
-func (a *application) desktopShell(cx *core.Scope) core.Node {
+func (a *application) desktopShell(cx *core.Scope, detail func(*core.Scope) core.Node) core.Node {
 	category := a.desktopCategory
-	collapsed := core.NewSignal(cx, false)
+	collapsed := a.desktopCollapsed
+	afterSelect := func() {
+		if detail != nil {
+			a.routes.Set(a.routes.GetUntracked()[:1])
+		}
+	}
 	openSearch := func() {
 		cx.Batch(func() {
 			a.sourceFilter.Set("")
 			a.tab.Set(2)
+			afterSelect()
 		})
 	}
 	cx.OnKeyWith("mod+k", core.KeyOptions{Title: func() string { return locales.Search(cx) }}, openSearch)
@@ -21,7 +27,7 @@ func (a *application) desktopShell(cx *core.Scope) core.Node {
 		homeAmbient(false, true), homeAmbient(true, true),
 		core.View{Class: "flex-1 flex-row", Children: []core.Node{
 			core.Show{When: func() bool { return !collapsed.Get() }, Then: func(cx *core.Scope) core.Node {
-				return a.tabletSidebar(cx, category, func() { collapsed.Set(true) }, func() {})
+				return a.tabletSidebar(cx, category, func() { collapsed.Set(true) }, afterSelect)
 			}},
 			core.View{Class: "min-w-0 flex-1", Children: []core.Node{
 				core.Show{When: collapsed.Get, Then: func(cx *core.Scope) core.Node {
@@ -30,6 +36,9 @@ func (a *application) desktopShell(cx *core.Scope) core.Node {
 					}}
 				}},
 				core.Dynamic(func(cx *core.Scope) core.Node {
+					if detail != nil {
+						return detail(cx)
+					}
 					switch a.tab.Get() {
 					case 1:
 						page := a.libraryView.Get()

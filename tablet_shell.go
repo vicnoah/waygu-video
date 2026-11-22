@@ -195,7 +195,7 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 						downloads,
 					}},
 					a.tabletSidebarSources(cx, afterSelect),
-					core.Show{When: func() bool { return wide && len(a.desktopCollections.Get()) > 0 }, Then: a.desktopCollectionSidebar},
+					core.Show{When: func() bool { return wide && len(a.desktopCollections.Get()) > 0 }, Then: func(cx *core.Scope) core.Node { return a.desktopCollectionSidebar(cx, afterSelect) }},
 				}},
 			}},
 			core.View{Class: "mx-3 gap-0.5 border-t border-zinc-900/8 pb-4 pt-3 dark:border-white/8", Children: []core.Node{

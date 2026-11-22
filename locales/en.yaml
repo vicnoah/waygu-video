@@ -587,3 +587,19 @@ desktopLibraryTotalSize: "{summary} · {size} total"
 desktopLibraryKnownSize: "{summary} · {size} known"
 desktopClearAll: Clear all
 desktopMovieCount: "{count} movies · {sources} sources"
+desktopMovieRuntime: "{hours} hr {minutes} min"
+desktopMovieChineseSubtitles: Chinese subtitles
+desktopMovieWriter: Writer
+desktopMovieCountries: Production countries
+desktopMoviePath: Path
+desktopMovieContainer: Container
+desktopMovieDynamicRange: Dynamic range
+desktopMovieDolbyVision: Dolby Vision
+desktopMovieAdded: Added
+desktopMovieDirectPlay: Direct play
+desktopMovieMoreTracks: "{count} more"
+desktopMovieEmbeddedSubtitles: "{count} embedded"
+desktopMovieExternalSubtitles: "{count} external"
+desktopDanmakuMatch: Match
+desktopDanmakuMatched: Matched · DandanPlay
+desktopDanmakuChange: Change

@@ -20,6 +20,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | TV settings · light and dark | [Danmaku, focus and pairing comparisons](tv-settings.md) | Compared at 1920 × 1080 pt on GTK. Pairing was tested with a Docker media source and the phone form. |
 | Desktop home · light and dark | [Sidebar, carousel and shelf comparisons](desktop-home.md) | Compared on GTK at the design size and checked at the normal desktop window size. Native macOS and Windows captures remain pending. |
 | Desktop movie library · light and dark | [Grid, filter and view comparisons](desktop-library.md) | Compared on GTK using an HDR fixture. Validated source filtering and playback with three Docker media servers. |
+| Desktop movie detail · light and dark | [Hero, metadata and playback comparisons](desktop-movie.md) | Compared on GTK. Trailer playback, watch state and selecting a different server copy were checked against Docker media servers. |
 | Phone settings and source management · light and dark | [Comparison and server checks](phone-source-settings.md) | Compared on GTK with three Docker media servers. Source reordering, sync and removal are tested. Phone device captures remain pending. |
 | Phone landscape player · all seven panel tabs | [Playback and panel comparisons](phone-player.md) | Compared at 844 × 390 pt on GTK with an Emby video and subtitle fixture. Phone rotation and system gestures remain pending. |
 | Phone playback and subtitle settings · light and dark | [Settings comparison and playback checks](phone-player-settings.md) | Compared on GTK. Audio and caption preferences were verified against Emby and Jellyfin. Device captures and several controls remain pending. |
@@ -154,6 +155,16 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
 ```
 
 Use `WAYGU_REVIEW_DESIGN=views/desktop-library.scenra` to export the two Scenra references.
+
+Capture the desktop movie detail with representative film metadata and all three Docker sources.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^(TestDesktopMovieDesignReview|TestDockerDesktopMovieReview)$' \
+  -screenshots .nsgo/ui-review/desktop-movie
+```
+
+Use `WAYGU_REVIEW_DESIGN=views/desktop-movie.scenra` to export the two Scenra references.
 
 Capture the personal state transitions with the same servers.
 

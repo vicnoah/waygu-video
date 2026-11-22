@@ -10,17 +10,19 @@ import (
 )
 
 type browserStream struct {
-	Index          int
-	Type           string
-	Codec          string
-	Language       string
-	DisplayTitle   string
-	VideoRangeType string
-	Width          int
-	Height         int
-	IsExternal     bool
-	IsDefault      bool
-	IsForced       bool
+	Index            int
+	Type             string
+	Codec            string
+	Language         string
+	DisplayTitle     string
+	VideoRangeType   string
+	Width            int
+	Height           int
+	RealFrameRate    float64
+	AverageFrameRate float64
+	IsExternal       bool
+	IsDefault        bool
+	IsForced         bool
 }
 
 type browserSource struct {
@@ -62,11 +64,20 @@ func (m *mediaBrowser) Versions(ctx context.Context, item Item) ([]Version, erro
 
 func (source browserSource) version() Version {
 	version := Version{ID: source.ID, Name: source.Name, Size: source.Size, Bitrate: source.Bitrate,
-		Container: source.Container, FileName: videoFileName(source.Path)}
+		Container: source.Container, FileName: videoFileName(source.Path), FilePath: localMediaPath(source.Path)}
+	if source.SupportsDirectPlay {
+		version.Method = DirectPlay
+	} else if source.SupportsDirectStream {
+		version.Method = DirectStream
+	}
 	for _, stream := range source.MediaStreams {
 		if strings.EqualFold(stream.Type, "video") {
 			version.Width, version.Height, version.VideoCodec = stream.Width, stream.Height, stream.Codec
 			version.VideoRange = stream.VideoRangeType
+			version.FrameRate = stream.RealFrameRate
+			if version.FrameRate <= 0 {
+				version.FrameRate = stream.AverageFrameRate
+			}
 			break
 		}
 	}

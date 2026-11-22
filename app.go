@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/json"
 	"errors"
@@ -86,6 +87,7 @@ type mediaFactory func(media.Provider, string, media.Device, media.Session) (med
 
 type application struct {
 	scope               *core.Scope
+	lifetime            context.Context
 	device              media.Device
 	storage             core.Storage
 	secrets             core.Secrets
@@ -98,6 +100,7 @@ type application struct {
 	libraryChanges      *core.Signal[uint64]
 	phoneLibrary        *core.Signal[phoneLibraryState]
 	desktopCategory     *core.Signal[libraryCategory]
+	desktopCollapsed    *core.Signal[bool]
 	desktopLibraryState *core.Signal[desktopLibraryState]
 	desktopCollections  *core.Signal[[]desktopCollection]
 	phoneSearch         phoneSearchState
@@ -168,7 +171,7 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 		first = screenHome
 	}
 	a := &application{
-		scope:  cx,
+		scope: cx, lifetime: cx.Context(),
 		device: media.Device{ID: deviceID, Name: "Waygu Video"}, storage: storage, secrets: cx.Secrets(), newMedia: factory, newDandan: dandan,
 		sources: core.NewSignalFunc(cx, sources, nil), routes: core.NewSignalFunc(cx, []route{{screen: first}}, nil),
 		tab: core.NewSignal(cx, 0), libraryView: core.NewSignal(cx, screenLibrary), libraryChanges: core.NewSignal(cx, uint64(0)),
@@ -189,6 +192,7 @@ func appRootWithDandan(cx *core.Scope, factory mediaFactory, plexAccount plexAut
 	a.sourceTimeout = core.NewSignal(cx, readSourceTimeout(sourceTimeout))
 	a.phoneLibrary = core.NewSignal(cx, phoneLibraryState{})
 	a.desktopCategory = core.NewSignal(cx, libraryCategory(""))
+	a.desktopCollapsed = core.NewSignal(cx, false)
 	a.desktopLibraryState = core.NewSignal(cx, desktopLibraryState{mode: desktopGrid})
 	a.desktopCollections = core.NewSignalFunc(cx, readDesktopCollections(storage), nil)
 	a.phoneSearch = newPhoneSearchState(cx)
