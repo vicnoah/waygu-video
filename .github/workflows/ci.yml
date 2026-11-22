@@ -198,6 +198,7 @@ jobs:
         if: matrix.form == 'tv'
         run: sh build/android/package.sh -target android_x64 -output dist/android-tv
       - name: Run Android UI smoke tests
+        if: matrix.form != 'tv'
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
           api-level: ${{ matrix.api }}
@@ -205,11 +206,15 @@ jobs:
           profile: ${{ matrix.profile }}
           arch: x86_64
           emulator-boot-timeout: 240
-          emulator-options: >-
-            -no-window -no-snapshot -noaudio -no-boot-anim -no-metrics
-            ${{ matrix.form == 'tv' && '-gpu swiftshader -feature -Vulkan -memory 2048' || '-gpu swiftshader_indirect' }}
+          emulator-options: -no-window -no-snapshot -noaudio -no-boot-anim -no-metrics -gpu swiftshader_indirect
           pre-emulator-launch-script: df -h "$ANDROID_AVD_HOME"
           script: sh build/android/emulator-test.sh ${{ matrix.form }}
+      - name: Run the installed Android TV smoke test
+        if: matrix.form == 'tv'
+        env:
+          ANDROID_IMAGE: system-images;android-${{ matrix.api }};${{ matrix.image }};x86_64
+          ANDROID_PROFILE: ${{ matrix.profile }}
+        run: sh build/android/run-tv-emulator.sh
       - name: Collect kernel diagnostics on failure
         if: failure()
         run: sudo dmesg --ctime --level=err,warn | tail -80
