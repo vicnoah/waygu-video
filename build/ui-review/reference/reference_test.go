@@ -80,7 +80,11 @@ func captureDesign(t *testing.T, project, name, panel string) {
 				if variant.ID == "dark" {
 					cx.SetSubtreeAppearance(core.AppearanceDark)
 				}
-				return scenraview.Still{Source: single.Format(), Project: project}
+				still := scenraview.Still{Source: single.Format(), Project: project}
+				if height > 1500 {
+					return core.Scroll{Class: "flex-1", TestID: "design-scroll", Children: []core.Node{still}}
+				}
+				return still
 			}, nsgotest.Offscreen(), nsgotest.Size(core.Points(width), core.Points(windowHeight)),
 				nsgotest.Environment(core.Environment{Locale: "zh-Hans"}))
 			app.WaitFor("id:frame-0", 5*time.Second)
@@ -100,6 +104,11 @@ func captureDesign(t *testing.T, project, name, panel string) {
 				stem += "-panel-" + panel
 			}
 			app.Screenshot(stem)
+			if height > 1500 && app.Find("id:design-scroll").Frame.Size.Height < core.Points(height) {
+				app.Scroll("id:design-scroll", core.Points(height))
+				app.Advance(500 * time.Millisecond)
+				app.Screenshot(stem + "-bottom")
+			}
 		})
 	}
 }

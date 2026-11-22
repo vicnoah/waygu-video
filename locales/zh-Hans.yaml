@@ -250,6 +250,21 @@ quickConnectInstruction: "在已登录的 Jellyfin 设备上打开快速连接�
 quickConnectUnavailable: 请在 Jellyfin 服务器上启用快速连接，或使用密码登录。
 versionShort: 版本
 detailAudio: 音轨
+playbackOptions: 播放选项
+movieSource: 来源
+phoneMovieResumeAt: "从 {time} 继续播放"
+shareTitle: 分享
+detailMore: 更多
+reloadMovieDetail: 重新加载详情
+movieDirectorLine: "导演：{name}"
+movieCastLine: "主演：{names}"
+movieViewAll: "全部 {count}"
+movieExtras: 预告片与花絮
+relatedMovies: 相关推荐
+movieFileVideo: 视频
+movieFileBitrate: 码率
+movieFileName: 文件名
+movieDanmakuUnmatched: 未匹配
 detailResumeAt: "继续播放 {time}"
 synopsis: 简介
 director: 导演

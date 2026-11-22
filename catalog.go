@@ -54,19 +54,21 @@ type catalogResult struct {
 
 var shellIdiom = core.NewKey("waygu.shellIdiom", core.Idiom(0))
 
+func appLayoutIdiom(cx *core.Scope) core.Idiom {
+	if override := shellIdiom.Use(cx); override != 0 {
+		return override
+	}
+	idiom := cx.Env().Idiom()
+	if idiom == core.IdiomDesktop {
+		if width := cx.Env().Window().Width; width > 0 && width < 560 {
+			return core.IdiomPhone
+		}
+	}
+	return idiom
+}
+
 func (a *application) shell(cx *core.Scope) core.Node {
-	layout := core.NewMemo(cx, func() core.Idiom {
-		if override := shellIdiom.Use(cx); override != 0 {
-			return override
-		}
-		idiom := cx.Env().Idiom()
-		if idiom == core.IdiomDesktop {
-			if width := cx.Env().Window().Width; width > 0 && width < 560 {
-				return core.IdiomPhone
-			}
-		}
-		return idiom
-	})
+	layout := core.NewMemo(cx, func() core.Idiom { return appLayoutIdiom(cx) })
 	return core.Dynamic(func(cx *core.Scope) core.Node { return a.shellLayout(cx, layout.Get()) })
 }
 

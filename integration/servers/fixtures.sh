@@ -8,7 +8,7 @@ resume='media/Movies/Waygu Resume Test (2025)'
 resume_pair='media/Movies/Waygu Resume Across Sources (2025)'
 tracks='media/Movies/Waygu Track Test (2025)'
 versions='media/Movies/Waygu Version Test (2025)'
-mkdir -p "$movie" "$season" "$resume" "$resume_pair" "$tracks" "$versions"
+mkdir -p "$movie" "$season" "$resume" "$resume_pair" "$tracks" "$versions" "$tracks/trailers" "$tracks/featurettes"
 
 make_clip() {
     picture=$1
@@ -26,12 +26,15 @@ make_clip() {
 
 make_clip testsrc2 440 "$movie/Waygu Test Movie (2025).mp4"
 make_clip smptebars 520 "$season/Waygu Test Series - S01E01.mp4"
+make_clip testsrc 660 "$tracks/trailers/Waygu Teaser.mp4"
+make_clip smptebars 720 "$tracks/featurettes/Waygu Behind the Scenes.mp4"
 
 cat > "$movie/Waygu Test Movie (2025).nfo" <<'EOF'
 <?xml version="1.0" encoding="utf-8"?>
 <movie>
   <title>Waygu Test Movie</title>
   <year>2025</year>
+  <genre>Test Clip</genre>
   <uniqueid type="imdb" default="true">tt90000002</uniqueid>
   <uniqueid type="tmdb">900000991</uniqueid>
 </movie>
@@ -76,6 +79,7 @@ cat > "$track_base.nfo" <<'EOF'
   <originaltitle>Waygu Audio and Subtitle Check</originaltitle>
   <year>2025</year>
   <mpaa>G</mpaa>
+  <rating>8.3</rating>
   <genre>Test Clip</genre>
   <plot>This synthetic clip contains two audio tones and matching embedded and external captions for playback verification.</plot>
   <director>Lin Chen</director>
@@ -102,6 +106,11 @@ if [ ! -s "$track_base.mp4" ]; then
         -disposition:a:0 default -disposition:a:1 0 \
         -t 24 -c:v libx264 -preset veryfast -pix_fmt yuv420p \
         -c:a aac -c:s mov_text -movflags +faststart "$track_base.mp4"
+fi
+
+if [ ! -s "$tracks/fanart.jpg" ]; then
+    ffmpeg -nostdin -hide_banner -loglevel error -y -ss 3 -i "$track_base.mp4" \
+        -frames:v 1 -update 1 "$tracks/fanart.jpg"
 fi
 
 for height in 180 360; do

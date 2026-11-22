@@ -355,6 +355,9 @@ func (m plexMedia) version() Version {
 	for _, part := range m.Part {
 		version.Size += part.Size
 	}
+	if len(m.Part) == 1 {
+		version.FileName = videoFileName(m.Part[0].File)
+	}
 	return version
 }
 

@@ -108,7 +108,11 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 		}
 	}
 	draft := core.NewSignal(cx, title)
-	query := core.NewSignal(cx, danmakuRequest{action: danmakuIdentify})
+	var initial danmakuRequest
+	if apply != nil {
+		initial.action = danmakuIdentify
+	}
+	query := core.NewSignal(cx, initial)
 	picked := core.NewSignal(cx, saved)
 	matches := core.NewSignalFunc(cx, danmaku.EpisodeMatches{}, nil)
 	saveError := core.NewSignal(cx, false)
@@ -158,7 +162,9 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 			}
 		}
 		result.bound = selected
-		result.comments, err = client.CachedComments(ctx, cache, selected.ID)
+		if apply != nil {
+			result.comments, err = client.CachedComments(ctx, cache, selected.ID)
+		}
 		return result, err
 	})
 	cx.Effect(func() {
@@ -171,7 +177,9 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 			return
 		}
 		picked.Set(result.bound)
-		apply(result.comments, result.bound.Shift)
+		if apply != nil {
+			apply(result.comments, result.bound.Shift)
+		}
 		encoded, _ := json.Marshal(result.bound)
 		err := a.storage.SetItem(key, string(encoded))
 		if err == nil && seasonKey != "" && result.bound.AnimeID > 0 && !result.inferred &&
@@ -209,7 +217,9 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 					}
 					picked.Set(danmaku.DandanEpisode{})
 					matches.Set(danmaku.EpisodeMatches{})
-					apply(nil, 0)
+					if apply != nil {
+						apply(nil, 0)
+					}
 				}})
 		}
 		if credentials.Loading() || resource.Loading() {

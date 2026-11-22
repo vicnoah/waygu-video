@@ -19,7 +19,19 @@ type detailTrackChoice struct {
 	version, audio, subtitle string
 }
 
-func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies func() []ui.Option[copyKey], selectCopy func(copyKey)) core.Node {
+type movieDetailState struct {
+	loaded        *core.Resource[detailResult]
+	personal      detailPersonalActions
+	available     *core.Resource[[]media.Version]
+	selected      *core.Signal[string]
+	tracks        *core.Signal[detailTrackChoice]
+	item          func() media.Item
+	active        func() media.Version
+	play          func(bool)
+	chooseVersion func(string)
+}
+
+func (a *application) movieDetailState(cx *core.Scope, current route, persistSelection bool) movieDetailState {
 	loaded := a.detailResource(cx, current)
 	personal := a.detailPersonal(cx, current, loaded)
 	available := a.versionResource(cx, current)
@@ -61,6 +73,27 @@ func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies fu
 		}
 		a.push(next)
 	}
+
+	return movieDetailState{
+		loaded: loaded, personal: personal, available: available, selected: selected, tracks: tracks,
+		item: item, active: active, play: play,
+		chooseVersion: func(id string) {
+			cx.Batch(func() {
+				selected.Set(id)
+				tracks.Set(detailTrackChoice{})
+				if persistSelection {
+					_ = a.storage.SetItem(key, id)
+				}
+			})
+		},
+	}
+}
+
+func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies func() []ui.Option[copyKey], selectCopy func(copyKey)) core.Node {
+	state := a.movieDetailState(cx, current, true)
+	loaded, personal := state.loaded, state.personal
+	available, selected, tracks := state.available, state.selected, state.tracks
+	item, active, play := state.item, state.active, state.play
 	poster := func(compact bool) core.Node {
 		return core.Dynamic(func(cx *core.Scope) core.Node {
 			dot := "bg-zinc-400"
@@ -72,9 +105,9 @@ func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies fu
 				}
 			}
 			entry := item()
-			buttons := personal.buttons(cx, result, true)
+			buttons := personal.buttons(cx, result, detailPosterAction)
 			if ready {
-				if download := a.downloadAction(cx, current, true, func() route {
+				if download := a.downloadAction(cx, current, detailPosterAction, func() route {
 					selectedRoute := current
 					selectedRoute.item, selectedRoute.versionID = entry, selected.GetUntracked()
 					return selectedRoute
@@ -94,13 +127,6 @@ func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies fu
 		for i, candidate := range versions {
 			versionOptions = append(versionOptions, ui.Option[string]{Label: versionLabel(cx, candidate, i+1), Value: candidate.ID})
 		}
-		chooseVersion := func(id string) {
-			cx.Batch(func() {
-				selected.Set(id)
-				tracks.Set(detailTrackChoice{})
-				_ = a.storage.SetItem(key, id)
-			})
-		}
 		versionText := locales.Loading(cx)
 		if version.ID != "" {
 			versionText = versionLabel(cx, version, 1)
@@ -115,7 +141,7 @@ func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies fu
 			choice = detailTrackChoice{version: version.ID}
 		}
 		sections = append(sections, core.View{Class: "flex-row gap-3", Children: []core.Node{
-			tabletDetailChoice(cx, "playback-version", locales.VersionShort(cx), versionText, versionOptions, selected.GetUntracked(), chooseVersion),
+			tabletDetailChoice(cx, "playback-version", locales.VersionShort(cx), versionText, versionOptions, selected.GetUntracked(), state.chooseVersion),
 			tabletDetailTrack(cx, version, choice, "audio", tracks.Set),
 			tabletDetailTrack(cx, version, choice, "subtitle", tracks.Set),
 		}})
@@ -284,11 +310,27 @@ func tabletDetailOptionText(row base.SelectEntry) core.Node {
 }
 
 func tabletDetailTrack(cx *core.Scope, version media.Version, choice detailTrackChoice, kind string, set func(detailTrackChoice)) core.Node {
-	label, display, value := locales.DetailAudio(cx), locales.AutomaticPlaybackVersion(cx), choice.audio
+	label := locales.DetailAudio(cx)
 	if kind == "subtitle" {
-		label, display, value = locales.Subtitles(cx), locales.SubtitlesOff(cx), choice.subtitle
+		label = locales.Subtitles(cx)
 	}
-	options := []ui.Option[string]{{Label: display}}
+	options, display, value := detailTrackOptions(cx, version, choice, kind)
+	return tabletDetailChoice(cx, "detail-"+kind, label, display, options, value, func(id string) {
+		if kind == "audio" {
+			choice.audio = id
+		} else {
+			choice.subtitle = id
+		}
+		set(choice)
+	})
+}
+
+func detailTrackOptions(cx *core.Scope, version media.Version, choice detailTrackChoice, kind string) (options []ui.Option[string], display, value string) {
+	display, value = locales.AutomaticPlaybackVersion(cx), choice.audio
+	if kind == "subtitle" {
+		display, value = locales.SubtitlesOff(cx), choice.subtitle
+	}
+	options = []ui.Option[string]{{Label: display}}
 	for _, track := range version.Tracks {
 		if track.Type != kind || (kind == "subtitle" && track.URL == "") {
 			continue
@@ -302,14 +344,7 @@ func tabletDetailTrack(cx *core.Scope, version media.Version, choice detailTrack
 	if len(options) == 1 && kind == "audio" {
 		display = locales.MetadataUnavailable(cx)
 	}
-	return tabletDetailChoice(cx, "detail-"+kind, label, display, options, value, func(id string) {
-		if kind == "audio" {
-			choice.audio = id
-		} else {
-			choice.subtitle = id
-		}
-		set(choice)
-	})
+	return options, display, value
 }
 
 func tabletDetailHeader(cx *core.Scope, item media.Item, version media.Version) []core.Node {

@@ -49,7 +49,8 @@ func (f *flymooClient) loadPlayback(ctx context.Context, item Item) (flymooPlayb
 		File: SourceFile{Name: videoFileName(flymooText(info, "file_name", "filename")), URL: original.String(), Headers: headers}}
 	return flymooPlayback{info: info, result: result, stream: stream, original: flymooQuality{
 		Version: Version{ID: "original", Original: true, Method: DirectPlay, Width: flymooInt(video, "width"),
-			Height: flymooInt(video, "height"), Bitrate: flymooInt(video, "bitrate"), VideoCodec: flymooText(video, "codec_name", "codec")},
+			Height: flymooInt(video, "height"), Bitrate: flymooInt(video, "bitrate"), VideoCodec: flymooText(video, "codec_name", "codec"),
+			FileName: stream.File.Name},
 		link: original,
 	}}, nil
 }

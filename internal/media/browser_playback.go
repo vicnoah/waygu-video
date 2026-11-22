@@ -60,7 +60,8 @@ func (m *mediaBrowser) Versions(ctx context.Context, item Item) ([]Version, erro
 }
 
 func (source browserSource) version() Version {
-	version := Version{ID: source.ID, Name: source.Name, Size: source.Size, Bitrate: source.Bitrate, Container: source.Container}
+	version := Version{ID: source.ID, Name: source.Name, Size: source.Size, Bitrate: source.Bitrate,
+		Container: source.Container, FileName: videoFileName(source.Path)}
 	for _, stream := range source.MediaStreams {
 		if strings.EqualFold(stream.Type, "video") {
 			version.Width, version.Height, version.VideoCodec = stream.Width, stream.Height, stream.Codec

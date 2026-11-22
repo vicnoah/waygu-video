@@ -13,7 +13,7 @@ import (
 	"waygu-video/locales"
 )
 
-func (a *application) downloadAction(cx *core.Scope, current route, tablet bool, request func() route) core.Node {
+func (a *application) downloadAction(cx *core.Scope, current route, render detailActionRenderer, request func() route) core.Node {
 	if !a.downloads.available() || !playable(current.item) {
 		return nil
 	}
@@ -40,8 +40,8 @@ func (a *application) downloadAction(cx *core.Scope, current route, tablet bool,
 				a.push(route{screen: screenDownloads})
 			}
 		}
-		if tablet {
-			return detailPosterAction(cx, "detail-download", label, icon(), exists && entry.State == downloadComplete, nil, press)
+		if render != nil {
+			return render(cx, "detail-download", label, icon(), exists && entry.State == downloadComplete, nil, press)
 		}
 		return ui.Button{Text: label, Icon: icon, Variant: ui.ButtonOutline, TestID: "detail-download", OnPress: press}
 	})

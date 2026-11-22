@@ -8,6 +8,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Add source · light and dark | [Screenshots and discovery checks](add-source.md) | Compared on Linux GTK with Emby and Jellyfin Docker responders. Several design rows and mobile verification remain pending. |
 | Connect to server · both appearances and all provider tabs | [Screenshots and sign-in checks](source-login.md) | Compared on Linux GTK. The Emby advanced group and the real device checks remain pending. The Plex form lacks a Scenra variant. |
 | Phone home · light and dark | [Screenshots and media server checks](home.md) | The compact layout was compared on Linux GTK with three Docker media servers. Phone device captures and some metadata details remain pending. |
+| Phone movie detail · light and dark | [Top and bottom comparisons and playback checks](phone-movie.md) | Compared on GTK with Docker movies, a trailer, and a featurette. Device captures and several design actions remain pending. |
 | Tablet home · light and dark | [Screenshots and tablet interaction checks](tablet-home.md) | The tablet layout was compared on Linux GTK with three Docker media servers. Real-device captures remain pending. |
 | Tablet movie detail · light and dark | [Screenshots and playback checks](tablet-detail.md) | Compared on GTK with Docker movie metadata and tracks. Tablet device checks remain pending. |
 | Storage and downloads · light and dark | [Design comparison and offline playback checks](storage-downloads.md) | Original-file downloads compared and tested on GTK. Transcoded downloads and platform background handling remain pending. |
@@ -36,6 +37,13 @@ With the same Docker fixtures, capture the phone home layout and its source card
 ```sh
 go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerHomeReview$' -screenshots .nsgo/ui-review/home
+```
+
+Capture the compact movie detail at 390 pt wide with the Emby clip, cast, and extras indexed by the fixtures.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerPhoneMovieReview$' -screenshots .nsgo/ui-review/movie
 ```
 
 The tablet home test selects the tablet layout in the GTK harness at 1180 × 820 pt in landscape and 820 × 1180 pt in portrait.
@@ -74,5 +82,7 @@ go tool nsgo test -target linux -run TestDesignReferences -screenshots .nsgo/rev
 ```
 
 Select a file with `-env WAYGU_REVIEW_DESIGN=source-login.scenra` and a state with `-env WAYGU_REVIEW_PANEL=fnos`. For a hosted desktop design, pass a path such as `views/desktop-movie.scenra`. With `WAYGU_REVIEW_DESIGN=all`, the exporter captures each design variant with its default panel. The actual app capture still needs to navigate to the same state.
+
+The reference exporter captures a second image at the end of a tall design when the native window is shorter than its frame.
 
 Regenerate the inventory with `python3 build/ui-review/inventory.py` after changing design files. `python3 build/ui-review/inventory.py --check` verifies that the version in the repository is current.

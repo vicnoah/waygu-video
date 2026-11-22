@@ -24,14 +24,25 @@ type detailResult struct {
 }
 
 func (a *application) detail(cx *core.Scope, current route) core.Node {
-	idiom := shellIdiom.Use(cx)
-	if idiom == 0 {
-		idiom = cx.Env().Idiom()
+	layout := core.NewMemo(cx, func() core.Idiom { return appLayoutIdiom(cx) })
+	return core.Dynamic(func(cx *core.Scope) core.Node {
+		return a.detailLayout(cx, current, layout.Get())
+	})
+}
+
+func (a *application) detailLayout(cx *core.Scope, current route, idiom core.Idiom) core.Node {
+	var movieDetail func(*core.Scope, route, func() []ui.Option[copyKey], func(copyKey)) core.Node
+	if current.item.Kind == media.Movie {
+		switch idiom {
+		case core.IdiomTablet:
+			movieDetail = a.tabletMovieDetail
+		case core.IdiomPhone:
+			movieDetail = a.phoneMovieDetail
+		}
 	}
-	tabletMovie := idiom == core.IdiomTablet && current.item.Kind == media.Movie
 	if current.match == nil {
-		if tabletMovie {
-			return a.tabletMovieDetail(cx, current, nil, nil)
+		if movieDetail != nil {
+			return movieDetail(cx, current, nil, nil)
 		}
 		return pageFrame(pageHeader(cx, locales.Details(cx), a.back), pageBody(a.detailContent(cx, current)))
 	}
@@ -98,9 +109,9 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 		chosen.source, chosen.item = copy.source, copy.item
 		return chosen
 	}
-	if tabletMovie {
+	if movieDetail != nil {
 		return core.Dynamic(func(cx *core.Scope) core.Node {
-			return a.tabletMovieDetail(cx, selectedRoute(), sourceOptions.Get, selected.Set)
+			return movieDetail(cx, selectedRoute(), sourceOptions.Get, selected.Set)
 		})
 	}
 	picker := core.Dynamic(func(cx *core.Scope) core.Node {
@@ -199,9 +210,9 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 			rows = append(rows, core.View{Class: "flex-row flex-wrap gap-3", Children: actions})
 			rows = append(rows, versions)
 		}
-		buttons := personal.buttons(cx, result, false)
+		buttons := personal.buttons(cx, result, nil)
 		if ready {
-			if download := a.downloadAction(cx, current, false, func() route {
+			if download := a.downloadAction(cx, current, nil, func() route {
 				selected := current
 				selected.item, selected.versionID = item, versionID.GetUntracked()
 				return selected

@@ -46,8 +46,10 @@ func (a *application) personalLibrarySwitch(cx *core.Scope, page screen) core.No
 	return core.View{Class: "flex-row flex-wrap gap-2", Children: buttons}
 }
 
+type detailActionRenderer func(*core.Scope, string, string, *core.SVG, bool, func() bool, func()) core.Node
+
 type detailPersonalActions struct {
-	buttons func(*core.Scope, detailResult, bool) []core.Node
+	buttons func(*core.Scope, detailResult, detailActionRenderer) []core.Node
 	error   core.Node
 }
 
@@ -127,11 +129,11 @@ func (a *application) detailPersonal(cx *core.Scope, current route, loaded *core
 		}()
 	}
 	return detailPersonalActions{
-		buttons: func(cx *core.Scope, result detailResult, tablet bool) []core.Node {
+		buttons: func(cx *core.Scope, result detailResult, render detailActionRenderer) []core.Node {
 			button := func(id string, label string, icon func() *core.SVG, selected, watch bool) core.Node {
 				disabled := func() bool { return busy.Get() || loaded.Loading() }
-				if tablet {
-					return detailPosterAction(cx, id, label, icon(), selected, disabled, func() { edit(watch) })
+				if render != nil {
+					return render(cx, id, label, icon(), selected, disabled, func() { edit(watch) })
 				}
 				return ui.Button{Text: label, Icon: icon, Variant: ui.ButtonOutline, TestID: id, Disabled: disabled,
 					OnPress: func() { edit(watch) }}

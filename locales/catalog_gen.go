@@ -76,6 +76,10 @@ var Parameters = map[string][]string{
 	"EpisodeLabel":              {"number"},
 	"SeasonLabel":               {"number"},
 	"QuickConnectInstruction":   {"code"},
+	"PhoneMovieResumeAt":        {"time_"},
+	"MovieDirectorLine":         {"name"},
+	"MovieCastLine":             {"names"},
+	"MovieViewAll":              {"count"},
 	"DetailResumeAt":            {"time_"},
 	"FileSource":                {"source"},
 	"FileSubtitleCount":         {"count"},
@@ -125,6 +129,10 @@ type Translation struct {
 	EpisodeLabel              func(number string) string
 	SeasonLabel               func(number string) string
 	QuickConnectInstruction   func(code string) string
+	PhoneMovieResumeAt        func(time_ string) string
+	MovieDirectorLine         func(name string) string
+	MovieCastLine             func(names string) string
+	MovieViewAll              func(count string) string
 	DetailResumeAt            func(time_ string) string
 	FileSource                func(source string) string
 	FileSubtitleCount         func(count string) string
@@ -358,6 +366,17 @@ const (
 	textQuickConnectUnavailable
 	textVersionShort
 	textDetailAudio
+	textPlaybackOptions
+	textMovieSource
+	textShareTitle
+	textDetailMore
+	textReloadMovieDetail
+	textMovieExtras
+	textRelatedMovies
+	textMovieFileVideo
+	textMovieFileBitrate
+	textMovieFileName
+	textMovieDanmakuUnmatched
 	textSynopsis
 	textDirector
 	textCastAndCrew
@@ -628,6 +647,17 @@ var keyOfText = [numTexts]string{
 	"quickConnectUnavailable",
 	"versionShort",
 	"detailAudio",
+	"playbackOptions",
+	"movieSource",
+	"shareTitle",
+	"detailMore",
+	"reloadMovieDetail",
+	"movieExtras",
+	"relatedMovies",
+	"movieFileVideo",
+	"movieFileBitrate",
+	"movieFileName",
+	"movieDanmakuUnmatched",
 	"synopsis",
 	"director",
 	"castAndCrew",
@@ -896,6 +926,17 @@ var textsEn = i18n.NewTexts(""+
 	"Enable Quick Connect on the Jellyfin server or use your password."+
 	"Version"+
 	"Audio"+
+	"Playback options"+
+	"Source"+
+	"Share"+
+	"More"+
+	"Reload details"+
+	"Trailers and extras"+
+	"Related movies"+
+	"Video"+
+	"Bitrate"+
+	"File name"+
+	"Unmatched"+
 	"Synopsis"+
 	"Director"+
 	"Cast and crew"+
@@ -1161,6 +1202,17 @@ var textsEn = i18n.NewTexts(""+
 		65,
 		7,
 		5,
+		16,
+		6,
+		5,
+		4,
+		14,
+		19,
+		14,
+		5,
+		7,
+		9,
+		9,
 		8,
 		8,
 		13,
@@ -1429,6 +1481,17 @@ var textsZhHans = i18n.NewTexts(""+
 	"请在 Jellyfin 服务器上启用快速连接，或使用密码登录。"+
 	"版本"+
 	"音轨"+
+	"播放选项"+
+	"来源"+
+	"分享"+
+	"更多"+
+	"重新加载详情"+
+	"预告片与花絮"+
+	"相关推荐"+
+	"视频"+
+	"码率"+
+	"文件名"+
+	"未匹配"+
 	"简介"+
 	"导演"+
 	"演职人员"+
@@ -1694,6 +1757,17 @@ var textsZhHans = i18n.NewTexts(""+
 		73,
 		6,
 		6,
+		12,
+		6,
+		6,
+		6,
+		18,
+		18,
+		12,
+		6,
+		6,
+		9,
+		9,
 		6,
 		6,
 		12,
@@ -1893,6 +1967,18 @@ func Supply(lang string, t Translation) {
 	}
 	if t.QuickConnectInstruction != nil {
 		s.QuickConnectInstruction = t.QuickConnectInstruction
+	}
+	if t.PhoneMovieResumeAt != nil {
+		s.PhoneMovieResumeAt = t.PhoneMovieResumeAt
+	}
+	if t.MovieDirectorLine != nil {
+		s.MovieDirectorLine = t.MovieDirectorLine
+	}
+	if t.MovieCastLine != nil {
+		s.MovieCastLine = t.MovieCastLine
+	}
+	if t.MovieViewAll != nil {
+		s.MovieViewAll = t.MovieViewAll
 	}
 	if t.DetailResumeAt != nil {
 		s.DetailResumeAt = t.DetailResumeAt
@@ -4239,6 +4325,173 @@ func DetailAudio(cx *core.Scope) string { return For(cx).DetailAudio() }
 
 // DetailAudio is the package's DetailAudio in the language of msgs.
 func (msgs Messages) DetailAudio() string { return msgs.text(textDetailAudio) }
+
+// PlaybackOptions says "Playback options"
+// in the language the app shows under cx.
+func PlaybackOptions(cx *core.Scope) string { return For(cx).PlaybackOptions() }
+
+// PlaybackOptions is the package's PlaybackOptions in the language of msgs.
+func (msgs Messages) PlaybackOptions() string { return msgs.text(textPlaybackOptions) }
+
+// MovieSource says "Source"
+// in the language the app shows under cx.
+func MovieSource(cx *core.Scope) string { return For(cx).MovieSource() }
+
+// MovieSource is the package's MovieSource in the language of msgs.
+func (msgs Messages) MovieSource() string { return msgs.text(textMovieSource) }
+
+// PhoneMovieResumeAt says "Resume from {time}"
+// in the language the app shows under cx.
+func PhoneMovieResumeAt(cx *core.Scope, time_ string) string {
+	return For(cx).PhoneMovieResumeAt(time_)
+}
+
+// PhoneMovieResumeAt is the package's PhoneMovieResumeAt in the language of msgs.
+func (msgs Messages) PhoneMovieResumeAt(time_ string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.PhoneMovieResumeAt(time_))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].PhoneMovieResumeAt; f != nil {
+			return f(time_)
+		}
+		switch lang {
+		case "", "en":
+			return "Resume from " + msgs.arg(time_)
+		case "zh-Hans":
+			return "从 " + time_ + " 继续播放"
+		}
+	}
+}
+
+// ShareTitle says "Share"
+// in the language the app shows under cx.
+func ShareTitle(cx *core.Scope) string { return For(cx).ShareTitle() }
+
+// ShareTitle is the package's ShareTitle in the language of msgs.
+func (msgs Messages) ShareTitle() string { return msgs.text(textShareTitle) }
+
+// DetailMore says "More"
+// in the language the app shows under cx.
+func DetailMore(cx *core.Scope) string { return For(cx).DetailMore() }
+
+// DetailMore is the package's DetailMore in the language of msgs.
+func (msgs Messages) DetailMore() string { return msgs.text(textDetailMore) }
+
+// ReloadMovieDetail says "Reload details"
+// in the language the app shows under cx.
+func ReloadMovieDetail(cx *core.Scope) string { return For(cx).ReloadMovieDetail() }
+
+// ReloadMovieDetail is the package's ReloadMovieDetail in the language of msgs.
+func (msgs Messages) ReloadMovieDetail() string { return msgs.text(textReloadMovieDetail) }
+
+// MovieDirectorLine says "Director: {name}"
+// in the language the app shows under cx.
+func MovieDirectorLine(cx *core.Scope, name string) string { return For(cx).MovieDirectorLine(name) }
+
+// MovieDirectorLine is the package's MovieDirectorLine in the language of msgs.
+func (msgs Messages) MovieDirectorLine(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MovieDirectorLine(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MovieDirectorLine; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Director: " + msgs.arg(name)
+		case "zh-Hans":
+			return "导演：" + name
+		}
+	}
+}
+
+// MovieCastLine says "Cast: {names}"
+// in the language the app shows under cx.
+func MovieCastLine(cx *core.Scope, names string) string { return For(cx).MovieCastLine(names) }
+
+// MovieCastLine is the package's MovieCastLine in the language of msgs.
+func (msgs Messages) MovieCastLine(names string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MovieCastLine(names))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MovieCastLine; f != nil {
+			return f(names)
+		}
+		switch lang {
+		case "", "en":
+			return "Cast: " + msgs.arg(names)
+		case "zh-Hans":
+			return "主演：" + names
+		}
+	}
+}
+
+// MovieViewAll says "All {count}"
+// in the language the app shows under cx.
+func MovieViewAll(cx *core.Scope, count string) string { return For(cx).MovieViewAll(count) }
+
+// MovieViewAll is the package's MovieViewAll in the language of msgs.
+func (msgs Messages) MovieViewAll(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MovieViewAll(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MovieViewAll; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return "All " + msgs.arg(count)
+		case "zh-Hans":
+			return "全部 " + count
+		}
+	}
+}
+
+// MovieExtras says "Trailers and extras"
+// in the language the app shows under cx.
+func MovieExtras(cx *core.Scope) string { return For(cx).MovieExtras() }
+
+// MovieExtras is the package's MovieExtras in the language of msgs.
+func (msgs Messages) MovieExtras() string { return msgs.text(textMovieExtras) }
+
+// RelatedMovies says "Related movies"
+// in the language the app shows under cx.
+func RelatedMovies(cx *core.Scope) string { return For(cx).RelatedMovies() }
+
+// RelatedMovies is the package's RelatedMovies in the language of msgs.
+func (msgs Messages) RelatedMovies() string { return msgs.text(textRelatedMovies) }
+
+// MovieFileVideo says "Video"
+// in the language the app shows under cx.
+func MovieFileVideo(cx *core.Scope) string { return For(cx).MovieFileVideo() }
+
+// MovieFileVideo is the package's MovieFileVideo in the language of msgs.
+func (msgs Messages) MovieFileVideo() string { return msgs.text(textMovieFileVideo) }
+
+// MovieFileBitrate says "Bitrate"
+// in the language the app shows under cx.
+func MovieFileBitrate(cx *core.Scope) string { return For(cx).MovieFileBitrate() }
+
+// MovieFileBitrate is the package's MovieFileBitrate in the language of msgs.
+func (msgs Messages) MovieFileBitrate() string { return msgs.text(textMovieFileBitrate) }
+
+// MovieFileName says "File name"
+// in the language the app shows under cx.
+func MovieFileName(cx *core.Scope) string { return For(cx).MovieFileName() }
+
+// MovieFileName is the package's MovieFileName in the language of msgs.
+func (msgs Messages) MovieFileName() string { return msgs.text(textMovieFileName) }
+
+// MovieDanmakuUnmatched says "Unmatched"
+// in the language the app shows under cx.
+func MovieDanmakuUnmatched(cx *core.Scope) string { return For(cx).MovieDanmakuUnmatched() }
+
+// MovieDanmakuUnmatched is the package's MovieDanmakuUnmatched in the language of msgs.
+func (msgs Messages) MovieDanmakuUnmatched() string { return msgs.text(textMovieDanmakuUnmatched) }
 
 // DetailResumeAt says "Resume {time}"
 // in the language the app shows under cx.

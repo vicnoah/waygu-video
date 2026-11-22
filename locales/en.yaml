@@ -250,6 +250,21 @@ quickConnectInstruction: "Enter {code} under Quick Connect on a signed-in Jellyf
 quickConnectUnavailable: Enable Quick Connect on the Jellyfin server or use your password.
 versionShort: Version
 detailAudio: Audio
+playbackOptions: Playback options
+movieSource: Source
+phoneMovieResumeAt: "Resume from {time}"
+shareTitle: Share
+detailMore: More
+reloadMovieDetail: Reload details
+movieDirectorLine: "Director: {name}"
+movieCastLine: "Cast: {names}"
+movieViewAll: "All {count}"
+movieExtras: Trailers and extras
+relatedMovies: Related movies
+movieFileVideo: Video
+movieFileBitrate: Bitrate
+movieFileName: File name
+movieDanmakuUnmatched: Unmatched
 detailResumeAt: "Resume {time}"
 synopsis: Synopsis
 director: Director

@@ -13,6 +13,7 @@ import (
 type Version struct {
 	ID, Name, VideoCodec   string
 	Container, VideoRange  string
+	FileName               string
 	Tracks                 []Track
 	Width, Height, Bitrate int
 	Size                   int64
