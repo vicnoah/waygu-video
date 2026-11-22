@@ -156,6 +156,10 @@ func verifyDockerTracks(t *testing.T, ctx context.Context, client Client, librar
 	if err != nil {
 		t.Fatal("load tracks:", err)
 	}
+	versions, err := client.(VersionClient).Versions(ctx, movie)
+	if err != nil || len(versions) != 1 || versions[0].Container == "" || versions[0].Height != 180 || len(versions[0].Tracks) != len(stream.Tracks) {
+		t.Fatalf("load track metadata for the detail page: %d versions, %v", len(versions), err)
+	}
 	var secondAudio *Track
 	var availableCaptions []Track
 	for _, track := range stream.Tracks {

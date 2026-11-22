@@ -133,6 +133,8 @@ type browserList struct {
 type browserItem struct {
 	ID                string
 	Name              string
+	OriginalTitle     string
+	OfficialRating    string
 	Overview          string
 	Type              string
 	CollectionType    string
@@ -148,7 +150,10 @@ type browserItem struct {
 	ProviderIds       map[string]string
 	ImageTags         map[string]string
 	BackdropImageTags []string
-	UserData          struct {
+	People            []struct {
+		ID, Name, Role, Type, PrimaryImageTag string
+	}
+	UserData struct {
 		PlaybackPositionTicks int64
 		LastPlayedDate        string
 		Played                bool
@@ -194,9 +199,11 @@ func (m *mediaBrowser) Detail(ctx context.Context, item Item) (Item, error) {
 		route = m.userRoute() + "/" + route
 	}
 	var dto browserItem
-	err := m.get(ctx, route, m.userQuery(), &dto)
+	params := m.userQuery()
+	params.Set("Fields", m.itemFields()+",OriginalTitle,People")
+	err := m.get(ctx, route, params, &dto)
 	if errors.Is(err, StatusError(http.StatusNotFound)) && m.kind == Jellyfin {
-		err = m.get(ctx, m.userRoute()+"/"+route, nil, &dto)
+		err = m.get(ctx, m.userRoute()+"/"+route, params, &dto)
 	}
 	if err != nil {
 		return Item{}, err
@@ -271,11 +278,23 @@ func (m *mediaBrowser) item(entry browserItem) Item {
 	item := Item{
 		ID: entry.ID, Kind: Kind(strings.ToLower(entry.Type)), Title: entry.Name,
 		SeriesID: entry.SeriesID, SeriesTitle: entry.SeriesName, Overview: entry.Overview,
+		OriginalTitle: entry.OriginalTitle, ContentRating: entry.OfficialRating,
 		Year: entry.ProductionYear, Rating: entry.CommunityRating, Genres: entry.Genres,
 		Duration: fromTicks(entry.RunTimeTicks), Position: fromTicks(entry.UserData.PlaybackPositionTicks),
 		AddedAt: addedAt, LastPlayed: lastPlayed,
 		Watched: entry.UserData.Played, Favorite: entry.UserData.IsFavorite,
 		ExternalIDs: make(map[string]string, len(entry.ProviderIds)),
+	}
+	for _, person := range entry.People {
+		director := strings.EqualFold(person.Type, "director")
+		if person.Name == "" || (!director && !strings.EqualFold(person.Type, "actor")) {
+			continue
+		}
+		credit := Person{Name: person.Name, Role: person.Role, Director: director}
+		if person.ID != "" && person.PrimaryImageTag != "" {
+			credit.Portrait = m.image(person.ID, "Primary", person.PrimaryImageTag)
+		}
+		item.People = append(item.People, credit)
 	}
 	for key, id := range entry.ProviderIds {
 		item.ExternalIDs[strings.ToLower(key)] = id

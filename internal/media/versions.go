@@ -12,6 +12,8 @@ import (
 // Version describes a playable file or rendition exposed by one media server.
 type Version struct {
 	ID, Name, VideoCodec   string
+	Container, VideoRange  string
+	Tracks                 []Track
 	Width, Height, Bitrate int
 	Size                   int64
 	Original               bool
@@ -85,6 +87,23 @@ func versionOrder(versions []Version, options PlaybackOptions) []int {
 		return cmp.Compare(b.Bitrate, a.Bitrate)
 	})
 	return indices
+}
+
+// PreferredVersion describes the automatic candidate before a playback
+// session is negotiated. Playback may skip candidates the client cannot use.
+func PreferredVersion(versions []Version, options PlaybackOptions) (Version, bool) {
+	if options.SourceID != "" {
+		for _, version := range versions {
+			if version.ID == options.SourceID {
+				return version, true
+			}
+		}
+		return Version{}, false
+	}
+	if len(versions) == 0 {
+		return Version{}, false
+	}
+	return versions[versionOrder(versions, options)[0]], true
 }
 
 func versionPixels(v Version) int64 {

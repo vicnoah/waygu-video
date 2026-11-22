@@ -9,6 +9,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Connect to server · both appearances and all provider tabs | [Screenshots and sign-in checks](source-login.md) | Compared on Linux GTK. The Emby advanced group and the real device checks remain pending. The Plex form lacks a Scenra variant. |
 | Phone home · light and dark | [Screenshots and media server checks](home.md) | The compact layout was compared on Linux GTK with three Docker media servers. Phone device captures and some metadata details remain pending. |
 | Tablet home · light and dark | [Screenshots and tablet interaction checks](tablet-home.md) | The tablet layout was compared on Linux GTK with three Docker media servers. Personal sections and real-device captures remain pending. |
+| Tablet movie detail · light and dark | [Screenshots and playback checks](tablet-detail.md) | Compared on GTK with Docker movie metadata and tracks. The personal actions and tablet device checks remain pending. |
 
 ## Capture a comparison
 
@@ -40,6 +41,13 @@ The tablet home test selects the tablet layout in the GTK harness at 1180 × 820
 ```sh
 go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerTabletHomeReview$' -screenshots .nsgo/ui-review/tablet
+```
+
+Capture tablet movie details with the same fixture servers. The track test movie's NFO contains the synopsis and cast. Refresh the item metadata on media servers that had already scanned the file before the NFO was added.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerTabletDetailReview$' -screenshots .nsgo/ui-review/tablet-detail
 ```
 
 The reference uses the Scenra version pinned in this project and renders the original design files and components. Run it in its own module.

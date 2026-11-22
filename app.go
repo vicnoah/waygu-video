@@ -35,14 +35,16 @@ const (
 )
 
 type route struct {
-	screen      screen
-	provider    media.Provider
-	source      source
-	item        media.Item
-	resume      bool
-	resumeLocal bool
-	versionID   string
-	match       *catalogMatch
+	screen        screen
+	provider      media.Provider
+	source        source
+	item          media.Item
+	resume        bool
+	resumeLocal   bool
+	versionID     string
+	audioTrack    string
+	subtitleTrack string
+	match         *catalogMatch
 }
 
 type source struct {

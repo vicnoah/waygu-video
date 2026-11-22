@@ -248,3 +248,13 @@ quickConnect: Jellyfin 快速连接
 quickConnectHelp: 可在已登录的 Jellyfin 设备上通过快速连接免密码登录。
 quickConnectInstruction: "在已登录的 Jellyfin 设备上打开快速连接，输入 {code}。"
 quickConnectUnavailable: 请在 Jellyfin 服务器上启用快速连接，或使用密码登录。
+versionShort: 版本
+detailAudio: 音轨
+detailResumeAt: "继续播放 {time}"
+synopsis: 简介
+director: 导演
+castAndCrew: 演职人员
+fileInfo: 文件信息
+fileSource: "来源 · {source}"
+fileSubtitleCount: "字幕 {count} 条"
+metadataUnavailable: 暂无信息

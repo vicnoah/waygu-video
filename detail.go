@@ -22,7 +22,15 @@ type detailResult struct {
 }
 
 func (a *application) detail(cx *core.Scope, current route) core.Node {
+	idiom := shellIdiom.Use(cx)
+	if idiom == 0 {
+		idiom = cx.Env().Idiom()
+	}
+	tabletMovie := idiom == core.IdiomTablet && current.item.Kind == media.Movie
 	if current.match == nil {
+		if tabletMovie {
+			return a.tabletMovieDetail(cx, current, nil, nil)
+		}
 		return pageFrame(pageHeader(cx, locales.Details(cx), a.back), pageBody(a.detailContent(cx, current)))
 	}
 	anchor := catalogCopy{current.source, current.item}
@@ -82,6 +90,17 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 	}, func(a, b []ui.Option[copyKey]) bool {
 		return slices.EqualFunc(a, b, func(a, b ui.Option[copyKey]) bool { return a.Label == b.Label && a.Value == b.Value })
 	})
+	selectedRoute := func() route {
+		copy := active.Get()
+		chosen := current
+		chosen.source, chosen.item = copy.source, copy.item
+		return chosen
+	}
+	if tabletMovie {
+		return core.Dynamic(func(cx *core.Scope) core.Node {
+			return a.tabletMovieDetail(cx, selectedRoute(), sourceOptions.Get, selected.Set)
+		})
+	}
 	picker := core.Dynamic(func(cx *core.Scope) core.Node {
 		options := sourceOptions.Get()
 		if len(options) == 0 {
@@ -94,16 +113,13 @@ func (a *application) detail(cx *core.Scope, current route) core.Node {
 		}}
 	})
 	content := core.Dynamic(func(cx *core.Scope) core.Node {
-		copy := active.Get()
-		selectedRoute := current
-		selectedRoute.source, selectedRoute.item = copy.source, copy.item
-		return a.detailContent(cx, selectedRoute)
+		return a.detailContent(cx, selectedRoute())
 	})
 	return pageFrame(pageHeader(cx, locales.Details(cx), a.back), pageBody(picker, content))
 }
 
-func (a *application) detailContent(cx *core.Scope, current route) core.Node {
-	loaded := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (detailResult, error) {
+func (a *application) detailResource(cx *core.Scope, current route) *core.Resource[detailResult] {
+	return core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) (detailResult, error) {
 		result := detailResult{item: current.item}
 		client, err := a.client(current.source)
 		if err != nil {
@@ -134,6 +150,10 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 		}
 		return result, nil
 	})
+}
+
+func (a *application) detailContent(cx *core.Scope, current route) core.Node {
+	loaded := a.detailResource(cx, current)
 	versionID := core.NewSignal(cx, "")
 	versions := a.versionPicker(cx, current, versionID)
 	return core.Dynamic(func(cx *core.Scope) core.Node {

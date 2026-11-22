@@ -287,7 +287,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		return decoder
 	}
 	activeStream := func() media.Stream { return medium.Get().stream }
-	tracks := playerTracks(cx, activeStream, directDecoder, position, rate, canChangeRate, switchingPlayback, audioError, chooseAudio,
+	tracks := playerTracks(cx, activeStream, directDecoder, current.subtitleTrack, position, rate, canChangeRate, switchingPlayback, audioError, chooseAudio,
 		playerQuality(current, initial.client, activeStream, bitrate.Get, switchingPlayback.Get, qualityError.Get,
 			func(options media.PlaybackOptions) { switchStream(options, qualityError) }))
 	toggle := func() {

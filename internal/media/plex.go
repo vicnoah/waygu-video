@@ -36,6 +36,7 @@ type plexContainer struct {
 
 type plexMetadata struct {
 	RatingKey, Type, Title, Summary, Thumb, Art string
+	OriginalTitle, ContentRating                string
 	ParentRatingKey, GrandparentRatingKey       string
 	GrandparentTitle                            string
 	Year, Index, ParentIndex, LibrarySectionID  int
@@ -45,6 +46,7 @@ type plexMetadata struct {
 	LastViewedAt                                int64
 	ViewCount                                   int
 	Genre                                       []struct{ Tag string }
+	Director, Role                              []struct{ Tag, Role, Thumb string }
 	PrimaryGuid                                 string                `json:"guid"`
 	Guid                                        []struct{ ID string } `json:"Guid"`
 	Media                                       []plexMedia
@@ -248,6 +250,7 @@ func (p *plexClient) items(entries []plexMetadata) []Item {
 func (p *plexClient) item(entry plexMetadata) Item {
 	item := Item{ID: entry.RatingKey, Kind: Kind(entry.Type), Title: entry.Title, Year: entry.Year,
 		Overview: entry.Summary, Rating: entry.Rating, Duration: millis(entry.Duration),
+		OriginalTitle: entry.OriginalTitle, ContentRating: entry.ContentRating,
 		Position: millis(entry.ViewOffset), Watched: entry.ViewCount > 0, SeriesTitle: entry.GrandparentTitle,
 		Poster: p.mediaURL(entry.Thumb, nil), Backdrop: p.mediaURL(entry.Art, nil),
 		ExternalIDs: make(map[string]string, len(entry.Guid))}
@@ -259,6 +262,16 @@ func (p *plexClient) item(entry plexMetadata) Item {
 	}
 	for _, genre := range entry.Genre {
 		item.Genres = append(item.Genres, genre.Tag)
+	}
+	for _, director := range entry.Director {
+		if director.Tag != "" {
+			item.People = append(item.People, Person{Name: director.Tag, Director: true, Portrait: p.mediaURL(director.Thumb, nil)})
+		}
+	}
+	for _, actor := range entry.Role {
+		if actor.Tag != "" {
+			item.People = append(item.People, Person{Name: actor.Tag, Role: actor.Role, Portrait: p.mediaURL(actor.Thumb, nil)})
+		}
 	}
 	if entry.LibrarySectionID > 0 {
 		item.LibraryID = strconv.Itoa(entry.LibrarySectionID)
@@ -328,7 +341,9 @@ func (p *plexClient) Versions(ctx context.Context, item Item) ([]Version, error)
 	var versions []Version
 	for _, medium := range entry.Media {
 		if medium.ID > 0 && len(medium.Part) > 0 {
-			versions = append(versions, medium.version())
+			version := medium.version()
+			version.Tracks = p.partTracks(medium.Part[0], nil)
+			versions = append(versions, version)
 		}
 	}
 	return versions, nil
@@ -336,7 +351,7 @@ func (p *plexClient) Versions(ctx context.Context, item Item) ([]Version, error)
 
 func (m plexMedia) version() Version {
 	version := Version{ID: strconv.Itoa(m.ID), Width: m.Width, Height: m.Height, Bitrate: m.Bitrate * 1000,
-		VideoCodec: m.VideoCodec}
+		VideoCodec: m.VideoCodec, Container: m.Container}
 	for _, part := range m.Part {
 		version.Size += part.Size
 	}
@@ -399,39 +414,45 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 				return Stream{}, err
 			}
 		}
-		for _, track := range part.Stream {
-			kind := "audio"
-			switch track.StreamType {
-			case 2:
-			case 3:
-				kind = "subtitle"
-			default:
-				continue
-			}
-			title, language := track.Title, track.LanguageCode
-			if title == "" {
-				title = track.DisplayTitle
-			}
-			if language == "" {
-				language = track.Language
-			}
-			current := Track{ID: strconv.Itoa(track.ID), Type: kind, Title: title,
-				Language: language, Codec: track.Codec, Default: track.Default, Forced: track.Forced, Selected: track.Selected}
-			if kind == "audio" && audio != nil {
-				current.Selected = track.ID == *audio
-			}
-			if kind == "subtitle" && track.Key != "" {
-				current.External = true
-				switch strings.ToLower(track.Codec) {
-				case "srt", "subrip", "vtt", "webvtt":
-					current.URL = p.mediaURL(track.Key, nil)
-				}
-			}
-			stream.Tracks = append(stream.Tracks, current)
-		}
+		stream.Tracks = p.partTracks(part, audio)
 		return stream, nil
 	}
 	return Stream{}, ErrNoStream
+}
+
+func (p *plexClient) partTracks(part plexPart, audio *int) []Track {
+	var tracks []Track
+	for _, track := range part.Stream {
+		kind := "audio"
+		switch track.StreamType {
+		case 2:
+		case 3:
+			kind = "subtitle"
+		default:
+			continue
+		}
+		title, language := track.Title, track.LanguageCode
+		if title == "" {
+			title = track.DisplayTitle
+		}
+		if language == "" {
+			language = track.Language
+		}
+		current := Track{ID: strconv.Itoa(track.ID), Type: kind, Title: title,
+			Language: language, Codec: track.Codec, Default: track.Default, Forced: track.Forced, Selected: track.Selected}
+		if kind == "audio" && audio != nil {
+			current.Selected = track.ID == *audio
+		}
+		if kind == "subtitle" && track.Key != "" {
+			current.External = true
+			switch strings.ToLower(track.Codec) {
+			case "srt", "subrip", "vtt", "webvtt":
+				current.URL = p.mediaURL(track.Key, nil)
+			}
+		}
+		tracks = append(tracks, current)
+	}
+	return tracks
 }
 
 func plexAlternativeAudio(tracks []plexTrack) bool {

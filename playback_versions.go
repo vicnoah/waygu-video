@@ -39,15 +39,38 @@ func versionHistoryKey(current route) string {
 	return "playback-last-version-v1:" + current.source.ID + ":" + current.item.ID
 }
 
+func versionSelectionKey(current route) string {
+	return "playback-version-selection-v1:" + current.source.ID + ":" + current.item.ID
+}
+
 func (a *application) initialPlaybackOptions(current route) (media.PlaybackOptions, bool) {
-	options := media.PlaybackOptions{SourceID: current.versionID, MaxBitrate: a.bitrateLimit.GetUntracked(),
-		VersionPolicy: a.versionPolicy.GetUntracked()}
-	if options.SourceID == "" && options.VersionPolicy == media.VersionRemember {
-		previous, _ := a.storage.GetItem(versionHistoryKey(current))
-		options.SourceID = previous
-		return options, previous != ""
+	options, remembered := a.automaticPlaybackOptions(current)
+	if current.versionID != "" {
+		options.SourceID, remembered = current.versionID, false
+	} else if selected := a.savedVersion(versionSelectionKey(current)); selected != "" {
+		options.SourceID, remembered = selected, true
 	}
-	return options, false
+	if index, err := strconv.Atoi(current.audioTrack); err == nil {
+		options.AudioIndex = &index
+	}
+	return options, remembered
+}
+
+func (a *application) automaticPlaybackOptions(current route) (media.PlaybackOptions, bool) {
+	options := media.PlaybackOptions{MaxBitrate: a.bitrateLimit.GetUntracked(), VersionPolicy: a.versionPolicy.GetUntracked()}
+	if options.VersionPolicy == media.VersionRemember {
+		options.SourceID = a.savedVersion(versionHistoryKey(current))
+	}
+	return options, options.SourceID != ""
+}
+
+func (a *application) savedVersion(key string) string {
+	// Version preferences are sampled on opening a screen. A successful
+	// load also writes the history and must leave the player mounted.
+	return core.Untracked(a.scope, func() string {
+		version, _ := a.storage.GetItem(key)
+		return version
+	})
 }
 
 func openPlaybackVersion(ctx context.Context, client media.Client, item media.Item, options media.PlaybackOptions,
@@ -74,16 +97,7 @@ func (a *application) versionPicker(cx *core.Scope, current route, selected *cor
 	if !playable(current.item) {
 		return nil
 	}
-	available := core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) ([]media.Version, error) {
-		client, err := a.client(current.source)
-		if err != nil {
-			return nil, err
-		}
-		if versioned, ok := client.(media.VersionClient); ok {
-			return versioned.Versions(ctx, current.item)
-		}
-		return nil, nil
-	})
+	available := a.versionResource(cx, current)
 	return core.Dynamic(func(cx *core.Scope) core.Node {
 		versions, ready := available.Get()
 		if !ready || len(versions) < 2 {
@@ -100,6 +114,19 @@ func (a *application) versionPicker(cx *core.Scope, current route, selected *cor
 			core.Text{Content: locales.PlaybackVersion(cx), Class: "text-sm font-medium"},
 			playbackChoice(cx, locales.PlaybackVersion(cx), "playback-version", options, selected.Get, selected.Set),
 		}}
+	})
+}
+
+func (a *application) versionResource(cx *core.Scope, current route) *core.Resource[[]media.Version] {
+	return core.NewResource(cx, nil, func(ctx context.Context, _ struct{}, _ core.ResourceInfo) ([]media.Version, error) {
+		client, err := a.client(current.source)
+		if err != nil {
+			return nil, err
+		}
+		if versioned, ok := client.(media.VersionClient); ok {
+			return versioned.Versions(ctx, current.item)
+		}
+		return nil, nil
 	})
 }
 
@@ -142,14 +169,17 @@ func versionLabel(cx *core.Scope, version media.Version, number int) string {
 		parts = append(parts, playMethod(cx, version.Method))
 	}
 	if version.Size > 0 {
-		if version.Size >= 1<<30 {
-			parts = append(parts, fmt.Sprintf("%.1f GiB", float64(version.Size)/(1<<30)))
-		} else {
-			parts = append(parts, fmt.Sprintf("%.1f MiB", float64(version.Size)/(1<<20)))
-		}
+		parts = append(parts, versionSize(version.Size))
 	}
 	if len(parts) == 0 {
 		return locales.NumberedPlaybackVersion(cx, strconv.Itoa(number))
 	}
 	return strings.Join(parts, " · ")
+}
+
+func versionSize(size int64) string {
+	if size >= 1<<30 {
+		return fmt.Sprintf("%.1f GiB", float64(size)/(1<<30))
+	}
+	return fmt.Sprintf("%.1f MiB", float64(size)/(1<<20))
 }

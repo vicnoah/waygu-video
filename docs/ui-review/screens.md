@@ -50,8 +50,8 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [设置 · 深色](../../design/settings.scenra#L57) | dark | `phone · auto × 1160` | — | Pending |
 | [引导/连接服务器](../../design/source-login.scenra#L1) | light | `phone · auto × 1240` | emby, fnos, jellyfin | [Compared](source-login.md) |
 | [连接服务器 · 深色](../../design/source-login.scenra#L103) | dark | `phone · auto × 1240` | emby, fnos, jellyfin | [Compared](source-login.md) |
-| [平板/电影详情](../../design/tablet-detail.scenra#L1) | light | `tablet · 1180 × 820` | — | Pending |
-| [电影详情 · 深色](../../design/tablet-detail.scenra#L160) | dark | `tablet · 1180 × 820` | — | Pending |
+| [平板/电影详情](../../design/tablet-detail.scenra#L1) | light | `tablet · 1180 × 820` | — | [Compared](tablet-detail.md) |
+| [电影详情 · 深色](../../design/tablet-detail.scenra#L160) | dark | `tablet · 1180 × 820` | — | [Compared](tablet-detail.md) |
 | [平板/首页](../../design/tablet-home.scenra#L1) | light | `tablet · 1180 × 820` | — | [Compared](tablet-home.md) |
 | [首页 · 深色](../../design/tablet-home.scenra#L85) | dark | `tablet · 1180 × 820` | — | [Compared](tablet-home.md) |
 | [TV/详情](../../design/tv-detail.scenra#L1) | light | `desktop · 1920 × 1640` | — | Pending |

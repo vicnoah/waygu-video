@@ -18,6 +18,7 @@ REVIEWS = {
     "source-login.scenra": "source-login.md",
     "home.scenra": "home.md",
     "tablet-home.scenra": "tablet-home.md",
+    "tablet-detail.scenra": "tablet-detail.md",
 }
 
 

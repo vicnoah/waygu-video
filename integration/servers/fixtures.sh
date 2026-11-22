@@ -69,6 +69,23 @@ Subtitle and seek verification
 EOF
 
 track_base="$tracks/Waygu Track Test (2025)"
+cat > "$track_base.nfo" <<'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<movie>
+  <title>Waygu Track Test</title>
+  <originaltitle>Waygu Audio and Subtitle Check</originaltitle>
+  <year>2025</year>
+  <mpaa>G</mpaa>
+  <genre>Test Clip</genre>
+  <plot>This synthetic clip contains two audio tones and matching embedded and external captions for playback verification.</plot>
+  <director>Lin Chen</director>
+  <actor><name>Mei Zhou</name><role>First voice</role><order>0</order></actor>
+  <actor><name>Wei Ren</name><role>Second voice</role><order>1</order></actor>
+  <actor><name>Jun Wu</name><role>Narrator</role><order>2</order></actor>
+  <actor><name>Lan Xu</name><role>Caption reader</role><order>3</order></actor>
+</movie>
+EOF
+
 cat > "$track_base.en.srt" <<'EOF'
 1
 00:00:01,000 --> 00:00:04,000

@@ -10,16 +10,17 @@ import (
 )
 
 type browserStream struct {
-	Index        int
-	Type         string
-	Codec        string
-	Language     string
-	DisplayTitle string
-	Width        int
-	Height       int
-	IsExternal   bool
-	IsDefault    bool
-	IsForced     bool
+	Index          int
+	Type           string
+	Codec          string
+	Language       string
+	DisplayTitle   string
+	VideoRangeType string
+	Width          int
+	Height         int
+	IsExternal     bool
+	IsDefault      bool
+	IsForced       bool
 }
 
 type browserSource struct {
@@ -50,17 +51,20 @@ func (m *mediaBrowser) Versions(ctx context.Context, item Item) ([]Version, erro
 	var versions []Version
 	for _, source := range dto.MediaSources {
 		if source.ID != "" {
-			versions = append(versions, source.version())
+			version := source.version()
+			version.Tracks = m.browserTracks(item, source, source.DefaultAudioStreamIndex)
+			versions = append(versions, version)
 		}
 	}
 	return versions, nil
 }
 
 func (source browserSource) version() Version {
-	version := Version{ID: source.ID, Name: source.Name, Size: source.Size, Bitrate: source.Bitrate}
+	version := Version{ID: source.ID, Name: source.Name, Size: source.Size, Bitrate: source.Bitrate, Container: source.Container}
 	for _, stream := range source.MediaStreams {
 		if strings.EqualFold(stream.Type, "video") {
 			version.Width, version.Height, version.VideoCodec = stream.Width, stream.Height, stream.Codec
+			version.VideoRange = stream.VideoRangeType
 			break
 		}
 	}
@@ -175,6 +179,16 @@ func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID 
 	if stream.URL == "" {
 		return Stream{}, false
 	}
+	selected := audio
+	if selected == nil && stream.Method != DirectPlay {
+		selected = source.DefaultAudioStreamIndex
+	}
+	stream.Tracks = m.browserTracks(item, source, selected)
+	return stream, true
+}
+
+func (m *mediaBrowser) browserTracks(item Item, source browserSource, selected *int) []Track {
+	var tracks []Track
 	for _, entry := range source.MediaStreams {
 		kind := strings.ToLower(entry.Type)
 		if kind != "audio" && kind != "subtitle" {
@@ -183,21 +197,14 @@ func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID 
 		track := Track{ID: strconv.Itoa(entry.Index), Type: kind, Language: entry.Language,
 			Title: entry.DisplayTitle, Codec: entry.Codec, Default: entry.IsDefault, Forced: entry.IsForced, External: entry.IsExternal}
 		if kind == "audio" {
-			var selected *int
-			if stream.Method != DirectPlay {
-				selected = source.DefaultAudioStreamIndex
-			}
-			if audio != nil {
-				selected = audio
-			}
 			track.Selected = selected != nil && *selected == entry.Index
 		} else if textSubtitle(entry.Codec) {
 			track.URL = m.mediaURL("Videos/"+url.PathEscape(item.ID)+"/"+url.PathEscape(source.ID)+
 				"/Subtitles/"+track.ID+"/Stream.vtt", nil)
 		}
-		stream.Tracks = append(stream.Tracks, track)
+		tracks = append(tracks, track)
 	}
-	return stream, true
+	return tracks
 }
 
 func textSubtitle(codec string) bool {

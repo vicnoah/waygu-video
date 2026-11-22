@@ -67,11 +67,18 @@ const (
 	Video   Kind = "video"
 )
 
+type Person struct {
+	Name, Role, Portrait string
+	Director             bool
+}
+
 type Item struct {
 	ID                string
 	LibraryID         string
 	Kind              Kind
 	Title             string
+	OriginalTitle     string
+	ContentRating     string
 	SeriesID          string
 	SeriesTitle       string
 	Overview          string
@@ -80,6 +87,7 @@ type Item struct {
 	Episode           int
 	Rating            float64
 	Genres            []string
+	People            []Person
 	Poster            string
 	Backdrop          string
 	ExternalIDs       map[string]string

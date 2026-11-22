@@ -34,4 +34,4 @@ The 820 × 1180 px native capture shows the drawer open over the portrait home. 
 
 `TestDockerTabletHomeReview` verifies horizontal swipes and manual carousel selection, expansion and collapse of the recent rail, source selection and restoration of the aggregate catalog, movie and series shortcuts, search and its keyboard shortcut, the featured detail and playback routes, side-panel toggling in landscape, and portrait drawer gestures and navigation.
 
-The GTK lab uses Cairo and preloads its installed libsoup 3 to load the Docker artwork. The [screen inventory](screens.md) tracks the separate tablet detail screen and the remaining device layouts.
+The GTK lab uses Cairo and preloads its installed libsoup 3 to load the Docker artwork. The [tablet detail review](tablet-detail.md) covers the movie destination. The [screen inventory](screens.md) tracks the remaining device layouts.

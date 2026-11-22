@@ -247,9 +247,8 @@ func (watch *progressWatch) capture(state media.PlaybackState) pendingProgress {
 	if !watch.enabled || state.Event == media.Started || state.Stream.ItemID == "" {
 		return pendingProgress{}
 	}
-	item := watch.item
+	item := offlineItem(watch.item)
 	item.ID = state.Stream.ItemID
-	item.Poster, item.Backdrop = "", ""
 	entry := pendingProgress{Account: watch.account, Revision: rand.Text(), Item: item, Update: media.OfflineProgress{
 		ItemID: state.Stream.ItemID, MediaID: state.Stream.SourceID, Position: state.Position,
 		Duration: state.Stream.Duration, At: time.Now().UTC(), Previous: watch.position, PreviousWatched: watch.watched,

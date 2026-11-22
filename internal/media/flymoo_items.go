@@ -155,12 +155,13 @@ func (f *flymooClient) item(row map[string]any) Item {
 		Title:    flymooText(row, "title", "name", "original_title", "display_name", "file_name"),
 		SeriesID: series, SeriesTitle: flymooText(row, "tv_title", "tvTitle", "series_title", "seriesTitle", "tv_name", "show_title", "showTitle"),
 		Season: season, Episode: episode, Year: yearNumber,
-		Rating:      flymooNumber(row, "rating", "score", "vote_average"),
-		Overview:    flymooText(row, "overview", "description", "summary", "plot"),
-		Duration:    flymooDuration(flymooNumber(row, "duration")),
-		Watched:     flymooBool(row["is_watched"]) || flymooBool(row["watched"]),
-		Favorite:    flymooBool(row["favorite"]) || flymooBool(row["is_favorite"]) || flymooBool(row["isFavorite"]),
-		ExternalIDs: make(map[string]string),
+		OriginalTitle: flymooText(row, "original_title", "originalTitle"),
+		Rating:        flymooNumber(row, "rating", "score", "vote_average"),
+		Overview:      flymooText(row, "overview", "description", "summary", "plot"),
+		Duration:      flymooDuration(flymooNumber(row, "duration")),
+		Watched:       flymooBool(row["is_watched"]) || flymooBool(row["watched"]),
+		Favorite:      flymooBool(row["favorite"]) || flymooBool(row["is_favorite"]) || flymooBool(row["isFavorite"]),
+		ExternalIDs:   make(map[string]string),
 	}
 	item.LibraryID, _ = flymooLibraryID(row)
 	item.Poster = f.artwork(row, "poster", "posters", "poster_list", "poster_url", "posterUrl", "image", "image_url", "cover", "poster_path", "posterPath", "thumb")
@@ -235,7 +236,7 @@ func mergeFlymooDetail(item *Item, detail Item) {
 		target *string
 		value  string
 	}{
-		{&item.ID, detail.ID}, {&item.Title, detail.Title}, {&item.Overview, detail.Overview},
+		{&item.ID, detail.ID}, {&item.Title, detail.Title}, {&item.OriginalTitle, detail.OriginalTitle}, {&item.Overview, detail.Overview},
 		{&item.Poster, detail.Poster}, {&item.Backdrop, detail.Backdrop}, {&item.SeriesID, detail.SeriesID},
 		{&item.SeriesTitle, detail.SeriesTitle},
 	} {

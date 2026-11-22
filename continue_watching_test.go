@@ -159,7 +159,8 @@ func (f resumeCacheFixture) Resume(context.Context) ([]media.Item, error) {
 	}
 	return []media.Item{
 		{ID: "thriller", Kind: media.Movie, Title: "Thriller", LibraryID: "movies", Position: 25 * time.Second,
-			Duration: time.Minute, Poster: "https://cache.example.test/image?api_key=sensitive-fixture-token"},
+			Duration: time.Minute, Poster: "https://cache.example.test/image?api_key=sensitive-fixture-token",
+			People: []media.Person{{Name: "Fixture actor", Portrait: "https://cache.example.test/portrait?api_key=sensitive-fixture-token"}}},
 		{ID: "private-title", Kind: media.Movie, Title: "Hidden record", LibraryID: "private", Position: 15 * time.Second},
 	}, nil
 }

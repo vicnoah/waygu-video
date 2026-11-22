@@ -248,3 +248,13 @@ quickConnect: Jellyfin Quick Connect
 quickConnectHelp: Use Quick Connect on a signed-in Jellyfin device to sign in without a password.
 quickConnectInstruction: "Enter {code} under Quick Connect on a signed-in Jellyfin device."
 quickConnectUnavailable: Enable Quick Connect on the Jellyfin server or use your password.
+versionShort: Version
+detailAudio: Audio
+detailResumeAt: "Resume {time}"
+synopsis: Synopsis
+director: Director
+castAndCrew: Cast and crew
+fileInfo: File information
+fileSource: "Source · {source}"
+fileSubtitleCount: "{count} subtitles"
+metadataUnavailable: Unavailable

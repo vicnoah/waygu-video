@@ -41,10 +41,7 @@ func (a *application) readResumeCache(sources []source) map[string][]media.Item 
 func (a *application) saveResumeCache(update resumeCacheUpdate) {
 	items := make([]media.Item, 0, len(update.items))
 	for _, entry := range update.items {
-		item := entry.item
-		// Some server artwork URLs include the account token.
-		item.Poster, item.Backdrop = "", ""
-		items = append(items, item)
+		items = append(items, offlineItem(entry.item))
 	}
 	key := resumeCacheKey(update.source)
 	if len(items) == 0 {
@@ -54,6 +51,13 @@ func (a *application) saveResumeCache(update resumeCacheUpdate) {
 	if data, err := json.Marshal(items); err == nil {
 		_ = a.storage.SetItem(key, string(data))
 	}
+}
+
+func offlineItem(item media.Item) media.Item {
+	// The offline progress records need metadata, never signed artwork URLs.
+	item.Poster, item.Backdrop = "", ""
+	item.People = nil
+	return item
 }
 
 func visibleResumeItem(item media.Item, source source, visible []sourceLibrary) bool {

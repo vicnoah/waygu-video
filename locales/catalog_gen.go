@@ -76,6 +76,9 @@ var Parameters = map[string][]string{
 	"EpisodeLabel":              {"number"},
 	"SeasonLabel":               {"number"},
 	"QuickConnectInstruction":   {"code"},
+	"DetailResumeAt":            {"time_"},
+	"FileSource":                {"source"},
+	"FileSubtitleCount":         {"count"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -117,6 +120,9 @@ type Translation struct {
 	EpisodeLabel              func(number string) string
 	SeasonLabel               func(number string) string
 	QuickConnectInstruction   func(code string) string
+	DetailResumeAt            func(time_ string) string
+	FileSource                func(source string) string
+	FileSubtitleCount         func(count string) string
 }
 
 var supplied = map[string]Translation{}
@@ -340,6 +346,13 @@ const (
 	textQuickConnect
 	textQuickConnectHelp
 	textQuickConnectUnavailable
+	textVersionShort
+	textDetailAudio
+	textSynopsis
+	textDirector
+	textCastAndCrew
+	textFileInfo
+	textMetadataUnavailable
 	numTexts
 )
 
@@ -563,6 +576,13 @@ var keyOfText = [numTexts]string{
 	"quickConnect",
 	"quickConnectHelp",
 	"quickConnectUnavailable",
+	"versionShort",
+	"detailAudio",
+	"synopsis",
+	"director",
+	"castAndCrew",
+	"fileInfo",
+	"metadataUnavailable",
 }
 
 // textsEn are the messages without arguments in en.
@@ -783,7 +803,14 @@ var textsEn = i18n.NewTexts(""+
 	"Episode"+
 	"Jellyfin Quick Connect"+
 	"Use Quick Connect on a signed-in Jellyfin device to sign in without a password."+
-	"Enable Quick Connect on the Jellyfin server or use your password.",
+	"Enable Quick Connect on the Jellyfin server or use your password."+
+	"Version"+
+	"Audio"+
+	"Synopsis"+
+	"Director"+
+	"Cast and crew"+
+	"File information"+
+	"Unavailable",
 	[]uint16{
 		11,
 		47,
@@ -1002,6 +1029,13 @@ var textsEn = i18n.NewTexts(""+
 		22,
 		79,
 		65,
+		7,
+		5,
+		8,
+		8,
+		13,
+		16,
+		11,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -1222,7 +1256,14 @@ var textsZhHans = i18n.NewTexts(""+
 	"分集"+
 	"Jellyfin 快速连接"+
 	"可在已登录的 Jellyfin 设备上通过快速连接免密码登录。"+
-	"请在 Jellyfin 服务器上启用快速连接，或使用密码登录。",
+	"请在 Jellyfin 服务器上启用快速连接，或使用密码登录。"+
+	"版本"+
+	"音轨"+
+	"简介"+
+	"导演"+
+	"演职人员"+
+	"文件信息"+
+	"暂无信息",
 	[]uint16{
 		12,
 		45,
@@ -1441,6 +1482,13 @@ var textsZhHans = i18n.NewTexts(""+
 		21,
 		73,
 		73,
+		6,
+		6,
+		6,
+		6,
+		12,
+		12,
+		12,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -1595,6 +1643,15 @@ func Supply(lang string, t Translation) {
 	}
 	if t.QuickConnectInstruction != nil {
 		s.QuickConnectInstruction = t.QuickConnectInstruction
+	}
+	if t.DetailResumeAt != nil {
+		s.DetailResumeAt = t.DetailResumeAt
+	}
+	if t.FileSource != nil {
+		s.FileSource = t.FileSource
+	}
+	if t.FileSubtitleCount != nil {
+		s.FileSubtitleCount = t.FileSubtitleCount
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -3903,3 +3960,118 @@ func QuickConnectUnavailable(cx *core.Scope) string { return For(cx).QuickConnec
 
 // QuickConnectUnavailable is the package's QuickConnectUnavailable in the language of msgs.
 func (msgs Messages) QuickConnectUnavailable() string { return msgs.text(textQuickConnectUnavailable) }
+
+// VersionShort says "Version"
+// in the language the app shows under cx.
+func VersionShort(cx *core.Scope) string { return For(cx).VersionShort() }
+
+// VersionShort is the package's VersionShort in the language of msgs.
+func (msgs Messages) VersionShort() string { return msgs.text(textVersionShort) }
+
+// DetailAudio says "Audio"
+// in the language the app shows under cx.
+func DetailAudio(cx *core.Scope) string { return For(cx).DetailAudio() }
+
+// DetailAudio is the package's DetailAudio in the language of msgs.
+func (msgs Messages) DetailAudio() string { return msgs.text(textDetailAudio) }
+
+// DetailResumeAt says "Resume {time}"
+// in the language the app shows under cx.
+func DetailResumeAt(cx *core.Scope, time_ string) string { return For(cx).DetailResumeAt(time_) }
+
+// DetailResumeAt is the package's DetailResumeAt in the language of msgs.
+func (msgs Messages) DetailResumeAt(time_ string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DetailResumeAt(time_))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DetailResumeAt; f != nil {
+			return f(time_)
+		}
+		switch lang {
+		case "", "en":
+			return "Resume " + msgs.arg(time_)
+		case "zh-Hans":
+			return "继续播放 " + time_
+		}
+	}
+}
+
+// Synopsis says "Synopsis"
+// in the language the app shows under cx.
+func Synopsis(cx *core.Scope) string { return For(cx).Synopsis() }
+
+// Synopsis is the package's Synopsis in the language of msgs.
+func (msgs Messages) Synopsis() string { return msgs.text(textSynopsis) }
+
+// Director says "Director"
+// in the language the app shows under cx.
+func Director(cx *core.Scope) string { return For(cx).Director() }
+
+// Director is the package's Director in the language of msgs.
+func (msgs Messages) Director() string { return msgs.text(textDirector) }
+
+// CastAndCrew says "Cast and crew"
+// in the language the app shows under cx.
+func CastAndCrew(cx *core.Scope) string { return For(cx).CastAndCrew() }
+
+// CastAndCrew is the package's CastAndCrew in the language of msgs.
+func (msgs Messages) CastAndCrew() string { return msgs.text(textCastAndCrew) }
+
+// FileInfo says "File information"
+// in the language the app shows under cx.
+func FileInfo(cx *core.Scope) string { return For(cx).FileInfo() }
+
+// FileInfo is the package's FileInfo in the language of msgs.
+func (msgs Messages) FileInfo() string { return msgs.text(textFileInfo) }
+
+// FileSource says "Source · {source}"
+// in the language the app shows under cx.
+func FileSource(cx *core.Scope, source string) string { return For(cx).FileSource(source) }
+
+// FileSource is the package's FileSource in the language of msgs.
+func (msgs Messages) FileSource(source string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.FileSource(source))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].FileSource; f != nil {
+			return f(source)
+		}
+		switch lang {
+		case "", "en":
+			return "Source · " + msgs.arg(source)
+		case "zh-Hans":
+			return "来源 · " + source
+		}
+	}
+}
+
+// FileSubtitleCount says "{count} subtitles"
+// in the language the app shows under cx.
+func FileSubtitleCount(cx *core.Scope, count string) string { return For(cx).FileSubtitleCount(count) }
+
+// FileSubtitleCount is the package's FileSubtitleCount in the language of msgs.
+func (msgs Messages) FileSubtitleCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.FileSubtitleCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].FileSubtitleCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " subtitles"
+		case "zh-Hans":
+			return "字幕 " + count + " 条"
+		}
+	}
+}
+
+// MetadataUnavailable says "Unavailable"
+// in the language the app shows under cx.
+func MetadataUnavailable(cx *core.Scope) string { return For(cx).MetadataUnavailable() }
+
+// MetadataUnavailable is the package's MetadataUnavailable in the language of msgs.
+func (msgs Messages) MetadataUnavailable() string { return msgs.text(textMetadataUnavailable) }

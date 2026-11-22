@@ -30,7 +30,7 @@ type subtitleSelection struct {
 	cues *playback.Captions
 }
 
-func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *desktopVideo, position *core.Signal[time.Duration],
+func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *desktopVideo, initialSubtitle string, position *core.Signal[time.Duration],
 	rate *core.Signal[float32], canChangeRate, switchingPlayback, audioError *core.Signal[bool],
 	chooseAudio func(media.Track), quality func(*core.Scope) core.Node) trackControls {
 	open := core.NewSignal(cx, false)
@@ -77,10 +77,25 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			})
 		}()
 	}
+	selectServerSubtitle := func(track media.Track) {
+		load(track.ID, trackLabel(cx, track), func(ctx context.Context) (*playback.Captions, error) {
+			return playback.FetchCaptions(ctx, track.URL)
+		})
+	}
 	cx.Effect(func() {
 		trackSource.Get()
 		if choice := subtitles.GetUntracked(); choice.id != "local" {
 			subtitles.Set(subtitleSelection{})
+		}
+		if initialSubtitle != "" {
+			id := initialSubtitle
+			initialSubtitle = ""
+			for _, track := range core.Untracked(cx, stream).Tracks {
+				if track.ID == id && track.Type == "subtitle" && track.URL != "" {
+					selectServerSubtitle(track)
+					break
+				}
+			}
 		}
 	})
 	pick := func() {
@@ -193,9 +208,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 				Text: label, TestID: "subtitle-track-" + track.ID, Disabled: loading.Get,
 				Checked: func() bool { return subtitles.Get().id == track.ID },
 				OnChange: func(bool) {
-					load(track.ID, label, func(ctx context.Context) (*playback.Captions, error) {
-						return playback.FetchCaptions(ctx, track.URL)
-					})
+					selectServerSubtitle(track)
 				},
 			})
 		}
@@ -228,19 +241,26 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		}
 		return core.View{Class: "gap-3", Children: rows}
 	})
+	sheet := ui.Dialog{Open: open.Get, OnOpenChange: func(show bool, _ base.Reason) { open.Set(show) },
+		Title: locales.PlayerTracks(cx), TestID: "player-tracks-dialog",
+		Children: []core.Node{
+			ui.Tabs[int]{Options: tabs, Value: tab.Get, OnChange: tab.Set, Equal: true, TestID: "player-track-tabs"},
+			core.Scroll{StyleFunc: func() core.Style {
+				return core.Style{MaxHeight: core.Pt(min(340, max(105, cx.Env().Window().Height*0.44))), FlexShrink: 1}
+			}, Children: []core.Node{rows}},
+		},
+		Footer: []core.Node{ui.Button{Text: locales.TracksDone(cx), TestID: "close-player-tracks", OnPress: func() { open.Set(false) }}},
+	}
+	var dialog core.Node = sheet
+	if cx.Env().OS() == core.OSLinux {
+		// A GTK video surface can leave the dialog's exit transition
+		// unfinished. Remove the closed layer so playback controls get input.
+		dialog = core.Show{When: open.Get, Then: func(*core.Scope) core.Node { return sheet }}
+	}
 	return trackControls{
 		button: ui.Button{Label: locales.PlayerTracks(cx), Icon: lucide.Captions, Variant: ui.ButtonSecondary,
 			TestID: "player-tracks", OnPress: func() { open.Set(true) }},
-		dialog: ui.Dialog{Open: open.Get, OnOpenChange: func(show bool, _ base.Reason) { open.Set(show) },
-			Title: locales.PlayerTracks(cx), TestID: "player-tracks-dialog",
-			Children: []core.Node{
-				ui.Tabs[int]{Options: tabs, Value: tab.Get, OnChange: tab.Set, Equal: true, TestID: "player-track-tabs"},
-				core.Scroll{StyleFunc: func() core.Style {
-					return core.Style{MaxHeight: core.Pt(min(340, max(105, cx.Env().Window().Height*0.44))), FlexShrink: 1}
-				}, Children: []core.Node{rows}},
-			},
-			Footer: []core.Node{ui.Button{Text: locales.TracksDone(cx), TestID: "close-player-tracks", OnPress: func() { open.Set(false) }}},
-		},
+		dialog: dialog,
 		captions: core.Show{When: func() bool { return text.Get() != "" }, Then: func(cx *core.Scope) core.Node {
 			return core.View{Class: "absolute inset-x-0 bottom-[132px] items-center px-8", PointerEvents: core.PointerEventsNone,
 				Children: []core.Node{core.Text{ContentFunc: text.Get, TestID: "subtitle-caption",
