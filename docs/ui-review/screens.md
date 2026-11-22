@@ -26,8 +26,8 @@ The [review log](README.md) records captures and remaining differences. An inven
 | [搜索 · 深色](../../design/search.scenra#L81) | dark | `phone` | — | [Compared](phone-search.md) |
 | [手机/剧集详情](../../design/series-detail.scenra#L1) | light | `phone · auto × 1500` | extras, s1, s2 | [Compared](phone-series.md) |
 | [剧集详情 · 深色](../../design/series-detail.scenra#L146) | dark | `phone · auto × 1500` | extras, s1, s2 | [Compared](phone-series.md) |
-| [设置/关于与帮助](../../design/settings-about.scenra#L1) | light | `phone · auto × 1320` | — | Pending |
-| [关于与帮助 · 深色](../../design/settings-about.scenra#L49) | dark | `phone · auto × 1320` | — | Pending |
+| [设置/关于与帮助](../../design/settings-about.scenra#L1) | light | `phone · auto × 1320` | — | [Compared](phone-about.md) |
+| [关于与帮助 · 深色](../../design/settings-about.scenra#L49) | dark | `phone · auto × 1320` | — | [Compared](phone-about.md) |
 | [设置/外观](../../design/settings-appearance.scenra#L1) | light | `phone · auto × 1700` | — | [Compared](phone-appearance.md) |
 | [外观 · 深色](../../design/settings-appearance.scenra#L197) | dark | `phone · auto × 1700` | — | [Compared](phone-appearance.md) |
 | [设置/弹幕](../../design/settings-danmaku.scenra#L1) | light | `phone · auto × 2080` | — | [Compared](phone-danmaku-settings.md) |

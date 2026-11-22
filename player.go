@@ -467,6 +467,13 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			}},
 		}}
 	}}
+	stats := func() (mpv.Stats, bool) {
+		if decoder := desktop.Get(); decoder != nil && decoder.active() {
+			return decoder.stats.Get(), true
+		}
+		return mpv.Stats{}, false
+	}
+	diagnostics := a.playerDiagnostics(cx, activeStream, picture.Get, stats, buffering.Get)
 	if desktopLayout {
 		desktopPlayer := a.desktopPlayer(cx, desktopPlayerControls{
 			current: current, client: initial.client, stream: activeStream,
@@ -475,19 +482,12 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			backStep: func() time.Duration { return time.Duration(a.desktopPrefs.GetUntracked().Back) * time.Second },
 			nextStep: func() time.Duration { return time.Duration(a.desktopPrefs.GetUntracked().Forward) * time.Second },
 			comments: comments, tracks: tracks, next: nextEpisode, qualityAvailable: quality != nil,
-			stats: func() (mpv.Stats, bool) {
-				decoder := desktop.Get()
-				if decoder != nil && decoder.active() {
-					return decoder.stats.Get(), true
-				}
-				return mpv.Stats{}, false
-			},
-			buffering: buffering.Get,
-		}, []core.Node{image, comments.overlay, tracks.captions, transportNotice})
+			stats: stats, buffering: buffering.Get,
+		}, []core.Node{image, comments.overlay, tracks.captions, transportNotice, diagnostics})
 		return core.View{Class: "relative flex-1", Children: []core.Node{desktopPlayer, parentalOverlay}}
 	}
 	return core.View{Class: "relative flex-1 overflow-hidden bg-black", Style: core.Style{FlexShrink: 1},
-		Children: []core.Node{image, comments.overlay, tracks.captions, chrome, transportNotice, tracks.dialog, comments.dialog, parentalOverlay}}
+		Children: []core.Node{image, comments.overlay, tracks.captions, chrome, transportNotice, diagnostics, tracks.dialog, comments.dialog, parentalOverlay}}
 }
 
 func playbackReports(client media.Client, watch *progressWatch) (func(media.PlaybackState), func(*media.PlaybackState)) {

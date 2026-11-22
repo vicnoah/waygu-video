@@ -44,6 +44,7 @@ const (
 	screenTVPairPhone        screen = "tv-pair-phone"
 	screenDownloads          screen = "downloads"
 	screenParentalSettings   screen = "settings-parental"
+	screenAboutSettings      screen = "settings-about"
 	screenAppearanceSettings screen = "settings-appearance"
 )
 
@@ -111,6 +112,8 @@ type application struct {
 	desktopCategory     *core.Signal[libraryCategory]
 	desktopCollapsed    *core.Signal[bool]
 	desktopPlayerVolume *core.Signal[float32]
+	diagnostics         *networkDiagnostics
+	diagnosticPrefs     *core.Signal[diagnosticPreferences]
 	desktopPrefs        *core.Signal[desktopPreferences]
 	desktopSettingsTab  *core.Signal[desktopSettingsPage]
 	desktopSettingsWin  *core.Window
@@ -150,7 +153,7 @@ const (
 var playbackBitrates = []int{0, 4_000_000, 8_000_000, 20_000_000}
 
 func Root(cx *core.Scope) core.Node {
-	return appRoot(cx, media.NewClient, nil)
+	return appRoot(cx, nil, nil)
 }
 
 func appRoot(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer) core.Node {
@@ -167,6 +170,16 @@ func appRootWithDandan(_ *core.Scope, factory mediaFactory, plexAccount plexAuth
 
 func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, dandan danmakuFactory) core.Node {
 	storage := cx.Storage()
+	prefs := readDiagnosticPreferences(storage)
+	diagnostics := &networkDiagnostics{dir: cx.LogsDir()}
+	diagnostics.enabled.Store(prefs.Network)
+	if factory == nil {
+		factory = func(provider media.Provider, address string, device media.Device, session media.Session) (media.Client, error) {
+			return media.NewObservedClient(provider, address, device, session, func(metric media.RequestMetric) {
+				diagnostics.record(time.Now(), provider, metric)
+			})
+		}
+	}
 	var sources []source
 	if data, ok := storage.GetItem(sourcesKey); ok {
 		_ = json.Unmarshal([]byte(data), &sources)
@@ -202,7 +215,8 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 		bitrateLimit:  core.NewSignal(cx, bitrate),
 		versionPolicy: core.NewSignal(cx, playbackVersionPolicy(policy)),
 		autoNext:      core.NewSignal(cx, autoNext != "false"),
-		danmakuPrefs:  core.NewSignal(cx, core.Untracked(cx, func() danmakuPreferences { return readDanmakuPreferences(storage) })),
+		diagnostics:   diagnostics, diagnosticPrefs: core.NewSignal(cx, prefs),
+		danmakuPrefs: core.NewSignal(cx, core.Untracked(cx, func() danmakuPreferences { return readDanmakuPreferences(storage) })),
 	}
 	a.parental = core.NewSignalFunc(cx, core.Untracked(cx, func() parentalPolicy { return readParentalPolicy(storage) }), nil)
 	a.parentalUsage = core.NewSignal(cx, core.Untracked(cx, func() parentalUsage { return readParentalUsage(storage) }))
@@ -274,6 +288,8 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 				return a.phoneSubtitleLanguages(screenScope)
 			case screenAppearanceSettings:
 				return a.phoneAppearanceSettings(screenScope)
+			case screenAboutSettings:
+				return a.phoneAboutSettings(screenScope)
 			case screenParentalSettings:
 				return a.phoneParentalSettings(screenScope)
 			case screenDownloads:

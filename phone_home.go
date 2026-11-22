@@ -78,7 +78,7 @@ func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult]
 				var sections []core.Node
 				if result.failure != nil {
 					sections = append(sections, core.View{Class: margins + " gap-2", Children: []core.Node{
-						notice(errorText(cx, result.failure)), ui.Button{Text: locales.Retry(cx), Variant: ui.ButtonOutline, OnPress: results.Refetch},
+						notice(errorText(cx, result.failure)), ui.Button{Text: locales.Retry(cx), TestID: "home-retry", Variant: ui.ButtonOutline, OnPress: results.Refetch},
 					}})
 				}
 				recent := slices.Clone(result.items)

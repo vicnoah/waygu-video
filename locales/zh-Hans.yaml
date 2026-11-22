@@ -838,3 +838,34 @@ phoneDanmakuSampleArt: 这一集画面太顶了
 phoneDanmakuDisableSource: 停用此来源
 phoneDanmakuBlockWords: 屏蔽词
 phoneDanmakuDensity: 同屏密度
+aboutHelpSection: 帮助
+aboutHelp: 使用帮助
+aboutFormats: 支持的格式
+aboutFeedback: 反馈问题
+aboutExportLogs: 导出日志
+aboutNetworkLogs: 记录网络日志
+aboutOverlay: 播放器信息覆盖层
+aboutDebug: 调试
+aboutMore: 更多
+aboutRate: 去 App Store 评分
+aboutPrivacy: 隐私政策
+aboutLicenses: 开源许可
+aboutReset: 重置所有设置
+aboutCopyright: © 2026 Waygu · 用心看好每一部片
+aboutVersionBuild: "版本 {version}（{build}）"
+aboutLogsSaved: 网络日志压缩包已保存。
+aboutLinkFailed: "请在浏览器中打开此地址反馈问题。{address}"
+aboutResetDetail: 恢复外观、播放、字幕、弹幕和下载等默认设置，保留媒体源、登录凭据、播放记录、已下载的媒体和家长控制。
+aboutResetDone: 已恢复默认设置。
+aboutHelpSources: 在「媒体源」中添加 Emby、Jellyfin、Plex 或飞牛影视，选中要显示的媒体库，再用媒体源切换筛选片库。
+aboutHelpPlayback: 从影片详情开始播放。在播放器里可以切换画质、音轨和字幕，也可以导入弹幕文件。
+aboutHelpSupport: 遇到播放问题时，可以开启网络日志，复现问题后导出日志压缩包，再用「反馈问题」打开反馈页面。
+aboutVideoFormats: 支持原生解码的设备可以播放 H.264 和 AAC 编码的 MP4。MKV、AVI 和 MPEG-TS 取决于设备解码器或桌面的 libmpv 引擎。光盘镜像和蓝光菜单需要相应支持。
+aboutSubtitleFormats: 可导入 SRT 或 WebVTT 字幕。内嵌轨道和图像字幕的可用性取决于媒体服务器和解码器。
+aboutDanmakuFormats: 可在播放器导入哔哩哔哩格式的 XML 或弹弹play 格式的 JSON 弹幕。
+aboutPrivacyServers: 媒体服务器地址和媒体库偏好保存在此设备上。密码、令牌和开发者密钥使用平台提供的凭据存储。
+aboutPrivacyPlayback: 应用会连接你添加的媒体服务器，并向对应服务器报告播放进度。启用弹弹play 匹配后，可能向弹弹play 发送片名、文件名和文件指纹。
+aboutPrivacyDiagnostics: 可在「调试」里开启网络日志。它只在设备上记录服务类型、HTTP 方法、状态、时间和耗时。导出的压缩包保存到你选择的位置。
+aboutPrivacyLocation: 打开按日落自动切换深色后，应用可能请求大致位置权限，取整后的位置坐标保存在此设备上。
+aboutOverlayBitrate: 码率
+aboutOverlayBuffering: 正在缓冲

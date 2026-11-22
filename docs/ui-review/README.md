@@ -13,6 +13,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Phone movie detail · light and dark | [Top and bottom comparisons and playback checks](phone-movie.md) | Compared on GTK with Docker movies, a trailer, and a featurette. Device captures and several design actions remain pending. |
 | Phone series detail · light and dark | [Season and specials comparisons](phone-series.md) | Compared on GTK with two seasons and a special. Phone device captures remain pending. |
 | Phone danmaku settings · light and dark | [Preview, matching and filter comparisons](phone-danmaku-settings.md) | Compared on GTK. Tests exercise the preview, matching, playback and local cache. Separate providers, public posting and mobile captures remain pending. |
+| Phone About and help · light and dark | [Help, diagnostics and reset comparisons](phone-about.md) | Compared on GTK. Device save behavior and the App Store rating action remain pending. |
 | Phone appearance · light and dark | [Layout and saved preference checks](phone-appearance.md) | Compared on GTK at phone width. The local Docker fixtures verify home and library effects. Mobile device captures remain pending. |
 | Phone parental controls · light and dark | [PIN, rating and viewing-time comparisons](phone-parental.md) | Compared on GTK with Docker fixtures and verified with a simulated playback clock. Mobile and TV device checks remain pending. |
 | Tablet home · light and dark | [Screenshots and tablet interaction checks](tablet-home.md) | The tablet layout was compared on Linux GTK with three Docker media servers. Real-device captures remain pending. |
@@ -254,6 +255,15 @@ go tool nsgo test -target linux -run '^TestPhoneDanmakuSettingsReview$' -screens
 ```
 
 Use `WAYGU_REVIEW_DESIGN=settings-danmaku.scenra` with the reference exporter. Use the local Docker fixtures with `TestDockerPhonePlayerDesignReview` to verify danmaku during playback.
+
+Capture the phone About and help page in both appearances and verify its help panels and reset. With the local Docker fixtures, also verify the player overlay with a video from Emby.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^(TestPhoneAboutReview|TestDockerAboutPlayerOverlay)$' -screenshots .nsgo/ui-review/about
+```
+
+Use `WAYGU_REVIEW_DESIGN=settings-about.scenra` with the reference exporter.
 
 The reference uses the Scenra version pinned in this project and renders the original design files and components. Run it in its own module.
 

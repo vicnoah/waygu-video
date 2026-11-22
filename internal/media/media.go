@@ -237,11 +237,17 @@ type LibraryResumeClient interface {
 }
 
 func NewClient(kind Provider, address string, device Device, session Session) (Client, error) {
+	return NewObservedClient(kind, address, device, session, nil)
+}
+
+// NewObservedClient reports timing and status for media server API requests.
+func NewObservedClient(kind Provider, address string, device Device, session Session, observe func(RequestMetric)) (Client, error) {
 	base, err := NormalizeAddress(address)
 	if err != nil {
 		return nil, err
 	}
 	api := newAPI(base)
+	api.observe = observe
 	switch kind {
 	case Emby, Jellyfin:
 		return newMediaBrowser(api, kind, device, session), nil

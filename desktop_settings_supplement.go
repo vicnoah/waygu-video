@@ -48,10 +48,7 @@ func (a *application) desktopSettingsSupplement(cx *core.Scope, link desktopSett
 			desktopShortcut(locales.DesktopPlayerPanel(cx), "Tab"),
 		)
 	case "about":
-		content = desktopFormGroup(locales.AppName(cx),
-			desktopFormRow(locales.DesktopSettingsVersion(cx, core.App().Version),
-				desktopSettingsAction(cx, "desktop-about-releases", locales.DesktopSettingsReleasePage(cx), setupAccent, func() { cx.OpenURL(wayguReleasePage, nil) })),
-		)
+		content = a.aboutSettings(cx)
 	}
 	return core.View{Class: "gap-5", Children: []core.Node{desktopSettingsHeading(link.label, ""), content, settingsFailure(cx, failure)}}
 }

@@ -158,6 +158,8 @@ var Parameters = map[string][]string{
 	"PhoneDanmakuUsers":               {"count"},
 	"PhoneDanmakuRules":               {"count"},
 	"PhoneDanmakuPreviewArea":         {"fraction"},
+	"AboutVersionBuild":               {"version", "build"},
+	"AboutLinkFailed":                 {"address"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -281,6 +283,8 @@ type Translation struct {
 	PhoneDanmakuUsers               func(count string) string
 	PhoneDanmakuRules               func(count string) string
 	PhoneDanmakuPreviewArea         func(fraction string) string
+	AboutVersionBuild               func(version string, build string) string
+	AboutLinkFailed                 func(address string) string
 }
 
 var supplied = map[string]Translation{}
@@ -1009,6 +1013,35 @@ const (
 	textPhoneDanmakuDisableSource
 	textPhoneDanmakuBlockWords
 	textPhoneDanmakuDensity
+	textAboutHelpSection
+	textAboutHelp
+	textAboutFormats
+	textAboutFeedback
+	textAboutExportLogs
+	textAboutNetworkLogs
+	textAboutOverlay
+	textAboutDebug
+	textAboutMore
+	textAboutRate
+	textAboutPrivacy
+	textAboutLicenses
+	textAboutReset
+	textAboutCopyright
+	textAboutLogsSaved
+	textAboutResetDetail
+	textAboutResetDone
+	textAboutHelpSources
+	textAboutHelpPlayback
+	textAboutHelpSupport
+	textAboutVideoFormats
+	textAboutSubtitleFormats
+	textAboutDanmakuFormats
+	textAboutPrivacyServers
+	textAboutPrivacyPlayback
+	textAboutPrivacyDiagnostics
+	textAboutPrivacyLocation
+	textAboutOverlayBitrate
+	textAboutOverlayBuffering
 	numTexts
 )
 
@@ -1737,6 +1770,35 @@ var keyOfText = [numTexts]string{
 	"phoneDanmakuDisableSource",
 	"phoneDanmakuBlockWords",
 	"phoneDanmakuDensity",
+	"aboutHelpSection",
+	"aboutHelp",
+	"aboutFormats",
+	"aboutFeedback",
+	"aboutExportLogs",
+	"aboutNetworkLogs",
+	"aboutOverlay",
+	"aboutDebug",
+	"aboutMore",
+	"aboutRate",
+	"aboutPrivacy",
+	"aboutLicenses",
+	"aboutReset",
+	"aboutCopyright",
+	"aboutLogsSaved",
+	"aboutResetDetail",
+	"aboutResetDone",
+	"aboutHelpSources",
+	"aboutHelpPlayback",
+	"aboutHelpSupport",
+	"aboutVideoFormats",
+	"aboutSubtitleFormats",
+	"aboutDanmakuFormats",
+	"aboutPrivacyServers",
+	"aboutPrivacyPlayback",
+	"aboutPrivacyDiagnostics",
+	"aboutPrivacyLocation",
+	"aboutOverlayBitrate",
+	"aboutOverlayBuffering",
 }
 
 // textsEn are the messages without arguments in en.
@@ -2462,7 +2524,36 @@ var textsEn = i18n.NewTexts(""+
 	"The animation is incredible"+
 	"Disable this source"+
 	"Blocked words"+
-	"On-screen density",
+	"On-screen density"+
+	"Help"+
+	"User guide"+
+	"Supported formats"+
+	"Report a problem"+
+	"Export logs"+
+	"Record network logs"+
+	"Player information overlay"+
+	"Debugging"+
+	"More"+
+	"Rate on the App Store"+
+	"Privacy policy"+
+	"Open source licenses"+
+	"Reset all settings"+
+	"© 2026 Waygu · Make each screening count"+
+	"Network log archive saved."+
+	"Restore the default appearance, playback, subtitle, danmaku, and download settings. Your media sources, credentials, history, downloads, and parental controls will be kept."+
+	"Settings restored to their defaults."+
+	"Add an Emby, Jellyfin, Plex or Flymoo server under Media sources. Select the libraries to show and use the source selector to narrow the catalog."+
+	"Start a title from its details. Use the player controls to choose quality, audio tracks and subtitles, or to import a danmaku file."+
+	"For a playback issue, turn on network logging, reproduce the problem and export a log archive. Use Report a problem to open the issue form."+
+	"MP4 with H.264 and AAC works on supported native players. MKV, AVI and MPEG-TS depend on the device decoder or the optional desktop libmpv engine. Disc images and Blu-ray menus require separate support."+
+	"Import SRT or WebVTT subtitle files. Available muxed tracks and image subtitles depend on the media server and decoder."+
+	"Import Bilibili-style XML and DandanPlay JSON comments from the player."+
+	"Your server addresses and library preferences are stored on this device. Passwords, tokens and developer secrets use the platform credential store where available."+
+	"The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay."+
+	"You can turn network logging on under Debugging. It records the provider, HTTP method, status, time and duration on this device. Export saves an archive to the location you choose."+
+	"If you enable sunset-based dark mode, the app may request approximate location. The rounded coordinates stay on your device."+
+	"Bitrate"+
+	"Buffering",
 	[]uint16{
 		11,
 		47,
@@ -3186,6 +3277,35 @@ var textsEn = i18n.NewTexts(""+
 		19,
 		13,
 		17,
+		4,
+		10,
+		17,
+		16,
+		11,
+		19,
+		26,
+		9,
+		4,
+		21,
+		14,
+		20,
+		18,
+		42,
+		26,
+		172,
+		36,
+		145,
+		131,
+		139,
+		202,
+		119,
+		71,
+		163,
+		196,
+		180,
+		124,
+		7,
+		9,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -3911,7 +4031,36 @@ var textsZhHans = i18n.NewTexts(""+
 	"这一集画面太顶了"+
 	"停用此来源"+
 	"屏蔽词"+
-	"同屏密度",
+	"同屏密度"+
+	"帮助"+
+	"使用帮助"+
+	"支持的格式"+
+	"反馈问题"+
+	"导出日志"+
+	"记录网络日志"+
+	"播放器信息覆盖层"+
+	"调试"+
+	"更多"+
+	"去 App Store 评分"+
+	"隐私政策"+
+	"开源许可"+
+	"重置所有设置"+
+	"© 2026 Waygu · 用心看好每一部片"+
+	"网络日志压缩包已保存。"+
+	"恢复外观、播放、字幕、弹幕和下载等默认设置，保留媒体源、登录凭据、播放记录、已下载的媒体和家长控制。"+
+	"已恢复默认设置。"+
+	"在「媒体源」中添加 Emby、Jellyfin、Plex 或飞牛影视，选中要显示的媒体库，再用媒体源切换筛选片库。"+
+	"从影片详情开始播放。在播放器里可以切换画质、音轨和字幕，也可以导入弹幕文件。"+
+	"遇到播放问题时，可以开启网络日志，复现问题后导出日志压缩包，再用「反馈问题」打开反馈页面。"+
+	"支持原生解码的设备可以播放 H.264 和 AAC 编码的 MP4。MKV、AVI 和 MPEG-TS 取决于设备解码器或桌面的 libmpv 引擎。光盘镜像和蓝光菜单需要相应支持。"+
+	"可导入 SRT 或 WebVTT 字幕。内嵌轨道和图像字幕的可用性取决于媒体服务器和解码器。"+
+	"可在播放器导入哔哩哔哩格式的 XML 或弹弹play 格式的 JSON 弹幕。"+
+	"媒体服务器地址和媒体库偏好保存在此设备上。密码、令牌和开发者密钥使用平台提供的凭据存储。"+
+	"应用会连接你添加的媒体服务器，并向对应服务器报告播放进度。启用弹弹play 匹配后，可能向弹弹play 发送片名、文件名和文件指纹。"+
+	"可在「调试」里开启网络日志。它只在设备上记录服务类型、HTTP 方法、状态、时间和耗时。导出的压缩包保存到你选择的位置。"+
+	"打开按日落自动切换深色后，应用可能请求大致位置权限，取整后的位置坐标保存在此设备上。"+
+	"码率"+
+	"正在缓冲",
 	[]uint16{
 		12,
 		45,
@@ -4635,6 +4784,35 @@ var textsZhHans = i18n.NewTexts(""+
 		15,
 		9,
 		12,
+		6,
+		12,
+		15,
+		12,
+		12,
+		18,
+		24,
+		6,
+		6,
+		20,
+		12,
+		12,
+		18,
+		41,
+		33,
+		150,
+		24,
+		135,
+		114,
+		135,
+		193,
+		112,
+		85,
+		132,
+		178,
+		170,
+		126,
+		6,
+		12,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -5035,6 +5213,12 @@ func Supply(lang string, t Translation) {
 	}
 	if t.PhoneDanmakuPreviewArea != nil {
 		s.PhoneDanmakuPreviewArea = t.PhoneDanmakuPreviewArea
+	}
+	if t.AboutVersionBuild != nil {
+		s.AboutVersionBuild = t.AboutVersionBuild
+	}
+	if t.AboutLinkFailed != nil {
+		s.AboutLinkFailed = t.AboutLinkFailed
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -13006,3 +13190,252 @@ func PhoneDanmakuDensity(cx *core.Scope) string { return For(cx).PhoneDanmakuDen
 
 // PhoneDanmakuDensity is the package's PhoneDanmakuDensity in the language of msgs.
 func (msgs Messages) PhoneDanmakuDensity() string { return msgs.text(textPhoneDanmakuDensity) }
+
+// AboutHelpSection says "Help"
+// in the language the app shows under cx.
+func AboutHelpSection(cx *core.Scope) string { return For(cx).AboutHelpSection() }
+
+// AboutHelpSection is the package's AboutHelpSection in the language of msgs.
+func (msgs Messages) AboutHelpSection() string { return msgs.text(textAboutHelpSection) }
+
+// AboutHelp says "User guide"
+// in the language the app shows under cx.
+func AboutHelp(cx *core.Scope) string { return For(cx).AboutHelp() }
+
+// AboutHelp is the package's AboutHelp in the language of msgs.
+func (msgs Messages) AboutHelp() string { return msgs.text(textAboutHelp) }
+
+// AboutFormats says "Supported formats"
+// in the language the app shows under cx.
+func AboutFormats(cx *core.Scope) string { return For(cx).AboutFormats() }
+
+// AboutFormats is the package's AboutFormats in the language of msgs.
+func (msgs Messages) AboutFormats() string { return msgs.text(textAboutFormats) }
+
+// AboutFeedback says "Report a problem"
+// in the language the app shows under cx.
+func AboutFeedback(cx *core.Scope) string { return For(cx).AboutFeedback() }
+
+// AboutFeedback is the package's AboutFeedback in the language of msgs.
+func (msgs Messages) AboutFeedback() string { return msgs.text(textAboutFeedback) }
+
+// AboutExportLogs says "Export logs"
+// in the language the app shows under cx.
+func AboutExportLogs(cx *core.Scope) string { return For(cx).AboutExportLogs() }
+
+// AboutExportLogs is the package's AboutExportLogs in the language of msgs.
+func (msgs Messages) AboutExportLogs() string { return msgs.text(textAboutExportLogs) }
+
+// AboutNetworkLogs says "Record network logs"
+// in the language the app shows under cx.
+func AboutNetworkLogs(cx *core.Scope) string { return For(cx).AboutNetworkLogs() }
+
+// AboutNetworkLogs is the package's AboutNetworkLogs in the language of msgs.
+func (msgs Messages) AboutNetworkLogs() string { return msgs.text(textAboutNetworkLogs) }
+
+// AboutOverlay says "Player information overlay"
+// in the language the app shows under cx.
+func AboutOverlay(cx *core.Scope) string { return For(cx).AboutOverlay() }
+
+// AboutOverlay is the package's AboutOverlay in the language of msgs.
+func (msgs Messages) AboutOverlay() string { return msgs.text(textAboutOverlay) }
+
+// AboutDebug says "Debugging"
+// in the language the app shows under cx.
+func AboutDebug(cx *core.Scope) string { return For(cx).AboutDebug() }
+
+// AboutDebug is the package's AboutDebug in the language of msgs.
+func (msgs Messages) AboutDebug() string { return msgs.text(textAboutDebug) }
+
+// AboutMore says "More"
+// in the language the app shows under cx.
+func AboutMore(cx *core.Scope) string { return For(cx).AboutMore() }
+
+// AboutMore is the package's AboutMore in the language of msgs.
+func (msgs Messages) AboutMore() string { return msgs.text(textAboutMore) }
+
+// AboutRate says "Rate on the App Store"
+// in the language the app shows under cx.
+func AboutRate(cx *core.Scope) string { return For(cx).AboutRate() }
+
+// AboutRate is the package's AboutRate in the language of msgs.
+func (msgs Messages) AboutRate() string { return msgs.text(textAboutRate) }
+
+// AboutPrivacy says "Privacy policy"
+// in the language the app shows under cx.
+func AboutPrivacy(cx *core.Scope) string { return For(cx).AboutPrivacy() }
+
+// AboutPrivacy is the package's AboutPrivacy in the language of msgs.
+func (msgs Messages) AboutPrivacy() string { return msgs.text(textAboutPrivacy) }
+
+// AboutLicenses says "Open source licenses"
+// in the language the app shows under cx.
+func AboutLicenses(cx *core.Scope) string { return For(cx).AboutLicenses() }
+
+// AboutLicenses is the package's AboutLicenses in the language of msgs.
+func (msgs Messages) AboutLicenses() string { return msgs.text(textAboutLicenses) }
+
+// AboutReset says "Reset all settings"
+// in the language the app shows under cx.
+func AboutReset(cx *core.Scope) string { return For(cx).AboutReset() }
+
+// AboutReset is the package's AboutReset in the language of msgs.
+func (msgs Messages) AboutReset() string { return msgs.text(textAboutReset) }
+
+// AboutCopyright says "© 2026 Waygu · Make each screening count"
+// in the language the app shows under cx.
+func AboutCopyright(cx *core.Scope) string { return For(cx).AboutCopyright() }
+
+// AboutCopyright is the package's AboutCopyright in the language of msgs.
+func (msgs Messages) AboutCopyright() string { return msgs.text(textAboutCopyright) }
+
+// AboutVersionBuild says "Version {version} ({build})"
+// in the language the app shows under cx.
+func AboutVersionBuild(cx *core.Scope, version string, build string) string {
+	return For(cx).AboutVersionBuild(version, build)
+}
+
+// AboutVersionBuild is the package's AboutVersionBuild in the language of msgs.
+func (msgs Messages) AboutVersionBuild(version string, build string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.AboutVersionBuild(version, build))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].AboutVersionBuild; f != nil {
+			return f(version, build)
+		}
+		switch lang {
+		case "", "en":
+			return "Version " + msgs.arg(version) + " (" + msgs.arg(build) + ")"
+		case "zh-Hans":
+			return "版本 " + version + "（" + build + "）"
+		}
+	}
+}
+
+// AboutLogsSaved says "Network log archive saved."
+// in the language the app shows under cx.
+func AboutLogsSaved(cx *core.Scope) string { return For(cx).AboutLogsSaved() }
+
+// AboutLogsSaved is the package's AboutLogsSaved in the language of msgs.
+func (msgs Messages) AboutLogsSaved() string { return msgs.text(textAboutLogsSaved) }
+
+// AboutLinkFailed says "Open this address in your browser to report a problem. {address}"
+// in the language the app shows under cx.
+func AboutLinkFailed(cx *core.Scope, address string) string { return For(cx).AboutLinkFailed(address) }
+
+// AboutLinkFailed is the package's AboutLinkFailed in the language of msgs.
+func (msgs Messages) AboutLinkFailed(address string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.AboutLinkFailed(address))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].AboutLinkFailed; f != nil {
+			return f(address)
+		}
+		switch lang {
+		case "", "en":
+			return "Open this address in your browser to report a problem. " + msgs.arg(address)
+		case "zh-Hans":
+			return "请在浏览器中打开此地址反馈问题。" + address
+		}
+	}
+}
+
+// AboutResetDetail says "Restore the default appearance, playback, subtitle, danmaku, and download settings. Your media sources, credentials, history, downloads, and parental controls will be kept."
+// in the language the app shows under cx.
+func AboutResetDetail(cx *core.Scope) string { return For(cx).AboutResetDetail() }
+
+// AboutResetDetail is the package's AboutResetDetail in the language of msgs.
+func (msgs Messages) AboutResetDetail() string { return msgs.text(textAboutResetDetail) }
+
+// AboutResetDone says "Settings restored to their defaults."
+// in the language the app shows under cx.
+func AboutResetDone(cx *core.Scope) string { return For(cx).AboutResetDone() }
+
+// AboutResetDone is the package's AboutResetDone in the language of msgs.
+func (msgs Messages) AboutResetDone() string { return msgs.text(textAboutResetDone) }
+
+// AboutHelpSources says "Add an Emby, Jellyfin, Plex or Flymoo server under Media sources. Select the libraries to show and use the source selector to narrow the catalog."
+// in the language the app shows under cx.
+func AboutHelpSources(cx *core.Scope) string { return For(cx).AboutHelpSources() }
+
+// AboutHelpSources is the package's AboutHelpSources in the language of msgs.
+func (msgs Messages) AboutHelpSources() string { return msgs.text(textAboutHelpSources) }
+
+// AboutHelpPlayback says "Start a title from its details. Use the player controls to choose quality, audio tracks and subtitles, or to import a danmaku file."
+// in the language the app shows under cx.
+func AboutHelpPlayback(cx *core.Scope) string { return For(cx).AboutHelpPlayback() }
+
+// AboutHelpPlayback is the package's AboutHelpPlayback in the language of msgs.
+func (msgs Messages) AboutHelpPlayback() string { return msgs.text(textAboutHelpPlayback) }
+
+// AboutHelpSupport says "For a playback issue, turn on network logging, reproduce the problem and export a log archive. Use Report a problem to open the issue form."
+// in the language the app shows under cx.
+func AboutHelpSupport(cx *core.Scope) string { return For(cx).AboutHelpSupport() }
+
+// AboutHelpSupport is the package's AboutHelpSupport in the language of msgs.
+func (msgs Messages) AboutHelpSupport() string { return msgs.text(textAboutHelpSupport) }
+
+// AboutVideoFormats says "MP4 with H.264 and AAC works on supported native players. MKV, AVI and MPEG-TS depend on the device decoder or the optional desktop libmpv engine. Disc images and Blu-ray menus require separate support."
+// in the language the app shows under cx.
+func AboutVideoFormats(cx *core.Scope) string { return For(cx).AboutVideoFormats() }
+
+// AboutVideoFormats is the package's AboutVideoFormats in the language of msgs.
+func (msgs Messages) AboutVideoFormats() string { return msgs.text(textAboutVideoFormats) }
+
+// AboutSubtitleFormats says "Import SRT or WebVTT subtitle files. Available muxed tracks and image subtitles depend on the media server and decoder."
+// in the language the app shows under cx.
+func AboutSubtitleFormats(cx *core.Scope) string { return For(cx).AboutSubtitleFormats() }
+
+// AboutSubtitleFormats is the package's AboutSubtitleFormats in the language of msgs.
+func (msgs Messages) AboutSubtitleFormats() string { return msgs.text(textAboutSubtitleFormats) }
+
+// AboutDanmakuFormats says "Import Bilibili-style XML and DandanPlay JSON comments from the player."
+// in the language the app shows under cx.
+func AboutDanmakuFormats(cx *core.Scope) string { return For(cx).AboutDanmakuFormats() }
+
+// AboutDanmakuFormats is the package's AboutDanmakuFormats in the language of msgs.
+func (msgs Messages) AboutDanmakuFormats() string { return msgs.text(textAboutDanmakuFormats) }
+
+// AboutPrivacyServers says "Your server addresses and library preferences are stored on this device. Passwords, tokens and developer secrets use the platform credential store where available."
+// in the language the app shows under cx.
+func AboutPrivacyServers(cx *core.Scope) string { return For(cx).AboutPrivacyServers() }
+
+// AboutPrivacyServers is the package's AboutPrivacyServers in the language of msgs.
+func (msgs Messages) AboutPrivacyServers() string { return msgs.text(textAboutPrivacyServers) }
+
+// AboutPrivacyPlayback says "The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay."
+// in the language the app shows under cx.
+func AboutPrivacyPlayback(cx *core.Scope) string { return For(cx).AboutPrivacyPlayback() }
+
+// AboutPrivacyPlayback is the package's AboutPrivacyPlayback in the language of msgs.
+func (msgs Messages) AboutPrivacyPlayback() string { return msgs.text(textAboutPrivacyPlayback) }
+
+// AboutPrivacyDiagnostics says "You can turn network logging on under Debugging. It records the provider, HTTP method, status, time and duration on this device. Export saves an archive to the location you choose."
+// in the language the app shows under cx.
+func AboutPrivacyDiagnostics(cx *core.Scope) string { return For(cx).AboutPrivacyDiagnostics() }
+
+// AboutPrivacyDiagnostics is the package's AboutPrivacyDiagnostics in the language of msgs.
+func (msgs Messages) AboutPrivacyDiagnostics() string { return msgs.text(textAboutPrivacyDiagnostics) }
+
+// AboutPrivacyLocation says "If you enable sunset-based dark mode, the app may request approximate location. The rounded coordinates stay on your device."
+// in the language the app shows under cx.
+func AboutPrivacyLocation(cx *core.Scope) string { return For(cx).AboutPrivacyLocation() }
+
+// AboutPrivacyLocation is the package's AboutPrivacyLocation in the language of msgs.
+func (msgs Messages) AboutPrivacyLocation() string { return msgs.text(textAboutPrivacyLocation) }
+
+// AboutOverlayBitrate says "Bitrate"
+// in the language the app shows under cx.
+func AboutOverlayBitrate(cx *core.Scope) string { return For(cx).AboutOverlayBitrate() }
+
+// AboutOverlayBitrate is the package's AboutOverlayBitrate in the language of msgs.
+func (msgs Messages) AboutOverlayBitrate() string { return msgs.text(textAboutOverlayBitrate) }
+
+// AboutOverlayBuffering says "Buffering"
+// in the language the app shows under cx.
+func AboutOverlayBuffering(cx *core.Scope) string { return For(cx).AboutOverlayBuffering() }
+
+// AboutOverlayBuffering is the package's AboutOverlayBuffering in the language of msgs.
+func (msgs Messages) AboutOverlayBuffering() string { return msgs.text(textAboutOverlayBuffering) }

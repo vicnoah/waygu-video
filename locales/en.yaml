@@ -838,3 +838,34 @@ phoneDanmakuSampleArt: The animation is incredible
 phoneDanmakuDisableSource: Disable this source
 phoneDanmakuBlockWords: Blocked words
 phoneDanmakuDensity: On-screen density
+aboutHelpSection: Help
+aboutHelp: User guide
+aboutFormats: Supported formats
+aboutFeedback: Report a problem
+aboutExportLogs: Export logs
+aboutNetworkLogs: Record network logs
+aboutOverlay: Player information overlay
+aboutDebug: Debugging
+aboutMore: More
+aboutRate: Rate on the App Store
+aboutPrivacy: Privacy policy
+aboutLicenses: Open source licenses
+aboutReset: Reset all settings
+aboutCopyright: © 2026 Waygu · Make each screening count
+aboutVersionBuild: "Version {version} ({build})"
+aboutLogsSaved: Network log archive saved.
+aboutLinkFailed: "Open this address in your browser to report a problem. {address}"
+aboutResetDetail: Restore the default appearance, playback, subtitle, danmaku, and download settings. Your media sources, credentials, history, downloads, and parental controls will be kept.
+aboutResetDone: Settings restored to their defaults.
+aboutHelpSources: Add an Emby, Jellyfin, Plex or Flymoo server under Media sources. Select the libraries to show and use the source selector to narrow the catalog.
+aboutHelpPlayback: Start a title from its details. Use the player controls to choose quality, audio tracks and subtitles, or to import a danmaku file.
+aboutHelpSupport: For a playback issue, turn on network logging, reproduce the problem and export a log archive. Use Report a problem to open the issue form.
+aboutVideoFormats: MP4 with H.264 and AAC works on supported native players. MKV, AVI and MPEG-TS depend on the device decoder or the optional desktop libmpv engine. Disc images and Blu-ray menus require separate support.
+aboutSubtitleFormats: Import SRT or WebVTT subtitle files. Available muxed tracks and image subtitles depend on the media server and decoder.
+aboutDanmakuFormats: Import Bilibili-style XML and DandanPlay JSON comments from the player.
+aboutPrivacyServers: Your server addresses and library preferences are stored on this device. Passwords, tokens and developer secrets use the platform credential store where available.
+aboutPrivacyPlayback: The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay.
+aboutPrivacyDiagnostics: You can turn network logging on under Debugging. It records the provider, HTTP method, status, time and duration on this device. Export saves an archive to the location you choose.
+aboutPrivacyLocation: If you enable sunset-based dark mode, the app may request approximate location. The rounded coordinates stay on your device.
+aboutOverlayBitrate: Bitrate
+aboutOverlayBuffering: Buffering

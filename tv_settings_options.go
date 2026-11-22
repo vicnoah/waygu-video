@@ -86,6 +86,7 @@ func (a *application) tvSettingsOptions(cx *core.Scope, l tvLayout, section tvSe
 		return []tvOption{link("open-parental-settings", locales.TvSettingsParental(cx), route{screen: screenParentalSettings})}
 	default:
 		return []tvOption{{id: "tv-settings-version", label: locales.AppName(cx),
-			value: func() string { return core.App().Version }}}
+			value: func() string { return core.App().Version }},
+			link("tv-open-about", locales.SettingsAbout(cx), route{screen: screenAboutSettings})}
 	}
 }

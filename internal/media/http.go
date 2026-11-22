@@ -16,8 +16,9 @@ import (
 const responseLimit = 16 << 20
 
 type api struct {
-	base   *url.URL
-	client *http.Client
+	base    *url.URL
+	client  *http.Client
+	observe func(RequestMetric)
 }
 
 func NormalizeAddress(raw string) (*url.URL, error) {
@@ -123,7 +124,15 @@ func (a api) request(ctx context.Context, method, route string, params url.Value
 	return a.send(ctx, method, endpoint, header, payload, result)
 }
 
-func (a api) send(ctx context.Context, method string, endpoint *url.URL, header http.Header, payload []byte, result any) error {
+// RequestMetric contains operational data for a completed API request.
+type RequestMetric struct {
+	Method   string
+	Status   int
+	Duration time.Duration
+	Failed   bool
+}
+
+func (a api) send(ctx context.Context, method string, endpoint *url.URL, header http.Header, payload []byte, result any) (failure error) {
 	request, err := http.NewRequestWithContext(ctx, method, endpoint.String(), bytes.NewReader(payload))
 	if err != nil {
 		return ErrInvalidAddress
@@ -135,6 +144,11 @@ func (a api) send(ctx context.Context, method string, endpoint *url.URL, header 
 	for key, values := range header {
 		request.Header[key] = values
 	}
+	status := 0
+	if a.observe != nil {
+		start := time.Now()
+		defer func() { a.observe(RequestMetric{method, status, time.Since(start), failure != nil}) }()
+	}
 	response, err := a.client.Do(request)
 	if err != nil {
 		var connection *url.Error
@@ -144,6 +158,7 @@ func (a api) send(ctx context.Context, method string, endpoint *url.URL, header 
 		return fmt.Errorf("media server connection: %w", err)
 	}
 	defer response.Body.Close()
+	status = response.StatusCode
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
 		return StatusError(response.StatusCode)
 	}

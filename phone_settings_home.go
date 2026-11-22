@@ -2,12 +2,9 @@ package main
 
 import (
 	"strconv"
-	"strings"
 
-	"github.com/nsgo-dev/nsgo/base"
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/icons/lucide"
-	"github.com/nsgo-dev/nsgo/ui"
 
 	"waygu-video/locales"
 )
@@ -104,25 +101,10 @@ func (a *application) phoneSettingsHome(cx *core.Scope) core.Node {
 			}, routeTo(screenParentalSettings)),
 		),
 		setupGroup(locales.SettingsOther(cx), footer,
-			aboutSetting(cx, version)),
+			(phoneSetting{locales.SettingsAbout(cx), "", "bg-slate-500", lucide.Info}).link(cx, "settings-about", version, routeTo(screenAboutSettings))),
 	}}
 	return core.View{Class: "relative flex-1 bg-waygu-page", Children: []core.Node{
 		homeAmbient(false, false), homeAmbient(true, false),
 		core.Scroll{Class: "flex-1", TestID: "phone-settings-home", Children: []core.Node{body}},
 	}}
-}
-
-func aboutSetting(cx *core.Scope, version string) core.Node {
-	open := core.NewSignal(cx, false)
-	title := locales.SettingsAbout(cx)
-	return core.Group([]core.Node{
-		(phoneSetting{title, "", "bg-slate-500", lucide.Info}).link(cx, "settings-about", version, func() { open.Set(true) }),
-		core.Show{When: open.Get, Then: func(cx *core.Scope) core.Node {
-			details := strings.Join([]string{locales.Brand(cx), version}, " · ")
-			return ui.Dialog{Title: title, Open: open.Get, OnOpenChange: func(value bool, _ base.Reason) { open.Set(value) },
-				Children: []core.Node{hint(details), hint(locales.SettingsProviders(cx))},
-				Footer:   []core.Node{ui.Button{Text: locales.TracksDone(cx), OnPress: func() { open.Set(false) }}},
-			}
-		}},
-	})
 }
