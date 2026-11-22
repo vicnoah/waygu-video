@@ -4,22 +4,21 @@ set -eu
 cd "$(dirname "$0")/../.."
 navigation=TestSkipOnboarding
 if [ "$1" = tv ]; then
-    sh build/android/package.sh -target android_x64 -output dist/android-tv
-    adb -s "$ANDROID_SERIAL" install -r dist/android-tv/releases/*-android-x64.apk
+    timeout 90s adb -s "$ANDROID_SERIAL" install -r dist/android-tv/releases/*-android-x64.apk
     app_id=$(sed -n 's/^id: *//p' nsgo.yaml)
-    activity=$(adb -s "$ANDROID_SERIAL" shell cmd package resolve-activity --brief \
+    activity=$(timeout 20s adb -s "$ANDROID_SERIAL" shell cmd package resolve-activity --brief \
         -a android.intent.action.MAIN -c android.intent.category.LEANBACK_LAUNCHER "$app_id" |
         tr -d '\r' | tail -n 1)
     printf 'Resolved TV launcher activity: %s\n' "$activity"
     test "$activity" = "$app_id/dev.oneo.nsgo.NsgoActivity"
-    adb -s "$ANDROID_SERIAL" shell am start -W \
+    timeout 45s adb -s "$ANDROID_SERIAL" shell am start -W \
         -a android.intent.action.MAIN -c android.intent.category.LEANBACK_LAUNCHER -n "$activity"
-    adb -s "$ANDROID_SERIAL" shell am force-stop "$app_id"
+    timeout 20s adb -s "$ANDROID_SERIAL" shell am force-stop "$app_id"
     navigation=TestTVNavigation
 fi
 if ! go tool nsgo test -target android -device "$ANDROID_SERIAL" \
     -run "^(TestChineseAppName|$navigation|TestNativeVideoDecodes)$" -timeout 2m .; then
-    adb -s "$ANDROID_SERIAL" logcat -d -v brief -s AndroidRuntime:E MediaPlayer:V \
+    timeout 8s adb -s "$ANDROID_SERIAL" logcat -d -v brief -s AndroidRuntime:E MediaPlayer:V \
         MediaPlayerNative:V NuPlayer:V NuPlayerDriver:V CCodec:V | tail -120
     exit 1
 fi

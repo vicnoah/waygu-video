@@ -194,6 +194,9 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
           test -x "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android28-clang"
+      - name: Build the Android TV launcher APK
+        if: matrix.form == 'tv'
+        run: sh build/android/package.sh -target android_x64 -output dist/android-tv
       - name: Run Android UI smoke tests
         uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
         with:
@@ -202,8 +205,14 @@ jobs:
           profile: ${{ matrix.profile }}
           arch: x86_64
           emulator-boot-timeout: 240
+          emulator-options: >-
+            -no-window -no-snapshot -noaudio -no-boot-anim -no-metrics
+            ${{ matrix.form == 'tv' && '-gpu swiftshader -feature -Vulkan -memory 2048' || '-gpu swiftshader_indirect' }}
           pre-emulator-launch-script: df -h "$ANDROID_AVD_HOME"
           script: sh build/android/emulator-test.sh ${{ matrix.form }}
+      - name: Collect kernel diagnostics on failure
+        if: failure()
+        run: sudo dmesg --ctime --level=err,warn | tail -80
 
   integration:
     name: Docker media servers and libmpv
