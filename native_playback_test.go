@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -41,7 +42,9 @@ func TestNativeVideoDecodes(t *testing.T) {
 			core.Video{Source: source, Class: "flex-1", Muted: true, ProgressInterval: 100 * time.Millisecond,
 				OnLoadStart: func() { status.Set("loading media") },
 				OnLoad: func(info core.VideoInfo) {
-					if info.Size.Width == 160 && info.Size.Height == 90 && info.Duration >= 2900*time.Millisecond {
+					// NSGo reports natural size in points, which scale with display density.
+					if info.Size.Height > 0 && math.Abs(float64(info.Size.Width/info.Size.Height)-16.0/9.0) < 0.01 &&
+						info.Duration >= 2900*time.Millisecond && info.Duration <= 3100*time.Millisecond {
 						status.Set("decoded")
 						return
 					}
