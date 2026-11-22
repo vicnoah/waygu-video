@@ -74,10 +74,19 @@ func TestDockerTabletDetailReview(t *testing.T) {
 				return Root(cx)
 			}, nsgotest.Size(1180, height), nsgotest.Environment(core.Environment{Locale: "zh-Hans"}),
 				nsgotest.Storage(config), nsgotest.Secrets(secrets))
-			app.WaitFor("id:tablet-source-emby", 5*time.Second)
-			app.Press("id:tablet-source-emby")
-			app.WaitFor("id:title-emby-"+title, 10*time.Second)
-			app.Press("id:title-emby-" + title)
+			// The home rails show a limited set of titles that changes as the
+			// fixtures are scanned or played. Open the test movies from the library.
+			movies := "id:tablet-library-movies"
+			app.WaitFor(movies, 5*time.Second)
+			app.Press(movies)
+			open := func(item string) {
+				t.Helper()
+				selector := "id:title-emby-" + item
+				app.WaitFor(selector, 5*time.Second)
+				app.Press(selector)
+				app.WaitFor("id:tablet-detail-poster", 5*time.Second)
+			}
+			open(title)
 			app.WaitFor("id:detail-play", 5*time.Second)
 			app.WaitFor("id:detail-audio", 5*time.Second)
 			app.WaitFor("id:detail-subtitle", 5*time.Second)
@@ -132,11 +141,6 @@ func TestDockerTabletDetailReview(t *testing.T) {
 			app.WaitFor("id:tablet-detail-poster", 5*time.Second)
 			app.Press("id:back")
 
-			open := func(item string) {
-				app.WaitFor("id:title-emby-"+item, 5*time.Second)
-				app.Press("id:title-emby-" + item)
-				app.WaitFor("id:tablet-detail-poster", 5*time.Second)
-			}
 			openVersions := func() {
 				// A grouped Emby title can use either rendition as its catalog item.
 				var id string
@@ -186,7 +190,6 @@ func TestDockerTabletDetailReview(t *testing.T) {
 			app.WaitFor("id:tablet-detail-poster", 5*time.Second)
 			app.Press("id:back")
 
-			app.Press("id:tab-home")
 			open(sharedFixture)
 			app.WaitFor("id:playback-source", 5*time.Second)
 			selectOption("playback-source", "Jellyfin")
