@@ -483,6 +483,20 @@ settingsSourceUser: "用户 {name}"
 phonePlayerControls: 显示或隐藏播放控件
 phonePlayerSource: "来自 {name}"
 phonePlayerCast: 投屏
+castNoDevices: 当前网络未发现设备，请确认设备已开机且与本机在同一 Wi-Fi。
+castSearching: 正在查找 DLNA 设备…
+castRescan: 重新扫描
+castManualAddress: 设备 IP 或描述地址
+castFindDevice: 查找设备
+castDeviceUnavailable: 此地址没有可用的 DLNA 设备。
+castFormatUnavailable: 接收设备无法播放当前可用格式。
+castConnectionFailed: 无法连接 DLNA 接收设备。
+castDeviceChanged: 接收设备已开始播放其他内容。
+castConnected: "正在投屏到 {name}"
+castConnecting: 正在连接接收设备…
+castDisconnect: 断开投屏
+castVolumeUp: 增大接收设备音量
+castVolumeDown: 减小接收设备音量
 phonePlayerInfo: 播放信息
 phonePlayerMore: 更多
 phonePlayerPictureRatio: 画面比例

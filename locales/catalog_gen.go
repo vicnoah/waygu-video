@@ -114,6 +114,7 @@ var Parameters = map[string][]string{
 	"SettingsSourceRemoveConfirm":     {"name"},
 	"SettingsSourceUser":              {"name"},
 	"PhonePlayerSource":               {"name"},
+	"CastConnected":                   {"name"},
 	"PhonePlayerLoopStartAt":          {"start"},
 	"PhonePlayerLoopRange":            {"start", "end"},
 	"PhonePlayerSleepMinutes":         {"minutes"},
@@ -248,6 +249,7 @@ type Translation struct {
 	SettingsSourceRemoveConfirm     func(name string) string
 	SettingsSourceUser              func(name string) string
 	PhonePlayerSource               func(name string) string
+	CastConnected                   func(name string) string
 	PhonePlayerLoopStartAt          func(start string) string
 	PhonePlayerLoopRange            func(start string, end string) string
 	PhonePlayerSleepMinutes         func(minutes string) string
@@ -723,6 +725,19 @@ const (
 	textSettingsSourceNeedsLogin
 	textPhonePlayerControls
 	textPhonePlayerCast
+	textCastNoDevices
+	textCastSearching
+	textCastRescan
+	textCastManualAddress
+	textCastFindDevice
+	textCastDeviceUnavailable
+	textCastFormatUnavailable
+	textCastConnectionFailed
+	textCastDeviceChanged
+	textCastConnecting
+	textCastDisconnect
+	textCastVolumeUp
+	textCastVolumeDown
 	textPhonePlayerInfo
 	textPhonePlayerMore
 	textPhonePlayerPictureRatio
@@ -1544,6 +1559,19 @@ var keyOfText = [numTexts]string{
 	"settingsSourceNeedsLogin",
 	"phonePlayerControls",
 	"phonePlayerCast",
+	"castNoDevices",
+	"castSearching",
+	"castRescan",
+	"castManualAddress",
+	"castFindDevice",
+	"castDeviceUnavailable",
+	"castFormatUnavailable",
+	"castConnectionFailed",
+	"castDeviceChanged",
+	"castConnecting",
+	"castDisconnect",
+	"castVolumeUp",
+	"castVolumeDown",
 	"phonePlayerInfo",
 	"phonePlayerMore",
 	"phonePlayerPictureRatio",
@@ -2363,6 +2391,19 @@ var textsEn = i18n.NewTexts(""+
 	"Sign in required"+
 	"Show or hide player controls"+
 	"Cast"+
+	"No devices found. Check that your receiver is on and connected to the same Wi-Fi."+
+	"Finding DLNA receivers…"+
+	"Scan again"+
+	"Receiver IP or description URL"+
+	"Find device"+
+	"No DLNA receiver responded at this address."+
+	"This receiver cannot play the available formats."+
+	"The connection to the DLNA receiver failed."+
+	"The receiver started playing something else."+
+	"Connecting to the receiver…"+
+	"Disconnect"+
+	"Increase receiver volume"+
+	"Decrease receiver volume"+
 	"Playback information"+
 	"Playback actions"+
 	"Picture ratio"+
@@ -3179,6 +3220,19 @@ var textsEn = i18n.NewTexts(""+
 		16,
 		28,
 		4,
+		81,
+		25,
+		10,
+		30,
+		11,
+		43,
+		48,
+		43,
+		44,
+		29,
+		10,
+		24,
+		24,
 		20,
 		16,
 		13,
@@ -3998,6 +4052,19 @@ var textsZhHans = i18n.NewTexts(""+
 	"需要登录"+
 	"显示或隐藏播放控件"+
 	"投屏"+
+	"当前网络未发现设备，请确认设备已开机且与本机在同一 Wi-Fi。"+
+	"正在查找 DLNA 设备…"+
+	"重新扫描"+
+	"设备 IP 或描述地址"+
+	"查找设备"+
+	"此地址没有可用的 DLNA 设备。"+
+	"接收设备无法播放当前可用格式。"+
+	"无法连接 DLNA 接收设备。"+
+	"接收设备已开始播放其他内容。"+
+	"正在连接接收设备…"+
+	"断开投屏"+
+	"增大接收设备音量"+
+	"减小接收设备音量"+
 	"播放信息"+
 	"更多"+
 	"画面比例"+
@@ -4814,6 +4881,19 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		27,
 		6,
+		84,
+		27,
+		12,
+		25,
+		12,
+		39,
+		45,
+		33,
+		42,
+		27,
+		12,
+		24,
+		24,
 		12,
 		6,
 		12,
@@ -5483,6 +5563,9 @@ func Supply(lang string, t Translation) {
 	}
 	if t.PhonePlayerSource != nil {
 		s.PhonePlayerSource = t.PhonePlayerSource
+	}
+	if t.CastConnected != nil {
+		s.CastConnected = t.CastConnected
 	}
 	if t.PhonePlayerLoopStartAt != nil {
 		s.PhonePlayerLoopStartAt = t.PhonePlayerLoopStartAt
@@ -10303,6 +10386,119 @@ func PhonePlayerCast(cx *core.Scope) string { return For(cx).PhonePlayerCast() }
 
 // PhonePlayerCast is the package's PhonePlayerCast in the language of msgs.
 func (msgs Messages) PhonePlayerCast() string { return msgs.text(textPhonePlayerCast) }
+
+// CastNoDevices says "No devices found. Check that your receiver is on and connected to the same Wi-Fi."
+// in the language the app shows under cx.
+func CastNoDevices(cx *core.Scope) string { return For(cx).CastNoDevices() }
+
+// CastNoDevices is the package's CastNoDevices in the language of msgs.
+func (msgs Messages) CastNoDevices() string { return msgs.text(textCastNoDevices) }
+
+// CastSearching says "Finding DLNA receivers…"
+// in the language the app shows under cx.
+func CastSearching(cx *core.Scope) string { return For(cx).CastSearching() }
+
+// CastSearching is the package's CastSearching in the language of msgs.
+func (msgs Messages) CastSearching() string { return msgs.text(textCastSearching) }
+
+// CastRescan says "Scan again"
+// in the language the app shows under cx.
+func CastRescan(cx *core.Scope) string { return For(cx).CastRescan() }
+
+// CastRescan is the package's CastRescan in the language of msgs.
+func (msgs Messages) CastRescan() string { return msgs.text(textCastRescan) }
+
+// CastManualAddress says "Receiver IP or description URL"
+// in the language the app shows under cx.
+func CastManualAddress(cx *core.Scope) string { return For(cx).CastManualAddress() }
+
+// CastManualAddress is the package's CastManualAddress in the language of msgs.
+func (msgs Messages) CastManualAddress() string { return msgs.text(textCastManualAddress) }
+
+// CastFindDevice says "Find device"
+// in the language the app shows under cx.
+func CastFindDevice(cx *core.Scope) string { return For(cx).CastFindDevice() }
+
+// CastFindDevice is the package's CastFindDevice in the language of msgs.
+func (msgs Messages) CastFindDevice() string { return msgs.text(textCastFindDevice) }
+
+// CastDeviceUnavailable says "No DLNA receiver responded at this address."
+// in the language the app shows under cx.
+func CastDeviceUnavailable(cx *core.Scope) string { return For(cx).CastDeviceUnavailable() }
+
+// CastDeviceUnavailable is the package's CastDeviceUnavailable in the language of msgs.
+func (msgs Messages) CastDeviceUnavailable() string { return msgs.text(textCastDeviceUnavailable) }
+
+// CastFormatUnavailable says "This receiver cannot play the available formats."
+// in the language the app shows under cx.
+func CastFormatUnavailable(cx *core.Scope) string { return For(cx).CastFormatUnavailable() }
+
+// CastFormatUnavailable is the package's CastFormatUnavailable in the language of msgs.
+func (msgs Messages) CastFormatUnavailable() string { return msgs.text(textCastFormatUnavailable) }
+
+// CastConnectionFailed says "The connection to the DLNA receiver failed."
+// in the language the app shows under cx.
+func CastConnectionFailed(cx *core.Scope) string { return For(cx).CastConnectionFailed() }
+
+// CastConnectionFailed is the package's CastConnectionFailed in the language of msgs.
+func (msgs Messages) CastConnectionFailed() string { return msgs.text(textCastConnectionFailed) }
+
+// CastDeviceChanged says "The receiver started playing something else."
+// in the language the app shows under cx.
+func CastDeviceChanged(cx *core.Scope) string { return For(cx).CastDeviceChanged() }
+
+// CastDeviceChanged is the package's CastDeviceChanged in the language of msgs.
+func (msgs Messages) CastDeviceChanged() string { return msgs.text(textCastDeviceChanged) }
+
+// CastConnected says "Casting to {name}"
+// in the language the app shows under cx.
+func CastConnected(cx *core.Scope, name string) string { return For(cx).CastConnected(name) }
+
+// CastConnected is the package's CastConnected in the language of msgs.
+func (msgs Messages) CastConnected(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.CastConnected(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].CastConnected; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Casting to " + msgs.arg(name)
+		case "zh-Hans":
+			return "正在投屏到 " + name
+		}
+	}
+}
+
+// CastConnecting says "Connecting to the receiver…"
+// in the language the app shows under cx.
+func CastConnecting(cx *core.Scope) string { return For(cx).CastConnecting() }
+
+// CastConnecting is the package's CastConnecting in the language of msgs.
+func (msgs Messages) CastConnecting() string { return msgs.text(textCastConnecting) }
+
+// CastDisconnect says "Disconnect"
+// in the language the app shows under cx.
+func CastDisconnect(cx *core.Scope) string { return For(cx).CastDisconnect() }
+
+// CastDisconnect is the package's CastDisconnect in the language of msgs.
+func (msgs Messages) CastDisconnect() string { return msgs.text(textCastDisconnect) }
+
+// CastVolumeUp says "Increase receiver volume"
+// in the language the app shows under cx.
+func CastVolumeUp(cx *core.Scope) string { return For(cx).CastVolumeUp() }
+
+// CastVolumeUp is the package's CastVolumeUp in the language of msgs.
+func (msgs Messages) CastVolumeUp() string { return msgs.text(textCastVolumeUp) }
+
+// CastVolumeDown says "Decrease receiver volume"
+// in the language the app shows under cx.
+func CastVolumeDown(cx *core.Scope) string { return For(cx).CastVolumeDown() }
+
+// CastVolumeDown is the package's CastVolumeDown in the language of msgs.
+func (msgs Messages) CastVolumeDown() string { return msgs.text(textCastVolumeDown) }
 
 // PhonePlayerInfo says "Playback information"
 // in the language the app shows under cx.

@@ -36,7 +36,11 @@ func (a *application) phoneMovieDetail(cx *core.Scope, current route, copies fun
 		related.Refetch()
 	}
 	hero := core.Dynamic(func(cx *core.Scope) core.Node {
-		return a.phoneMovieHero(cx, state.item(), state.active(), reload)
+		var cast func()
+		if canCast(cx) && current.downloadID == "" {
+			cast = state.cast
+		}
+		return a.phoneMovieHero(cx, state.item(), state.active(), reload, cast)
 	})
 	actions := core.Dynamic(func(cx *core.Scope) core.Node {
 		item := state.item()
@@ -215,7 +219,7 @@ func (a *application) movieRecommendations(ctx context.Context, current route, c
 	return matches, nil
 }
 
-func (a *application) phoneMovieHero(cx *core.Scope, item media.Item, version media.Version, reload func()) core.Node {
+func (a *application) phoneMovieHero(cx *core.Scope, item media.Item, version media.Version, reload, cast func()) core.Node {
 	title := []core.Node{core.Text{Content: item.Title, Role: core.RoleHeader, TestID: "phone-movie-title",
 		Class: "text-4xl font-bold tracking-tight text-white", MaxLines: 2}}
 	if item.OriginalTitle != "" && item.OriginalTitle != item.Title {
@@ -252,7 +256,11 @@ func (a *application) phoneMovieHero(cx *core.Scope, item media.Item, version me
 	if len(badges) != 0 {
 		title = append(title, core.View{Class: "flex-row flex-wrap gap-1.5", Children: badges})
 	}
-	return a.phoneMediaHero(cx, item, "h-[460px]", "phone-movie-hero", title, phoneMovieMore(cx, true, reload, false, nil))
+	var tools []core.Node
+	if cast != nil {
+		tools = append(tools, phoneHeroAction(cx, "detail-cast-device", locales.PhonePlayerCast(cx), lucide.Cast(), false, nil, cast))
+	}
+	return a.phoneMediaHero(cx, item, "h-[460px]", "phone-movie-hero", title, append(tools, phoneMovieMore(cx, true, reload, false, nil))...)
 }
 
 func (a *application) phoneMediaHero(cx *core.Scope, item media.Item, height, id string, title []core.Node, tools ...core.Node) core.Node {

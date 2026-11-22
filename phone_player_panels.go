@@ -23,9 +23,13 @@ func phoneLandscape(cx *core.Scope) bool {
 
 func playerSidePanel(cx *core.Scope, id, closeID, label string, opened func() bool, close func(), heading, tabs, body core.Node) core.Node {
 	return core.Show{When: opened, Then: func(cx *core.Scope) core.Node {
+		var ios core.IOSModalProps
+		if core.Untracked(cx, func() bool { return phoneLandscape(cx) }) {
+			ios.SupportedOrientations = core.OrientationLandscape
+		}
 		return base.Dialog{
 			Label: label, TestID: id, Open: opened, Animation: core.ModalNone,
-			IOS: core.IOSModalProps{SupportedOrientations: core.OrientationLandscape},
+			IOS: ios,
 			OnOpenChange: func(show bool, _ base.Reason) {
 				if !show {
 					close()

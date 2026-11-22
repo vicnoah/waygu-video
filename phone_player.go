@@ -33,6 +33,7 @@ type phonePlayerControls struct {
 	loop                   *segmentLoop
 	sleepTimer             *core.Signal[playerSleepTimer]
 	ready                  func() bool
+	cast                   *playerCast
 	next                   nextEpisodeControls
 	comments               danmakuControls
 	tracks                 trackControls
@@ -46,7 +47,7 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 	preview := core.NewSignal(cx, time.Duration(-1))
 	railDrag := core.NewSignal(cx, false)
 	gesturesDisabled := func() bool {
-		return locked.Get() || info.Get() || aspect.Get() || p.comments.panelOpen() || p.tracks.panelOpen() || p.playbackBlocked()
+		return locked.Get() || info.Get() || aspect.Get() || p.comments.panelOpen() || p.tracks.panelOpen() || p.playbackBlocked() || p.cast.open.Get()
 	}
 	frames := playerPreviewFrames(cx, p.current, p.client, p.stream, func() time.Duration {
 		if at := preview.Get(); at >= 0 && !gesturesDisabled() {
@@ -101,9 +102,13 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 		}},
 	}}
 	tools := core.View{Class: "h-9 shrink-0 flex-row items-center gap-1 rounded-full border border-white/10 bg-white/15 px-1", Children: []core.Node{
-		playerIconButton(cx, "phone-player-cast", locales.PhonePlayerCast(cx), "size-8 rounded-full", "size-[18px] text-white", lucide.Cast, func() bool { return true }, nil),
+		playerIconButton(cx, "phone-player-cast", locales.PhonePlayerCast(cx), "size-8 rounded-full", "size-[18px] text-white", lucide.Cast,
+			func() bool { return !p.cast.available }, func() { p.cast.open.Set(true) }),
 		playerIconButton(cx, "phone-player-pip", locales.SettingsAutoPiP(cx), "size-8 rounded-full", "size-[18px] text-white", lucide.PictureInPicture2,
-			func() bool { state := p.pip.Get(); return !state.Supported || !state.Possible || state.Active }, p.startPiP),
+			func() bool {
+				state := p.pip.Get()
+				return p.cast.active() || !state.Supported || !state.Possible || state.Active
+			}, p.startPiP),
 		playerIconButton(cx, "phone-player-info", locales.PhonePlayerMore(cx), "size-8 rounded-full", "size-[18px] text-white", lucide.Ellipsis, nil, func() { info.Set(true) }),
 	}}
 	header := core.View{Class: "absolute inset-x-0 top-0 flex-row items-center gap-3 px-6 pt-4",
@@ -144,13 +149,13 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 			Children: []core.Node{core.Text{Content: locales.AddDanmaku(cx), MaxLines: 1, Class: "w-36 text-xs text-zinc-300"}}},
 	}}
 	options := core.View{Class: "h-8 shrink-0 flex-row items-center gap-0.5 rounded-full border border-white/10 bg-white/10 px-1", Children: []core.Node{
-		playerLabeledAction(cx, "danmaku-sources", locales.PhonePlayerDanmakuSettings(cx), lucide.SlidersHorizontal, p.comments.openPanel),
-		playerLabeledAction(cx, "player-tracks", locales.PhonePlayerTracks(cx), lucide.Captions, func() { p.tracks.show(trackSubtitleTab) }),
-		base.Button{TestID: "phone-player-rate", Label: locales.PlaybackSpeed(cx), Disabled: func() bool { return !p.canRate.Get() },
+		playerLabeledAction(cx, "danmaku-sources", locales.PhonePlayerDanmakuSettings(cx), lucide.SlidersHorizontal, p.cast.active, p.comments.openPanel),
+		playerLabeledAction(cx, "player-tracks", locales.PhonePlayerTracks(cx), lucide.Captions, p.cast.active, func() { p.tracks.show(trackSubtitleTab) }),
+		base.Button{TestID: "phone-player-rate", Label: locales.PlaybackSpeed(cx), Disabled: func() bool { return !p.canRate.Get() || p.cast.active() },
 			Class: "h-7 items-center justify-center rounded-full px-2.5 disabled:opacity-45", Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)},
 			OnPress: func(core.PressEvent) { rateTap() }, OnLongPress: func(core.PressEvent) { p.tracks.show(trackSpeedTab) },
 			Children: []core.Node{core.Text{ContentFunc: func() string { return playbackRateLabel(p.rate.Get()) }, Class: "text-xs font-semibold text-white"}}},
-		playerIconButton(cx, "phone-player-fit", locales.PhonePlayerPictureRatio(cx), "h-7 w-9 rounded-full", "size-4 text-white", lucide.Scan, nil, func() { aspect.Set(true) }),
+		playerIconButton(cx, "phone-player-fit", locales.PhonePlayerPictureRatio(cx), "h-7 w-9 rounded-full", "size-4 text-white", lucide.Scan, p.cast.active, func() { aspect.Set(true) }),
 	}}
 	footer := core.View{Class: "absolute inset-x-0 bottom-0 gap-2.5 px-6 pb-4",
 		Style: core.Style{PaddingEnv: core.EnvEdges{Left: core.EnvSafeArea, Right: core.EnvSafeArea, Bottom: core.EnvSafeArea}},
@@ -242,8 +247,8 @@ func (p phonePlayerControls) play(cx *core.Scope, id, class, iconClass string) c
 		})}}
 }
 
-func playerLabeledAction(cx *core.Scope, id, label string, icon func() *core.SVG, action func()) core.Node {
-	return base.Button{TestID: id, Label: label, Class: "h-7 shrink-0 flex-row items-center gap-1.5 rounded-full px-2.5",
+func playerLabeledAction(cx *core.Scope, id, label string, icon func() *core.SVG, disabled func() bool, action func()) core.Node {
+	return base.Button{TestID: id, Label: label, Disabled: disabled, Class: "h-7 shrink-0 flex-row items-center gap-1.5 rounded-full px-2.5 disabled:opacity-45",
 		Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)}, OnPress: func(core.PressEvent) { action() },
 		Children: []core.Node{core.Icon{SVG: icon(), Class: "size-4 text-white"},
 			core.Text{Content: label, Class: "hidden text-xs text-white min-[680px]:flex"}},

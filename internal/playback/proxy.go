@@ -11,6 +11,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"strings"
 	"sync"
@@ -22,16 +23,36 @@ const maxPlaylist = 4 << 20
 // Open starts a loopback proxy for a player that needs authenticated headers.
 // It forwards byte ranges and keeps the credentials out of the player's URL.
 func Open(address string, headers http.Header) (string, func(), error) {
+	return openProxy(address, headers, "127.0.0.1:0", netip.Addr{}, "")
+}
+
+// OpenForRenderer publishes a single authenticated stream on the interface
+// that reaches the receiver. Only that receiver may fetch its opaque URLs.
+func OpenForRenderer(address string, headers http.Header, receiver netip.Addr, contentType string) (string, func(), error) {
+	if !receiver.IsValid() || receiver.IsUnspecified() || receiver.IsMulticast() {
+		return "", nil, errors.New("invalid receiver address")
+	}
+	conn, err := net.DialUDP("udp", nil, net.UDPAddrFromAddrPort(netip.AddrPortFrom(receiver, 1900)))
+	if err != nil {
+		return "", nil, err
+	}
+	local := conn.LocalAddr().(*net.UDPAddr).AddrPort().Addr()
+	_ = conn.Close()
+	return openProxy(address, headers, netip.AddrPortFrom(local, 0).String(), receiver.Unmap(), contentType)
+}
+
+func openProxy(address string, headers http.Header, bind string, receiver netip.Addr, contentType string) (string, func(), error) {
 	origin, err := url.Parse(address)
 	if err != nil || origin.User != nil || origin.Hostname() == "" || (origin.Scheme != "http" && origin.Scheme != "https") {
 		return "", nil, errors.New("invalid playback URL")
 	}
-	listener, err := net.Listen("tcp4", "127.0.0.1:0")
+	listener, err := net.Listen("tcp", bind)
 	if err != nil {
 		return "", nil, err
 	}
 	transport := &http.Transport{Proxy: http.ProxyFromEnvironment, ResponseHeaderTimeout: 20 * time.Second}
-	proxy := &streamProxy{origin: origin, headers: headers.Clone(), prefix: "/" + rand.Text() + "/"}
+	proxy := &streamProxy{origin: origin, headers: headers.Clone(), prefix: "/" + rand.Text() + "/",
+		receiver: receiver, mediaType: contentType}
 	proxy.client = &http.Client{Transport: transport, CheckRedirect: func(req *http.Request, prior []*http.Request) error {
 		if len(prior) >= 5 || !proxy.sameServer(req.URL) {
 			return http.ErrUseLastResponse
@@ -39,7 +60,7 @@ func Open(address string, headers http.Header) (string, func(), error) {
 		return nil
 	}}
 	server := &http.Server{Handler: proxy, ReadHeaderTimeout: 5 * time.Second}
-	local := "http://" + listener.Addr().String() + proxy.add(origin)
+	local := (&url.URL{Scheme: "http", Host: listener.Addr().String(), Path: proxy.add(origin)}).String()
 	go func() { _ = server.Serve(listener) }()
 	return local, func() {
 		_ = server.Close()
@@ -48,11 +69,13 @@ func Open(address string, headers http.Header) (string, func(), error) {
 }
 
 type streamProxy struct {
-	origin  *url.URL
-	client  *http.Client
-	headers http.Header
-	prefix  string
-	routes  sync.Map
+	origin    *url.URL
+	client    *http.Client
+	headers   http.Header
+	prefix    string
+	receiver  netip.Addr
+	mediaType string
+	routes    sync.Map
 }
 
 func (p *streamProxy) sameServer(endpoint *url.URL) bool {
@@ -70,6 +93,13 @@ func (p *streamProxy) add(endpoint *url.URL) string {
 }
 
 func (p *streamProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if p.receiver.IsValid() {
+		peer, err := netip.ParseAddrPort(r.RemoteAddr)
+		if err != nil || peer.Addr().Unmap().WithZone("") != p.receiver.WithZone("") {
+			http.NotFound(w, r)
+			return
+		}
+	}
 	value, found := p.routes.Load(r.URL.Path)
 	if !found || (r.Method != http.MethodGet && r.Method != http.MethodHead) {
 		http.NotFound(w, r)
@@ -114,7 +144,11 @@ func (p *streamProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid stream playlist", http.StatusBadGateway)
 			return
 		}
-		w.Header().Set("Content-Type", "application/vnd.apple.mpegurl")
+		mime := "application/vnd.apple.mpegurl"
+		if endpoint == p.origin && p.mediaType != "" {
+			mime = p.mediaType
+		}
+		w.Header().Set("Content-Type", mime)
 		w.Header().Set("Cache-Control", "no-store")
 		_, _ = w.Write(data)
 		return
@@ -123,6 +157,9 @@ func (p *streamProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if value := response.Header.Get(name); value != "" {
 			w.Header().Set(name, value)
 		}
+	}
+	if p.mediaType != "" && endpoint == p.origin && (response.StatusCode == http.StatusOK || response.StatusCode == http.StatusPartialContent) {
+		w.Header().Set("Content-Type", p.mediaType)
 	}
 	w.Header().Set("Cache-Control", "no-store")
 	w.WriteHeader(response.StatusCode)

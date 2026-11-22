@@ -118,6 +118,11 @@ func (m *mediaBrowser) Playback(ctx context.Context, item Item, options Playback
 		"EnableDirectPlay": true, "EnableDirectStream": true, "EnableTranscoding": true,
 		"AllowVideoStreamCopy": true, "AllowAudioStreamCopy": true,
 	}
+	if options.ForceTranscode {
+		params.Set("EnableDirectPlay", "false")
+		params.Set("EnableDirectStream", "false")
+		body["EnableDirectPlay"], body["EnableDirectStream"] = false, false
+	}
 	if options.SourceID != "" {
 		params.Set("MediaSourceId", options.SourceID)
 		body["MediaSourceId"] = options.SourceID
@@ -148,6 +153,9 @@ func (m *mediaBrowser) Playback(ctx context.Context, item Item, options Playback
 		source := dto.MediaSources[index]
 		if options.SourceID != "" && options.SourceID != source.ID {
 			continue
+		}
+		if options.ForceTranscode {
+			source.SupportsDirectPlay, source.SupportsDirectStream = false, false
 		}
 		if stream, ok := m.browserStream(item, source, dto.PlaySessionId, bitrate, options.AudioIndex); ok {
 			return stream, nil

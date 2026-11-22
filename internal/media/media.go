@@ -159,12 +159,13 @@ const (
 )
 
 type PlaybackOptions struct {
-	SourceID      string
-	VersionPolicy VersionPolicy
-	MaxBitrate    int
-	AudioIndex    *int
-	SubtitleIndex *int
-	Direct        []DirectProfile
+	SourceID       string
+	VersionPolicy  VersionPolicy
+	MaxBitrate     int
+	ForceTranscode bool
+	AudioIndex     *int
+	SubtitleIndex  *int
+	Direct         []DirectProfile
 }
 
 type DirectProfile struct {

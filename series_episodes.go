@@ -115,16 +115,18 @@ func (a *application) seriesVersion(ctx context.Context, source source, item med
 	return result, nil
 }
 
-func (a *application) openSeriesEpisode(view seriesViewState, entry catalogItem, resume, details bool) {
+func (a *application) openSeriesEpisode(view seriesViewState, entry catalogItem, resume, details, cast bool) {
 	if entry.item.ID == "" {
 		return
 	}
-	next := route{screen: screenPlayer, source: entry.source, item: entry.item, resume: resume, resumeLocal: entry.pending}
+	next := route{screen: screenPlayer, source: entry.source, item: entry.item, resume: resume, resumeLocal: entry.pending, castOnOpen: cast}
 	if details {
 		next.screen = screenDetail
 	}
-	if saved, ok := a.seriesDownload(entry.source, entry.item, a.downloads.entries.GetUntracked()); ok && saved.State == downloadComplete {
-		next.downloadID = saved.ID
+	if !cast {
+		if saved, ok := a.seriesDownload(entry.source, entry.item, a.downloads.entries.GetUntracked()); ok && saved.State == downloadComplete {
+			next.downloadID = saved.ID
+		}
 	}
 	stack := slices.Clone(a.routes.GetUntracked())
 	stack[len(stack)-1].seriesView = view

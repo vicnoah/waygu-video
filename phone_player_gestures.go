@@ -24,6 +24,7 @@ const (
 func (p phonePlayerControls) gestureSurface(cx *core.Scope, controls *core.Signal[bool], preview *core.Signal[time.Duration], disabled func() bool) (core.Node, core.Node) {
 	const doubleTapTime = 280 * time.Millisecond
 	hud := core.NewSignal(cx, phoneGestureNone)
+	remoteVolume := core.NewSignal(cx, float32(0))
 	width, height := core.Points(0), core.Points(0)
 	var stopHoldTimer, stopHUDTimer func() bool
 	var holdRate float32
@@ -62,18 +63,18 @@ func (p phonePlayerControls) gestureSurface(cx *core.Scope, controls *core.Signa
 	cx.Effect(func() {
 		if disabled() {
 			reset()
-		} else if p.paused.Get() || !p.canRate.Get() {
+		} else if p.paused.Get() || !p.canRate.Get() || p.cast.active() {
 			cancelHold()
 		}
 	})
 	startHold := func(core.PressEvent) {
 		suppressPress = false
-		if core.Untracked(cx, disabled) || p.paused.GetUntracked() || !p.canRate.GetUntracked() {
+		if core.Untracked(cx, disabled) || p.paused.GetUntracked() || !p.canRate.GetUntracked() || p.cast.active() {
 			return
 		}
 		stopHoldTimer = cx.AfterFunc(500*time.Millisecond, func() {
 			stopHoldTimer = nil
-			if core.Untracked(cx, disabled) || p.paused.GetUntracked() || !p.canRate.GetUntracked() {
+			if core.Untracked(cx, disabled) || p.paused.GetUntracked() || !p.canRate.GetUntracked() || p.cast.active() {
 				return
 			}
 			holdRate = p.rate.GetUntracked()
@@ -124,6 +125,9 @@ func (p phonePlayerControls) gestureSurface(cx *core.Scope, controls *core.Signa
 					mode, initialLevel = phoneGestureBrightness, p.brightness.GetUntracked()
 				} else {
 					mode, initialLevel = phoneGestureVolume, p.volume.GetUntracked()
+					if p.cast.active() {
+						initialLevel = float32(p.cast.volume.GetUntracked()) / 100
+					}
 				}
 			}
 			switch mode {
@@ -133,15 +137,26 @@ func (p phonePlayerControls) gestureSurface(cx *core.Scope, controls *core.Signa
 					preview.Set(min(length, max(0, panStart+offset)))
 				}
 			case phoneGestureBrightness:
-				p.brightness.Set(max(.15, min(1, initialLevel-float32(dy/max(1, height)))))
-				hud.Set(mode)
+				if !p.cast.active() {
+					p.brightness.Set(max(.15, min(1, initialLevel-float32(dy/max(1, height)))))
+					hud.Set(mode)
+				}
 			case phoneGestureVolume:
-				p.volume.Set(max(0, min(1, initialLevel-float32(dy/max(1, height)))))
-				hud.Set(mode)
+				level := max(0, min(1, initialLevel-float32(dy/max(1, height))))
+				if !p.cast.active() {
+					p.volume.Set(level)
+					hud.Set(mode)
+				} else if p.cast.receiver.GetUntracked().HasVolume() {
+					remoteVolume.Set(level)
+					hud.Set(mode)
+				}
 			}
 		case core.GestureEnded:
 			if at := preview.GetUntracked(); mode == phoneGestureSeek && at >= 0 {
 				p.seek(at)
+			}
+			if hud.GetUntracked() == phoneGestureVolume && p.cast.active() {
+				p.cast.command(castCommand{action: castVolume, value: roundedPercent(remoteVolume.GetUntracked())})
 			}
 			preview.Set(-1)
 			mode = phoneGestureNone
@@ -173,10 +188,14 @@ func (p phonePlayerControls) gestureSurface(cx *core.Scope, controls *core.Signa
 				switch hud.Get() {
 				case phoneGestureBrightness:
 					id, icon = "phone-player-brightness", lucide.Sun
-					text = locales.PhonePlayerBrightness(cx, strconv.Itoa(int(math.Round(float64(p.brightness.Get()*100)))))
+					text = locales.PhonePlayerBrightness(cx, strconv.Itoa(roundedPercent(p.brightness.Get())))
 				case phoneGestureVolume:
 					id, icon = "phone-player-volume", lucide.Volume2
-					text = locales.PhonePlayerVolume(cx, strconv.Itoa(int(math.Round(float64(p.volume.Get()*100)))))
+					level := p.volume.Get()
+					if p.cast.active() {
+						level = remoteVolume.Get()
+					}
+					text = locales.PhonePlayerVolume(cx, strconv.Itoa(roundedPercent(level)))
 				case phoneGestureSpeed:
 					id, icon = "phone-player-boost", lucide.FastForward
 					text = playbackRateLabel(2)
@@ -193,3 +212,5 @@ func (p phonePlayerControls) gestureSurface(cx *core.Scope, controls *core.Signa
 	}}
 	return surface, feedback
 }
+
+func roundedPercent(level float32) int { return int(math.Round(float64(level * 100))) }

@@ -177,12 +177,14 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 	}, func(ctx context.Context, q versionQuery, _ core.ResourceInfo) (seriesVersion, error) {
 		return a.seriesVersion(ctx, current.source, q.item, q.options)
 	})
-	open := func(entry catalogItem, resume, details bool) {
-		view := seriesViewState{
+	viewState := func() seriesViewState {
+		return seriesViewState{
 			tab: activeTab.GetUntracked(), copy: (catalogCopy{current.source, current.item}).key(),
 			reversed: reversed.GetUntracked(), hideWatched: hideWatched.GetUntracked(),
 		}
-		a.openSeriesEpisode(view, entry, resume, details)
+	}
+	open := func(entry catalogItem, resume, details bool) {
+		a.openSeriesEpisode(viewState(), entry, resume, details, false)
 	}
 	refresh := func() {
 		detail.Refetch()
@@ -198,8 +200,12 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 		if badges.itemID != episodeID.Get() {
 			badges = seriesVersion{}
 		}
+		var cast func()
+		if entry := target.Get(); entry.item.ID != "" && canCast(cx) {
+			cast = func() { a.openSeriesEpisode(viewState(), entry, true, false, true) }
+		}
 		return a.phoneSeriesHero(cx, current, result.item, seasons.Get(), badges.version,
-			personal.buttons(cx, result, phoneHeroAction), copies, selectCopy, refresh)
+			personal.buttons(cx, result, phoneHeroAction), copies, selectCopy, refresh, cast)
 	})
 	summary := core.Dynamic(func(cx *core.Scope) core.Node {
 		result, ready := detail.Get()
@@ -293,7 +299,7 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 }
 
 func (a *application) phoneSeriesHero(cx *core.Scope, current route, item media.Item, seasons []media.Item, version media.Version, tools []core.Node,
-	copies func() []ui.Option[copyKey], selectCopy func(copyKey), refresh func()) core.Node {
+	copies func() []ui.Option[copyKey], selectCopy func(copyKey), refresh, cast func()) core.Node {
 	var facts []string
 	if item.Year > 0 {
 		facts = append(facts, strconv.Itoa(item.Year))
@@ -331,6 +337,9 @@ func (a *application) phoneSeriesHero(cx *core.Scope, current route, item media.
 	})
 	title = append(title, core.View{Class: "flex-row flex-wrap gap-1.5", Children: badges})
 	menu := []core.Node{ui.MenuItem{Text: locales.ReloadMovieDetail(cx), TestID: "series-reload", OnSelect: refresh}}
+	if cast != nil {
+		menu = append(menu, ui.MenuItem{Text: locales.PhonePlayerCast(cx), TestID: "series-cast-device", OnSelect: cast})
+	}
 	if copies != nil && selectCopy != nil {
 		active := (catalogCopy{current.source, current.item}).key()
 		for _, option := range copies() {

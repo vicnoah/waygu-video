@@ -50,3 +50,22 @@ With the same three fixtures, `TestDockerOfflineDownloadReview` saves an origina
 `TestDockerPhonePlayerDesignReview` starts the generated track test movie through its Emby detail page. The native run decodes the video, selects an external Emby subtitle, checks all six aspect choices, and uses chapter times to verify an A/B repeat. It advances the test clock to exercise the sleep timer while the video plays. Its DandanPlay transport supplies generated comments locally. The headless run imports the corresponding XML fixture and checks that stale decoder notifications during a loop do not end playback.
 
 `TestDockerServers` compares the four chapter names and times reported by each service to the embedded chapter metadata. `TestDockerPhonePlayerGesturesAndPreview` plays the Jellyfin copy, jumps to a chapter, and checks slider commits, lock behavior and the thumbnail returned by Jellyfin while the slider is held. The headless case also verifies the temporary speed command and its restoration after cancellation. On an existing Docker setup, run `fixtures.sh` and `bootstrap.py` again to import the chaptered fixture.
+
+
+## DLNA casting
+
+`TestDockerPhoneDLNACasting` connects to a local renderer fixture from the Emby detail page. It verifies byte ranges, video decode, play and pause, volume, seek, position polling and local resume. `TestDockerDLNAUsesServerTranscode` limits the renderer to HLS and decodes the stream produced by each of the three Docker servers.
+
+For an independent receiver, run GMediaRender with GStreamer H.264 and AAC decoding installed on Linux. Set the interface name to the sender's local network interface. GMediaRender can advertise its existing MP4 decoder under the DLNA `video/mp4` MIME type with `--mime-filter`. [GMediaRender manual](https://manpages.ubuntu.com/manpages/resolute/man1/gmediarender.1.html)
+
+```sh
+gmediarender -I eth0 -p 51323 -f 'Waygu DLNA Lab' --mime-filter=+video/mp4 \
+  --gstout-audiopipe='fakesink sync=true' --gstout-videopipe='fakesink sync=true'
+```
+
+In another shell, discover that receiver, start the Emby fixture, and verify playback time, seek, pause, and volume.
+
+```sh
+GOFLAGS=-p=1 WAYGU_TEST_SERVERS=1 WAYGU_TEST_DLNA_RENDERER='Waygu DLNA Lab' \
+  go tool nsgo test . -run '^TestDockerDLNAExternalRenderer$' -count=1
+```

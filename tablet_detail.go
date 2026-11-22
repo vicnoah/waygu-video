@@ -28,6 +28,7 @@ type movieDetailState struct {
 	item          func() media.Item
 	active        func() media.Version
 	play          func(bool)
+	cast          func()
 	chooseVersion func(string)
 }
 
@@ -59,10 +60,11 @@ func (a *application) movieDetailState(cx *core.Scope, current route, persistSel
 		}
 		return current.item
 	}
-	play := func(resume bool) {
+	play := func(resume, cast bool) {
 		version := core.Untracked(cx, active)
 		choice := tracks.GetUntracked()
-		next := route{screen: screenPlayer, source: current.source, item: core.Untracked(cx, item), resume: resume, match: current.match, downloadID: current.downloadID}
+		next := route{screen: screenPlayer, source: current.source, item: core.Untracked(cx, item), resume: resume,
+			match: current.match, downloadID: current.downloadID, castOnOpen: cast}
 		if version.ID != "" {
 			if selected.GetUntracked() == version.ID {
 				next.versionID = version.ID
@@ -76,7 +78,7 @@ func (a *application) movieDetailState(cx *core.Scope, current route, persistSel
 
 	return movieDetailState{
 		loaded: loaded, personal: personal, available: available, selected: selected, tracks: tracks,
-		item: item, active: active, play: play,
+		item: item, active: active, play: func(resume bool) { play(resume, false) }, cast: func() { play(true, true) },
 		chooseVersion: func(id string) {
 			cx.Batch(func() {
 				selected.Set(id)

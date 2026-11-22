@@ -370,7 +370,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			heading := core.Dynamic(func(cx *core.Scope) core.Node {
 				if showingStyle.Get() {
 					return playerLabeledAction(cx, "player-subtitle-style-back", locales.SettingsSubtitleStyle(cx),
-						lucide.ChevronLeft, func() { showingStyle.Set(false) })
+						lucide.ChevronLeft, nil, func() { showingStyle.Set(false) })
 				}
 				return panelHeading(title)
 			})

@@ -455,7 +455,7 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			URL: original, Method: DirectPlay,
 			File: SourceFile{Name: videoFileName(part.File), Size: part.Size, URL: original}}
 		switchAudio := audio != nil || plexAlternativeAudio(part.Stream)
-		if switchAudio || !plexDirect(version, options) {
+		if switchAudio || options.ForceTranscode || !plexDirect(version, options) {
 			params := url.Values{"path": {plexItemRoute(item.ID)}, "mediaIndex": {strconv.Itoa(index)}, "partIndex": {"0"},
 				"protocol": {"hls"}, "directPlay": {"0"}, "directStream": {"1"}, "session": {stream.SessionID},
 				"X-Plex-Client-Identifier": {p.device.ID}, "X-Plex-Session-Identifier": {stream.SessionID},
@@ -463,7 +463,7 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			if options.SubtitleIndex != nil && *options.SubtitleIndex < 0 {
 				params.Set("subtitles", "none")
 			}
-			if options.MaxBitrate > 0 || switchAudio {
+			if options.MaxBitrate > 0 || switchAudio || options.ForceTranscode {
 				params.Set("directStream", "0")
 			}
 			if options.MaxBitrate > 0 {

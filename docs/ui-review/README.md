@@ -30,6 +30,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Desktop player · all three sidebar tabs | [Playback and sidebar comparisons](desktop-player.md) | Compared at 1440 × 810 pt on GTK with Emby using the system player and libmpv. |
 | Phone settings and source management · light and dark | [Comparison and server checks](phone-source-settings.md) | Compared on GTK with three Docker media servers. Source reordering, sync and removal are tested. Phone device captures remain pending. |
 | Phone landscape player · all seven panel tabs | [Playback and panel comparisons](phone-player.md) | Compared at 844 × 390 pt on GTK with an Emby video and subtitle fixture. Phone rotation and system gestures remain pending. |
+| DLNA device picker · empty, list and connected | [Flow comparison and receiver checks](casting.md) | Captured on GTK. Linux GStreamer verifies multicast discovery and remote playback. Mobile and physical TV checks remain pending. |
 | Phone playback and subtitle settings · light and dark | [Settings comparison and playback checks](phone-player-settings.md) | Compared on GTK. Audio and caption preferences were verified against Emby and Jellyfin. Device captures and several controls remain pending. |
 | Storage and downloads · light and dark | [Design comparison and offline playback checks](storage-downloads.md) | Original-file downloads compared and tested on GTK. Transcoded downloads and platform background handling remain pending. |
 | Personal library | [Favorite and watch-history captures](personal-library.md) | Compared the tablet sidebar and detail actions, and recorded both catalog destinations on GTK. |
@@ -217,6 +218,13 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
 The held-gesture captures use `xdotool` in an X11 display. The native test also runs without that capture setting. Jellyfin serves the seek thumbnail while the pointer holds the slider. The Emby review records the ratio chooser, actual 4:3 video, playback menu, A/B marks, and sleep timer.
 
 Export `player.scenra`, the four `player-tracks.scenra` panels and the three `player-danmaku.scenra` panels with the reference exporter below.
+
+Capture the phone DLNA picker while it is empty, after adding a receiver, and while connected. Keep other DLNA receivers off on the test network to capture the empty state. [Casting comparison](casting.md)
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerPhoneDLNACasting$' -screenshots .nsgo/ui-review/casting
+```
 
 Capture the phone playback and subtitle settings and exercise the language ordering and color controls.
 

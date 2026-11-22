@@ -13,6 +13,7 @@ import (
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/icons/lucide"
 	"github.com/nsgo-dev/nsgo/ui"
+	"waygu-video/internal/casting"
 	"waygu-video/internal/danmaku"
 
 	"waygu-video/internal/media"
@@ -164,7 +165,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	sample := core.NewSignal(cx, videoSample{})
 	picture := core.NewSignal(cx, core.Size{})
 	status, _ := a.parental.GetUntracked().viewingLimit(cx.WallTime(), a.parentalUsage.GetUntracked())
-	paused := core.NewSignal(cx, status != parentalCanPlay)
+	paused := core.NewSignal(cx, status != parentalCanPlay || current.castOnOpen)
 	phoneVolume := core.NewSignal(cx, float32(1))
 	phoneBrightness := core.NewSignal(cx, float32(1))
 	prefs := a.playbackPrefs.GetUntracked()
@@ -179,8 +180,10 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	buffering := core.NewSignal(cx, false)
 	switchingPlayback := core.NewSignal(cx, false)
 	budgetReady := core.NewSignal(cx, false)
+	var projection *playerCast
 	blocked, parentalOverlay := a.parentalViewing(cx, func() bool {
-		return budgetReady.Get() && !paused.Get() && !buffering.Get() && !ended.Get() && !failure.Get()
+		return budgetReady.Get() && !paused.Get() && !buffering.Get() && !ended.Get() &&
+			(!failure.Get() || (projection != nil && projection.active()))
 	}, func() { paused.Set(true) })
 	videoMount := core.NewSignal(cx, uint64(0))
 	audioError := core.NewSignal(cx, false)
@@ -199,18 +202,21 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	}
 	snapshot := func(event media.PlaybackEvent) media.PlaybackState {
 		stream := medium.GetUntracked().stream
+		if projection != nil && projection.active() {
+			stream = projection.castingStream
+		}
 		stream.Duration = duration.GetUntracked()
 		return media.PlaybackState{Event: event, Stream: stream, Position: position.GetUntracked(), Paused: paused.GetUntracked()}
 	}
 	report := func(event media.PlaybackEvent) {
-		if loaded {
+		if loaded || (projection != nil && projection.active()) {
 			lastReport = cx.Now()
 			enqueue(snapshot(event))
 		}
 	}
 	cx.Cleanup(func() {
 		medium.GetUntracked().close()
-		if loaded && !ended.GetUntracked() {
+		if (loaded || (projection != nil && projection.active())) && !ended.GetUntracked() {
 			final := snapshot(media.Stopped)
 			finish(&final)
 		} else {
@@ -229,23 +235,92 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		report(media.Progress)
 	}
 	seek := func(at time.Duration) {
+		if projection != nil && projection.active() {
+			projection.command(castCommand{action: castSeek, at: max(0, min(at, duration.GetUntracked()))})
+			return
+		}
 		loop.manualSeek(max(0, min(at, duration.GetUntracked())))
 		seekPosition(at)
 	}
 	a.playerSleep(cx, func() {
 		sleepExpired.Set(true)
 		if !paused.GetUntracked() {
+			if projection != nil && projection.active() {
+				if projection.busy.GetUntracked() {
+					projection.cancel()
+				} else {
+					projection.command(castCommand{action: castToggle})
+				}
+			}
 			paused.Set(true)
 			report(media.Progress)
 		}
 	})
+	castStarted := false
+	projection = newPlayerCast(cx, current, medium, position, paused, blocked,
+		func(at casting.Position, state string) {
+			if loop.segment.GetUntracked().hasStart {
+				loop.clear()
+			}
+			if at.Duration > 0 && duration.GetUntracked() <= 0 {
+				duration.Set(at.Duration)
+			}
+			if at.Available {
+				stamp := max(0, min(at.At, duration.GetUntracked()))
+				position.Set(stamp)
+				sample.Set(videoSample{stamp, cx.Now()})
+			}
+			switch state {
+			case "PLAYING":
+				paused.Set(false)
+				buffering.Set(false)
+			case "PAUSED_PLAYBACK":
+				paused.Set(true)
+				buffering.Set(false)
+			case "TRANSITIONING":
+				buffering.Set(true)
+			}
+			if !castStarted {
+				castStarted = true
+				ended.Set(false)
+				budgetReady.Set(true)
+				active := medium.GetUntracked()
+				if loaded && active.stream.SessionID != projection.castingStream.SessionID {
+					previous := snapshot(media.Stopped)
+					previous.Stream = active.stream
+					enqueue(previous)
+				}
+				a.rememberPlayedCopy(current)
+				a.rememberPlaybackVersion(current, active.client, active.stream.VersionID())
+				report(media.Started)
+			} else {
+				report(media.Progress)
+			}
+		}, func() {
+			castStarted = false
+			budgetReady.Set(loaded)
+			buffering.Set(false)
+			if core.Untracked(cx, blocked) || sleepExpired.GetUntracked() {
+				paused.Set(true)
+			}
+			local := medium.GetUntracked().stream
+			if remote := projection.castingStream; remote.SessionID != local.SessionID {
+				final := snapshot(media.Stopped)
+				final.Stream = remote
+				enqueue(final)
+				if loaded {
+					report(media.Started)
+				}
+			}
+			seekPosition(position.GetUntracked())
+		}, func() bool { return !switchingPlayback.Get() })
 	playerContext := cx.Context()
 	preferMPV := cx.Env().Desktop() && a.mpvPreferred.GetUntracked()
 	android := cx.Env().OS() == core.OSAndroid
 	bitrate := core.NewSignal(cx, a.bitrateLimit.GetUntracked())
 	noServerSubtitles := -1
 	switchStream := func(options media.PlaybackOptions, failed *core.Signal[bool]) {
-		if switchingPlayback.GetUntracked() {
+		if switchingPlayback.GetUntracked() || projection.active() {
 			return
 		}
 		options.SubtitleIndex = &noServerSubtitles
@@ -300,7 +375,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		videoMount.Get()
 		restrictions := a.parentalRules()
 		pipAllowed := cx.Env().OS() == core.OSIOS && !(restrictions.Enabled && restrictions.TimeLimit)
-		video := core.Video{Source: active.url, PausedFunc: paused.Get, RateFunc: rate.Get, Ref: ref,
+		video := core.Video{Source: active.url, PausedFunc: func() bool { return paused.Get() || projection.active() }, RateFunc: rate.Get, Ref: ref,
 			TestID: "video-player", Class: "absolute inset-0", ResizeModeFunc: fit, ProgressInterval: 150 * time.Millisecond,
 			AudioSession:         core.AudioSessionPlayback,
 			PictureInPicture:     pipAllowed,
@@ -313,15 +388,18 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				}
 				loaded = true
 				budgetReady.Set(true)
+				canChangeRate.Set(info.RateChangeable)
+				if !info.RateChangeable {
+					rate.Set(1)
+				}
+				if projection.active() {
+					return
+				}
 				if !offline {
 					a.rememberPlayedCopy(current)
 					a.rememberPlaybackVersion(current, active.client, active.stream.VersionID())
 				}
 				buffering.Set(false)
-				canChangeRate.Set(info.RateChangeable)
-				if !info.RateChangeable {
-					rate.Set(1)
-				}
 				at := position.GetUntracked()
 				if at > 0 && (duration.GetUntracked() <= 0 || at < duration.GetUntracked()) {
 					sample.Set(videoSample{at, cx.Now()})
@@ -333,7 +411,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				report(media.Started)
 			},
 			OnProgress: func(at, length time.Duration) {
-				if !loaded {
+				if !loaded || projection.active() {
 					return
 				}
 				if length > 0 {
@@ -349,12 +427,18 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				}
 			},
 			OnPause: func(core.VideoPauseReason) {
+				if projection.active() {
+					return
+				}
 				if !paused.GetUntracked() && !ended.GetUntracked() {
 					paused.Set(true)
 					report(media.Progress)
 				}
 			},
 			OnPlay: func() {
+				if projection.active() {
+					return
+				}
 				if core.Untracked(cx, blocked) {
 					// Native controls can resume even while the bound pause value is true.
 					budgetReady.Set(false)
@@ -367,8 +451,16 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 					report(media.Progress)
 				}
 			},
-			OnBuffer: buffering.Set, OnError: func(error) { failure.Set(true) },
+			OnBuffer: func(value bool) {
+				if !projection.active() {
+					buffering.Set(value)
+				}
+			},
+			OnError: func(error) { failure.Set(true) },
 			OnEnd: func() {
+				if projection.active() {
+					return
+				}
 				if loop.boundary(duration.GetUntracked(), duration.GetUntracked(), cx.Now(), seekPosition) {
 					return
 				}
@@ -428,6 +520,10 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		if core.Untracked(cx, blocked) {
 			return
 		}
+		if projection.active() {
+			projection.command(castCommand{action: castToggle, playing: paused.GetUntracked()})
+			return
+		}
 		if ended.GetUntracked() {
 			start := time.Duration(0)
 			if segment := loop.segment.GetUntracked(); segment.active {
@@ -455,6 +551,10 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 				}},
 				comments.buttons,
 				tracks.button,
+				core.Show{When: func() bool { return projection.available }, Then: func(cx *core.Scope) core.Node {
+					return ui.Button{Label: locales.PhonePlayerCast(cx), Icon: lucide.Cast, TestID: "legacy-player-cast",
+						Variant: ui.ButtonSecondary, OnPress: func() { projection.open.Set(true) }}
+				}},
 			}},
 		core.View{Class: "absolute bottom-0 left-0 right-0 gap-3 bg-linear-to-t from-black to-transparent p-5",
 			Style: core.Style{PaddingEnv: core.EnvEdges{Bottom: core.EnvSafeArea}}, Children: []core.Node{
@@ -502,13 +602,14 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			seek: seek, toggle: toggle, back: a.back, startPiP: ref.StartPictureInPicture,
 			prefs: prefs, stream: activeStream, client: initial.client, next: nextEpisode, comments: comments, tracks: tracks,
 			volume: phoneVolume, brightness: phoneBrightness, playbackBlocked: blocked,
-			loop: &loop, sleepTimer: a.sleepTimer, ready: budgetReady.Get,
+			loop: &loop, sleepTimer: a.sleepTimer, ready: func() bool { return budgetReady.Get() && !projection.active() },
+			cast: projection,
 		}).render(cx)
 	})
-	transportNotice := core.Show{When: func() bool { return buffering.Get() || failure.Get() }, Then: func(cx *core.Scope) core.Node {
+	transportNotice := core.Show{When: func() bool { return buffering.Get() || (failure.Get() && !projection.active()) }, Then: func(cx *core.Scope) core.Node {
 		return core.View{Class: "absolute inset-0 items-center justify-center", PointerEvents: core.PointerEventsNone, Children: []core.Node{
 			core.Text{Class: "rounded-xl bg-black/75 p-4 text-white", ContentFunc: func() string {
-				if failure.Get() {
+				if failure.Get() && !projection.active() {
 					return locales.VideoError(cx)
 				}
 				return locales.Loading(cx)
@@ -530,9 +631,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			backStep: func() time.Duration { return time.Duration(a.desktopPrefs.GetUntracked().Back) * time.Second },
 			nextStep: func() time.Duration { return time.Duration(a.desktopPrefs.GetUntracked().Forward) * time.Second },
 			comments: comments, tracks: tracks, next: nextEpisode, qualityAvailable: quality != nil,
-			stats: stats, buffering: buffering.Get,
-		}, []core.Node{image, comments.overlay, tracks.captions, transportNotice, diagnostics})
-		return core.View{Class: "relative flex-1", Children: []core.Node{desktopPlayer, parentalOverlay}}
+			stats: stats, buffering: buffering.Get, cast: projection,
+		}, []core.Node{image, comments.overlay, tracks.captions, transportNotice, projection.indicator(cx), diagnostics})
+		return core.View{Class: "relative flex-1", Children: []core.Node{desktopPlayer, projection.panel, parentalOverlay}}
 	}
 	dimming := core.Show{When: func() bool { return phoneLandscape(cx) && phoneBrightness.Get() < 1 }, Then: func(*core.Scope) core.Node {
 		return core.View{TestID: "phone-player-dimming", Class: "absolute inset-0", PointerEvents: core.PointerEventsNone,
@@ -549,7 +650,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	}
 	return core.View{Class: "relative flex-1 overflow-hidden bg-black", Style: core.Style{FlexShrink: 1},
 		OnLayout: func(bounds core.Bounds) { viewport.Set(bounds.Size) },
-		Children: append(pictureLayers, chrome, transportNotice, diagnostics, tracks.dialog, comments.dialog, parentalOverlay)}
+		Children: append(pictureLayers, chrome, transportNotice, projection.indicator(cx), diagnostics, tracks.dialog, comments.dialog, projection.panel, parentalOverlay)}
 }
 
 func playbackReports(client media.Client, watch *progressWatch) (func(media.PlaybackState), func(*media.PlaybackState)) {

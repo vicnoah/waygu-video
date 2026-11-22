@@ -483,6 +483,20 @@ settingsSourceUser: "User {name}"
 phonePlayerControls: Show or hide player controls
 phonePlayerSource: "From {name}"
 phonePlayerCast: Cast
+castNoDevices: No devices found. Check that your receiver is on and connected to the same Wi-Fi.
+castSearching: Finding DLNA receivers…
+castRescan: Scan again
+castManualAddress: Receiver IP or description URL
+castFindDevice: Find device
+castDeviceUnavailable: No DLNA receiver responded at this address.
+castFormatUnavailable: This receiver cannot play the available formats.
+castConnectionFailed: The connection to the DLNA receiver failed.
+castDeviceChanged: The receiver started playing something else.
+castConnected: "Casting to {name}"
+castConnecting: Connecting to the receiver…
+castDisconnect: Disconnect
+castVolumeUp: Increase receiver volume
+castVolumeDown: Decrease receiver volume
 phonePlayerInfo: Playback information
 phonePlayerMore: Playback actions
 phonePlayerPictureRatio: Picture ratio

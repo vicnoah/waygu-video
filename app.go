@@ -62,6 +62,7 @@ type route struct {
 	audioTrack    string
 	subtitleTrack string
 	downloadID    string
+	castOnOpen    bool
 	match         *catalogMatch
 	seriesView    seriesViewState
 	pairLink      string

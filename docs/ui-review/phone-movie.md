@@ -18,7 +18,7 @@
 
 | Area | Result |
 | --- | --- |
-| Hero | The 460 pt backdrop, scrims, circular navigation and bottom-aligned title follow the design. GTK has no mobile system status bar, so its buttons sit higher than the reference. Casting remains pending. The server score uses a single star. Individual rating provider badges and the danmaku count pill remain pending. |
+| Hero | The 460 pt backdrop, scrims, circular navigation and bottom-aligned title follow the design. GTK has no mobile system status bar, so its buttons sit higher than the reference. The cast icon opens the DLNA picker. The server score uses a single star. Individual rating provider badges and the danmaku count pill remain pending. [Casting comparison](casting.md) |
 | Actions | The test measures the 52 pt play button. The action strip uses the design's five cells with Emby. Source capabilities control favorite and watched actions. The tested resume sheet starts from zero. Sharing sends the title through the system share sheet. The more menu reloads details and offers restart when applicable. Editing, metadata rematching, and server deletion remain pending. |
 | Playback options | The five stacked rows use the settings colors and icons. Sources, versions, audio and subtitle choices pass through to the shared playback resolver. Chevrons indicate available choices. Manual danmaku matching opens the existing search and binding UI. The details page can show the saved binding. |
 | Credits and rails | Credits, the cast list, playable server extras and same-library recommendations use real fixture data. The recommendation rail falls back to titles sharing a genre from the same library when the server supplies no relevant items. Card quantities and artwork vary with the source. |

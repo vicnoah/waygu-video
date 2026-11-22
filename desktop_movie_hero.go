@@ -50,6 +50,9 @@ func (a *application) desktopMovieHero(cx *core.Scope, current route, state movi
 	}
 	if current.downloadID == "" {
 		more = append(more, ui.MenuItem{Text: locales.ReloadMovieDetail(cx), TestID: "desktop-movie-menu-refresh", OnSelect: reload})
+		if canCast(cx) {
+			more = append(more, ui.MenuItem{Text: locales.PhonePlayerCast(cx), TestID: "desktop-movie-menu-cast", OnSelect: state.cast})
+		}
 	}
 	if len(more) > 0 {
 		shortcuts = append(shortcuts, base.Menu{Label: locales.DetailMore(cx), TestID: "detail-more", Class: desktopMovieHeroUtility,

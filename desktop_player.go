@@ -34,6 +34,7 @@ type desktopPlayerControls struct {
 	qualityAvailable   bool
 	stats              func() (mpv.Stats, bool)
 	buffering          func() bool
+	cast               *playerCast
 }
 
 type desktopPlayerTab string
@@ -56,7 +57,7 @@ func (a *application) desktopPlayer(cx *core.Scope, p desktopPlayerControls, sce
 	togglePanel := func() { shown.Update(func(value bool) bool { return !value }) }
 	pickPanel := func(tab desktopPlayerTab) { active.Set(tab); shown.Set(true) }
 	changeVolume := func(delta float32) {
-		p.volume.Update(func(value float32) float32 { return min(1, max(0, value+delta)) })
+		p.setVolume(min(1, max(0, p.volumeLevel()+delta)))
 	}
 	keys := core.KeyOptions{When: core.KeyNotEditing}
 	repeat := core.KeyOptions{When: core.KeyNotEditing, Repeat: true}
@@ -92,12 +93,12 @@ func (a *application) desktopPlayer(cx *core.Scope, p desktopPlayerControls, sce
 	})
 	cx.OnKeyWith("tab", keys, togglePanel)
 
-	disabled := func() bool { return true }
 	header := core.View{Class: "absolute inset-x-0 top-0 h-32 flex-row items-start gap-4 bg-linear-to-b from-black/75 via-black/35 to-transparent px-6 pt-5",
 		PointerEvents: core.PointerEventsBoxNone, Children: []core.Node{
 			desktopPlayerButton(cx, "close-player", locales.ClosePlayer(cx), lucide.ChevronLeft(), desktopPlayerTopButton, "size-5", nil, back),
 			p.title(cx),
-			desktopPlayerButton(cx, "desktop-player-cast", locales.PhonePlayerCast(cx), lucide.Cast(), desktopPlayerTopButton, "size-5", disabled, nil),
+			desktopPlayerButton(cx, "desktop-player-cast", locales.PhonePlayerCast(cx), lucide.Cast(), desktopPlayerTopButton, "size-5",
+				func() bool { return !p.cast.available }, func() { p.cast.open.Set(true) }),
 			desktopPlayerButton(cx, "desktop-player-panel-toggle", locales.DesktopPlayerPanel(cx), lucide.PanelRight(), desktopPlayerTopButton, "size-5", nil, togglePanel),
 		}}
 	viewport := core.View{Class: "relative flex-1 min-w-0 overflow-hidden bg-black", TestID: "desktop-player-video-pane",
@@ -157,23 +158,33 @@ func (p desktopPlayerControls) transport(cx *core.Scope, showDanmaku func()) cor
 	var lastVolume float32 = .75
 	volume := core.Dynamic(func(cx *core.Scope) core.Node {
 		icon, label := lucide.Volume2(), locales.DesktopPlayerMute(cx)
-		if p.volume.Get() == 0 {
+		if p.volumeLevel() == 0 {
 			icon, label = lucide.VolumeX(), locales.DesktopPlayerUnmute(cx)
 		}
 		return desktopPlayerButton(cx, "desktop-player-mute", label, icon, "size-6", "size-5", nil, func() {
-			if value := p.volume.GetUntracked(); value > 0 {
+			if value := p.volumeLevel(); value > 0 {
 				lastVolume = value
-				p.volume.Set(0)
+				p.setVolume(0)
 			} else {
-				p.volume.Set(lastVolume)
+				p.setVolume(lastVolume)
 			}
 		})
 	})
 	volumeRail := base.Slider{Class: "w-24 h-5 justify-center", TrackClass: "h-full justify-center", IndicatorClass: "h-1 rounded-full bg-white/20",
 		RangeClass: "rounded-full bg-white", ThumbClass: "size-2 rounded-full bg-transparent", ThumbStyle: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
 		Label: locales.DesktopPlayerVolume(cx), TestID: "desktop-player-volume", ThumbTestID: "desktop-player-volume-thumb",
-		Value: func() base.SliderValue { return base.SingleValue(float64(p.volume.Get()) * 100) }, Max: func() float64 { return 100 },
-		Step: func() float64 { return 5 }, OnChange: func(value base.SliderValue) { p.volume.Set(float32(value.Start / 100)) }}
+		Value: func() base.SliderValue { return base.SingleValue(float64(p.volumeLevel()) * 100) }, Max: func() float64 { return 100 },
+		Step: func() float64 { return 5 },
+		OnChange: func(value base.SliderValue) {
+			if !p.cast.active() {
+				p.setVolume(float32(value.Start / 100))
+			}
+		},
+		OnChangeEnd: func(value base.SliderValue) {
+			if p.cast.active() {
+				p.setVolume(float32(value.Start / 100))
+			}
+		}}
 	next := p.next.play
 	if next == nil {
 		next = func() {}
@@ -223,6 +234,23 @@ func (p desktopPlayerControls) transport(cx *core.Scope, showDanmaku func()) cor
 	}}
 	return core.View{Class: "absolute inset-x-0 bottom-0 gap-2 bg-linear-to-t from-black/85 via-black/50 to-transparent px-6 pt-24 pb-5",
 		PointerEvents: core.PointerEventsBoxNone, Children: []core.Node{p.next.card, p.timeline(cx), bar}}
+}
+
+func (p desktopPlayerControls) volumeLevel() float32 {
+	if p.cast.active() {
+		return float32(p.cast.volume.Get()) / 100
+	}
+	return p.volume.Get()
+}
+
+func (p desktopPlayerControls) setVolume(value float32) {
+	if p.cast.active() {
+		if p.cast.receiver.GetUntracked().HasVolume() {
+			p.cast.command(castCommand{action: castVolume, value: roundedPercent(value)})
+		}
+		return
+	}
+	p.volume.Set(value)
 }
 
 func desktopPlayerButton(cx *core.Scope, id, label string, icon *core.SVG, class, size string, disabled func() bool, action func()) core.Node {
