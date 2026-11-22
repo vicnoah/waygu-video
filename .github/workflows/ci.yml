@@ -164,6 +164,19 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
+      - name: Free disk space for Android virtual devices
+        run: |
+          retained_ndk=$(realpath "$ANDROID_NDK_HOME")
+          unused=()
+          for ndk in "$ANDROID_HOME"/ndk/*; do
+            if [ -f "$ndk/source.properties" ] && [ "$(realpath "$ndk")" != "$retained_ndk" ]; then
+              unused+=("ndk;${ndk##*/}")
+            fi
+          done
+          if (( ${#unused[@]} )); then
+            sdkmanager --uninstall "${unused[@]}"
+          fi
+          df -h "$ANDROID_HOME"
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -177,8 +190,8 @@ jobs:
           target: ${{ matrix.image }}
           profile: ${{ matrix.profile }}
           arch: x86_64
-          disk-size: 2G
           emulator-boot-timeout: 240
+          pre-emulator-launch-script: df -h "$ANDROID_AVD_HOME"
           script: sh build/android/emulator-test.sh ${{ matrix.form }}
 
   integration:
