@@ -2,7 +2,15 @@ appName: waygu-video
 NSLocalNetworkUsageDescription: Connect to media servers on your local network.
 brand: Waygu
 welcomeTitle: "Your private cinema,\non every screen."
-welcomeBody: Connect your home media servers and pick up where you left off.
+welcomeBody: Connect your media servers and NAS, organize your library, and resume on phones, tablets, computers, and TVs.
+welcomeMediaSources: Media servers
+welcomeMediaSourcesDetail: "Emby · Jellyfin · {flymoo} · Plex\nConnect multiple servers"
+welcomeDanmaku: Watch with danmaku
+welcomeDanmakuDetail: Match DandanPlay comments or import a local file
+welcomeOriginalPlayback: Original quality
+welcomeOriginalPlaybackDetail: Direct play on compatible devices
+welcomeContinueWatching: Resume across devices
+welcomeContinueWatchingDetail: Save playback progress to your media server
 addSource: Add media source
 later: Set up later
 back: Back

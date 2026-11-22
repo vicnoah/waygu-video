@@ -2,7 +2,15 @@ appName: 肥牛视频
 NSLocalNetworkUsageDescription: 连接同一局域网内的影视服务器。
 brand: Waygu
 welcomeTitle: "你的私人影院，\n在每一块屏幕上。"
-welcomeBody: 连接家里的媒体服务器与 NAS，随时在不同设备上继续观看。
+welcomeBody: 连接家里的媒体服务器与 NAS，自动整理海报墙，手机、平板、电脑、电视无缝续播。
+welcomeMediaSources: 多平台媒体源
+welcomeMediaSourcesDetail: "Emby · Jellyfin · {flymoo} · Plex\n支持连接多个服务器"
+welcomeDanmaku: 弹幕同看
+welcomeDanmakuDetail: 匹配弹弹 Play 弹幕，也支持导入本地弹幕
+welcomeOriginalPlayback: 原画直放
+welcomeOriginalPlaybackDetail: 设备支持时直放服务器上的原始视频
+welcomeContinueWatching: 跨设备续播
+welcomeContinueWatchingDetail: 播放进度回写到媒体服务器
 addSource: 添加媒体源
 later: 稍后设置
 back: 返回

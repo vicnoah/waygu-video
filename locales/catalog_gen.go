@@ -43,31 +43,32 @@ func For(cx *core.Scope) Messages {
 // its method, for the TSX declarations of the messages
 // (tsx.RegisterMessages).
 var Parameters = map[string][]string{
-	"Connected":               {"name"},
-	"MoveSourceUp":            {"name"},
-	"MoveSourceDown":          {"name"},
-	"ShowNamedLibrary":        {"name"},
-	"ShowNamedLibraryOnHome":  {"name"},
-	"MoveLibraryUp":           {"name"},
-	"MoveLibraryDown":         {"name"},
-	"ResumeCardLabel":         {"title"},
-	"ResumePercent":           {"number"},
-	"ResumeRemaining":         {"time_"},
-	"SubtitleDelay":           {"seconds"},
-	"TrackNumber":             {"number"},
-	"NumberedPlaybackVersion": {"number"},
-	"EpisodeDetails":          {"episode"},
-	"DanmakuBoundEpisode":     {"episode"},
-	"DanmakuDecrease":         {"control"},
-	"DanmakuIncrease":         {"control"},
-	"DanmakuOffset":           {"seconds"},
-	"DanmakuPercent":          {"value"},
-	"DanmakuInvalidPattern":   {"pattern"},
-	"BitrateMegabits":         {"bitrate"},
-	"NextEpisodeCountdown":    {"seconds"},
-	"EpisodeLabel":            {"number"},
-	"SeasonLabel":             {"number"},
-	"QuickConnectInstruction": {"code"},
+	"WelcomeMediaSourcesDetail": {"flymoo"},
+	"Connected":                 {"name"},
+	"MoveSourceUp":              {"name"},
+	"MoveSourceDown":            {"name"},
+	"ShowNamedLibrary":          {"name"},
+	"ShowNamedLibraryOnHome":    {"name"},
+	"MoveLibraryUp":             {"name"},
+	"MoveLibraryDown":           {"name"},
+	"ResumeCardLabel":           {"title"},
+	"ResumePercent":             {"number"},
+	"ResumeRemaining":           {"time_"},
+	"SubtitleDelay":             {"seconds"},
+	"TrackNumber":               {"number"},
+	"NumberedPlaybackVersion":   {"number"},
+	"EpisodeDetails":            {"episode"},
+	"DanmakuBoundEpisode":       {"episode"},
+	"DanmakuDecrease":           {"control"},
+	"DanmakuIncrease":           {"control"},
+	"DanmakuOffset":             {"seconds"},
+	"DanmakuPercent":            {"value"},
+	"DanmakuInvalidPattern":     {"pattern"},
+	"BitrateMegabits":           {"bitrate"},
+	"NextEpisodeCountdown":      {"seconds"},
+	"EpisodeLabel":              {"number"},
+	"SeasonLabel":               {"number"},
+	"QuickConnectInstruction":   {"code"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -75,32 +76,33 @@ var Parameters = map[string][]string{
 // of the others; a key or a field left out leaves the message to the
 // catalog.
 type Translation struct {
-	Texts                   map[string]string
-	Connected               func(name string) string
-	MoveSourceUp            func(name string) string
-	MoveSourceDown          func(name string) string
-	ShowNamedLibrary        func(name string) string
-	ShowNamedLibraryOnHome  func(name string) string
-	MoveLibraryUp           func(name string) string
-	MoveLibraryDown         func(name string) string
-	ResumeCardLabel         func(title string) string
-	ResumePercent           func(number string) string
-	ResumeRemaining         func(time_ string) string
-	SubtitleDelay           func(seconds string) string
-	TrackNumber             func(number string) string
-	NumberedPlaybackVersion func(number string) string
-	EpisodeDetails          func(episode string) string
-	DanmakuBoundEpisode     func(episode string) string
-	DanmakuDecrease         func(control string) string
-	DanmakuIncrease         func(control string) string
-	DanmakuOffset           func(seconds string) string
-	DanmakuPercent          func(value string) string
-	DanmakuInvalidPattern   func(pattern string) string
-	BitrateMegabits         func(bitrate string) string
-	NextEpisodeCountdown    func(seconds string) string
-	EpisodeLabel            func(number string) string
-	SeasonLabel             func(number string) string
-	QuickConnectInstruction func(code string) string
+	Texts                     map[string]string
+	WelcomeMediaSourcesDetail func(flymoo string) string
+	Connected                 func(name string) string
+	MoveSourceUp              func(name string) string
+	MoveSourceDown            func(name string) string
+	ShowNamedLibrary          func(name string) string
+	ShowNamedLibraryOnHome    func(name string) string
+	MoveLibraryUp             func(name string) string
+	MoveLibraryDown           func(name string) string
+	ResumeCardLabel           func(title string) string
+	ResumePercent             func(number string) string
+	ResumeRemaining           func(time_ string) string
+	SubtitleDelay             func(seconds string) string
+	TrackNumber               func(number string) string
+	NumberedPlaybackVersion   func(number string) string
+	EpisodeDetails            func(episode string) string
+	DanmakuBoundEpisode       func(episode string) string
+	DanmakuDecrease           func(control string) string
+	DanmakuIncrease           func(control string) string
+	DanmakuOffset             func(seconds string) string
+	DanmakuPercent            func(value string) string
+	DanmakuInvalidPattern     func(pattern string) string
+	BitrateMegabits           func(bitrate string) string
+	NextEpisodeCountdown      func(seconds string) string
+	EpisodeLabel              func(number string) string
+	SeasonLabel               func(number string) string
+	QuickConnectInstruction   func(code string) string
 }
 
 var supplied = map[string]Translation{}
@@ -112,6 +114,13 @@ const (
 	textBrand
 	textWelcomeTitle
 	textWelcomeBody
+	textWelcomeMediaSources
+	textWelcomeDanmaku
+	textWelcomeDanmakuDetail
+	textWelcomeOriginalPlayback
+	textWelcomeOriginalPlaybackDetail
+	textWelcomeContinueWatching
+	textWelcomeContinueWatchingDetail
 	textAddSource
 	textLater
 	textBack
@@ -296,6 +305,13 @@ var keyOfText = [numTexts]string{
 	"brand",
 	"welcomeTitle",
 	"welcomeBody",
+	"welcomeMediaSources",
+	"welcomeDanmaku",
+	"welcomeDanmakuDetail",
+	"welcomeOriginalPlayback",
+	"welcomeOriginalPlaybackDetail",
+	"welcomeContinueWatching",
+	"welcomeContinueWatchingDetail",
 	"addSource",
 	"later",
 	"back",
@@ -477,7 +493,14 @@ var textsEn = i18n.NewTexts(""+
 	"Connect to media servers on your local network."+
 	"Waygu"+
 	"Your private cinema,\non every screen."+
-	"Connect your home media servers and pick up where you left off."+
+	"Connect your media servers and NAS, organize your library, and resume on phones, tablets, computers, and TVs."+
+	"Media servers"+
+	"Watch with danmaku"+
+	"Match DandanPlay comments or import a local file"+
+	"Original quality"+
+	"Direct play on compatible devices"+
+	"Resume across devices"+
+	"Save playback progress to your media server"+
 	"Add media source"+
 	"Set up later"+
 	"Back"+
@@ -656,7 +679,14 @@ var textsEn = i18n.NewTexts(""+
 		47,
 		5,
 		37,
-		63,
+		109,
+		13,
+		18,
+		48,
+		16,
+		33,
+		21,
+		43,
 		16,
 		12,
 		4,
@@ -838,7 +868,14 @@ var textsZhHans = i18n.NewTexts(""+
 	"连接同一局域网内的影视服务器。"+
 	"Waygu"+
 	"你的私人影院，\n在每一块屏幕上。"+
-	"连接家里的媒体服务器与 NAS，随时在不同设备上继续观看。"+
+	"连接家里的媒体服务器与 NAS，自动整理海报墙，手机、平板、电脑、电视无缝续播。"+
+	"多平台媒体源"+
+	"弹幕同看"+
+	"匹配弹弹 Play 弹幕，也支持导入本地弹幕"+
+	"原画直放"+
+	"设备支持时直放服务器上的原始视频"+
+	"跨设备续播"+
+	"播放进度回写到媒体服务器"+
 	"添加媒体源"+
 	"稍后设置"+
 	"返回"+
@@ -1017,7 +1054,14 @@ var textsZhHans = i18n.NewTexts(""+
 		45,
 		5,
 		46,
-		79,
+		112,
+		18,
+		12,
+		54,
+		12,
+		48,
+		15,
+		36,
 		15,
 		12,
 		6,
@@ -1247,6 +1291,9 @@ func Supply(lang string, t Translation) {
 		}
 	}
 	s := supplied[lang]
+	if t.WelcomeMediaSourcesDetail != nil {
+		s.WelcomeMediaSourcesDetail = t.WelcomeMediaSourcesDetail
+	}
 	if t.Connected != nil {
 		s.Connected = t.Connected
 	}
@@ -1367,12 +1414,93 @@ func WelcomeTitle(cx *core.Scope) string { return For(cx).WelcomeTitle() }
 // WelcomeTitle is the package's WelcomeTitle in the language of msgs.
 func (msgs Messages) WelcomeTitle() string { return msgs.text(textWelcomeTitle) }
 
-// WelcomeBody says "Connect your home media servers and pick up where you left off."
+// WelcomeBody says "Connect your media servers and NAS, organize your library, and resume on phones, tablets, computers, and TVs."
 // in the language the app shows under cx.
 func WelcomeBody(cx *core.Scope) string { return For(cx).WelcomeBody() }
 
 // WelcomeBody is the package's WelcomeBody in the language of msgs.
 func (msgs Messages) WelcomeBody() string { return msgs.text(textWelcomeBody) }
+
+// WelcomeMediaSources says "Media servers"
+// in the language the app shows under cx.
+func WelcomeMediaSources(cx *core.Scope) string { return For(cx).WelcomeMediaSources() }
+
+// WelcomeMediaSources is the package's WelcomeMediaSources in the language of msgs.
+func (msgs Messages) WelcomeMediaSources() string { return msgs.text(textWelcomeMediaSources) }
+
+// WelcomeMediaSourcesDetail says "Emby · Jellyfin · {flymoo} · Plex\nConnect multiple servers"
+// in the language the app shows under cx.
+func WelcomeMediaSourcesDetail(cx *core.Scope, flymoo string) string {
+	return For(cx).WelcomeMediaSourcesDetail(flymoo)
+}
+
+// WelcomeMediaSourcesDetail is the package's WelcomeMediaSourcesDetail in the language of msgs.
+func (msgs Messages) WelcomeMediaSourcesDetail(flymoo string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.WelcomeMediaSourcesDetail(flymoo))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].WelcomeMediaSourcesDetail; f != nil {
+			return f(flymoo)
+		}
+		switch lang {
+		case "", "en":
+			return "Emby · Jellyfin · " + msgs.arg(flymoo) + " · Plex\nConnect multiple servers"
+		case "zh-Hans":
+			return "Emby · Jellyfin · " + flymoo + " · Plex\n支持连接多个服务器"
+		}
+	}
+}
+
+// WelcomeDanmaku says "Watch with danmaku"
+// in the language the app shows under cx.
+func WelcomeDanmaku(cx *core.Scope) string { return For(cx).WelcomeDanmaku() }
+
+// WelcomeDanmaku is the package's WelcomeDanmaku in the language of msgs.
+func (msgs Messages) WelcomeDanmaku() string { return msgs.text(textWelcomeDanmaku) }
+
+// WelcomeDanmakuDetail says "Match DandanPlay comments or import a local file"
+// in the language the app shows under cx.
+func WelcomeDanmakuDetail(cx *core.Scope) string { return For(cx).WelcomeDanmakuDetail() }
+
+// WelcomeDanmakuDetail is the package's WelcomeDanmakuDetail in the language of msgs.
+func (msgs Messages) WelcomeDanmakuDetail() string { return msgs.text(textWelcomeDanmakuDetail) }
+
+// WelcomeOriginalPlayback says "Original quality"
+// in the language the app shows under cx.
+func WelcomeOriginalPlayback(cx *core.Scope) string { return For(cx).WelcomeOriginalPlayback() }
+
+// WelcomeOriginalPlayback is the package's WelcomeOriginalPlayback in the language of msgs.
+func (msgs Messages) WelcomeOriginalPlayback() string { return msgs.text(textWelcomeOriginalPlayback) }
+
+// WelcomeOriginalPlaybackDetail says "Direct play on compatible devices"
+// in the language the app shows under cx.
+func WelcomeOriginalPlaybackDetail(cx *core.Scope) string {
+	return For(cx).WelcomeOriginalPlaybackDetail()
+}
+
+// WelcomeOriginalPlaybackDetail is the package's WelcomeOriginalPlaybackDetail in the language of msgs.
+func (msgs Messages) WelcomeOriginalPlaybackDetail() string {
+	return msgs.text(textWelcomeOriginalPlaybackDetail)
+}
+
+// WelcomeContinueWatching says "Resume across devices"
+// in the language the app shows under cx.
+func WelcomeContinueWatching(cx *core.Scope) string { return For(cx).WelcomeContinueWatching() }
+
+// WelcomeContinueWatching is the package's WelcomeContinueWatching in the language of msgs.
+func (msgs Messages) WelcomeContinueWatching() string { return msgs.text(textWelcomeContinueWatching) }
+
+// WelcomeContinueWatchingDetail says "Save playback progress to your media server"
+// in the language the app shows under cx.
+func WelcomeContinueWatchingDetail(cx *core.Scope) string {
+	return For(cx).WelcomeContinueWatchingDetail()
+}
+
+// WelcomeContinueWatchingDetail is the package's WelcomeContinueWatchingDetail in the language of msgs.
+func (msgs Messages) WelcomeContinueWatchingDetail() string {
+	return msgs.text(textWelcomeContinueWatchingDetail)
+}
 
 // AddSource says "Add media source"
 // in the language the app shows under cx.

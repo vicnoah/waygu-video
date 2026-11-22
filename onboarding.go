@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nsgo-dev/nsgo/base"
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/icons/lucide"
 	"github.com/nsgo-dev/nsgo/ui"
@@ -20,7 +21,24 @@ import (
 //go:embed design/assets/posters/*.jpg
 var welcomePosters embed.FS
 
+//go:embed assets/Icon.png
+var welcomeMark []byte
+
+var welcomeAmbientLight, _ = core.ParseSVG([]byte(`<svg viewBox="0 0 1000 1000" preserveAspectRatio="none"><defs>
+<radialGradient id="light" cx="0.5" cy="0" r="0.8"><stop offset="0" stop-color="#8b5cf6" stop-opacity="0.06"/><stop offset="0.5" stop-color="#8b5cf6" stop-opacity="0.02"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient>
+<linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f4f7" stop-opacity="0"/><stop offset="0.6" stop-color="#f4f4f7" stop-opacity="0.4"/><stop offset="1" stop-color="#f4f4f7" stop-opacity="1"/></linearGradient></defs>
+<rect width="1000" height="1000" fill="url(#light)"/><rect width="1000" height="1000" fill="url(#fade)"/></svg>`))
+
+var welcomeAmbientDark, _ = core.ParseSVG([]byte(`<svg viewBox="0 0 1000 1000" preserveAspectRatio="none"><defs>
+<radialGradient id="dark" cx="0.5" cy="0" r="0.8"><stop offset="0" stop-color="#8b5cf6" stop-opacity="0.08"/><stop offset="0.5" stop-color="#8b5cf6" stop-opacity="0.03"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient>
+<linearGradient id="fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f1017" stop-opacity="0"/><stop offset="0.6" stop-color="#0f1017" stop-opacity="0.4"/><stop offset="1" stop-color="#0f1017" stop-opacity="1"/></linearGradient></defs>
+<rect width="1000" height="1000" fill="url(#dark)"/><rect width="1000" height="1000" fill="url(#fade)"/></svg>`))
+
 func (a *application) welcome(cx *core.Scope) core.Node {
+	cx.SetStatusBar(core.StatusBarSetting{Foreground: core.StatusBarLight})
+	cx.Cleanup(func() {
+		cx.SetStatusBar(core.StatusBarSetting{Foreground: core.StatusBarAuto})
+	})
 	wall := make([]core.Node, 0, 4)
 	for col, files := range [][2]string{
 		{"wandering-earth-2.jpg", "three-body.jpg"},
@@ -33,32 +51,72 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 			data, err := welcomePosters.ReadFile("design/assets/posters/" + file)
 			if err == nil {
 				pictures = append(pictures, core.Image{Source: core.ImageSource{Data: data}, ResizeMode: core.Cover,
-					Class: "w-26 h-40 sm:w-32 sm:h-48 rounded-2xl", ElementsHidden: true})
+					Class: "h-44 w-28 rounded-2xl shadow-lg shadow-black/20", ElementsHidden: true})
 			}
 		}
-		offset := []core.Points{38, 0, 60, 16}[col]
+		offset := []core.Points{40, 0, 64, 16}[col]
 		wall = append(wall, core.View{Class: "gap-3", Style: core.Style{Padding: core.Edges{Top: offset}}, Children: pictures})
 	}
-	showSources := func() { a.push(route{screen: screenSources}) }
-	return pageFrame(core.Scroll{Class: "flex-1", Children: []core.Node{
-		core.View{Class: "w-full max-w-[640px] self-center", Children: []core.Node{
-			core.View{Class: "relative h-[240px] overflow-hidden", Children: []core.Node{
-				core.View{Class: "flex-row justify-center gap-3", Children: wall},
-				core.View{Class: "absolute inset-0 bg-linear-to-b from-transparent via-transparent to-background"},
-			}},
-			core.View{Class: "gap-5 px-7 pb-7", Children: []core.Node{
-				brand(locales.AppName(cx)),
-				core.Text{Content: locales.WelcomeTitle(cx), Class: "text-3xl font-bold tracking-tight"},
-				hint(locales.WelcomeBody(cx)),
-				core.View{Class: "flex-row flex-wrap gap-2 rounded-2xl border border-border bg-card p-4", Children: []core.Node{
-					core.Icon{SVG: lucide.Server(), Class: "size-5 text-primary"},
-					hint("Emby · Jellyfin · " + locales.Flymoo(cx) + " · Plex"),
+	features := []core.Node{
+		welcomeFeature(lucide.Server(), "bg-violet-500/12", "text-violet-500 dark:text-violet-400",
+			locales.WelcomeMediaSources(cx), locales.WelcomeMediaSourcesDetail(cx, locales.Flymoo(cx))),
+		welcomeFeature(lucide.MessageSquareText(), "bg-fuchsia-500/12", "text-fuchsia-500 dark:text-fuchsia-400",
+			locales.WelcomeDanmaku(cx), locales.WelcomeDanmakuDetail(cx)),
+		welcomeFeature(lucide.Sparkles(), "bg-amber-500/12", "text-amber-500 dark:text-amber-400",
+			locales.WelcomeOriginalPlayback(cx), locales.WelcomeOriginalPlaybackDetail(cx)),
+		welcomeFeature(lucide.Cloud(), "bg-sky-500/12", "text-sky-500 dark:text-sky-400",
+			locales.WelcomeContinueWatching(cx), locales.WelcomeContinueWatchingDetail(cx)),
+	}
+	add, later := locales.AddSource(cx), locales.Later(cx)
+	return core.View{Class: "relative flex-1 bg-[#f4f4f7] dark:bg-[#0f1017]", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
+		core.SVGView{Class: "absolute inset-0 w-full h-full dark:hidden", SVG: welcomeAmbientLight},
+		core.SVGView{Class: "absolute inset-0 hidden w-full h-full dark:flex", SVG: welcomeAmbientDark},
+		core.Scroll{Class: "flex-1", Children: []core.Node{
+			core.View{Class: "w-full max-w-[640px] self-center", StyleFunc: func() core.Style {
+				return core.Style{MinHeight: core.Pt(cx.Env().Window().Height)}
+			}, Children: []core.Node{
+				core.View{TestID: "welcome-hero", Class: "relative h-[250px] overflow-hidden", Children: []core.Node{
+					core.View{Class: "absolute top-0 left-0 flex-row gap-3", Children: wall},
+					core.View{Class: "absolute inset-0 bg-linear-to-b from-transparent via-[#f4f4f7]/40 to-[#f4f4f7] dark:via-[#0f1017]/40 dark:to-[#0f1017]"},
 				}},
-				ui.Button{Text: locales.AddSource(cx), Icon: lucide.Plus, Size: ui.SizeLarge, TestID: "add-source", OnPress: showSources},
-				ui.Button{Text: locales.Later(cx), Variant: ui.ButtonGhost, Size: ui.SizeLarge, TestID: "onboarding-later", OnPress: a.enter},
+				core.View{Class: "flex-1 gap-5 px-7", Children: []core.Node{
+					core.View{Class: "gap-3", Children: []core.Node{
+						core.View{Class: "flex-row items-center gap-2", Children: []core.Node{
+							core.Image{Class: "size-10", Source: core.ImageSource{Data: welcomeMark}, ResizeMode: core.Contain, ElementsHidden: true},
+							core.Text{Content: locales.AppName(cx), Class: "text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50"},
+						}},
+						core.Text{Content: locales.WelcomeTitle(cx), Class: "text-[26px] leading-tight font-bold tracking-tight text-zinc-900 dark:text-zinc-50"},
+						core.Text{Content: locales.WelcomeBody(cx), Class: "text-sm leading-relaxed text-zinc-500 dark:text-zinc-400"},
+					}},
+					core.View{TestID: "welcome-features", Class: "gap-px overflow-hidden rounded-2xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5 dark:border-white/8 dark:bg-white/7",
+						Children: features},
+					core.View{Class: "mt-auto gap-1 pb-6", Style: core.Style{PaddingEnv: core.EnvEdges{Bottom: core.EnvSafeArea}}, Children: []core.Node{
+						base.Button{Label: add, TestID: "add-source",
+							Class:   "h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30",
+							Style:   core.Style{FocusVisible: ui.FocusRing(cx, 3)},
+							OnPress: func(core.PressEvent) { a.push(route{screen: screenSources}) },
+							Children: []core.Node{core.Icon{SVG: lucide.Plus(), Class: "size-5 text-white"},
+								core.Text{Content: add, Class: "text-base font-semibold text-white"}}},
+						base.Button{Label: later, TestID: "onboarding-later", Class: "items-center py-2",
+							Style: core.Style{FocusVisible: ui.FocusRing(cx, 3)}, OnPress: func(core.PressEvent) { a.enter() },
+							Children: []core.Node{core.Text{Content: later, Class: "text-sm font-medium text-zinc-500 dark:text-zinc-400"}}},
+					}},
+				}},
 			}},
 		}},
-	}})
+	}}
+}
+
+func welcomeFeature(icon *core.SVG, background, tint, title, detail string) core.Node {
+	return core.View{Class: "flex-row items-center gap-3 bg-white px-4 py-2.5 dark:bg-[#1a1b25]", Children: []core.Node{
+		core.View{Class: "size-9 items-center justify-center rounded-xl " + background, Children: []core.Node{
+			core.Icon{SVG: icon, Class: "size-4 " + tint},
+		}},
+		core.View{Class: "flex-1", Children: []core.Node{
+			core.Text{Content: title, Class: "text-sm font-medium text-zinc-900 dark:text-zinc-50"},
+			core.Text{Content: detail, Class: "text-xs text-zinc-500 dark:text-zinc-400"},
+		}},
+	}}
 }
 
 func (a *application) chooseSource(cx *core.Scope) core.Node {
