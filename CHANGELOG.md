@@ -5,6 +5,7 @@
 - Upgrade the app, packaging tools and Scenra reference renderer to NSGo 0.3.0. [NSGo release](https://github.com/nsgo-dev/nsgo/releases/tag/v0.3.0)
 - Bundle libmpv in portable Windows x64 and ARM64 builds. [Windows packaging](docs/roadmap.md#platform-verification)
 - Encrypt saved credentials in the HarmonyOS package with a key held by the system Asset Store. [HarmonyOS packaging](build/harmonyos/PACKAGING.md)
+- Route HarmonyOS media requests and the local playback proxy through system TCP sockets. [HarmonyOS transport checks](build/harmonyos/PACKAGING.md#docker-playback-smoke-test)
 - Play embedded Plex Matroska text subtitles in the native player. [Playback verification](docs/ui-review/phone-player.md#plex-matroska-subtitles)
 - Search, download and restore online subtitles from the player. [Playback verification](docs/ui-review/phone-player.md#online-subtitle-search)
 - Show the next episode card and remote focus during cross-season TV playback. [TV player review](docs/ui-review/tv-player.md#next-episode)

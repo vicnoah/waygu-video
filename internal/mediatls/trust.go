@@ -102,6 +102,7 @@ func Configure(transport *http.Transport, address string, pins ...Trust) error {
 			return err
 		}
 		transport.TLSClientConfig = config
+		transport.DialTLSContext = nil
 	}
 	return nil
 }

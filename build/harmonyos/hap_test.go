@@ -48,8 +48,8 @@ func TestPreviewArchive(t *testing.T) {
 		path    string
 		markers []string
 	}{
-		{"ets/modules.abc", []string{"secretKey", "nsgo-encrypted-secrets-key-v1"}},
-		{"resources/rawfile/web/app.wasm", []string{"\x00asm", "secretKey", "encrypted-secrets"}},
+		{"ets/modules.abc", []string{"secretKey", "nsgo-encrypted-secrets-key-v1", "wayguTCPDial", "wayguTCPListen", "wayguTCPVerify"}},
+		{"resources/rawfile/web/app.wasm", []string{"\x00asm", "secretKey", "encrypted-secrets", "wayguTCPDial", "wayguTCPEvent", "wayguTCPListen", "wayguTCPVerify"}},
 	} {
 		content, err := fs.ReadFile(archive, artifact.path)
 		if err != nil {

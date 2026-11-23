@@ -21,6 +21,8 @@ trap 'rm -rf -- "$staging"' EXIT
 cp -R "$source" "$staging/nsgo"
 chmod -R u+w "$staging/nsgo"
 patch -d "$staging/nsgo" -F 0 -p1 < build/harmonyos/nsgo-secrets.patch
+patch -d "$staging/nsgo" -F 0 -p1 < build/harmonyos/nsgo-network.patch
+cp build/harmonyos/MediaSockets.ets "$staging/nsgo/cmd/nsgo/harmony/templates/entry/src/main/ets/pages/"
 case "$mode" in
     rebuild-host)
         compiler="$staging/nsgo/cmd/nsgo/harmony"

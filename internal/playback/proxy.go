@@ -20,6 +20,7 @@ import (
 
 	"waygu-video/internal/mediahttp"
 	"waygu-video/internal/mediatls"
+	"waygu-video/internal/platformnet"
 )
 
 const maxPlaylist = 4 << 20
@@ -86,11 +87,14 @@ func startProxy(source mediahttp.Resource, bind string, receiver netip.Addr, con
 	if err != nil || origin.User != nil || origin.Hostname() == "" || (origin.Scheme != "http" && origin.Scheme != "https") {
 		return nil, "", nil, errors.New("invalid playback URL")
 	}
-	transport := &http.Transport{Proxy: http.ProxyFromEnvironment, ResponseHeaderTimeout: 20 * time.Second}
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment, ResponseHeaderTimeout: 20 * time.Second,
+		DialContext: platformnet.DialContext, DialTLSContext: platformnet.DialTLSContext,
+	}
 	if err := mediatls.Configure(transport, source.URL, source.Trust); err != nil {
 		return nil, "", nil, err
 	}
-	listener, err := net.Listen("tcp", bind)
+	listener, err := platformnet.Listen("tcp", bind)
 	if err != nil {
 		return nil, "", nil, err
 	}

@@ -1,0 +1,37 @@
+--- a/cmd/nsgo/harmony/templates/entry/src/main/ets/pages/Index.ets
++++ b/cmd/nsgo/harmony/templates/entry/src/main/ets/pages/Index.ets
+@@ -19,0 +20 @@
++import { MediaSockets } from './MediaSockets';
+@@ -890,0 +892,24 @@
++  wayguTCPDial(id: number, host: string, port: number, network: string): boolean {
++    return this.host?.mediaSockets.dial(id, host, port, network) ?? false;
++  }
++
++  wayguTCPListen(id: number): boolean {
++    return this.host?.mediaSockets.listen(id) ?? false;
++  }
++
++  wayguTCPPull(id: number): boolean {
++    return this.host?.mediaSockets.pull(id) ?? false;
++  }
++
++  wayguTCPSend(id: number, data: string): boolean {
++    return this.host?.mediaSockets.send(id, data) ?? false;
++  }
++
++  wayguTCPClose(id: number): boolean {
++    return this.host?.mediaSockets.close(id) ?? false;
++  }
++
++  wayguTCPVerify(id: number, hostname: string, data: string): boolean {
++    return this.host?.mediaSockets.verify(id, hostname, data) ?? false;
++  }
++
+@@ -1179,0 +1205,4 @@
++  mediaSockets: MediaSockets = new MediaSockets((kind: string, id: number, number: number, data: string) => {
++    const js = 'wayguTCPEvent(' + JSON.stringify(kind) + ',' + id + ',' + number + ',' + JSON.stringify(data) + ')';
++    this.controller.runJavaScript(js).catch(() => {});
++  });
+@@ -2217 +2246 @@
+-          methodList: ['ready', 'submit', 'tick', 'idle', 'device', 'measure', 'perf', 'snapshot', 'scrollBy', 'typeInput', 'launch', 'sandbox', 'alert', 'backunhandled', 'clipread', 'clipset', 'clipimage', 'dismisskeyboard', 'announce', 'title', 'updatewidget', 'listdir', 'readfile', 'pickdirectories', 'imageinfo', 'openurl', 'pickimages', 'pickfiles', 'savefile', 'saved', 'openfile', 'takephoto', 'keepawake', 'releaseawake', 'bioavail', 'bioauth', 'permission', 'secretKey'],
++          methodList: ['ready', 'submit', 'tick', 'idle', 'device', 'measure', 'perf', 'snapshot', 'scrollBy', 'typeInput', 'launch', 'sandbox', 'alert', 'backunhandled', 'clipread', 'clipset', 'clipimage', 'dismisskeyboard', 'announce', 'title', 'updatewidget', 'listdir', 'readfile', 'pickdirectories', 'imageinfo', 'openurl', 'pickimages', 'pickfiles', 'savefile', 'saved', 'openfile', 'takephoto', 'keepawake', 'releaseawake', 'bioavail', 'bioauth', 'permission', 'secretKey', 'wayguTCPDial', 'wayguTCPListen', 'wayguTCPPull', 'wayguTCPSend', 'wayguTCPClose', 'wayguTCPVerify'],
