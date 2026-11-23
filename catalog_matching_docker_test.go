@@ -86,8 +86,9 @@ func TestDockerCrossSourceTitles(t *testing.T) {
 		}
 	}
 	older := setDockerCopyProgress(t, ctx, clients[0], resumed[0], 82*time.Second)
-	// Replay the shorter copy afterward so order cannot be inferred from progress.
-	time.Sleep(1100 * time.Millisecond)
+	// Emby records whole seconds. Wait beyond the second reported by Jellyfin
+	// before replaying the shorter copy to establish an unambiguous order.
+	time.Sleep(max(time.Second, time.Until(older.Truncate(time.Second).Add(2*time.Second))))
 	later := setDockerCopyProgress(t, ctx, clients[1], resumed[1], 34*time.Second)
 	if !later.After(older) {
 		t.Fatalf("expected newer Emby date, got Jellyfin %s and Emby %s", older, later)
