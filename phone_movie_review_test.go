@@ -20,10 +20,15 @@ func TestPhoneMovieRatingReview(t *testing.T) {
 	config := movieDesignFixtureConfig(t, 12_000)
 	for _, theme := range reviewAppearances {
 		t.Run(theme.name, func(t *testing.T) {
+			target := nsgotest.Target()
+			height := core.Points(840)
+			if target == "" {
+				height = 500
+			}
 			app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
 				cx.SetSubtreeAppearance(theme.appearance)
 				return movieDesignFixtureRoot(cx)
-			}, nsgotest.Size(390, 840), nsgotest.Environment(core.Environment{Locale: "zh-Hans"}),
+			}, nsgotest.Size(390, height), nsgotest.Environment(core.Environment{Locale: "zh-Hans"}),
 				nsgotest.Idiom(core.IdiomPhone), nsgotest.Storage(config), nsgotest.Secrets(map[string]string{"capture": "fixture-token"}))
 			app.Press("id:tab-library")
 			app.WaitFor("id:title-test-film", 5*time.Second)
@@ -36,12 +41,30 @@ func TestPhoneMovieRatingReview(t *testing.T) {
 			if app.Exists("id:phone-movie-hero >> text:9.6") {
 				t.Fatal("the hero mixed the generic star with named ratings")
 			}
-			if nsgotest.Target() != "" {
+			if target != "" {
 				app.Advance(750 * time.Millisecond)
 				app.Screenshot("phone-movie-ratings-" + theme.name)
 				app.Scroll("id:phone-movie-scroll", 1500)
 				app.Advance(450 * time.Millisecond)
 				app.Screenshot("phone-movie-file-" + theme.name)
+			} else {
+				expectStatusBar := func(want core.StatusBarStyle) {
+					t.Helper()
+					if got := app.StatusBar.Style; got != want {
+						t.Errorf("status bar foreground = %v, want %v", got, want)
+					}
+				}
+				expectStatusBar(core.StatusBarLight)
+				app.Scroll("id:phone-movie-scroll", 1500)
+				body := core.StatusBarDark
+				if theme.appearance == core.AppearanceDark {
+					body = core.StatusBarLight
+				}
+				expectStatusBar(body)
+				app.Scroll("id:phone-movie-scroll", -1500)
+				expectStatusBar(core.StatusBarLight)
+				app.Press("id:back")
+				expectStatusBar(core.StatusBarAuto)
 			}
 		})
 	}

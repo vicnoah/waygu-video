@@ -11,7 +11,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Phone media library · light and dark | [Category, poster and list comparisons](phone-library.md) | Compared on GTK with categorized Docker libraries. Mobile device captures remain pending. |
 | Phone search · light and dark | [Title and credit search comparisons](phone-search.md) | Compared on GTK with real search results and saved history. Mobile device captures remain pending. |
 | Phone movie detail · light and dark | [Top and bottom comparisons and playback checks](phone-movie.md) | Compared on GTK with Docker movies, a trailer, and a featurette. Device captures and several design actions remain pending. |
-| Phone series detail · light and dark | [Season and specials comparisons](phone-series.md) | Compared on GTK with two seasons and a special. The season download picker is captured on GTK and Android TV. Phone device captures remain pending. |
+| Phone series detail · light and dark | [Season and specials comparisons](phone-series.md) | Compared on GTK and the Android 15 phone emulator with two seasons and a special. The season download picker is captured on GTK and Android TV. |
 | Phone danmaku settings · light and dark | [Preview, matching and filter comparisons](phone-danmaku-settings.md) | Compared on GTK. DandanPlay and Logvar exercise matching, playback and cache reuse. Standalone Bilibili and Bahamut, public posting and mobile captures remain pending. |
 | Phone About and help · light and dark | [Help, diagnostics and reset comparisons](phone-about.md) | Compared on GTK. Device save behavior and the App Store rating action remain pending. |
 | Phone library and metadata · light and dark | [Library controls and metadata comparison](phone-library-metadata.md) | Compared on GTK. Scans were accepted by Emby, Jellyfin and Plex. Additional metadata providers and target-device captures remain pending. |
@@ -95,6 +95,8 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
 ```
 
 Render the matching Scenra frame with `WAYGU_REVIEW_DESIGN=series-detail.scenra`. Render the other two sets with `WAYGU_REVIEW_PANEL=s2` and `WAYGU_REVIEW_PANEL=extras`.
+
+On the Android phone emulator, run the [series test for each appearance](../../integration/servers/TESTING.md#catalog-and-player-fixtures). Capture the emulator display at each panel to include the status bar and system navigation.
 
 The tablet home test selects the tablet layout in the GTK harness at 1180 × 820 pt in landscape and 820 × 1180 pt in portrait.
 

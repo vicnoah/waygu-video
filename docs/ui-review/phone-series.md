@@ -26,11 +26,31 @@
 | --- | --- |
 | Hero | The 420 pt edge-to-edge art, lower scrim, source badge, favorite and overflow controls follow the design. The active episode's file supplies resolution and HDR badges when available. GTK uses its own window chrome and has no 44 pt mobile status bar. The source's aggregate score appears with a star. |
 | Resume | The 52 pt action starts the series bookmark. The body shows watched time and the remaining episode count from the active season. Long-press offers restart and episode details. The Emby fixture resumes at 2:24 with three later episodes remaining. |
-| Season bar | The violet underline follows the selected tab. The sort menu changes order and can hide watched episodes. Returning from the player retains the season, sort and filter. The More menu opens the DLNA picker for the selected episode. [Casting comparison](casting.md) |
+| Season bar | The violet underline follows the selected tab. The sort menu changes order and can hide watched episodes. Returning from the player retains the season, sort and filter, including when the page explicitly shows watched episodes with the global hide preference enabled. The More menu opens the DLNA picker for the selected episode. [Casting comparison](casting.md) |
 | Episode rows | The fixture exercises the 128 × 72 pt thumbnail, watched check, active scene-progress overlay, cached danmaku count and actual download state. The count snapshots for the reference capture are synthetic. Real bindings record their count after the player loads comments. |
-| Second season and specials | Scenra uses a placeholder box for each panel. The app uses the first season's row treatment for populated seasons and specials. Empty panels use the design's icon and text treatment. Art and episode names come from each server. |
+| Second season and specials | Scenra uses a placeholder box for each panel. The app uses the first season's row treatment for populated seasons and specials. Empty panels use the design's icon and text treatment. Art and episode names come from each server. Returning to Specials waits for the server's season list before loading season zero and extras. |
 
-The native review plays the second-season file and checks that the clock advances. The test opens a downloaded episode from its season row and checks that it loads a local file. Headless coverage verifies the first-season seek and all three media adapters' season indexing. Phone device comparisons remain pending. [Fixture setup](../../integration/servers/TESTING.md) · [Capture commands](README.md)
+The review checks the first-season resume at 2:24, and opens a downloaded episode through the row's restart action. Headless coverage verifies all three media adapters' season indexing. [Fixture setup](../../integration/servers/TESTING.md) · [Capture commands](README.md)
+
+## Android phone
+
+The Pixel 7 emulator ran Android 15 at 390 × 844 dp. Each pair shows Scenra on the left and a capture of the emulator display on the right, scaled from 1170 × 2532 px. The network, battery and navigation indicators come from Android. The native status bar uses light icons over the backdrop in both appearances, matching the reference. After scrolling past the backdrop, the icons follow the page appearance. [Android system bars](https://developer.android.com/design/ui/mobile/guides/foundations/system-bars)
+
+![Scenra and Android in light appearance, showing the series hero, resume action and season selector](images/phone-series-android-light.png)
+
+![Scenra and Android in dark appearance, showing the series hero, resume action and season selector](images/phone-series-android-dark.png)
+
+![Android status bar over the backdrop and the scrolled page, light above dark](images/phone-series-android-status.png)
+
+The app measures the 420 dp hero, 52 dp resume button, and 128 × 72 dp thumbnails. In the scrolled first-season list, Android shows the watched check, the active episode with progress, comment counts and the downloaded row. Longer episode names from the fixture wrap onto two lines.
+
+![Scenra and the scrolled first-season list on Android](images/phone-series-android-episodes.png)
+
+The second-season and specials crops show the selected tabs and the populated Emby cards. Light is above dark. The Android sort menu is set to descending, and the bottom of the second-season list is below the captured viewport.
+
+![Scenra and Android with the second-season and specials tabs selected](images/phone-series-android-panels.png)
+
+`TestDockerPhoneSeriesReview` passed in both appearances on Android. It checks the selected episode and native playback position for season two, the local file and playback position for the downloaded episode, and the selected Specials tab and episode after returning from the player. iOS, HarmonyOS and physical phone captures remain pending. [Android test command](../../integration/servers/TESTING.md#catalog-and-player-fixtures)
 
 ## Season downloads
 

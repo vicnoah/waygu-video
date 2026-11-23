@@ -21,9 +21,10 @@ import (
 const seriesSpecials = "specials"
 
 type seriesViewState struct {
-	tab                   string
-	copy                  copyKey
-	reversed, hideWatched bool
+	tab         string
+	copy        copyKey
+	reversed    bool
+	hideWatched *bool
 }
 
 type seriesEpisodePage struct {
@@ -37,7 +38,11 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 	personal := a.detailPersonal(cx, current, detail)
 	selected := core.NewSignal(cx, current.seriesView.tab)
 	reversed := core.NewSignal(cx, current.seriesView.reversed)
-	hideWatched := core.NewSignal(cx, current.seriesView.hideWatched || a.appearancePrefs.GetUntracked().HideFinished)
+	hideFinished := a.appearancePrefs.GetUntracked().HideFinished
+	if saved := current.seriesView.hideWatched; saved != nil {
+		hideFinished = *saved
+	}
+	hideWatched := core.NewSignal(cx, hideFinished)
 	menuEpisode := core.NewSignalFunc(cx, catalogItem{}, nil)
 	menuOpen := core.NewSignal(cx, false)
 	seasons := core.NewMemoFunc(cx, func() []media.Item {
@@ -86,9 +91,16 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 
 	activeTab := core.NewMemo(cx, func() string {
 		available := seasons.Get()
-		if tab := selected.Get(); tab != "" && (tab == seriesSpecials || slices.ContainsFunc(available, func(season media.Item) bool {
+		tab := selected.Get()
+		if tab == seriesSpecials {
+			if _, ready := detail.Get(); ready {
+				return tab
+			}
+			return ""
+		}
+		if tab != "" && slices.ContainsFunc(available, func(season media.Item) bool {
 			return season.ID == tab && season.Season > 0
-		})) {
+		}) {
 			return tab
 		}
 		resume := bookmarked.Get().item
@@ -116,7 +128,7 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 	}
 	episodes := core.NewResource(cx, func() (query, bool) {
 		tab := activeTab.Get()
-		return query{tab, seasons.GetUntracked()}, tab != ""
+		return query{tab, seasons.Get()}, tab != ""
 	}, func(ctx context.Context, q query, _ core.ResourceInfo) (seriesEpisodePage, error) {
 		return a.loadSeriesEpisodes(ctx, current, q.tab, q.seasons), nil
 	})
@@ -178,9 +190,10 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 		return a.seriesVersion(ctx, current.source, q.item, q.options)
 	})
 	viewState := func() seriesViewState {
+		hide := hideWatched.GetUntracked()
 		return seriesViewState{
 			tab: activeTab.GetUntracked(), copy: (catalogCopy{current.source, current.item}).key(),
-			reversed: reversed.GetUntracked(), hideWatched: hideWatched.GetUntracked(),
+			reversed: reversed.GetUntracked(), hideWatched: &hide,
 		}
 	}
 	open := func(entry catalogItem, resume, details bool) {
@@ -236,7 +249,8 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 		Trigger: core.View{Class: "flex-1 items-center justify-center", Children: []core.Node{
 			core.Icon{SVG: lucide.Ellipsis(), Class: "size-4 text-white"},
 		}}, Children: menu}
-	hero := a.phoneMediaHeroFrame(cx, art, "h-[420px]", "phone-series-hero", []core.Node{title},
+	const heroHeight = 420
+	hero := a.phoneMediaHeroFrame(cx, art, heroHeight, "phone-series-hero", []core.Node{title},
 		core.Dynamic(func(cx *core.Scope) core.Node {
 			result, _ := detail.Get()
 			return core.Group(personal.buttons(cx, result, phoneHeroAction))
@@ -300,7 +314,7 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 			TestID: "series-episode-list", Role: core.RoleGroup, Children: list}
 	})
 	return core.View{Class: "relative flex-1 bg-waygu-page", Children: []core.Node{
-		core.Scroll{Class: "flex-1", TestID: "phone-series-scroll", Children: []core.Node{
+		core.Scroll{Class: "flex-1", TestID: "phone-series-scroll", OnScroll: phoneDetailStatusBar(cx, heroHeight), Children: []core.Node{
 			core.View{Class: "relative", Style: core.Style{PaddingEnv: core.EnvEdges{
 				Left: core.EnvSafeArea, Right: core.EnvSafeArea, Bottom: core.EnvSafeArea,
 			}}, Children: []core.Node{

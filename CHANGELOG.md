@@ -11,6 +11,8 @@
 - Check the selected video's estimated size against available space before queueing a download. [Download picker review](docs/ui-review/desktop-movie.md#download-picker)
 - Show IMDb and TMDB ratings by name in desktop, phone, tablet and TV movie details. [Tablet review](docs/ui-review/tablet-detail.md#ratings-and-formats) · [TV review](docs/ui-review/tv-detail.md#ratings-and-formats)
 - Scale TV detail badge borders, play controls and portrait frames to the design viewport. [TV detail comparison](docs/ui-review/tv-detail.md)
+- Keep system status icons legible over phone detail artwork. [Phone detail comparison](docs/ui-review/phone-series.md#android-phone)
+- Restore the specials list and the chosen watched-episode filter after playback. [Episode checks](docs/ui-review/phone-series.md)
 - Show the Atmos badge in phone and tablet movie details when the selected version reports Atmos audio. [Phone review](docs/ui-review/phone-movie.md#rating-badges) · [Tablet review](docs/ui-review/tablet-detail.md#ratings-and-formats)
 - Show counts for matched and saved danmaku in desktop and phone movie details. [Danmaku count review](docs/ui-review/desktop-movie.md#danmaku-counts)
 - Show the selected video's Dolby Vision profile and compatible HDR format in movie details. [Video range review](docs/ui-review/desktop-movie.md#video-range)

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"maps"
 	"os"
 	"os/exec"
 	"slices"
@@ -134,16 +135,22 @@ func TestDockerPhoneSeriesReview(t *testing.T) {
 		t.Fatal(err)
 	}
 	config[sourcesKey] = string(encoded)
+	const resumeAt = 144 * time.Second
 	for _, variant := range reviewAppearances {
 		t.Run(variant.name, func(t *testing.T) {
+			settings := maps.Clone(config)
+			hideFinishedByDefault := variant.appearance == core.AppearanceDark
+			if hideFinishedByDefault {
+				settings[appearancePreferencesKey] = `{"HideFinished":true}`
+			}
 			seed, cancel := context.WithTimeout(t.Context(), 10*time.Second)
 			defer cancel()
-			for _, episode := range secondEpisodes {
+			for _, episode := range slices.Concat(episodes[2:], secondEpisodes, specials) {
 				if err := client.(media.WatchedClient).SetWatched(seed, episode, false); err != nil {
 					t.Fatal(err)
 				}
 			}
-			setDockerCopyProgress(t, seed, client, episodes[1], 144*time.Second)
+			setDockerCopyProgress(t, seed, client, episodes[1], resumeAt)
 			height := core.Points(1500)
 			if nsgotest.Target() == "linux" {
 				height += 37
@@ -153,11 +160,30 @@ func TestDockerPhoneSeriesReview(t *testing.T) {
 				shellIdiom.Provide(cx, core.IdiomPhone)
 				return Root(cx)
 			}, nsgotest.Size(390, height), nsgotest.Environment(core.Environment{Locale: "zh-Hans"}),
-				nsgotest.Storage(config), nsgotest.Secrets(secrets))
+				nsgotest.Storage(settings), nsgotest.Secrets(secrets))
+			waitForPlayback := func(episode media.Item) {
+				const title, position = "id:player-title", "id:player-position"
+				app.WaitFor(title, 5*time.Second)
+				if current := app.Find(title).Text; current != episode.Title {
+					t.Fatalf("playing %q, want %q", current, episode.Title)
+				}
+				app.WaitForGone("text:正在加载…", 10*time.Second)
+				app.WaitUntil(6*time.Second, func() bool {
+					clock := app.Find(position).Text
+					return clock != "" && clock != playbackClock(0) && clock != landscapeClock(0)
+				})
+			}
 			app.WaitFor("id:title-"+series.ID, 10*time.Second)
 			app.Press("id:title-" + series.ID)
 			app.WaitFor("id:series-resume-progress", 5*time.Second)
 			app.WaitFor("id:episode-progress-"+episodes[1].ID, 5*time.Second)
+			watched := "id:child-" + episodes[0].ID
+			if hideFinishedByDefault {
+				app.WaitForGone(watched, time.Second)
+				app.Press("id:series-sort")
+				app.Press("id:series-hide-watched")
+				app.WaitFor(watched, time.Second)
+			}
 			if caption := app.Find("id:series-resume-caption").Text; !strings.Contains(caption, "本季剩余 3 集") {
 				t.Fatalf("resume caption = %q", caption)
 			}
@@ -183,6 +209,7 @@ func TestDockerPhoneSeriesReview(t *testing.T) {
 			app.WaitFor("role:button 已下载", 8*time.Second)
 			app.Press("id:back")
 			app.WaitFor("id:episode-progress-"+episodes[1].ID, 5*time.Second)
+			app.WaitFor(watched, time.Second)
 			app.WaitFor("text:/已下载/", 3*time.Second)
 			capture := func(suffix string) {
 				if nsgotest.Target() != "" {
@@ -191,6 +218,11 @@ func TestDockerPhoneSeriesReview(t *testing.T) {
 				}
 			}
 			capture("")
+			if nsgotest.Target() == "android" {
+				app.Scroll("id:phone-series-scroll", 420)
+				capture("-episodes")
+				app.Scroll("id:phone-series-scroll", -420)
+			}
 			app.Press("id:series-sort")
 			app.WaitFor("id:series-descending", time.Second)
 			app.Press("id:series-descending")
@@ -199,7 +231,12 @@ func TestDockerPhoneSeriesReview(t *testing.T) {
 			}
 			app.Press("id:series-sort")
 			app.Press("id:series-hide-watched")
-			app.WaitForGone("id:child-"+episodes[0].ID, time.Second)
+			app.WaitForGone(watched, time.Second)
+			if hideFinishedByDefault {
+				app.Press("id:series-sort")
+				app.Press("id:series-hide-watched")
+				app.WaitFor(watched, time.Second)
+			}
 			app.Press("id:series-tab-" + second.ID)
 			app.WaitFor("id:child-"+secondEpisodes[0].ID, 5*time.Second)
 			app.WaitForGone("id:child-"+episodes[1].ID, time.Second)
@@ -215,9 +252,7 @@ func TestDockerPhoneSeriesReview(t *testing.T) {
 					t.Fatalf("season two video failed to decode: %q, %v", probe, err)
 				}
 			} else {
-				app.WaitForGone("text:正在加载…", 10*time.Second)
-				before := app.Find("id:player-position").Text
-				app.WaitUntil(6*time.Second, func() bool { return app.Find("id:player-position").Text != before })
+				waitForPlayback(secondEpisodes[0])
 			}
 			app.Press("id:close-player")
 			app.WaitFor("id:child-"+secondEpisodes[1].ID, 5*time.Second)
@@ -230,31 +265,62 @@ func TestDockerPhoneSeriesReview(t *testing.T) {
 			capture("-extras")
 			app.Press("id:series-tab-" + first.ID)
 			app.WaitFor("id:episode-progress-"+episodes[1].ID, 5*time.Second)
+			if hideFinishedByDefault {
+				app.WaitFor(watched, time.Second)
+			} else {
+				app.WaitForGone(watched, time.Second)
+			}
 			app.Press("id:detail-play")
 			app.WaitFor("id:video-player", 8*time.Second)
 			if nsgotest.Target() == "" {
 				app.Play("id:video-player", core.VideoInfo{Duration: 6 * time.Minute})
-				if actual := app.Find("id:player-position").Text; actual != "02:24" {
-					t.Fatalf("playback resumed at %q, want 02:24", actual)
+				if actual := app.Find("id:player-position").Text; actual != playbackClock(resumeAt) {
+					t.Fatalf("playback resumed at %q, want %q", actual, playbackClock(resumeAt))
 				}
 			} else {
 				app.WaitForGone("text:正在加载…", 10*time.Second)
 				app.WaitUntil(6*time.Second, func() bool {
-					return strings.HasPrefix(app.Find("id:player-position").Text, "02:")
+					clock := strings.TrimPrefix(app.Find("id:player-position").Text, "00:")
+					return clock >= playbackClock(resumeAt) && clock < playbackClock(resumeAt+15*time.Second)
 				})
 			}
 			app.Press("id:close-player")
-			app.WaitFor("id:child-"+episodes[4].ID, 5*time.Second)
-			app.Press("id:child-" + episodes[4].ID)
+			downloadedEpisode := "id:child-" + episodes[4].ID
+			app.WaitFor(downloadedEpisode, 5*time.Second)
+			app.LongPress(downloadedEpisode)
+			app.WaitFor("id:series-episode-menu", 3*time.Second)
+			app.Advance(350 * time.Millisecond)
+			app.Press("id:series-episode-start")
 			saved := app.WaitFor("id:video-player", 8*time.Second)
 			app.WaitFor("text:离线播放", 5*time.Second)
 			if strings.HasPrefix(saved.Video.Source, "http") {
 				t.Fatal("downloaded episode opened as a network stream")
 			}
+			if nsgotest.Target() != "" {
+				waitForPlayback(episodes[4])
+			}
 			if nsgotest.Target() != "android" && nsgotest.Target() != "web" {
 				if info, err := os.Stat(saved.Video.Source); err != nil || info.Size() == 0 {
 					t.Fatalf("downloaded episode was not available for local playback: %v", err)
 				}
+			}
+			app.Press("id:close-player")
+			app.WaitFor("id:series-tab-specials", 5*time.Second)
+			if !hideFinishedByDefault {
+				app.Press("id:series-sort")
+				app.Press("id:series-hide-watched")
+			}
+			app.Press("id:series-tab-specials")
+			app.WaitFor("id:child-"+specials[0].ID, 5*time.Second)
+			app.Press("id:child-" + specials[0].ID)
+			app.WaitFor("id:video-player", 8*time.Second)
+			if nsgotest.Target() != "" {
+				waitForPlayback(specials[0])
+			}
+			app.Press("id:close-player")
+			app.WaitFor("id:child-"+specials[0].ID, 5*time.Second)
+			if !app.Find("id:series-tab-specials").Props.Selected {
+				t.Fatal("returning from playback lost the specials selection")
 			}
 		})
 	}

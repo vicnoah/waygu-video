@@ -17,6 +17,8 @@ import (
 	"waygu-video/locales"
 )
 
+const phoneMovieHeroHeight = 460
+
 func (a *application) phoneMovieDetail(cx *core.Scope, current route, copies func() []ui.Option[copyKey], selectCopy func(copyKey)) core.Node {
 	state := a.movieDetailState(cx, current, false)
 	castOpen := core.NewSignal(cx, false)
@@ -129,7 +131,7 @@ func (a *application) phoneMovieDetail(cx *core.Scope, current route, copies fun
 		moreDetails,
 	}}
 	return core.View{Class: "relative flex-1 bg-waygu-page", Children: []core.Node{
-		core.Scroll{Class: "flex-1", TestID: "phone-movie-scroll", Children: []core.Node{
+		core.Scroll{Class: "flex-1", TestID: "phone-movie-scroll", OnScroll: phoneDetailStatusBar(cx, phoneMovieHeroHeight), Children: []core.Node{
 			core.View{Class: "relative", Style: core.Style{PaddingEnv: core.EnvEdges{
 				Left: core.EnvSafeArea, Right: core.EnvSafeArea, Bottom: core.EnvSafeArea,
 			}}, Children: []core.Node{
@@ -284,16 +286,31 @@ func (a *application) phoneMovieHero(cx *core.Scope, item media.Item, version me
 	if cast != nil {
 		tools = append(tools, phoneHeroAction(cx, "detail-cast-device", locales.PhonePlayerCast(cx), lucide.Cast(), false, nil, cast))
 	}
-	return a.phoneMediaHero(cx, item, "h-[460px]", "phone-movie-hero", title, append(tools, phoneMovieMore(cx, true, reload, false, nil))...)
-}
-
-func (a *application) phoneMediaHero(cx *core.Scope, item media.Item, height, id string, title []core.Node, tools ...core.Node) core.Node {
 	art := homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0")
-	return a.phoneMediaHeroFrame(cx, art, height, id, title, tools...)
+	return a.phoneMediaHeroFrame(cx, art, phoneMovieHeroHeight, "phone-movie-hero", title, append(tools, phoneMovieMore(cx, true, reload, false, nil))...)
 }
 
-func (a *application) phoneMediaHeroFrame(cx *core.Scope, art core.Node, height, id string, title []core.Node, tools ...core.Node) core.Node {
-	return core.View{Class: "relative shrink-0 overflow-hidden " + height, TestID: id, Children: []core.Node{
+func phoneDetailStatusBar(cx *core.Scope, heroHeight core.Points) func(core.ScrollEvent) {
+	overHero := core.NewSignal(cx, true)
+	cx.Effect(func() {
+		foreground := core.StatusBarDark
+		if overHero.Get() || cx.Dark() {
+			foreground = core.StatusBarLight
+		}
+		cx.SetStatusBar(core.StatusBarSetting{Foreground: foreground})
+	})
+	cx.Cleanup(func() {
+		cx.SetStatusBar(core.StatusBarSetting{Foreground: core.StatusBarAuto})
+	})
+	return func(event core.ScrollEvent) {
+		if !event.Stale {
+			overHero.Set(event.Offset.Y+core.Insets(cx).Top < heroHeight)
+		}
+	}
+}
+
+func (a *application) phoneMediaHeroFrame(cx *core.Scope, art core.Node, height core.Points, id string, title []core.Node, tools ...core.Node) core.Node {
+	return core.View{Class: "relative shrink-0 overflow-hidden", Style: core.Style{Height: core.Pt(height)}, TestID: id, Children: []core.Node{
 		art,
 		core.View{Class: "absolute inset-0 bg-linear-to-t from-black/90 via-black/35 to-black/45"},
 		core.View{Class: "absolute inset-x-0 bottom-0 h-12 bg-linear-to-b from-transparent to-waygu-page"},
