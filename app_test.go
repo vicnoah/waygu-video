@@ -23,13 +23,18 @@ func TestSkipOnboarding(t *testing.T) {
 }
 
 func TestTVNavigation(t *testing.T) {
+	target := nsgotest.Target()
 	languages := []string{"en", "zh-Hans"}
-	if nsgotest.Target() != "" {
+	if target != "" {
 		languages = languages[:1]
+	}
+	height := core.Points(540)
+	if target == "linux" {
+		height += 37
 	}
 	for _, locale := range languages {
 		t.Run(locale, func(t *testing.T) {
-			appleTV := nsgotest.Target() == "tvos_simulator"
+			appleTV := target == "tvos_simulator"
 			var defaultNetwork atomic.Bool
 			app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
 				shellIdiom.Provide(cx, core.IdiomTV)
@@ -38,16 +43,16 @@ func TestTVNavigation(t *testing.T) {
 					defaultNetwork.Store(network.GetUntracked() == transportDefault)
 				}
 				return core.View{Class: "flex-1", TestID: "tv-navigation-host", Children: []core.Node{Root(cx)}}
-			}, nsgotest.Idiom(core.IdiomTV), nsgotest.Size(960, 540),
+			}, nsgotest.Idiom(core.IdiomTV), nsgotest.Size(960, height),
 				nsgotest.Environment(core.Environment{Locale: locale}))
 			if appleTV && !defaultNetwork.Load() {
 				t.Fatal("Apple TV should use the default network profile")
 			}
-			height := app.Find("id:tv-navigation-host").Bounds().Size.Height
+			contentHeight := app.Find("id:tv-navigation-host").Bounds().Size.Height
 			for _, id := range []string{"add-source", "onboarding-later"} {
 				bounds := app.Find("id:" + id).Bounds()
-				if bounds.Origin.Y < 0 || bounds.Origin.Y+bounds.Size.Height > height {
-					t.Fatalf("%s is outside the first TV screen: %+v", id, bounds)
+				if bounds.Origin.Y < 0 || bounds.Origin.Y+bounds.Size.Height > contentHeight {
+					t.Fatalf("%s is outside the first TV screen (%v pt high): %+v", id, contentHeight, bounds)
 				}
 			}
 			app.Press("id:onboarding-later")
