@@ -1,6 +1,6 @@
 # Storage and downloads review
 
-[Scenra design](../../design/settings-storage.scenra) · [Download workflow](../../design/flows/offline-download.scenra) · 390 × 1380 pt · Linux GTK at 1× scale · `zh-Hans`. Each strip shows the Scenra reference on the left and the native settings page on the right. The reference is rendered with Scenra `88548db091cd`. The previous app had no storage page.
+[Scenra design](../../design/settings-storage.scenra) · [Download workflow](../../design/flows/offline-download.scenra) · 390 × 1380 pt · Linux GTK at 1× scale · `zh-Hans`. Each strip shows the Scenra reference on the left and the native settings page on the right. The reference is rendered with Scenra `88548db091cd`. The first captures document the queue during a transfer. The latest settings captures show both new switches. [Settings captures](#automatically-delete-watched-downloads)
 
 ## Light
 
@@ -17,7 +17,7 @@
 | Navigation | The Settings back link and leading title follow the reference. The iOS status bar in the design takes 44 pt at the top. The Linux capture has no mobile status bar. |
 | Storage card | The native card shows local download usage, available disk space when the OS reports it, and the violet usage segment. The single legend line makes the card shorter than the reference. Separate image and danmaku cache measurements and cleanup remain pending. |
 | Queue | The completed and transferring rows use the designed thumbnail, status and progress treatments. The test slows one real transfer to capture both states. The queue offers pause, resume, retry, play and confirmed deletion. Transfer size and speed come from the actual response. Completed rows have a separate delete action. Thumbnails use the artwork placeholder because the offline manifest omits signed media URLs. |
-| Options | The app saves download quality, Wi-Fi policy, concurrency from one to three, the disk quota and watched-file cleanup. The quality row uses the violet film icon, trailing preset and chevron from the design. Download location is local to the device. Automatic subtitle and danmaku downloads remain pending. |
+| Options | The app saves download quality, Wi-Fi policy, concurrency from one to three, the disk quota, watched-file cleanup and whether to include subtitles and danmaku. Download location is local to the device. |
 | Detail and library | The detail action saves the active version of a movie or individual episode. The tablet sidebar opens the same storage screen. Completed copies display a download badge and remain in the library while an included source is unreachable. Season-wide selection and offline expiration handling remain pending. |
 | Recovery and verification | Queue metadata survives restart. An original-file transfer reuses a partial range when the server supplies a matching validator. A transcoded transfer starts a new encode when resumed. The store checks response sizes when known, verifies supplied MD5 checksums, and records a SHA-256 of each completed file. OS-managed background work during sleep or app suspension remains pending. |
 
@@ -51,15 +51,29 @@ On the Android 15 x86_64 emulator, an actual Emby transfer pauses on cellular, k
 
 ## Automatically delete watched downloads
 
-![Scenra and GTK in light appearance with watched-file cleanup enabled](images/storage-watched-cleanup-light.png)
+![Scenra and GTK in light appearance with watched-file cleanup and subtitle and danmaku downloads enabled](images/storage-watched-cleanup-light.png)
 
-![Scenra and GTK in dark appearance with watched-file cleanup enabled](images/storage-watched-cleanup-dark.png)
+![Scenra and GTK in dark appearance with watched-file cleanup and subtitle and danmaku downloads enabled](images/storage-watched-cleanup-dark.png)
 
-Both comparisons show Scenra on the left and the 390 × 1380 pt GTK app on the right. The cleanup row follows Download location and uses the rose trash badge, two-line Chinese label, and 51 × 31 pt violet switch. The badge and switch sample to the same colors in both captures (`#ff2056` and `#8e51ff`). The row is last in the app's group because automatic subtitle and danmaku downloads remain pending. The queue and disk figures show fixture data. The app includes a download quota row, and the image-cache controls and iOS status bar are absent from the GTK capture. [Scenra source](../../design/settings-storage.scenra)
+Both comparisons show Scenra on the left and the 390 × 1380 pt GTK app on the right. The cleanup row follows Download location and uses the rose trash badge, two-line Chinese label, and 51 × 31 pt violet switch. The badge and switch sample to the same colors in both captures (`#ff2056` and `#8e51ff`). The queue and disk figures show fixture data. The app includes a download quota row, and the image-cache controls and iOS status bar are absent from the GTK capture. [Scenra source](../../design/settings-storage.scenra)
 
 Cleanup defaults to off. While enabled and recording playback progress, reaching the end in the app starts a 24-hour timer for the completed download of that title on that account. Finishing it again restarts the timer. Marking it unwatched clears the timer. Turning cleanup off cancels pending deletions, including after re-enabling it. The app rechecks deadlines when it returns from the background or restarts and waits for an open offline player to close. Removal preserves watch history and affects only the device's downloaded copy.
 
 The headless test checks the exact 24-hour boundary from saved state, protection for older entries without a completion timestamp, and cancellation when the option is turned off and on again. The GTK and Android 15 phone emulator tests decode a local MP4 through the player, receive the native end event, then advance the app clock while the player remains open. Both tests confirm that closing the player removes the completed file and retains the other account's download and the local progress checkpoint. [Verification commands](README.md#capture-a-comparison)
+
+## Download subtitles and danmaku
+
+The last Download options row uses the pink captions badge and violet switch in both themes, as shown in the comparisons above. The badge and switch sample to the same colors in the design and app (`#f6339a` and `#8e51ff`). Scenra uses the Lucide `captions` icon name for the subtitle symbol. The switch defaults to on and applies to new downloads. [Storage design](../../design/settings-storage.scenra)
+
+The download keeps readable text subtitles from the selected version, including supported embedded and external tracks. It also keeps an existing online subtitle selection or an exact match when automatic missing-subtitle download is enabled. Danmaku follows the DandanPlay setting and uses a saved binding or an automatic match. Saved timing offsets carry over to offline playback. The download limit includes the saved tracks. The video remains usable when optional tracks are unavailable or exceed the limit. If the video has been verified when the task pauses, resuming reuses the saved video and fetches the remaining tracks. Deleting the download also removes its saved tracks. [Offline workflow](../../design/flows/offline-download.scenra)
+
+![Offline playback on GTK with a DandanPlay comment and two saved subtitle lines](images/offline-tracks-gtk.png)
+
+![Android 15 emulator showing the local 360p video, Chinese and English subtitles, and the saved comment](images/offline-tracks-android.png)
+
+The tests download original and server-transcoded videos from local Emby, Jellyfin and Plex. They deny all media gateway requests, start a new app without media or DandanPlay credentials, and verify Chinese and English captions and a saved comment. The DandanPlay responses are local fixtures. GTK decodes the same video the app downloaded. The headless tests also confirm the switch prevents optional requests and that an over-quota subtitle does not invalidate a completed video. Image-based subtitles and native selection of original audio tracks remain platform-dependent. [Test commands](../../integration/servers/TESTING.md#offline-subtitles-and-danmaku)
+
+The Android emulator opens the Emby original after disconnecting the gateway. Its screenshot is from the device display and includes the native video surface. The test checks the 360p badge against the fixture's original pixel height. [Android test command](../../integration/servers/TESTING.md#offline-subtitles-and-danmaku)
 
 ## Interaction checks
 

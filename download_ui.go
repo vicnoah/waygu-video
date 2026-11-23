@@ -255,6 +255,8 @@ func (a *application) downloadStorage(cx *core.Scope) core.Node {
 			downloadPreference(cx, locales.DownloadLocation(cx), lucide.Folder(), "bg-zinc-500", hint(locales.DownloadThisDevice(cx))),
 			(phoneSetting{locales.DownloadDeleteWatched(cx), locales.DownloadDeleteWatchedDetail(cx), "bg-rose-500", lucide.Trash}).
 				toggle(cx, "download-delete-watched", func() bool { return queue.cleanup.Get() != "" }, queue.setDeleteWatched),
+			(phoneSetting{locales.DownloadIncludeTracks(cx), "", "bg-pink-500", lucide.Captions}).
+				toggle(cx, "download-include-tracks", queue.tracks.Get, queue.setIncludeTracks),
 		),
 		core.Dynamic(func(cx *core.Scope) core.Node {
 			entries := queue.entries.Get()

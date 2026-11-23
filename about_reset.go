@@ -8,7 +8,7 @@ func (a *application) resetPreferences(cx *core.Scope) {
 			appearanceKey, appearancePreferencesKey, playbackPreferencesKey, subtitlePreferencesKey,
 			danmakuPreferencesKey, diagnosticPreferencesKey, desktopPreferencesKey, desktopLastPageKey,
 			mpvKey, bitrateKey, versionPolicyKey, autoNextKey, mergeTitlesKey, sourceTimeoutKey,
-			downloadSlotsKey, downloadQuotaKey, downloadQualityKey, downloadWiFiKey, libraryPreferencesKey,
+			downloadSlotsKey, downloadQuotaKey, downloadQualityKey, downloadWiFiKey, downloadTracksKey, libraryPreferencesKey,
 		} {
 			a.storage.RemoveItem(key)
 		}
@@ -39,6 +39,7 @@ func (a *application) resetPreferences(cx *core.Scope) {
 			a.downloads.height.Set(0)
 			a.downloads.wifiOnly.Set(true)
 			a.downloads.setDeleteWatched(false)
+			a.downloads.tracks.Set(true)
 			a.downloads.networkChanged()
 		}
 	})

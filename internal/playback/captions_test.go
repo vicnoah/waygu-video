@@ -9,6 +9,28 @@ import (
 	"time"
 )
 
+func TestSavedWebVTTKeepsTextAndOffsets(t *testing.T) {
+	before, err := ReadCaptions(strings.NewReader("00:00:00.500 --> 00:00:02.200\nFirst &amp; &lt;second&gt;\nLine two\n\n" +
+		"00:00:01.000 --> 00:00:03.000\nOverlap\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := before.WebVTT(-750 * time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	after, err := ReadCaptions(strings.NewReader(data))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if text := after.At(500 * time.Millisecond); text != "First & <second>\nLine two\nOverlap" {
+		t.Fatalf("saved captions changed rendered text: %q", text)
+	}
+	if text := after.At(1500 * time.Millisecond); text != "Overlap" {
+		t.Fatalf("saved delay did not shift cue boundaries: %q", text)
+	}
+}
+
 func TestReadCaptionsHandlesOverlapsAndSeeks(t *testing.T) {
 	captions, err := ReadCaptions(strings.NewReader("\uFEFFWEBVTT\r\n\r\nNOTE ignore this block\r\n\r\n" +
 		"later\r\n00:04.000 --> 00:05.000 align:center\r\nSecond &amp; third\r\n\r\n" +

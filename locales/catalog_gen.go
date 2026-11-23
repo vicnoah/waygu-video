@@ -677,6 +677,7 @@ const (
 	textDownloadThisDevice
 	textDownloadDeleteWatched
 	textDownloadDeleteWatchedDetail
+	textDownloadIncludeTracks
 	textDownloadDeleteAll
 	textDownloadDeleteAllPrompt
 	textDownloadPause
@@ -1591,6 +1592,7 @@ var keyOfText = [numTexts]string{
 	"downloadThisDevice",
 	"downloadDeleteWatched",
 	"downloadDeleteWatchedDetail",
+	"downloadIncludeTracks",
 	"downloadDeleteAll",
 	"downloadDeleteAllPrompt",
 	"downloadPause",
@@ -2503,6 +2505,7 @@ var textsEn = i18n.NewTexts(""+
 	"On this device"+
 	"Automatically delete watched downloads"+
 	"Delete downloaded files 24 hours after playback ends."+
+	"Download subtitles and danmaku"+
 	"Delete all downloads"+
 	"Remove all saved video files and queued downloads from this device?"+
 	"Pause download"+
@@ -3412,6 +3415,7 @@ var textsEn = i18n.NewTexts(""+
 		14,
 		38,
 		53,
+		30,
 		20,
 		67,
 		14,
@@ -4324,6 +4328,7 @@ var textsZhHans = i18n.NewTexts(""+
 	"本机"+
 	"自动删除已看完"+
 	"看完 24 小时后删除下载文件"+
+	"同时下载字幕与弹幕"+
 	"删除全部下载"+
 	"删除本机保存的视频文件及下载队列？"+
 	"暂停下载"+
@@ -5233,6 +5238,7 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		21,
 		37,
+		27,
 		18,
 		51,
 		12,
@@ -10206,6 +10212,13 @@ func DownloadDeleteWatchedDetail(cx *core.Scope) string { return For(cx).Downloa
 func (msgs Messages) DownloadDeleteWatchedDetail() string {
 	return msgs.text(textDownloadDeleteWatchedDetail)
 }
+
+// DownloadIncludeTracks says "Download subtitles and danmaku"
+// in the language the app shows under cx.
+func DownloadIncludeTracks(cx *core.Scope) string { return For(cx).DownloadIncludeTracks() }
+
+// DownloadIncludeTracks is the package's DownloadIncludeTracks in the language of msgs.
+func (msgs Messages) DownloadIncludeTracks() string { return msgs.text(textDownloadIncludeTracks) }
 
 // DownloadDeleteAll says "Delete all downloads"
 // in the language the app shows under cx.

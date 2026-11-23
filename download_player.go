@@ -33,7 +33,14 @@ func (a *application) downloadedMedia(entry downloadEntry, current source, platf
 	stream := media.Stream{ItemID: entry.Item.ID, SourceID: file.MediaID, URL: address,
 		Duration: entry.Item.Duration, Position: entry.Position, Method: media.DirectPlay,
 		Rendition: media.Version{Height: file.Height}}
-	return playerMedia{client: client, stream: stream, url: address, close: func() {}}, nil
+	tracks, _ := a.downloads.store.ReadTracks(entry.ID)
+	if tracks.AudioLanguage != "" {
+		stream.Tracks = append(stream.Tracks, media.Track{ID: "offline", Type: "audio", Language: tracks.AudioLanguage, Selected: true})
+	}
+	for _, track := range tracks.Subtitles {
+		stream.Tracks = append(stream.Tracks, savedMediaSubtitle(track))
+	}
+	return playerMedia{client: client, stream: stream, comments: tracks.Danmaku, url: address, close: func() {}}, nil
 }
 
 func (a *application) localPlaybackReports(current route, watch *progressWatch) (func(media.PlaybackState), func(*media.PlaybackState)) {

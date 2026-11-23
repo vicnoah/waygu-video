@@ -30,6 +30,8 @@ type Source struct {
 	MaxHeight int
 	Duration  time.Duration
 	Playlist  bool
+	// Tracks fetches optional subtitles and comments for the verified copy.
+	Tracks func(context.Context) Tracks
 }
 
 type revision struct {
@@ -64,7 +66,26 @@ func (s *Store) Transfer(ctx context.Context, id string, src Source, limits Limi
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return File{}, err
 	}
+	if err := os.Remove(filepath.Join(dir, tracksFile)); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return File{}, err
+	}
 	resumePath, part := filepath.Join(dir, "resume.json"), filepath.Join(dir, "video.part")
+	prepared := filepath.Join(dir, "complete.pending")
+	var finished File
+	if readJSON(prepared, &finished) == nil && finished.valid() && finished.MediaID == src.MediaID &&
+		fileSize(part) == finished.Size && matchesPreparedVideo(finished, src) {
+		release, err := s.allocate(id, finished.Size, limits)
+		if err != nil {
+			return File{}, err
+		}
+		defer release()
+		extras, stopTracks := startTransferTracks(ctx, src.Tracks)
+		defer stopTracks()
+		return s.finishTransfer(ctx, dir, id, finished, extras, limits)
+	}
+	if err := os.Remove(prepared); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return File{}, err
+	}
 	if src.MaxHeight > 0 {
 		if err := os.Remove(part); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return File{}, err
@@ -166,6 +187,8 @@ func (s *Store) Transfer(ctx context.Context, id string, src Source, limits Limi
 		return File{}, err
 	}
 	defer release()
+	extras, stopTracks := startTransferTracks(ctx, src.Tracks)
+	defer stopTracks()
 
 	file, err := os.OpenFile(part, os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
@@ -284,21 +307,53 @@ func (s *Store) Transfer(ctx context.Context, id string, src Source, limits Limi
 	if err := file.Close(); err != nil {
 		return File{}, err
 	}
-	if err := ctx.Err(); err != nil {
-		return File{}, err
-	}
 	result := File{Extension: extension, Size: written, SHA256: hex.EncodeToString(digest.Sum(nil)), MediaID: src.MediaID, Height: height}
-	prepared := filepath.Join(dir, "complete.pending")
 	if err := writeJSON(prepared, result); err != nil {
 		return File{}, err
 	}
-	if err := os.Rename(part, filepath.Join(dir, "video"+extension)); err != nil {
+	return s.finishTransfer(ctx, dir, id, result, extras, limits)
+}
+
+func matchesPreparedVideo(file File, source Source) bool {
+	if source.MaxHeight > 0 {
+		return file.Height > 0 && file.Height <= source.MaxHeight
+	}
+	return file.Height == 0 && (source.Size <= 0 || source.Size == file.Size)
+}
+
+func startTransferTracks(ctx context.Context, fetch func(context.Context) Tracks) (<-chan Tracks, context.CancelFunc) {
+	if fetch == nil {
+		return nil, func() {}
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	result := make(chan Tracks, 1)
+	go func() { result <- fetch(ctx) }()
+	return result, cancel
+}
+
+func (s *Store) finishTransfer(ctx context.Context, dir, id string, result File, extras <-chan Tracks, limits Limits) (File, error) {
+	if extras != nil {
+		select {
+		case tracks := <-extras:
+			// The video is still useful when a provider or the available space
+			// cannot supply every optional track.
+			if ctx.Err() == nil {
+				_ = s.writeTracks(dir, id, result.Size, tracks, limits)
+			}
+		case <-ctx.Done():
+			return File{}, ctx.Err()
+		}
+	}
+	if err := ctx.Err(); err != nil {
+		return File{}, err
+	}
+	if err := os.Rename(filepath.Join(dir, "video.part"), filepath.Join(dir, "video"+result.Extension)); err != nil {
 		return File{}, err
 	}
 	// Open accepts the prepared receipt alongside the completed media,
 	// making this final rename recoverable after process termination.
-	_ = os.Rename(prepared, filepath.Join(dir, "complete.json"))
-	_ = os.Remove(resumePath)
+	_ = os.Rename(filepath.Join(dir, "complete.pending"), filepath.Join(dir, "complete.json"))
+	_ = os.Remove(filepath.Join(dir, "resume.json"))
 	return result, nil
 }
 

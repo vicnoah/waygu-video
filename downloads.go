@@ -40,6 +40,7 @@ type downloadEntry struct {
 	Item                    media.Item
 	Version                 media.PlaybackOptions
 	WaitForWiFi             bool `json:",omitempty"`
+	IncludeTracks           bool `json:",omitempty"`
 	Height                  int  `json:",omitempty"`
 	EncodedHeight           int  `json:",omitempty"`
 	State                   downloadState
@@ -60,6 +61,7 @@ type downloadQueue struct {
 	height   *core.Signal[int]
 	wifiOnly *core.Signal[bool]
 	cleanup  *core.Signal[string]
+	tracks   *core.Signal[bool]
 	network  *core.Signal[downloadNetwork]
 	failure  *core.Signal[string]
 	running  map[string]context.CancelFunc
@@ -88,10 +90,12 @@ func newDownloadQueue(cx *core.Scope, a *application) *downloadQueue {
 	}
 	wifiOnly, _ := a.storage.GetItem(downloadWiFiKey)
 	cleanup, _ := a.storage.GetItem(downloadCleanupKey)
+	tracks, _ := a.storage.GetItem(downloadTracksKey)
 	queue := &downloadQueue{app: a, lifetime: cx.Context(), store: downloads.Store{Dir: dir}, running: make(map[string]context.CancelFunc),
 		removing: make(map[string]bool), slots: core.NewSignal(cx, count), quota: core.NewSignal(cx, quota),
 		height: core.NewSignal(cx, height), wifiOnly: core.NewSignal(cx, wifiOnly != "false"),
 		cleanup: core.NewSignal(cx, cleanup),
+		tracks:  core.NewSignal(cx, tracks != "false"),
 		network: core.NewSignal(cx, downloadNetworkUnknown), failure: core.NewSignal(cx, "")}
 	var entries []downloadEntry
 	if dir != "" {
@@ -104,7 +108,8 @@ func newDownloadQueue(cx *core.Scope, a *application) *downloadQueue {
 	for i, entry := range entries {
 		if _, file, err := queue.store.Open(entry.ID); err == nil {
 			entry.State, entry.Failure = downloadComplete, ""
-			entry.Transferred, entry.Total = file.Size, file.Size
+			entry.Transferred = queue.store.Bytes(entry.ID)
+			entry.Total = entry.Transferred
 			entry.EncodedHeight = file.Height
 		} else {
 			entry.Completion = nil
@@ -184,7 +189,8 @@ func (q *downloadQueue) enqueue(current route, height int, waitForWiFi bool) boo
 	options, _ := q.app.initialPlaybackOptions(current)
 	options.AudioIndex, options.SubtitleIndex = nil, nil
 	entry := downloadEntry{ID: id, Account: account, SourceName: current.source.Name, Item: offlineItem(current.item),
-		Version: options, Height: height, WaitForWiFi: waitForWiFi, State: downloadQueued, Position: current.item.Position}
+		Version: options, Height: height, WaitForWiFi: waitForWiFi, IncludeTracks: q.tracks.GetUntracked(),
+		State: downloadQueued, Position: current.item.Position}
 	if !q.persist(append(slices.Clone(entries), entry)) {
 		return false
 	}
@@ -214,11 +220,12 @@ func (q *downloadQueue) pump() {
 		ctx, cancel := context.WithCancel(q.lifetime)
 		q.running[entry.ID] = cancel
 		quota := q.quota.GetUntracked()
-		go q.transfer(ctx, entry, current, quota)
+		go q.transfer(ctx, entry, current, quota, q.trackDownload(entry, current))
 	}
 }
 
-func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, current source, quota int64) {
+func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, current source, quota int64,
+	tracks func(context.Context, media.Stream) downloads.Tracks) {
 	var file downloads.File
 	var err error
 	client, err := q.app.client(ctx, current)
@@ -236,6 +243,9 @@ func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, curre
 		}
 		cancel()
 		if err == nil {
+			if tracks != nil {
+				input.Tracks = func(ctx context.Context) downloads.Tracks { return tracks(ctx, stream) }
+			}
 			if input.URL == "" {
 				err = downloads.ErrInvalidFile
 			}
@@ -290,7 +300,7 @@ func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, curre
 		q.update(entry.ID, true, func(e *downloadEntry) {
 			e.Transferred, e.Rate = bytes, 0
 			if err == nil {
-				e.State, e.Failure, e.Total = downloadComplete, "", file.Size
+				e.State, e.Failure, e.Total = downloadComplete, "", bytes
 				e.EncodedHeight = file.Height
 				return
 			}

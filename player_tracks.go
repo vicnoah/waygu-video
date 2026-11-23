@@ -158,24 +158,12 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		key := online.bind(current)
 		var record cachedOnlineSubtitle
 		load(false, func(ctx context.Context) (subtitleSelection, error) {
-			var candidate playback.OnlineSubtitle
-			if match == nil {
-				services, err := online.services(!preferences.DisableShooter)
-				if err != nil {
-					return subtitleSelection{}, err
-				}
-				query := online.query(current, online.title(), preferences.Languages)
-				query.ExactOnly = true
-				matches, err := services.Search(ctx, query)
-				if err != nil || len(matches) == 0 {
-					return subtitleSelection{}, err
-				}
-				candidate = matches[0]
-			} else {
-				candidate = *match
-			}
 			var err error
-			record, err = online.download(ctx, key, candidate)
+			if match == nil {
+				record, err = online.downloadExact(ctx, key, current, preferences)
+			} else {
+				record, err = online.download(ctx, key, *match)
+			}
 			return record.selection(), err
 		}, func(err error) {
 			if err != nil {

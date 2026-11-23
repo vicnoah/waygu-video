@@ -15,9 +15,10 @@ import (
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/icons/lucide"
 	"github.com/nsgo-dev/nsgo/ui"
+
 	"waygu-video/internal/casting"
 	"waygu-video/internal/danmaku"
-
+	"waygu-video/internal/downloads"
 	"waygu-video/internal/media"
 	"waygu-video/internal/playback"
 	"waygu-video/internal/playback/mpv"
@@ -28,6 +29,7 @@ type playerMedia struct {
 	endpoint         sourceEndpoint
 	client           media.Client
 	stream           media.Stream
+	comments         *downloads.CommentTrack
 	url              string
 	close            func()
 	requestedBitrate int
@@ -457,6 +459,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		}()
 	}
 	chooseAudio := func(track media.Track) {
+		if offline {
+			return
+		}
 		index, err := strconv.Atoi(track.ID)
 		if err == nil && !track.Selected {
 			active := medium.GetUntracked()
@@ -603,7 +608,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 	})
 	tvSettings := core.NewSignal(cx, false)
 	pictureArea := func() core.Bounds { return pictureMode.Get().frame(viewport.Get()) }
-	comments := a.playerDanmaku(cx, current, initial.stream, sample, picture, paused, buffering, fit, pictureArea, rate.Get, tvSettings.Get, func() bool {
+	comments := a.playerDanmaku(cx, current, initial.stream, initial.comments, sample, picture, paused, buffering, fit, pictureArea, rate.Get, tvSettings.Get, func() bool {
 		decoder := desktop.Get()
 		return decoder == nil || !decoder.active()
 	}, func(track *danmaku.Track) {
@@ -632,7 +637,10 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		quality = playerQuality(current, initial.client, activeStream, bitrate, switchingPlayback.Get, qualityError.Get,
 			func(options media.PlaybackOptions) { switchStream(options, qualityError) })
 	}
-	online := newOnlineSubtitlePlayback(cx, a, current.item, current.source.ID, !offline)
+	var online *onlineSubtitlePlayback
+	if !offline {
+		online = newOnlineSubtitlePlayback(cx, a, current.item, current.source.ID, true)
+	}
 	tracks := playerTracks(cx, activeStream, directDecoder, waitingForDecoder, current.subtitleTrack, a.subtitlePrefs.Get, position,
 		rate, canChangeRate, switchingPlayback, audioError, chooseAudio, quality, func(cx *core.Scope) core.Node {
 			return a.playerSubtitleStyle(cx, directDecoder() != nil)

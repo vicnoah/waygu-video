@@ -23,6 +23,9 @@ type activeCaptionLines struct {
 }
 
 func fetchSubtitleTrack(ctx context.Context, stream media.Stream, track media.Track) (*playback.Captions, error) {
+	if track.SavedSubtitle != nil {
+		return playback.ReadCaptions(strings.NewReader(*track.SavedSubtitle))
+	}
 	if file := track.FileSubtitle; track.URL == "" && file != nil {
 		if file.Container == "matroska" {
 			return playback.FetchMatroskaCaptions(ctx, stream.Original(), stream.File.Size, file.Index)

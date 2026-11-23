@@ -17,6 +17,7 @@ import (
 	"github.com/nsgo-dev/nsgo/icons/lucide"
 	"github.com/nsgo-dev/nsgo/ui"
 	"waygu-video/internal/danmaku"
+	"waygu-video/internal/downloads"
 	"waygu-video/internal/media"
 	"waygu-video/locales"
 )
@@ -49,7 +50,7 @@ type importedDanmaku struct {
 	format   string
 }
 
-func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.Stream,
+func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.Stream, downloaded *downloads.CommentTrack,
 	sample *core.Signal[videoSample], size *core.Signal[core.Size], paused, buffering *core.Signal[bool],
 	resize func() core.ResizeMode, pictureArea func() core.Bounds, rate func() float32,
 	tvSettings, useCanvas func() bool, showOnMPV func(*danmaku.Track)) danmakuControls {
@@ -95,7 +96,11 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 	})
 	authored := core.NewSignalFunc(cx, saved, nil)
 	local := core.NewSignalFunc(cx, importedDanmaku{}, nil)
-	remote := core.NewSignalFunc(cx, remoteComments{}, nil)
+	var initial remoteComments
+	if downloaded != nil {
+		initial = remoteComments{downloaded.Comments, downloaded.Shift}
+	}
+	remote := core.NewSignalFunc(cx, initial, nil)
 	enableLocal := core.NewSignal(cx, true)
 	enableRemote := core.NewSignal(cx, true)
 	track := core.NewResource(cx, func() (input, bool) {
@@ -162,6 +167,9 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 			remote.Set(remoteComments{comments, shift})
 			enableRemote.Set(true)
 		}, func() { panel.Set(false) }, openMatch)
+	} else if downloaded != nil {
+		source = ui.Checkbox{Text: locales.PhonePlayerDanmakuLoaded(cx, strconv.Itoa(len(downloaded.Comments))),
+			TestID: "danmaku-toggle-remote", Checked: enableRemote.Get, OnChange: enableRemote.Set}
 	} else {
 		source = hint(locales.DownloadOfflinePlayback(cx))
 	}

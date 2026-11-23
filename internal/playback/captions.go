@@ -5,6 +5,7 @@ import (
 	"cmp"
 	"context"
 	"errors"
+	"fmt"
 	"html"
 	"io"
 	"net/http"
@@ -152,6 +153,38 @@ func (c *Captions) At(position time.Duration) string {
 		}
 	}
 	return text.String()
+}
+
+// WebVTT serializes the same plain-text cues the player renders, applying any
+// timing correction before a subtitle is saved with a download.
+func (c *Captions) WebVTT(offset time.Duration) (string, error) {
+	offset = min(maxCaptionTime, max(-maxCaptionTime, offset))
+	var text strings.Builder
+	text.WriteString("WEBVTT\n\n")
+	for _, cue := range c.cues {
+		if cue.end > maxCaptionTime {
+			continue
+		}
+		start := max(0, cue.start+offset).Truncate(time.Millisecond)
+		end := max(0, cue.end+offset).Truncate(time.Millisecond)
+		if end <= start {
+			continue
+		}
+		// Escape blank lines as well, so text cannot start another cue.
+		body := strings.ReplaceAll(html.EscapeString(cue.text), "\n", "&#10;")
+		fmt.Fprintf(&text, "%s --> %s\n%s\n\n", vttTime(start), vttTime(end), body)
+		if text.Len() > captionLimit {
+			return "", errCaptions
+		}
+	}
+	if text.Len() == len("WEBVTT\n\n") {
+		return "", errCaptions
+	}
+	return text.String(), nil
+}
+
+func vttTime(stamp time.Duration) string {
+	return fmt.Sprintf("%02d:%02d:%02d.%03d", stamp/time.Hour, stamp/time.Minute%60, stamp/time.Second%60, stamp/time.Millisecond%1000)
 }
 
 func FetchCaptions(ctx context.Context, address string, header http.Header, pins ...mediatls.Trust) (*Captions, error) {

@@ -139,6 +139,20 @@ func (s onlineSubtitlePlayback) download(ctx context.Context, key string, match 
 	return record, nil
 }
 
+func (s onlineSubtitlePlayback) downloadExact(ctx context.Context, key string, stream media.Stream, prefs subtitlePreferences) (cachedOnlineSubtitle, error) {
+	services, err := s.services(!prefs.DisableShooter)
+	if err != nil {
+		return cachedOnlineSubtitle{}, err
+	}
+	query := s.query(stream, s.title(), prefs.Languages)
+	query.ExactOnly = true
+	matches, err := services.Search(ctx, query)
+	if err != nil || len(matches) == 0 {
+		return cachedOnlineSubtitle{}, err
+	}
+	return s.download(ctx, key, matches[0])
+}
+
 func (s onlineSubtitlePlayback) save(record cachedOnlineSubtitle) error {
 	if err := os.MkdirAll(s.cache, 0o700); err != nil {
 		return err

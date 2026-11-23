@@ -147,6 +147,15 @@ func TestStorageWatchedCleanupReview(t *testing.T) {
 			movie := watchedDownloadFixture("fixture", "movie", "Waygu Playback Test")
 			app, _ := startWatchedDownloadApp(t, time.Now(), theme.appearance, nil, movie)
 			app.Press(deleteWatchedSwitch)
+			const includeTracks = "id:download-include-tracks"
+			if !app.Find(includeTracks).Props.Checked {
+				t.Fatal("new downloads should include optional tracks by default")
+			}
+			app.Press(includeTracks)
+			if value, _ := app.Storage().GetItem(downloadTracksKey); value != "false" {
+				t.Fatalf("disabling subtitle and danmaku downloads saved %q", value)
+			}
+			app.Press(includeTracks)
 			app.Advance(350 * time.Millisecond)
 			app.Screenshot("storage-watched-cleanup-" + theme.name)
 		})

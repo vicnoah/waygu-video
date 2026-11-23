@@ -67,7 +67,7 @@ box class="relative flex-1 bg-[#f4f4f7]"
         use settings-row icon=layers title="同时下载数" value="2" badge.class="bg-indigo-500"
         use settings-row icon=folder title="下载位置" value="本机" badge.class="bg-zinc-500"
         use settings-row variant="toggle desc" icon=trash title="自动删除已看完" desc="看完 24 小时后删除下载文件" badge.class="bg-rose-500"
-        use settings-row variant=toggle icon=subtitles title="同时下载字幕与弹幕" badge.class="bg-pink-500"
+        use settings-row variant=toggle icon=captions title="同时下载字幕与弹幕" badge.class="bg-pink-500"
       end
     end
     use settings-group header="缓存"
@@ -153,7 +153,7 @@ box class="relative flex-1 bg-[#0f1017]"
         use settings-row-dark icon=layers title="同时下载数" value="2" badge.class="bg-indigo-500"
         use settings-row-dark icon=folder title="下载位置" value="本机" badge.class="bg-zinc-500"
         use settings-row-dark variant="toggle desc" icon=trash title="自动删除已看完" desc="看完 24 小时后删除下载文件" badge.class="bg-rose-500"
-        use settings-row-dark variant=toggle icon=subtitles title="同时下载字幕与弹幕" badge.class="bg-pink-500"
+        use settings-row-dark variant=toggle icon=captions title="同时下载字幕与弹幕" badge.class="bg-pink-500"
       end
     end
     use settings-group-dark header="缓存"

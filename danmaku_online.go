@@ -90,28 +90,12 @@ type danmakuBinding struct {
 func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.Stream,
 	apply func([]danmaku.Comment, float64), closePanel, showOnMiss func()) core.Node {
 	key, seasonKey := danmakuBindingKey(current), danmakuSeasonKey(current)
-	var saved danmaku.DandanEpisode
-	var season danmakuSeason
-	cx.Untrack(func() {
-		if value, found := a.storage.GetItem(key); found {
-			_ = json.Unmarshal([]byte(value), &saved)
-		}
-		if seasonKey != "" {
-			if value, found := a.storage.GetItem(seasonKey); found {
-				_ = json.Unmarshal([]byte(value), &season)
-			}
-		}
+	bindings := core.Untracked(cx, func() danmakuMatchBindings {
+		return readDanmakuBindings(a.storage, key, seasonKey)
 	})
+	saved := bindings.item
 	cache := cx.CacheDir()
-	title, episode := current.item.Title, ""
-	if current.item.Kind == media.Episode {
-		if current.item.SeriesTitle != "" {
-			title = current.item.SeriesTitle
-		}
-		if current.item.Episode > 0 {
-			episode = strconv.Itoa(current.item.Episode)
-		}
-	}
+	title, _ := danmakuSearchTitle(current.item)
 	draft := core.NewSignal(cx, title)
 	var initial danmakuRequest
 	if apply != nil {
@@ -144,32 +128,20 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 		return danmakuQuery{request, value}, active
 	}, func(ctx context.Context, request danmakuQuery, _ core.ResourceInfo) (danmakuResult, error) {
 		client := a.newDandan(request.credentials)
-		var result danmakuResult
+		result := danmakuResult{bound: request.pick}
 		var err error
-		selected := request.pick
 		switch request.action {
 		case danmakuSearch:
 			result.matches, err = client.Search(ctx, request.title, "")
 			return result, err
 		case danmakuIdentify:
-			selected = saved
-			if selected.ID <= 0 && season.Number > 0 && current.item.Episode != season.Number {
-				selected, err = client.RelatedEpisode(ctx, season.Episode, current.item.Episode-season.Number)
-				if errors.Is(err, danmaku.ErrDandanCredentials) || ctx.Err() != nil {
-					return result, err
-				}
-				result.inferred = selected.ID > 0
-			}
-			if selected.ID <= 0 {
-				selected, result.matches, err = identifyDanmaku(ctx, client, stream, title, episode)
-				if err != nil || selected.ID <= 0 {
-					return result, err
-				}
+			result, err = findDanmakuBinding(ctx, client, stream, current.item, bindings)
+			if err != nil || result.bound.ID <= 0 {
+				return result, err
 			}
 		}
-		result.bound = selected
 		if apply != nil {
-			result.comments, err = client.CachedComments(ctx, cache, selected.ID)
+			result.comments, err = client.CachedComments(ctx, cache, result.bound.ID)
 		}
 		return result, err
 	})
@@ -287,6 +259,53 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 			state,
 		},
 	}
+}
+
+type danmakuMatchBindings struct {
+	item   danmaku.DandanEpisode
+	season danmakuSeason
+}
+
+func readDanmakuBindings(storage core.Storage, key, seasonKey string) danmakuMatchBindings {
+	var bindings danmakuMatchBindings
+	if value, found := storage.GetItem(key); found {
+		_ = json.Unmarshal([]byte(value), &bindings.item)
+	}
+	if seasonKey != "" {
+		if value, found := storage.GetItem(seasonKey); found {
+			_ = json.Unmarshal([]byte(value), &bindings.season)
+		}
+	}
+	return bindings
+}
+
+func danmakuSearchTitle(item media.Item) (string, string) {
+	title, episode := item.Title, ""
+	if item.Kind == media.Episode {
+		if item.SeriesTitle != "" {
+			title = item.SeriesTitle
+		}
+		if item.Episode > 0 {
+			episode = strconv.Itoa(item.Episode)
+		}
+	}
+	return title, episode
+}
+
+func findDanmakuBinding(ctx context.Context, client *danmaku.DandanClient, stream media.Stream, item media.Item, bindings danmakuMatchBindings) (danmakuResult, error) {
+	if bindings.item.ID > 0 {
+		return danmakuResult{bound: bindings.item}, nil
+	}
+	season := bindings.season
+	if season.Number > 0 && item.Episode != season.Number {
+		selected, err := client.RelatedEpisode(ctx, season.Episode, item.Episode-season.Number)
+		if selected.ID > 0 || errors.Is(err, danmaku.ErrDandanCredentials) || ctx.Err() != nil {
+			return danmakuResult{bound: selected, inferred: selected.ID > 0}, err
+		}
+	}
+	title, episode := danmakuSearchTitle(item)
+	selected, matches, err := identifyDanmaku(ctx, client, stream, title, episode)
+	return danmakuResult{bound: selected, matches: matches}, err
 }
 
 func identifyDanmaku(ctx context.Context, client *danmaku.DandanClient, stream media.Stream, title, episode string) (danmaku.DandanEpisode, danmaku.EpisodeMatches, error) {

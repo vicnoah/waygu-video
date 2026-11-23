@@ -412,6 +412,7 @@ downloadLocation: 下载位置
 downloadThisDevice: 本机
 downloadDeleteWatched: 自动删除已看完
 downloadDeleteWatchedDetail: 看完 24 小时后删除下载文件
+downloadIncludeTracks: 同时下载字幕与弹幕
 downloadDeleteAll: 删除全部下载
 downloadDeleteAllPrompt: 删除本机保存的视频文件及下载队列？
 downloadStorageUsed: "Waygu 占用 {size}"

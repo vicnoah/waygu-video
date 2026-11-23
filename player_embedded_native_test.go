@@ -31,7 +31,7 @@ func testDockerNativeSubtitlePlayback(t *testing.T, provider, name string, metho
 	if os.Getenv("WAYGU_TEST_SERVERS") != "1" || (target != "" && target != "linux" && target != "android") {
 		t.Skip("requires the local Docker fixture servers")
 	}
-	config, secrets := homeReviewSources(t)
+	config, secrets := dockerReviewSources(t, false)
 	client, movie := reviewFixtureItem(t, config, secrets, provider, name)
 	off := -1
 	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)

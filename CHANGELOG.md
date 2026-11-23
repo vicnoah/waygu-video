@@ -8,3 +8,4 @@
 - Download server-transcoded 1080p and 720p copies from Emby, Jellyfin and Plex. [Download review](docs/ui-review/storage-downloads.md#download-quality)
 - Pause downloads when the connection leaves Wi-Fi and resume when it returns. [Download network review](docs/ui-review/storage-downloads.md#wi-fi-downloads)
 - Automatically delete watched downloads after 24 hours when enabled. [Storage review](docs/ui-review/storage-downloads.md#automatically-delete-watched-downloads)
+- Save text subtitles and danmaku with videos for offline playback. [Storage review](docs/ui-review/storage-downloads.md#download-subtitles-and-danmaku)

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -82,8 +83,8 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 	name := core.View{Class: "min-w-0 flex-1 gap-1", Children: []core.Node{
 		core.Text{Content: p.current.item.Title, TestID: "player-title", MaxLines: 1, Class: "text-base font-semibold text-white"},
 		core.View{Class: "min-w-0 flex-row items-center gap-1.5", Children: []core.Node{
-			core.Show{When: func() bool { return p.height() > 0 }, Then: func(*core.Scope) core.Node {
-				return core.Text{ContentFunc: func() string { return strconv.Itoa(p.height()) + "p" }, TestID: "phone-player-resolution",
+			core.Show{When: func() bool { return p.height(cx) > 0 }, Then: func(*core.Scope) core.Node {
+				return core.Text{ContentFunc: func() string { return strconv.Itoa(p.height(cx)) + "p" }, TestID: "phone-player-resolution",
 					Class: "rounded bg-white/15 px-1 py-px text-[9px] font-bold text-white"}
 			}},
 			core.Show{When: func() bool {
@@ -183,7 +184,7 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 	playbackInfo := core.Dynamic(func(cx *core.Scope) core.Node {
 		active := p.stream()
 		details := []string{playMethod(cx, active.Method)}
-		if height := p.height(); height > 0 {
+		if height := p.height(cx); height > 0 {
 			details = append(details, strconv.Itoa(height)+"p")
 		}
 		if active.Method != media.Transcode && active.Rendition.VideoCodec != "" {
@@ -213,12 +214,16 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 	}}
 }
 
-func (p phonePlayerControls) height() int {
+func (p phonePlayerControls) height(cx *core.Scope) int {
 	stream := p.stream()
 	if stream.Method == media.DirectPlay && stream.Rendition.Height > 0 {
 		return stream.Rendition.Height
 	}
 	if height := p.picture.Get().Height; height > 0 {
+		// Android reports the video's natural size in density-scaled points.
+		if cx.Env().OS() == core.OSAndroid {
+			return int(math.Round(float64(height) * float64(cx.Env().PixelRatio())))
+		}
 		return int(height)
 	}
 	return stream.Rendition.Height

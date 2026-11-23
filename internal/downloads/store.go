@@ -24,6 +24,10 @@ type File struct {
 	Height    int `json:",omitempty"`
 }
 
+func (f File) valid() bool {
+	return videoExtensions[f.Extension] && f.Size > 0 && validateID(f.SHA256) == nil
+}
+
 type Limits struct {
 	Quota int64
 	Free  *int64
@@ -67,7 +71,7 @@ func (s *Store) Open(id string) (string, File, error) {
 			return "", File{}, err
 		}
 	}
-	if !videoExtensions[file.Extension] || file.Size <= 0 || validateID(file.SHA256) != nil {
+	if !file.valid() {
 		return "", File{}, ErrInvalidFile
 	}
 	path := filepath.Join(dir, "video"+file.Extension)
@@ -88,7 +92,7 @@ func (s *Store) Bytes(id string) int64 {
 		return 0
 	}
 	if _, file, err := s.Open(id); err == nil {
-		return file.Size
+		return file.Size + fileSize(filepath.Join(dir, tracksFile))
 	}
 	return fileSize(filepath.Join(dir, "video.part"))
 }
@@ -150,7 +154,7 @@ func (s *Store) reserveSize(id string, total int64, limits Limits) error {
 		dir := filepath.Join(s.Dir, name)
 		actual := fileSize(filepath.Join(dir, "video.part"))
 		if _, receipt, err := s.Open(name); err == nil {
-			actual += receipt.Size
+			actual += receipt.Size + fileSize(filepath.Join(dir, tracksFile))
 		}
 		reserved := s.reserve[name]
 		if name == id {
@@ -194,7 +198,12 @@ func writeJSON(path string, value any) error {
 	if err != nil {
 		return err
 	}
+	return writeReceipt(path, data)
+}
+
+func writeReceipt(path string, data []byte) error {
 	temp := path + ".tmp"
+	defer os.Remove(temp)
 	file, err := os.OpenFile(temp, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 	if err != nil {
 		return err

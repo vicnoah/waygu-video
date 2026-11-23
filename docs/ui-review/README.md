@@ -32,7 +32,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Phone landscape player · all seven panel tabs | [Playback and panel comparisons](phone-player.md) | Compared at 844 × 390 pt on GTK with an Emby video and subtitle fixture. Android emulator coverage includes rotation, saved swipe settings and timeline dragging. |
 | DLNA device picker · empty, list and connected | [Flow comparison and receiver checks](casting.md) | Captured on GTK. Linux GStreamer verifies multicast discovery and remote playback. Mobile and physical TV checks remain pending. |
 | Phone playback and subtitle settings · light and dark | [Settings comparison and playback checks](phone-player-settings.md) | Compared on GTK. Audio and caption preferences were verified against Emby and Jellyfin. Device captures and several controls remain pending. |
-| Storage and downloads · light and dark | [Design comparison and offline playback checks](storage-downloads.md) | GTK verifies original and transcoded copies from Emby, Jellyfin and Plex. GTK and the Android emulator verify deletion after playback ends, and Android verifies network transitions. |
+| Storage and downloads · light and dark | [Design comparison and offline playback checks](storage-downloads.md) | GTK verifies original and transcoded copies with saved subtitles and danmaku from Emby, Jellyfin and Plex. Android verifies the Emby copy and network transitions. Both verify deletion after playback ends. |
 | Personal library | [Favorite and watch-history captures](personal-library.md) | Compared the tablet sidebar and detail actions, and recorded both catalog destinations on GTK. |
 
 ## Capture a comparison
@@ -208,6 +208,8 @@ sh build/android/package.sh test -device <serial> -run '^TestWatchedDownloadClea
 ```
 
 Use `WAYGU_REVIEW_DESIGN=settings-storage.scenra` with the reference exporter.
+
+Verify the subtitle and danmaku switch and open the resulting video with the providers disconnected. [Offline tracks test commands](../../integration/servers/TESTING.md#offline-subtitles-and-danmaku)
 
 Capture the settings home and media source pages with the Docker fixtures. The offline fixture also captures the error and empty states.
 

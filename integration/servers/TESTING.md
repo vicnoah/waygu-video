@@ -62,6 +62,29 @@ WAYGU_TEST_SERVERS=1 go tool nsgo test . -run '^TestDockerDownloadNetworkPolicy$
 python3 build/android/test-download-network.py <serial>
 ```
 
+## Offline subtitles and danmaku
+
+`TestDockerOfflineDownloadTracks` saves original copies and 720p presets from Emby, Jellyfin and Plex. `Waygu Test Movie` supplies Chinese and English sidecars. `Waygu Portable Captions Test` supplies two embedded MP4 text tracks. A signed DandanPlay request receives a generated comment. The test reopens each copy without the providers and verifies both saved captions and the comment track. It also verifies that disabling the setting leaves the video alone and skips the optional requests.
+
+```sh
+WAYGU_TEST_SERVERS=1 go tool nsgo test . -run '^TestDockerOfflineDownloadTracks$'
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^(TestDockerOfflineDownloadTracks|TestStorageWatchedCleanupReview)$' \
+  -timeout 180s -screenshots .nsgo/ui-review/offline-tracks
+go tool nsgo test ./internal/downloads \
+  -run '^(TestTransferCountsOptionalTracksAgainstQuota|TestTransferKeepsVerifiedVideoWhileTracksArePaused)$'
+```
+
+To replay on an Android phone emulator, forward the fixture ports 18096, 28096 and 32400 with `adb reverse`.
+
+```sh
+sh build/android/package.sh test -device <serial> -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestAndroidOfflineDownloadTracks$' -timeout 160s \
+  -screenshots .nsgo/ui-review/android-offline-tracks
+```
+
+[Storage and offline player evidence](../../docs/ui-review/storage-downloads.md#download-subtitles-and-danmaku)
+
 ## Remember playback progress
 
 `TestDockerRememberPlaybackPosition` seeds the same movie at 92 seconds on Emby, Jellyfin and Plex. The phone player seeks to the existing point, then advances and closes while recording is off. The containers retain the previous position and the app saves no pending checkpoint. Turning the setting back on and repeating playback updates each server to 123 seconds.

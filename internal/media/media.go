@@ -141,17 +141,18 @@ type Page struct {
 }
 
 type Track struct {
-	ID           string
-	Type         string
-	Language     string
-	Title        string
-	Codec        string
-	URL          string
-	Default      bool
-	Forced       bool
-	Selected     bool
-	External     bool
-	FileSubtitle *FileSubtitle
+	ID            string
+	Type          string
+	Language      string
+	Title         string
+	Codec         string
+	URL           string
+	Default       bool
+	Forced        bool
+	Selected      bool
+	External      bool
+	FileSubtitle  *FileSubtitle
+	SavedSubtitle *string `json:"-"` // Local WebVTT from a completed download.
 }
 
 // FileSubtitle locates a text track in the original version, even during
@@ -163,7 +164,7 @@ type FileSubtitle struct {
 
 // ReadableSubtitle reports whether the app can read the subtitle as timed text.
 func (t Track) ReadableSubtitle() bool {
-	return t.Type == "subtitle" && (t.URL != "" || t.FileSubtitle != nil)
+	return t.Type == "subtitle" && (t.URL != "" || t.FileSubtitle != nil || t.SavedSubtitle != nil)
 }
 
 type PlayMethod string
