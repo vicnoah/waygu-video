@@ -69,11 +69,11 @@ With a connected test library and at least two saved bookmarks, start Waygu from
 
 ## Apple TV initial focus
 
-The Apple TV simulator ran the Simplified Chinese layout in a 1920 × 1080 pt viewport. The left frame shows UIKit initially focusing Search over the static cover. The right frame shows Play focused over the purple H.264 test frame. The app requests the primary action after UIKit reports its first focus inside the featured panel. Each frame is shown at 960 × 540 px. UIKit elides the test title earlier and wraps the synopsis sooner than GTK. [Initial Apple TV run](https://github.com/vicnoah/waygu-video/actions/runs/45142961369) · [Native Apple TV capture](https://github.com/vicnoah/waygu-video/actions/runs/45145736372)
+The Apple TV simulator ran the Simplified Chinese layout in a 1920 × 1080 pt viewport. The left frame shows UIKit initially focusing Search over the static cover. The right frame shows Play focused over the purple H.264 test frame. The app requests the primary action after UIKit reports its first focus inside the featured panel. Each frame is shown at 960 × 540 px and precedes the typography correction below. [Initial Apple TV run](https://github.com/vicnoah/waygu-video/actions/runs/45142961369) · [Native Apple TV capture](https://github.com/vicnoah/waygu-video/actions/runs/45145736372)
 
 ![Apple TV Home before and after the focus fix, showing Search over artwork and Play over the decoded trailer](images/tv-home-tvos-initial-focus.png)
 
-`TestTVHomeNativeFixture` verified the Play focus ring, the authorized trailer request and muted cover playback. The earlier run stayed in the featured actions on Up. The current run sends Up from Play to the Home tab, checks that the video closes and waits for the static artwork to return. The capture shows the resulting Home focus ring and cover. GTK and Android TV also pass the fixture. [Apple TV simulator run](https://github.com/vicnoah/waygu-video/actions/runs/45147818852)
+`TestTVHomeNativeFixture` verified the Play focus ring, the authorized trailer request and muted cover playback. The earlier run stayed in the featured actions on Up. The current run sends Up from Play to the Home tab, checks that the video closes and waits for the static artwork to return. The capture shows the resulting Home focus ring and cover with the corrected default text scale. GTK and Android TV also pass the fixture. [Apple TV simulator run](https://github.com/vicnoah/waygu-video/actions/runs/45150055162)
 
 ![Apple TV Home after pressing Up from the preview, with Home focused and the artwork restored](images/tv-home-tvos-trailer-exit.png)
 
@@ -83,8 +83,8 @@ The Apple TV build uses `sh build/apple/package.sh build -target tvos`. The pack
 
 ## Apple TV typography
 
-This strip compares the top 1080 pt of the dark Scenra frame with the Apple TV simulator at its default text size before the typography fix. The larger title and labels widen the navigation pill and push the featured actions down. Both frames use the same 1920 × 1080 pt viewport. The design shows placeholder artwork and a Continue Watching shelf. The simulator shows the synthetic trailer and a library without resume points.
+The strip shows the dark Scenra frame, the Apple TV simulator before the typography correction and the simulator after it. Each frame covers the same 1920 × 1080 pt viewport. The original title and labels widen the navigation pill and push the actions down. With the corrected scale, the full fixture title fits, the navigation pill is narrower, and the button row follows the fixture's shorter synopsis. The design shows placeholder artwork and Continue Watching. Both simulator frames show the same synthetic trailer and a library without resume points.
 
-![Dark Scenra TV Home and Apple TV simulator before normalizing the default font scale](images/tv-home-tvos-typography-before.png)
+![Scenra TV Home and Apple TV before and after the default font scale correction](images/tv-home-tvos-typography.png)
 
-The Apple package now calculates Dynamic Type scaling against the 29 pt default body size on tvOS. The previous 17 pt base applied the iPhone default, inflating the design's 96 pt title to about 164 pt. Size changes selected in system settings still scale relative to the default. The TV fixture checks the title's resolved size on the hosted simulator. A new native capture is pending. [Apple typography specifications](https://developer.apple.com/design/human-interface-guidelines/typography)
+The Apple package calculates Dynamic Type scaling against the 29 pt default body size on tvOS. Using the iPhone's 17 pt base inflated the design's 96 pt title to about 164 pt. The updated TV fixture confirms a 96 pt title at the default simulator setting. Size changes selected in system settings still scale relative to the default. Native fonts retain small glyph and line-height differences. [Apple TV simulator run](https://github.com/vicnoah/waygu-video/actions/runs/45150055162) · [Apple typography specifications](https://developer.apple.com/design/human-interface-guidelines/typography)

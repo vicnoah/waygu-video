@@ -28,7 +28,17 @@ The crop compares the timeline offset row in Scenra and in the settings opened f
 
 The Android TV emulator passed the remote smoke test using a connected Emby fixture. The test opens Settings from Home, moves from the category list into the danmaku options, changes opacity, verifies that the pairing QR is present and returns Home. Run it with `python3 build/android/tv-smoke.py --with-settings`.
 
-Physical phone camera pairing and tvOS Danmaku controls remain pending.
+Physical phone camera pairing and physical TV remote checks remain pending.
+
+## Native TV danmaku controls
+
+Scenra is on the left in each pair. Android TV is on the right in the first pair, and Apple TV is on the right in the second. Each frame shows the dark panel at 960 × 540 px from a 1920 × 1080 pt design or the corresponding native viewport. The sidebar selection, option panel, opacity track and four screen-coverage choices align at the same scale. The native text rasterization differs at character edges. The fixture's preferences, rule count, clock, version and pairing code determine the displayed values. Timeline offset is unavailable from Home without a playing title.
+
+![Scenra and Android TV with the half-screen danmaku area focused](images/tv-settings-danmaku-android.png)
+
+![Scenra and Apple TV with the half-screen danmaku area focused](images/tv-settings-danmaku-tvos.png)
+
+`TestTVHomeNativeFixture` navigates to the display area row, presses Right to save 75% coverage and presses Left to restore 50%. The Apple TV simulator, Android TV emulator and GTK runs passed both changes. [Apple TV test run](https://github.com/vicnoah/waygu-video/actions/runs/45150055162)
 
 ## Home layout
 
@@ -53,4 +63,4 @@ On Android TV, forward the Docker fixture ports 18096, 28096 and 32400 with `adb
 
 ![Apple TV Home layout with the Plex source row focused and its switch off](images/tv-settings-home-layout-tvos.png)
 
-The Apple TV simulator moved Jellyfin above Emby, focused the Plex row, hid Plex and used Back to return focus to **Home layout**. Home then displayed only the two enabled source shelves in the saved order. The figure shows the 1920 × 1080 pt client before the tvOS typography correction, at 960 × 540 px. [Apple TV test run](https://github.com/vicnoah/waygu-video/actions/runs/45147818852)
+The Apple TV simulator moved Jellyfin above Emby, focused the Plex row, hid Plex and used Back to return focus to **Home layout**. Home then displayed only the two enabled source shelves in the saved order. The figure shows the 1920 × 1080 pt client at 960 × 540 px. [Apple TV test run](https://github.com/vicnoah/waygu-video/actions/runs/45150055162)
