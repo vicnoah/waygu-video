@@ -96,11 +96,16 @@ func (a *application) rememberPlaybackVersion(current route, client media.Client
 	}
 }
 
-func (a *application) versionPicker(cx *core.Scope, current route, selected *core.Signal[string]) core.Node {
-	if !playable(current.item) {
-		return nil
+func preferredDetailVersion(versions []media.Version, options media.PlaybackOptions) media.Version {
+	if version, ok := media.PreferredVersion(versions, options); ok {
+		return version
 	}
-	available := a.versionResource(cx, current)
+	options.SourceID = ""
+	version, _ := media.PreferredVersion(versions, options)
+	return version
+}
+
+func versionPicker(available *core.Resource[[]media.Version], selected *core.Signal[string]) core.Node {
 	return core.Dynamic(func(cx *core.Scope) core.Node {
 		versions, ready := available.Get()
 		if !ready || len(versions) < 2 {

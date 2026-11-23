@@ -45,7 +45,6 @@ func (a *application) seasonDownload(cx *core.Scope, current route, seasons func
 	height := core.NewSignal(cx, 0)
 	omitted := core.NewSignalFunc[map[string]bool](cx, nil, nil)
 	failed := core.NewSignal(cx, false)
-	free := core.NewSignal[*int64](cx, nil)
 	type request struct {
 		tab     string
 		seasons []media.Item
@@ -173,22 +172,6 @@ func (a *application) seasonDownload(cx *core.Scope, current route, seasons func
 		children: []core.Node{seasonSelect, episodes, core.Show{When: failed.Get, Then: func(cx *core.Scope) core.Node {
 			return notice(locales.DownloadSaveError(cx))
 		}}},
-		space: func() (int64, bool) {
-			remaining := free.Get()
-			if quota := queue.quota.Get(); quota > 0 {
-				for _, entry := range queue.entries.Get() {
-					quota -= min(quota, max(entry.Transferred, entry.Total))
-				}
-				if remaining != nil {
-					quota = min(quota, *remaining)
-				}
-				return quota, true
-			}
-			if remaining != nil {
-				return *remaining, true
-			}
-			return 0, false
-		},
 		confirm: func(waitForWiFi bool) {
 			if queue.enqueueBatch(core.Untracked(cx, selected), height.GetUntracked(), waitForWiFi) {
 				open.Set(false)
@@ -234,14 +217,7 @@ func (a *application) seasonDownload(cx *core.Scope, current route, seasons func
 		if canDownloadTranscodes(current.source.Provider) {
 			value = queue.height.GetUntracked()
 		}
-		free.Set(nil)
 		cx.Batch(func() { selectSeason(choice); height.Set(value); open.Set(true) })
-		cx.DiskSpace(func(space core.DiskSpace, err error) {
-			if err == nil {
-				bytes := max(0, space.Available)
-				free.Set(&bytes)
-			}
-		})
 	}
 	return launch, dialog
 }

@@ -8,6 +8,9 @@ i18n:
 
 apple:
   requires_full_screen: false
+  privacy:
+    accessed_apis:
+      NSPrivacyAccessedAPICategoryDiskSpace: [E174.1, 85F4.1]
   info:
     UIBackgroundModes: [audio]
     NSLocalNetworkUsageDescription: Connect to media servers on your local network.

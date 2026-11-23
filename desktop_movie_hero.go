@@ -80,11 +80,7 @@ func (a *application) desktopMovieHero(cx *core.Scope, current route, state movi
 		actions = append(actions, desktopMovieRoundAction(cx, "detail-watched", label, lucide.CircleCheck(), item.Watched,
 			state.personal.busy, state.personal.watch))
 	}
-	if download := a.downloadAction(cx, current, desktopMovieRoundAction, func() route {
-		selected := current
-		selected.item, selected.versionID = item, state.selected.GetUntracked()
-		return selected
-	}); download != nil {
+	if download := a.downloadAction(cx, current, desktopMovieRoundAction, state.download); download != nil {
 		actions = append(actions, download)
 	}
 	titleClass, contentClass := "text-5xl", "gap-8 px-10"

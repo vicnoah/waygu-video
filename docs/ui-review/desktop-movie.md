@@ -1,6 +1,6 @@
 # Desktop movie detail review
 
-Scenra is on the left and the Linux GTK app is on the right. Both use Simplified Chinese at 1440 × 1500 pt. The app captures use synthetic film metadata, credits, video versions, captions and a saved DandanPlay link so the same elements can be compared. The Docker test opens actual fixture films from Emby, Jellyfin and Plex. [Scenra design](../../design/views/desktop-movie.scenra)
+Scenra is on the left and the Linux GTK app is on the right, aligned at the top. Both use Simplified Chinese and a requested size of 1440 × 1500 pt. GTK captures 1463 pt of client height after window decorations. The app captures use synthetic film metadata, credits, video versions, captions and a saved DandanPlay link. The Docker test opens fixture films from Emby, Jellyfin and Plex. [Scenra design](../../design/views/desktop-movie.scenra)
 
 ## Light
 
@@ -19,11 +19,19 @@ The application capture shows a real library's artwork and the available metadat
 | Area | Comparison |
 | --- | --- |
 | Window and hero | The sidebar stays visible. The 500 pt hero has a 32 pt horizontal inset, a 208 × 300 pt poster, two overlays and the round actions. Back returns to the previous title or library. Narrow panes stack the information column below the main content and omit the hero poster when space is limited. |
-| Playback | Resume, start from the beginning, trailer, watched state and the download action appear according to the item and server capabilities. The toolbar shows available picture and audio format badges. The rating badge shows the server's score. The three named rating badges require source-specific ratings. |
+| Playback | Resume, start from the beginning, trailer, watched state and the download action appear according to the item and server capabilities. The toolbar shows available picture and audio format badges. The rating badge shows the server's score. The three named rating badges require source-specific ratings. [Download picker](#download-picker) |
 | Versions and tracks | Three equal-width controls select the version, audio and subtitles available before playback. The version choice persists when reopening a title. Embedded-only subtitles remain selectable in the libmpv player. |
 | Synopsis and shelves | The overview includes available directors, writers and production countries. Cast portraits and recommended posters scroll horizontally. A recommendation opens another detail page inside the window. |
-| File information | The 320 pt card shows the selected copy and available path, container, size, codec, dimensions, frame rate, range, bitrate and track counts. The source control switches between matched server copies. |
-| Danmaku and more actions | The danmaku card opens DandanPlay matching and shows the saved match status. The more menu marks watched or unwatched, reloads details, and opens the DLNA picker. [Casting comparison](casting.md) The comment count, server-side metadata editing and rescanning, and transcoded download selection remain pending. |
-| Window controls | Scenra draws macOS window controls and sidebar category totals. Native macOS and Windows captures and sidebar counts remain pending. |
+| File information | The 320 pt card shows the selected copy and available path, container, size, codec, dimensions, frame rate, range, bitrate and track counts. The source control switches between matched server copies. The fixture reports Dolby Vision without the profile and HDR10 compatibility shown in the design. |
+| Danmaku and more actions | The danmaku card opens DandanPlay matching and shows the saved match status. The more menu marks watched or unwatched, reloads details, and opens the DLNA picker. The comment count, server-side metadata editing and rescanning remain pending. [Casting comparison](casting.md) |
+| Window controls | Scenra draws macOS window controls. The comparison captures GTK, and native macOS and Windows captures remain pending. A separate comparison covers the sidebar category totals. [Sidebar review](desktop-home.md#category-totals-and-atmos) |
 
 `TestDesktopMovieDesignReview` covers both appearances, version and track controls, version persistence, and the sidebar at two window widths. `TestDockerDesktopMovieReview` verifies file data in all three providers, favorite and watched changes, the matching dialog, trailer playback, start from the beginning, recommendations, and switching a matched copy from Emby to Jellyfin.
+
+## Download picker
+
+![GTK download picker with the 4K original over the limit and the selected 1080p original within the limit](images/desktop-movie-download.png)
+
+The workflow calls for estimates and a space check before enqueueing. The detail toolbar opens the same picker used for season downloads. For Emby, Jellyfin and Plex it offers Original, 1080p and 720p. Original uses the selected version's size when available. Transcodes estimate from the runtime and target bitrate. Flymoo offers Original. The screenshot shows the light picker with the 58.0 GB 4K original on the left and the dark picker after choosing the 4.0 GB 1080p source version on the right. [Scenra workflow](../../design/flows/offline-download.scenra)
+
+The desktop fixture checks a 5.0 GB app quota in light appearance and 5.0 GB of reported disk space in dark appearance. The 4K original and the 9.7 GB 1080p transcode are blocked. The 720p transcode and the 4.0 GB 1080p original can be confirmed. The space message opens Storage and Downloads, and leaving or cancelling the picker leaves the queue empty. The Docker regression downloads the Emby fixture at 720p from desktop detail and opens the local copy. Phone tests exercise the same picker and offline playback with all three servers. [Download quality review](storage-downloads.md#download-quality)

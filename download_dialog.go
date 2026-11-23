@@ -19,10 +19,28 @@ type downloadDialog struct {
 	selection  func() []route
 	confirm    func(bool)
 	children   []core.Node
-	space      func() (int64, bool)
 }
 
 func (q *downloadQueue) selectionDialog(cx *core.Scope, form downloadDialog) core.Node {
+	type diskCheck struct {
+		available int64
+		known     bool
+		ready     bool
+	}
+	disk := core.NewSignal(cx, diskCheck{})
+	cx.Effect(func() {
+		if !form.open.Get() {
+			return
+		}
+		disk.Set(diskCheck{})
+		active := true
+		cx.Cleanup(func() { active = false })
+		cx.DiskSpace(func(space core.DiskSpace, err error) {
+			if active {
+				disk.Set(diskCheck{available: max(0, space.Available), known: err == nil, ready: true})
+			}
+		})
+	})
 	network := q.network.Get
 	wait := func() downloadNetworkWait { return downloadWaitFor(network(), q.wifiOnly.Get()) }
 	allowChoice := func() bool {
@@ -30,11 +48,17 @@ func (q *downloadQueue) selectionDialog(cx *core.Scope, form downloadDialog) cor
 		return !q.wifiOnly.Get() && (transport == downloadNetworkCellular || transport == downloadNetworkOffline)
 	}
 	space := func() (needed, available int64, insufficient bool) {
-		if form.space == nil {
-			return 0, 0, false
-		}
-		available, known := form.space()
-		if !known {
+		free := disk.Get()
+		available = free.available
+		if quota := q.quota.Get(); quota > 0 {
+			for _, entry := range q.entries.Get() {
+				quota -= min(quota, max(0, entry.Transferred, entry.Total))
+			}
+			if free.known {
+				quota = min(quota, available)
+			}
+			available = quota
+		} else if !free.known {
 			return 0, 0, false
 		}
 		needed, _ = downloadEstimate(form.selection(), form.height.Get())
@@ -42,7 +66,7 @@ func (q *downloadQueue) selectionDialog(cx *core.Scope, form downloadDialog) cor
 	}
 	disabled := func() bool {
 		_, _, insufficient := space()
-		return insufficient || len(form.selection()) == 0
+		return !disk.Get().ready || insufficient || len(form.selection()) == 0
 	}
 	confirm := func(wifi bool) {
 		if !core.Untracked(cx, disabled) {
@@ -94,7 +118,7 @@ func (q *downloadQueue) selectionDialog(cx *core.Scope, form downloadDialog) cor
 		}
 		return core.View{Class: "gap-2", TestID: form.id + "-insufficient-space", Children: []core.Node{
 			notice(locales.DownloadSpaceComparison(cx, mediaBytes(needed), mediaBytes(available))),
-			ui.Button{Text: locales.StorageDownloads(cx), Variant: ui.ButtonOutline, OnPress: func() {
+			ui.Button{Text: locales.StorageDownloads(cx), TestID: form.id + "-storage", Variant: ui.ButtonOutline, OnPress: func() {
 				form.open.Set(false)
 				q.app.push(route{screen: screenDownloads})
 			}},

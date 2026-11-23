@@ -295,12 +295,7 @@ func tvDetailActions(cx *core.Scope, l tvLayout, a *application, current route, 
 		buttons = append(buttons, a.downloadAction(cx, current,
 			func(cx *core.Scope, id, label string, icon *core.SVG, _ bool, _ func() bool, press func()) core.Node {
 				return tvDetailSecondary(l, id, label, icon, press)
-			}, func() route {
-				chosen := current
-				chosen.item = core.Untracked(cx, state.item)
-				chosen.versionID = core.Untracked(cx, state.active).ID
-				return chosen
-			}))
+			}, state.download))
 	}
 	buttons = append(buttons, tvDetailVersionChooser(cx, l, current, state, copies, selectCopy))
 	return core.View{Style: core.Style{Gap: l.points(16), Padding: core.Edges{Top: l.points(8)}}, Children: []core.Node{

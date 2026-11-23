@@ -27,6 +27,7 @@ type movieDetailState struct {
 	tracks        *core.Signal[detailTrackChoice]
 	item          func() media.Item
 	active        func() media.Version
+	download      func() route
 	play          func(bool)
 	cast          func()
 	chooseVersion func(string)
@@ -47,12 +48,7 @@ func (a *application) movieDetailState(cx *core.Scope, current route, persistSel
 		if id := selected.Get(); id != "" {
 			options.SourceID = id
 		}
-		if version, ok := media.PreferredVersion(versions, options); ok {
-			return version
-		}
-		options.SourceID = ""
-		v, _ := media.PreferredVersion(versions, options)
-		return v
+		return preferredDetailVersion(versions, options)
 	}
 	item := func() media.Item {
 		if result, ready := loaded.Get(); ready {
@@ -79,6 +75,11 @@ func (a *application) movieDetailState(cx *core.Scope, current route, persistSel
 	return movieDetailState{
 		loaded: loaded, personal: personal, available: available, selected: selected, tracks: tracks,
 		item: item, active: active, play: func(resume bool) { play(resume, false) }, cast: func() { play(true, true) },
+		download: func() route {
+			request := current
+			request.versionID = selected.GetUntracked()
+			return downloadRoute(request, core.Untracked(cx, item), core.Untracked(cx, active))
+		},
 		chooseVersion: func(id string) {
 			cx.Batch(func() {
 				selected.Set(id)
@@ -109,11 +110,7 @@ func (a *application) tabletMovieDetail(cx *core.Scope, current route, copies fu
 			entry := item()
 			buttons := personal.buttons(cx, result, detailPosterAction)
 			if ready {
-				if download := a.downloadAction(cx, current, detailPosterAction, func() route {
-					selectedRoute := current
-					selectedRoute.item, selectedRoute.versionID = entry, selected.GetUntracked()
-					return selectedRoute
-				}); download != nil {
+				if download := a.downloadAction(cx, current, detailPosterAction, state.download); download != nil {
 					buttons = append(buttons, download)
 				}
 			}

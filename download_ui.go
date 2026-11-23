@@ -14,6 +14,15 @@ import (
 	"waygu-video/locales"
 )
 
+func downloadRoute(current route, item media.Item, version media.Version) route {
+	current.item = item
+	if version.ID != "" {
+		current.versionID = version.ID
+		current.item.FileSize = version.Size
+	}
+	return current
+}
+
 func (a *application) downloadAction(cx *core.Scope, current route, render detailActionRenderer, request func() route) core.Node {
 	if !a.downloads.available() || !playable(current.item) {
 		return nil
@@ -42,13 +51,15 @@ func (a *application) downloadAction(cx *core.Scope, current route, render detai
 				}
 			} else {
 				item := request()
-				selected.Set(item)
 				value := 0
 				if canDownloadTranscodes(item.source.Provider) {
 					value = a.downloads.height.GetUntracked()
 				}
-				height.Set(value)
-				open.Set(true)
+				cx.Batch(func() {
+					selected.Set(item)
+					height.Set(value)
+					open.Set(true)
+				})
 			}
 		}
 		if render != nil {

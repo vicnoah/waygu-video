@@ -245,7 +245,12 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 	loaded := a.detailResource(cx, current)
 	personal := a.detailPersonal(cx, current, loaded)
 	versionID := core.NewSignal(cx, "")
-	versions := a.versionPicker(cx, current, versionID)
+	var available *core.Resource[[]media.Version]
+	var versions core.Node
+	if playable(current.item) {
+		available = a.versionResource(cx, current)
+		versions = versionPicker(available, versionID)
+	}
 	chooseDownload, downloadDialog := a.seasonDownload(cx, current, func() []media.Item {
 		result, _ := loaded.Get()
 		return result.children
@@ -296,8 +301,13 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 		if ready {
 			if download := a.downloadAction(cx, current, nil, func() route {
 				selected := current
-				selected.item, selected.versionID = item, versionID.GetUntracked()
-				return selected
+				selected.versionID = versionID.GetUntracked()
+				options, _ := a.initialPlaybackOptions(selected)
+				version := core.Untracked(cx, func() media.Version {
+					choices, _ := available.Get()
+					return preferredDetailVersion(choices, options)
+				})
+				return downloadRoute(selected, item, version)
 			}); download != nil {
 				buttons = append(buttons, download)
 			}

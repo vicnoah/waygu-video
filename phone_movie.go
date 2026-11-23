@@ -60,11 +60,7 @@ func (a *application) phoneMovieDetail(cx *core.Scope, current route, copies fun
 			}}
 		var tools []core.Node
 		if ready {
-			tools = append(tools, a.downloadAction(cx, current, phoneMovieAction, func() route {
-				download := current
-				download.item, download.versionID = item, state.selected.GetUntracked()
-				return download
-			}))
+			tools = append(tools, a.downloadAction(cx, current, phoneMovieAction, state.download))
 		}
 		tools = append(tools, state.personal.buttons(cx, result, phoneMovieAction)...)
 		tools = append(tools, phoneMovieAction(cx, "detail-share", locales.ShareTitle(cx), lucide.Share2(), false, nil, func() {

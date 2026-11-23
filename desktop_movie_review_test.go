@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -27,6 +28,7 @@ func TestDockerDesktopMovieReview(t *testing.T) {
 	emby, movie := reviewFixtureItem(t, config, secrets, "emby", "Waygu Track Test")
 	recommendation := reviewFixtureTitle(t, config, secrets, "emby", "Waygu Test Movie")
 	resume := reviewFixtureTitle(t, config, secrets, "emby", "Waygu Resume Test")
+	_, downloadable := reviewFixtureItem(t, config, secrets, "emby", "Waygu Download Test")
 	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Second)
 	defer cancel()
 	extras, err := emby.(media.MovieFeaturesClient).Extras(ctx, movie)
@@ -51,7 +53,7 @@ func TestDockerDesktopMovieReview(t *testing.T) {
 				cx.SetSubtreeAppearance(theme.appearance)
 				return Root(cx)
 			}, nsgotest.Size(1440, 1500), nsgotest.Environment(core.Environment{OS: core.OSLinux, Locale: "zh-Hans"}),
-				nsgotest.Storage(config), nsgotest.Secrets(secrets))
+				nsgotest.Idiom(core.IdiomDesktop), nsgotest.Storage(config), nsgotest.Secrets(secrets))
 			open := func(sourceID, itemID string) {
 				t.Helper()
 				app.WaitFor("id:tab-library", 8*time.Second)
@@ -150,6 +152,28 @@ func TestDockerDesktopMovieReview(t *testing.T) {
 			app.Press("id:playback-source")
 			app.Press("role:option Jellyfin 影视库")
 			app.WaitFor("id:detail-file >> text:Jellyfin 影视库", 5*time.Second)
+
+			open("emby", downloadable.ID)
+			app.WaitFor("id:detail-file >> text:Emby 影视库", 5*time.Second)
+			app.Press("id:detail-download")
+			app.WaitFor("id:detail-download-quality-720", 5*time.Second)
+			app.Press("id:detail-download-quality-720")
+			app.WaitUntil(5*time.Second, func() bool { return !app.Find("id:detail-download-confirm").Props.Disabled })
+			app.Press("id:detail-download-confirm")
+			app.FastForward(350 * time.Millisecond)
+			app.WaitForGone("id:detail-download-quality", 3*time.Second)
+			app.WaitFor("role:button 已下载", 30*time.Second)
+			raw, _ := app.Storage().GetItem(downloadQueueKey)
+			var entries []downloadEntry
+			if err := json.Unmarshal([]byte(raw), &entries); err != nil {
+				t.Fatal(err)
+			}
+			if len(entries) != 1 || entries[0].Item.ID != downloadable.ID || entries[0].Height != 720 ||
+				entries[0].Version.SourceID == "" || entries[0].State != downloadComplete {
+				t.Fatalf("the selected video was not saved as a 720p download")
+			}
+			app.Press("id:detail-download")
+			app.WaitFor("text:离线播放", 5*time.Second)
 		})
 	}
 }
@@ -222,6 +246,11 @@ func TestDesktopMovieDesignReview(t *testing.T) {
 		danmakuBindingKey(route{source: entry, item: media.Item{ID: "test-film"}}): `{"episodeId":123}`}
 	for _, theme := range reviewAppearances {
 		t.Run(theme.name, func(t *testing.T) {
+			free, quota := int64(20<<30), int64(5<<30)
+			if theme.appearance == core.AppearanceDark {
+				free, quota = quota, free
+			}
+			config[downloadQuotaKey] = strconv.FormatInt(quota, 10)
 			app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
 				shellIdiom.Provide(cx, core.IdiomDesktop)
 				cx.SetSubtreeAppearance(theme.appearance)
@@ -229,7 +258,8 @@ func TestDesktopMovieDesignReview(t *testing.T) {
 					return desktopMovieFixture{fixtureServer{session: session}}, nil
 				}, nil)
 			}, nsgotest.Size(1440, 1500), nsgotest.Environment(core.Environment{OS: core.OSLinux, Locale: "zh-Hans"}),
-				nsgotest.Storage(config), nsgotest.Secrets(map[string]string{"capture": "fixture-token"}))
+				nsgotest.Idiom(core.IdiomDesktop), nsgotest.Storage(config), nsgotest.Secrets(map[string]string{"capture": "fixture-token"}),
+				nsgotest.DiskSpace(core.DiskSpace{Available: free}, nil))
 			app.Press("id:tab-library")
 			app.WaitFor("id:title-test-film", 5*time.Second)
 			app.Press("id:title-test-film")
@@ -257,9 +287,53 @@ func TestDesktopMovieDesignReview(t *testing.T) {
 			if got := app.Find("id:detail-subtitle-value").Text; !strings.Contains(got, "简体中文") {
 				t.Fatalf("subtitle display = %q", got)
 			}
+			openDownload := func() {
+				app.WaitFor("id:detail-download", 5*time.Second)
+				app.Press("id:detail-download")
+				app.WaitFor("id:detail-download-quality", 3*time.Second)
+				app.Advance(350 * time.Millisecond)
+			}
+			openDownload()
+			app.WaitFor("text:约 58.0 GB", 3*time.Second)
+			app.WaitFor("text:预计需要 58.0 GB · 可用 5.0 GB", 3*time.Second)
+			if !app.Find("id:detail-download-confirm").Props.Disabled {
+				t.Fatal("the 4K original exceeds the available space")
+			}
+			if nsgotest.Target() != "" {
+				app.Screenshot("app-desktop-movie-download-blocked-" + theme.name)
+			}
+			app.Press("id:detail-download-quality-1080")
+			app.WaitFor("text:预计需要 9.7 GB · 可用 5.0 GB", 3*time.Second)
+			if !app.Find("id:detail-download-confirm").Props.Disabled {
+				t.Fatal("1080p transcode exceeds the available space")
+			}
+			app.Press("id:detail-download-quality-720")
+			app.WaitForGone("id:detail-download-insufficient-space", 3*time.Second)
+			if app.Find("id:detail-download-confirm").Props.Disabled {
+				t.Fatal("720p transcode fits in the available space")
+			}
+			app.Press("id:detail-download-quality-0")
+			app.Press("id:detail-download-storage")
+			app.WaitFor("id:download-quality", 3*time.Second)
+			app.Press("id:back")
+			app.WaitFor("id:playback-version", 3*time.Second)
 			pick("playback-version", "1080p")
 			if got := app.Find("id:playback-version-value").Text; !strings.Contains(got, "1080p") {
 				t.Fatalf("version display = %q", got)
+			}
+			openDownload()
+			app.WaitFor("text:约 4.0 GB", 3*time.Second)
+			if app.Find("id:detail-download-confirm").Props.Disabled || app.Exists("id:detail-download-insufficient-space") {
+				t.Fatal("the selected 1080p original fits in the available space")
+			}
+			if nsgotest.Target() != "" {
+				app.Screenshot("app-desktop-movie-download-ready-" + theme.name)
+			}
+			app.Press("role:button 取消")
+			app.FastForward(350 * time.Millisecond)
+			app.WaitForGone("id:detail-download-quality", 3*time.Second)
+			if _, exists := app.Storage().GetItem(downloadQueueKey); exists {
+				t.Fatal("visiting storage or cancelling wrote to the queue")
 			}
 			app.Press("id:back")
 			app.WaitFor("id:desktop-library", 5*time.Second)
