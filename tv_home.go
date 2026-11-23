@@ -76,6 +76,7 @@ func tvClock(cx *core.Scope, l tvLayout) core.Text {
 
 type tvShellHomeOptions struct {
 	header     core.Node
+	homeTab    *core.Ref
 	openRecent func()
 }
 
@@ -114,24 +115,24 @@ func (a *application) tvShell(cx *core.Scope) core.Node {
 		})
 	}
 	l := tvLayoutFor(cx)
-	header := func(cx *core.Scope) core.Node {
-		return a.tvHeader(cx, l, section, category.Get, open, &focusTab)
-	}
 	return core.Dynamic(func(cx *core.Scope) core.Node {
 		page := section()
+		homeTab := &core.Ref{}
+		header := a.tvHeader(cx, l, section, category.Get, open, &focusTab, homeTab)
 		if page == screenHome {
 			tvHomeOptions.Provide(cx, tvShellHomeOptions{
-				header:     header(cx),
+				header:     header,
+				homeTab:    homeTab,
 				openRecent: func() { open(screenLibrary, "") },
 			})
 			return a.browse(cx, page, core.IdiomTV, nil)
 		}
 		content := a.browse(cx, page, core.IdiomTV, category)
-		return pageFrame(core.View{Class: "shrink-0 bg-[#171720]", Children: []core.Node{header(cx)}}, content)
+		return pageFrame(core.View{Class: "shrink-0 bg-[#171720]", Children: []core.Node{header}}, content)
 	})
 }
 
-func (a *application) tvHeader(cx *core.Scope, l tvLayout, page func() screen, category func() libraryCategory, open func(screen, libraryCategory), focusTab *string) core.Node {
+func (a *application) tvHeader(cx *core.Scope, l tvLayout, page func() screen, category func() libraryCategory, open func(screen, libraryCategory), focusTab *string, homeTab *core.Ref) core.Node {
 	tabs := []struct {
 		id       string
 		page     screen
@@ -159,8 +160,13 @@ func (a *application) tvHeader(cx *core.Scope, l tvLayout, page func() screen, c
 				open(tab.page, tab.category)
 			},
 		}
+		if tab.page == screenHome {
+			button.Ref = homeTab
+		}
 		if *focusTab == tab.id {
-			button.Ref = &core.Ref{}
+			if button.Ref == nil {
+				button.Ref = &core.Ref{}
+			}
 			cx.Post(button.Ref.Focus)
 			*focusTab = ""
 		}
@@ -221,7 +227,7 @@ func (a *application) tvHome(cx *core.Scope, results *core.Resource[catalogResul
 			header := core.View{Class: "bg-[#171720]", Children: []core.Node{options.header}}
 			var top core.Node = header
 			if len(featured) > 0 {
-				top = a.tvFeatured(cx, l, featured, options.header)
+				top = a.tvFeatured(cx, l, featured, options.header, options.homeTab)
 			}
 
 			children := []core.Node{homeAmbient(false, true), homeAmbient(true, true)}

@@ -66,13 +66,14 @@ func (l tvLayout) action(id, label string, icon *core.SVG, kind tvActionKind, pr
 		OnPress: func(core.PressEvent) { press() }, Children: children}
 }
 
-func (a *application) tvFeatured(cx *core.Scope, l tvLayout, titles []catalogItem, nav core.Node) core.Node {
+func (a *application) tvFeatured(cx *core.Scope, l tvLayout, titles []catalogItem, nav core.Node, homeTab *core.Ref) core.Node {
 	index := core.NewSignal(cx, 0)
 	focused := core.NewSignal(cx, false)
 	firstAction := &core.Ref{}
 	// tvOS chooses its first focus after the window becomes active.
 	// Hand off after that report so UIKit can honor the request.
-	waitingForInitialFocus := cx.Env().OS() == core.OSIOS
+	appleTV := cx.Env().OS() == core.OSIOS
+	waitingForInitialFocus := appleTV
 	if !waitingForInitialFocus {
 		cx.Post(firstAction.Focus)
 	}
@@ -105,6 +106,21 @@ func (a *application) tvFeatured(cx *core.Scope, l tvLayout, titles []catalogIte
 		return a.tvHeroFavorite(cx, l, titles[index.Get()])
 	}))
 
+	var headerFocusTarget core.Node
+	if appleTV && homeTab != nil {
+		cx.Effect(func() {
+			if focused.Get() {
+				cx.OnKey("up", homeTab.Focus)
+			}
+		})
+		// The centered navigation has no item directly above the left-hand actions.
+		// Give the remote's native focus movement a target between them.
+		headerFocusTarget = core.View{Class: "absolute", Style: core.Style{
+			Top: l.length(144), Left: l.length(96), Width: l.length(820), Height: l.length(24),
+		}, Focusable: focused.Get, AccessibilityElementsHidden: func() bool { return true },
+			OnFocus: func() { cx.Post(homeTab.Focus) }}
+	}
+
 	return core.View{TestID: "tv-featured", Class: "relative bg-[#171720]",
 		Style: core.Style{Height: l.length(900)}, OnFocusIn: func() {
 			if waitingForInitialFocus {
@@ -121,6 +137,7 @@ func (a *application) tvFeatured(cx *core.Scope, l tvLayout, titles []catalogIte
 			core.View{Class: "absolute inset-x-0 top-0 bg-linear-to-b from-black/60 to-transparent", Style: core.Style{Height: l.length(224)}},
 			core.View{Class: "absolute inset-x-0 bottom-0 bg-linear-to-b from-transparent to-waygu-page", Style: core.Style{Height: l.length(96)}},
 			core.View{Class: "absolute inset-x-0 top-0", Children: []core.Node{nav}},
+			headerFocusTarget,
 			core.View{Class: "absolute", Style: core.Style{Top: l.length(230), Left: l.length(96), Width: l.length(820), Gap: l.points(28)}, Children: []core.Node{
 				core.Dynamic(func(cx *core.Scope) core.Node { return tvFeaturedFacts(cx, l, titles[index.Get()]) }),
 				core.View{Class: "flex-row items-center", Style: core.Style{Gap: l.points(20), Padding: core.Edges{Top: l.points(8)}},

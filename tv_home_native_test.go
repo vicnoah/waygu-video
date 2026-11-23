@@ -140,15 +140,18 @@ func TestTVHomeNativeFixture(t *testing.T) {
 	app.Screenshot("tv-home-trailer")
 	captureTVReviewDisplay(t)
 	app.Find(preview)
-	if target == "tvos_simulator" || target == "android" {
+	if target != "linux" {
 		app.Key("up")
 	} else {
 		app.Focus("id:tv-tab-home")
 	}
 	app.WaitForGone(preview, 3*time.Second)
 	app.WaitFor(artwork, 3*time.Second)
-	if target == "" {
+	if target == "" || target == "tvos_simulator" {
 		expectFocus("tv-tab-home")
+	}
+	if target == "tvos_simulator" {
+		app.Screenshot("tv-home-trailer-exit")
 	}
 
 	app.Press("id:tv-tab-settings")
