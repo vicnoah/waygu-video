@@ -251,7 +251,10 @@ jobs:
       - name: Package the app
         run: |
           sh build/android/package.sh -installers=false
-          go tool nsgo build -target harmonyos,web -jobs 2 -installers=false
+          sh build/harmonyos/package.sh -installers=false
+          hap=("$PWD"/dist/releases/*-harmonyos.hap)
+          WAYGU_TEST_HAP="${hap[0]}" go tool nsgo test -run '^TestPreviewArchive$' ./build/harmonyos
+          go tool nsgo build -target web -installers=false
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: android-arm64-harmonyos-web
