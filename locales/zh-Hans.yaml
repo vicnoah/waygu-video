@@ -363,6 +363,10 @@ movieFileVideo: 视频
 movieFileBitrate: 码率
 movieFileName: 文件名
 movieDanmakuUnmatched: 未匹配
+movieDanmakuMatched: "{source} · 已匹配"
+movieDanmakuCount: "弹幕 {count}"
+movieDanmakuTenThousands: "{count}万"
+movieDanmakuSavedCount: "已保存 {count} 条"
 detailResumeAt: "继续播放 {time}"
 synopsis: 简介
 director: 导演
@@ -721,7 +725,8 @@ desktopMovieMoreTracks: "另 {count} 条"
 desktopMovieEmbeddedSubtitles: "内封 {count} 条"
 desktopMovieExternalSubtitles: "外挂 {count} 条"
 desktopDanmakuMatch: 匹配
-desktopDanmakuMatched: 已匹配 · 弹弹play
+desktopDanmakuMatched: "已匹配 · {source}"
+desktopDanmakuMatchedCount: "已匹配 {count} 条 · {source}"
 desktopDanmakuChange: 更换
 desktopPlayerPanel: 展开或收起侧栏
 desktopPlayerEpisode: "第 {season} 季 · 第 {episode} 集"

@@ -24,7 +24,7 @@ The application capture shows a real library's artwork and the available metadat
 | Versions and tracks | Three equal-width controls select the version, audio and subtitles available before playback. The version choice persists when reopening a title. Embedded-only subtitles remain selectable in the libmpv player. |
 | Synopsis and shelves | The overview includes available directors, writers and production countries. Cast portraits and recommended posters scroll horizontally. A recommendation opens another detail page inside the window. |
 | File information | The 320 pt card shows the selected copy and available path, container, size, codec, dimensions, frame rate, range, bitrate and track counts. The source control switches between matched server copies. The fixture reports Dolby Vision without the profile and HDR10 compatibility shown in the design. |
-| Danmaku and more actions | The danmaku card opens DandanPlay matching and shows the saved match status. The more menu marks watched or unwatched, reloads details, and opens the DLNA picker. The comment count, server-side metadata editing and rescanning remain pending. [Casting comparison](casting.md) |
+| Danmaku and more actions | The danmaku card shows the matched provider and its comment count. The Change action opens the DandanPlay and configured Logvar match forms. The more menu marks watched or unwatched, reloads details, and opens the DLNA picker. Server-side metadata editing and rescanning remain pending. [Danmaku counts](#danmaku-counts) · [Casting comparison](casting.md) |
 | Window controls | Scenra draws macOS window controls. The comparison captures GTK, and native macOS and Windows captures remain pending. A separate comparison covers the sidebar category totals. [Sidebar review](desktop-home.md#category-totals-and-atmos) |
 
 `TestDesktopMovieDesignReview` covers both appearances, version and track controls, version persistence, and the sidebar at two window widths. `TestDockerDesktopMovieReview` verifies file data in all three providers, favorite and watched changes, the matching dialog, trailer playback, start from the beginning, recommendations, and switching a matched copy from Emby to Jellyfin.
@@ -34,6 +34,12 @@ The application capture shows a real library's artwork and the available metadat
 Plex can supply IMDb and TMDB scores with provider identifiers in the title response. The app supports both the ratings array and the legacy image identifiers. With the existing TMDB metadata supplement enabled, a movie can also obtain a TMDB score from the matched title's votes. The configured metadata preference determines which TMDB value wins when both sources report one. [Plex rating fields](https://developer.plex.tv/pms/) · [TMDB movie details](https://developer.themoviedb.org/reference/movie-details)
 
 The light and dark desktop captures display fixture scores of IMDb 8.5 and TMDB 82%. The Emby Docker fixture supplies an 8.3 community score and the test verifies the unlabeled star presentation. Plex API fixtures cover attribution and precedence. The TMDB fixture covers lookup for a fully described title and omission when there are zero votes. [Phone comparison](phone-movie.md#rating-badges)
+
+## Danmaku counts
+
+Both desktop comparisons show the matched card with the grouped count of 3,812 beside DandanPlay. With two matched providers, the card shows a line for each. The count measures playable comments before display filters. The app uses stored counts from prior loads and fetches missing counts for saved matches through the playback cache. An unavailable count leaves the provider's matched status visible. [DandanPlay API](https://api.dandanplay.net/swagger/index.html) · [Logvar API](https://github.com/huangxd-/danmu_api)
+
+`TestMovieDanmakuCountsFollowBindings` opens both detail layouts with older saved matches, changes each provider's match, loads a match with zero playable comments, unbinds Logvar and reopens the title. `TestMovieDanmakuCountFromDownload` reads the saved track and checks the local count in both presentations. The live Logvar test verifies search and comment decoding against the configured test server. [Phone comparison](phone-movie.md#danmaku-counts)
 
 ## Download picker
 

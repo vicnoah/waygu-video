@@ -363,6 +363,10 @@ movieFileVideo: Video
 movieFileBitrate: Bitrate
 movieFileName: File name
 movieDanmakuUnmatched: Unmatched
+movieDanmakuMatched: "{source} · Matched"
+movieDanmakuCount: "Danmaku {count}"
+movieDanmakuTenThousands: "{count} × 10,000"
+movieDanmakuSavedCount: "{count} saved comments"
 detailResumeAt: "Resume {time}"
 synopsis: Synopsis
 director: Director
@@ -721,7 +725,8 @@ desktopMovieMoreTracks: "{count} more"
 desktopMovieEmbeddedSubtitles: "{count} embedded"
 desktopMovieExternalSubtitles: "{count} external"
 desktopDanmakuMatch: Match
-desktopDanmakuMatched: Matched · DandanPlay
+desktopDanmakuMatched: "Matched · {source}"
+desktopDanmakuMatchedCount: "Matched {count} · {source}"
 desktopDanmakuChange: Change
 desktopPlayerPanel: Toggle sidebar
 desktopPlayerEpisode: "Season {season} · Episode {episode}"

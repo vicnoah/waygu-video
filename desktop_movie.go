@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"slices"
 
 	"github.com/nsgo-dev/nsgo/base"
@@ -9,7 +8,6 @@ import (
 	"github.com/nsgo-dev/nsgo/icons/lucide"
 	"github.com/nsgo-dev/nsgo/ui"
 
-	"waygu-video/internal/danmaku"
 	"waygu-video/internal/media"
 	"waygu-video/locales"
 )
@@ -18,13 +16,12 @@ func (a *application) desktopMovieDetail(cx *core.Scope, current route, copies f
 	state := a.movieDetailState(cx, current, true)
 	extras := a.movieFeatures(cx, current, false)
 	related := a.movieFeatures(cx, current, true)
+	comments := a.movieDanmaku(cx, current)
 	matchOpen := core.NewSignal(cx, false)
-	refreshMatch := core.NewSignal(cx, uint64(0))
-	closeMatch := func() {
-		cx.Batch(func() {
-			matchOpen.Set(false)
-			refreshMatch.Update(func(revision uint64) uint64 { return revision + 1 })
-		})
+	closeMatch := func() { matchOpen.Set(false) }
+	var openMatch func()
+	if current.downloadID == "" {
+		openMatch = func() { matchOpen.Set(true) }
 	}
 	paneWidth := func() core.Points {
 		width := cx.Env().Window().Width
@@ -78,8 +75,7 @@ func (a *application) desktopMovieDetail(cx *core.Scope, current route, copies f
 			core.View{Class: side, Children: []core.Node{
 				desktopMovieFile(cx, current, item, state.active(), copies, selectCopy),
 				core.Dynamic(func(cx *core.Scope) core.Node {
-					refreshMatch.Get()
-					return a.desktopMovieDanmaku(cx, current, func() { matchOpen.Set(true) })
+					return desktopMovieDanmaku(cx, comments(), openMatch)
 				}),
 			}},
 		}}
@@ -94,9 +90,7 @@ func (a *application) desktopMovieDetail(cx *core.Scope, current route, copies f
 				}
 			},
 			Children: []core.Node{core.Show{When: matchOpen.Get, Then: func(cx *core.Scope) core.Node {
-				return core.Scroll{Class: "max-h-[350px]", Children: []core.Node{
-					a.onlineDanmaku(cx, current, media.Stream{}, nil, closeMatch, nil),
-				}}
+				return a.movieDanmakuMatch(cx, current, closeMatch)
 			}}}, Footer: []core.Node{ui.Button{Text: locales.Back(cx), TestID: "detail-close-danmaku", OnPress: closeMatch}}},
 	}}
 }
@@ -123,17 +117,33 @@ func (a *application) desktopMovieRecommendations(cx *core.Scope, source source,
 	}}
 }
 
-func (a *application) desktopMovieDanmaku(cx *core.Scope, current route, open func()) core.Node {
-	status, action := locales.MovieDanmakuUnmatched(cx), locales.DesktopDanmakuMatch(cx)
-	var bound danmaku.DandanEpisode
-	if raw, found := a.storage.GetItem(danmakuBindingKey(current)); found && json.Unmarshal([]byte(raw), &bound) == nil && bound.ID > 0 {
-		status, action = locales.DesktopDanmakuMatched(cx), locales.DesktopDanmakuChange(cx)
+func desktopMovieDanmaku(cx *core.Scope, info movieDanmakuInfo, open func()) core.Node {
+	sources := info.sources(cx)
+	action := locales.DesktopDanmakuMatch(cx)
+	var statuses []string
+	for _, source := range sources {
+		action = locales.DesktopDanmakuChange(cx)
+		status := locales.DesktopDanmakuMatched(cx, source.name)
+		if source.Count != nil {
+			status = locales.DesktopDanmakuMatchedCount(cx, movieDanmakuCountLabel(cx, *source.Count, false), source.name)
+		}
+		statuses = append(statuses, status)
+	}
+	if info.saved != nil {
+		statuses = append(statuses, locales.MovieDanmakuSavedCount(cx, movieDanmakuCountLabel(cx, *info.saved, false)))
+	}
+	if len(statuses) == 0 {
+		statuses = append(statuses, locales.MovieDanmakuUnmatched(cx))
+	}
+	var lines []core.Node
+	for _, status := range statuses {
+		lines = append(lines, core.Text{Content: status, Class: "text-xs text-zinc-900/80 dark:text-zinc-50/80"})
 	}
 	row := []core.Node{
 		core.Icon{SVG: lucide.MessageSquareText(), Class: "size-4 shrink-0 text-fuchsia-500"},
-		core.Text{Content: status, Class: "min-w-0 flex-1 text-xs text-zinc-900/80 dark:text-zinc-50/80", TestID: "desktop-movie-danmaku-status"},
+		core.View{Class: "min-w-0 flex-1 gap-1", TestID: "desktop-movie-danmaku-status", Children: lines},
 	}
-	if current.downloadID == "" {
+	if open != nil {
 		row = append(row, base.Button{Label: action, TestID: "detail-danmaku",
 			Class: "shrink-0 rounded-sm", Style: core.Style{FocusVisible: ui.FocusRing(cx, 1)},
 			OnPress: func(core.PressEvent) { open() }, Children: []core.Node{

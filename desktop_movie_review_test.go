@@ -238,29 +238,35 @@ func (desktopMovieFixture) Favorites(context.Context, media.Query) (media.Page, 
 	return media.Page{}, nil
 }
 
-func movieDesignFixtureConfig(t *testing.T) map[string]string {
-	t.Helper()
-	entry := source{ID: "capture", Name: "电影档案", Address: "http://catalog.example.test", Provider: media.Jellyfin,
+func movieDesignFixtureSource() source {
+	return source{ID: "capture", Name: "电影档案", Address: "http://catalog.example.test", Provider: media.Jellyfin,
 		Libraries: []sourceLibrary{{Library: media.Library{ID: "test-library", Name: "Movies"}, Category: libraryMovies}}}
+}
+
+func movieDesignFixtureConfig(t *testing.T, count int) map[string]string {
+	t.Helper()
+	entry := movieDesignFixtureSource()
 	data, err := json.Marshal([]source{entry})
 	if err != nil {
 		t.Fatal(err)
 	}
 	return map[string]string{sourcesKey: string(data),
-		danmakuBindingKey(route{source: entry, item: media.Item{ID: "test-film"}}): `{"episodeId":123}`}
+		danmakuBindingKey(route{source: entry, item: media.Item{ID: "test-film"}}): `{"episodeId":123,"commentCount":` + strconv.Itoa(count) + `}`}
+}
+
+func movieDesignFixtureClient(_ media.Provider, _ string, _ media.Device, session media.Session) (media.Client, error) {
+	return desktopMovieFixture{fixtureServer{session: session}}, nil
 }
 
 func movieDesignFixtureRoot(cx *core.Scope) core.Node {
-	return appRoot(cx, func(_ media.Provider, _ string, _ media.Device, session media.Session) (media.Client, error) {
-		return desktopMovieFixture{fixtureServer{session: session}}, nil
-	}, nil)
+	return appRoot(cx, movieDesignFixtureClient, nil)
 }
 
 func TestDesktopMovieDesignReview(t *testing.T) {
 	if target := nsgotest.Target(); target != "" && target != "linux" {
 		t.Skip("desktop design capture runs on Linux GTK")
 	}
-	config := movieDesignFixtureConfig(t)
+	config := movieDesignFixtureConfig(t, 3812)
 	for _, theme := range reviewAppearances {
 		t.Run(theme.name, func(t *testing.T) {
 			height := core.Points(1500)
@@ -294,7 +300,7 @@ func TestDesktopMovieDesignReview(t *testing.T) {
 			app.WaitFor("id:detail-favorite", 5*time.Second)
 			app.WaitFor("id:detail-trailer", 5*time.Second)
 			app.WaitFor("id:detail-progress", 5*time.Second)
-			app.WaitFor("text:已匹配 · 弹弹play", 5*time.Second)
+			app.WaitFor("text:已匹配 3,812 条 · 弹弹play", 5*time.Second)
 			pick := func(id, match string) {
 				t.Helper()
 				app.Press("id:" + id)

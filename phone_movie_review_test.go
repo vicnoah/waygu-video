@@ -17,7 +17,7 @@ func TestPhoneMovieRatingReview(t *testing.T) {
 	if target := nsgotest.Target(); target != "" && target != "linux" && target != "android" {
 		t.Skip("phone design capture runs on Linux GTK and Android")
 	}
-	config := movieDesignFixtureConfig(t)
+	config := movieDesignFixtureConfig(t, 12_000)
 	for _, theme := range reviewAppearances {
 		t.Run(theme.name, func(t *testing.T) {
 			app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
@@ -28,9 +28,10 @@ func TestPhoneMovieRatingReview(t *testing.T) {
 			app.Press("id:tab-library")
 			app.WaitFor("id:title-test-film", 5*time.Second)
 			app.Press("id:title-test-film")
-			for _, label := range []string{"IMDb", "8.5", "TMDB", "8.2", "Atmos"} {
+			for _, label := range []string{"IMDb", "8.5", "TMDB", "8.2", "Atmos", "弹幕 1.2万"} {
 				app.WaitFor("id:phone-movie-hero >> text:"+label, 5*time.Second)
 			}
+			app.WaitFor("text:弹弹play · 已匹配", 3*time.Second)
 			if app.Exists("id:phone-movie-hero >> text:9.6") {
 				t.Fatal("the hero mixed the generic star with named ratings")
 			}

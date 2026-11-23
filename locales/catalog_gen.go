@@ -101,6 +101,10 @@ var Parameters = map[string][]string{
 	"MovieDirectorLine":               {"name"},
 	"MovieCastLine":                   {"names"},
 	"MovieViewAll":                    {"count"},
+	"MovieDanmakuMatched":             {"source"},
+	"MovieDanmakuCount":               {"count"},
+	"MovieDanmakuTenThousands":        {"count"},
+	"MovieDanmakuSavedCount":          {"count"},
 	"DetailResumeAt":                  {"time_"},
 	"FileSource":                      {"source"},
 	"FileSubtitleCount":               {"count"},
@@ -156,6 +160,8 @@ var Parameters = map[string][]string{
 	"DesktopMovieMoreTracks":          {"count"},
 	"DesktopMovieEmbeddedSubtitles":   {"count"},
 	"DesktopMovieExternalSubtitles":   {"count"},
+	"DesktopDanmakuMatched":           {"source"},
+	"DesktopDanmakuMatchedCount":      {"count", "source"},
 	"DesktopPlayerEpisode":            {"season", "episode"},
 	"DesktopPlayerEngine":             {"name"},
 	"DesktopDanmakuLoaded":            {"count"},
@@ -251,6 +257,10 @@ type Translation struct {
 	MovieDirectorLine               func(name string) string
 	MovieCastLine                   func(names string) string
 	MovieViewAll                    func(count string) string
+	MovieDanmakuMatched             func(source string) string
+	MovieDanmakuCount               func(count string) string
+	MovieDanmakuTenThousands        func(count string) string
+	MovieDanmakuSavedCount          func(count string) string
 	DetailResumeAt                  func(time_ string) string
 	FileSource                      func(source string) string
 	FileSubtitleCount               func(count string) string
@@ -306,6 +316,8 @@ type Translation struct {
 	DesktopMovieMoreTracks          func(count string) string
 	DesktopMovieEmbeddedSubtitles   func(count string) string
 	DesktopMovieExternalSubtitles   func(count string) string
+	DesktopDanmakuMatched           func(source string) string
+	DesktopDanmakuMatchedCount      func(count string, source string) string
 	DesktopPlayerEpisode            func(season string, episode string) string
 	DesktopPlayerEngine             func(name string) string
 	DesktopDanmakuLoaded            func(count string) string
@@ -947,7 +959,6 @@ const (
 	textDesktopMovieAdded
 	textDesktopMovieDirectPlay
 	textDesktopDanmakuMatch
-	textDesktopDanmakuMatched
 	textDesktopDanmakuChange
 	textDesktopPlayerPanel
 	textDesktopPlayerEpisodes
@@ -1885,7 +1896,6 @@ var keyOfText = [numTexts]string{
 	"desktopMovieAdded",
 	"desktopMovieDirectPlay",
 	"desktopDanmakuMatch",
-	"desktopDanmakuMatched",
 	"desktopDanmakuChange",
 	"desktopPlayerPanel",
 	"desktopPlayerEpisodes",
@@ -2821,7 +2831,6 @@ var textsEn = i18n.NewTexts(""+
 	"Added"+
 	"Direct play"+
 	"Match"+
-	"Matched · DandanPlay"+
 	"Change"+
 	"Toggle sidebar"+
 	"Episodes"+
@@ -3754,7 +3763,6 @@ var textsEn = i18n.NewTexts(""+
 		5,
 		11,
 		5,
-		21,
 		6,
 		14,
 		8,
@@ -4690,7 +4698,6 @@ var textsZhHans = i18n.NewTexts(""+
 	"添加于"+
 	"直接播放"+
 	"匹配"+
-	"已匹配 · 弹弹play"+
 	"更换"+
 	"展开或收起侧栏"+
 	"选集"+
@@ -5623,7 +5630,6 @@ var textsZhHans = i18n.NewTexts(""+
 		9,
 		12,
 		6,
-		23,
 		6,
 		21,
 		6,
@@ -6179,6 +6185,18 @@ func Supply(lang string, t Translation) {
 	if t.MovieViewAll != nil {
 		s.MovieViewAll = t.MovieViewAll
 	}
+	if t.MovieDanmakuMatched != nil {
+		s.MovieDanmakuMatched = t.MovieDanmakuMatched
+	}
+	if t.MovieDanmakuCount != nil {
+		s.MovieDanmakuCount = t.MovieDanmakuCount
+	}
+	if t.MovieDanmakuTenThousands != nil {
+		s.MovieDanmakuTenThousands = t.MovieDanmakuTenThousands
+	}
+	if t.MovieDanmakuSavedCount != nil {
+		s.MovieDanmakuSavedCount = t.MovieDanmakuSavedCount
+	}
 	if t.DetailResumeAt != nil {
 		s.DetailResumeAt = t.DetailResumeAt
 	}
@@ -6343,6 +6361,12 @@ func Supply(lang string, t Translation) {
 	}
 	if t.DesktopMovieExternalSubtitles != nil {
 		s.DesktopMovieExternalSubtitles = t.DesktopMovieExternalSubtitles
+	}
+	if t.DesktopDanmakuMatched != nil {
+		s.DesktopDanmakuMatched = t.DesktopDanmakuMatched
+	}
+	if t.DesktopDanmakuMatchedCount != nil {
+		s.DesktopDanmakuMatchedCount = t.DesktopDanmakuMatchedCount
 	}
 	if t.DesktopPlayerEpisode != nil {
 		s.DesktopPlayerEpisode = t.DesktopPlayerEpisode
@@ -9937,6 +9961,100 @@ func MovieDanmakuUnmatched(cx *core.Scope) string { return For(cx).MovieDanmakuU
 // MovieDanmakuUnmatched is the package's MovieDanmakuUnmatched in the language of msgs.
 func (msgs Messages) MovieDanmakuUnmatched() string { return msgs.text(textMovieDanmakuUnmatched) }
 
+// MovieDanmakuMatched says "{source} · Matched"
+// in the language the app shows under cx.
+func MovieDanmakuMatched(cx *core.Scope, source string) string {
+	return For(cx).MovieDanmakuMatched(source)
+}
+
+// MovieDanmakuMatched is the package's MovieDanmakuMatched in the language of msgs.
+func (msgs Messages) MovieDanmakuMatched(source string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MovieDanmakuMatched(source))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MovieDanmakuMatched; f != nil {
+			return f(source)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(source) + " · Matched"
+		case "zh-Hans":
+			return source + " · 已匹配"
+		}
+	}
+}
+
+// MovieDanmakuCount says "Danmaku {count}"
+// in the language the app shows under cx.
+func MovieDanmakuCount(cx *core.Scope, count string) string { return For(cx).MovieDanmakuCount(count) }
+
+// MovieDanmakuCount is the package's MovieDanmakuCount in the language of msgs.
+func (msgs Messages) MovieDanmakuCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MovieDanmakuCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MovieDanmakuCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return "Danmaku " + msgs.arg(count)
+		case "zh-Hans":
+			return "弹幕 " + count
+		}
+	}
+}
+
+// MovieDanmakuTenThousands says "{count} × 10,000"
+// in the language the app shows under cx.
+func MovieDanmakuTenThousands(cx *core.Scope, count string) string {
+	return For(cx).MovieDanmakuTenThousands(count)
+}
+
+// MovieDanmakuTenThousands is the package's MovieDanmakuTenThousands in the language of msgs.
+func (msgs Messages) MovieDanmakuTenThousands(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MovieDanmakuTenThousands(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MovieDanmakuTenThousands; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " × 10,000"
+		case "zh-Hans":
+			return count + "万"
+		}
+	}
+}
+
+// MovieDanmakuSavedCount says "{count} saved comments"
+// in the language the app shows under cx.
+func MovieDanmakuSavedCount(cx *core.Scope, count string) string {
+	return For(cx).MovieDanmakuSavedCount(count)
+}
+
+// MovieDanmakuSavedCount is the package's MovieDanmakuSavedCount in the language of msgs.
+func (msgs Messages) MovieDanmakuSavedCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.MovieDanmakuSavedCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].MovieDanmakuSavedCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " saved comments"
+		case "zh-Hans":
+			return "已保存 " + count + " 条"
+		}
+	}
+}
+
 // DetailResumeAt says "Resume {time}"
 // in the language the app shows under cx.
 func DetailResumeAt(cx *core.Scope, time_ string) string { return For(cx).DetailResumeAt(time_) }
@@ -13478,12 +13596,53 @@ func DesktopDanmakuMatch(cx *core.Scope) string { return For(cx).DesktopDanmakuM
 // DesktopDanmakuMatch is the package's DesktopDanmakuMatch in the language of msgs.
 func (msgs Messages) DesktopDanmakuMatch() string { return msgs.text(textDesktopDanmakuMatch) }
 
-// DesktopDanmakuMatched says "Matched · DandanPlay"
+// DesktopDanmakuMatched says "Matched · {source}"
 // in the language the app shows under cx.
-func DesktopDanmakuMatched(cx *core.Scope) string { return For(cx).DesktopDanmakuMatched() }
+func DesktopDanmakuMatched(cx *core.Scope, source string) string {
+	return For(cx).DesktopDanmakuMatched(source)
+}
 
 // DesktopDanmakuMatched is the package's DesktopDanmakuMatched in the language of msgs.
-func (msgs Messages) DesktopDanmakuMatched() string { return msgs.text(textDesktopDanmakuMatched) }
+func (msgs Messages) DesktopDanmakuMatched(source string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopDanmakuMatched(source))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopDanmakuMatched; f != nil {
+			return f(source)
+		}
+		switch lang {
+		case "", "en":
+			return "Matched · " + msgs.arg(source)
+		case "zh-Hans":
+			return "已匹配 · " + source
+		}
+	}
+}
+
+// DesktopDanmakuMatchedCount says "Matched {count} · {source}"
+// in the language the app shows under cx.
+func DesktopDanmakuMatchedCount(cx *core.Scope, count string, source string) string {
+	return For(cx).DesktopDanmakuMatchedCount(count, source)
+}
+
+// DesktopDanmakuMatchedCount is the package's DesktopDanmakuMatchedCount in the language of msgs.
+func (msgs Messages) DesktopDanmakuMatchedCount(count string, source string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DesktopDanmakuMatchedCount(count, source))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DesktopDanmakuMatchedCount; f != nil {
+			return f(count, source)
+		}
+		switch lang {
+		case "", "en":
+			return "Matched " + msgs.arg(count) + " · " + msgs.arg(source)
+		case "zh-Hans":
+			return "已匹配 " + count + " 条 · " + source
+		}
+	}
+}
 
 // DesktopDanmakuChange says "Change"
 // in the language the app shows under cx.

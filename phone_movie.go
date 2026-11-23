@@ -3,7 +3,6 @@ package main
 import (
 	"cmp"
 	"context"
-	"encoding/json"
 	"slices"
 	"strconv"
 	"strings"
@@ -14,7 +13,6 @@ import (
 	"github.com/nsgo-dev/nsgo/icons/lucide"
 	"github.com/nsgo-dev/nsgo/ui"
 
-	"waygu-video/internal/danmaku"
 	"waygu-video/internal/media"
 	"waygu-video/locales"
 )
@@ -24,8 +22,13 @@ func (a *application) phoneMovieDetail(cx *core.Scope, current route, copies fun
 	castOpen := core.NewSignal(cx, false)
 	playMenu := core.NewSignal(cx, false)
 	matchOpen := core.NewSignal(cx, false)
+	comments := a.movieDanmaku(cx, current)
+	var openMatch func()
+	if current.downloadID == "" {
+		openMatch = func() { matchOpen.Set(true) }
+	}
 	match := core.Dynamic(func(cx *core.Scope) core.Node {
-		return a.phoneMovieDanmaku(cx, current, func() { matchOpen.Set(true) })
+		return phoneMovieDanmaku(cx, comments(), openMatch)
 	})
 	extras := a.movieFeatures(cx, current, false)
 	related := a.movieFeatures(cx, current, true)
@@ -40,7 +43,7 @@ func (a *application) phoneMovieDetail(cx *core.Scope, current route, copies fun
 		if canCast(cx) && current.downloadID == "" {
 			cast = state.cast
 		}
-		return a.phoneMovieHero(cx, state.item(), state.active(), reload, cast)
+		return a.phoneMovieHero(cx, state.item(), state.active(), comments(), reload, cast)
 	})
 	actions := core.Dynamic(func(cx *core.Scope) core.Node {
 		item := state.item()
@@ -152,9 +155,7 @@ func (a *application) phoneMovieDetail(cx *core.Scope, current route, copies fun
 		ui.Dialog{Title: locales.Danmaku(cx), TestID: "detail-danmaku-dialog", Open: matchOpen.Get,
 			OnOpenChange: func(open bool, _ base.Reason) { matchOpen.Set(open) },
 			Children: []core.Node{core.Show{When: matchOpen.Get, Then: func(cx *core.Scope) core.Node {
-				return core.Scroll{Class: "max-h-[350px]", Children: []core.Node{
-					a.onlineDanmaku(cx, current, media.Stream{}, nil, func() { matchOpen.Set(false) }, nil),
-				}}
+				return a.movieDanmakuMatch(cx, current, func() { matchOpen.Set(false) })
 			}}}, Footer: []core.Node{ui.Button{Text: locales.Back(cx), TestID: "detail-close-danmaku",
 				OnPress: func() { matchOpen.Set(false) }}}},
 	}}
@@ -215,7 +216,7 @@ func (a *application) movieRecommendations(ctx context.Context, current route, c
 	return matches, nil
 }
 
-func (a *application) phoneMovieHero(cx *core.Scope, item media.Item, version media.Version, reload, cast func()) core.Node {
+func (a *application) phoneMovieHero(cx *core.Scope, item media.Item, version media.Version, info movieDanmakuInfo, reload, cast func()) core.Node {
 	title := []core.Node{core.Text{Content: item.Title, Role: core.RoleHeader, TestID: "phone-movie-title",
 		Class: "text-4xl font-bold tracking-tight text-white", MaxLines: 2}}
 	if item.OriginalTitle != "" && item.OriginalTitle != item.Title {
@@ -268,6 +269,13 @@ func (a *application) phoneMovieHero(cx *core.Scope, item media.Item, version me
 		if label != "" {
 			badges = append(badges, core.Text{Content: label, Class: "rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"})
 		}
+	}
+	if count, known := info.total(); known {
+		badges = append(badges, core.View{Class: "flex-row items-center gap-1 rounded border border-fuchsia-400/50 bg-fuchsia-500/15 px-1.5 py-0.5",
+			TestID: "phone-movie-danmaku-count", Children: []core.Node{
+				core.Icon{SVG: lucide.MessageSquareText(), Class: "size-3 text-fuchsia-300"},
+				core.Text{Content: locales.MovieDanmakuCount(cx, movieDanmakuCountLabel(cx, count, true)), Class: "text-[10px] font-semibold text-fuchsia-200"},
+			}})
 	}
 	if len(badges) != 0 {
 		title = append(title, core.View{Class: "flex-row flex-wrap gap-1.5", Children: badges})
@@ -395,14 +403,16 @@ func phoneMovieOptions(cx *core.Scope, current route, state movieDetailState,
 	return setupGroup(locales.PlaybackOptions(cx), "", versionChoice, sourceChoice, tracks, match)
 }
 
-func (a *application) phoneMovieDanmaku(cx *core.Scope, current route, open func()) core.Node {
-	var bound danmaku.DandanEpisode
-	if raw, found := a.storage.GetItem(danmakuBindingKey(current)); found {
-		_ = json.Unmarshal([]byte(raw), &bound)
-	}
+func phoneMovieDanmaku(cx *core.Scope, info movieDanmakuInfo, open func()) core.Node {
 	status := locales.MovieDanmakuUnmatched(cx)
-	if bound.ID > 0 {
-		status = bound.Label()
+	var labels []string
+	for _, source := range info.sources(cx) {
+		labels = append(labels, source.name)
+	}
+	if len(labels) > 0 {
+		status = locales.MovieDanmakuMatched(cx, strings.Join(labels, " / "))
+	} else if info.saved != nil {
+		status = locales.LogvarSavedComments(cx)
 	}
 	children := []core.Node{
 		setupBadge(lucide.MessageSquareText(), "bg-fuchsia-500"),
@@ -410,7 +420,7 @@ func (a *application) phoneMovieDanmaku(cx *core.Scope, current route, open func
 		core.Text{Content: status, Class: "max-w-[56%] shrink text-[15px] " + setupMuted, MaxLines: 1},
 	}
 	const row = "min-h-12 flex-row items-center gap-3 bg-white px-4 py-2.5 dark:bg-[#1a1b25]"
-	if current.downloadID != "" {
+	if open == nil {
 		return core.View{Class: row, Children: children}
 	}
 	return base.Button{Class: row, Style: core.Style{FocusVisible: ui.FocusRing(cx, -2)}, Label: locales.Danmaku(cx),

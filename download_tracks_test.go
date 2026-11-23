@@ -100,11 +100,17 @@ func testDockerOfflineTracks(t *testing.T, provider string, height int, include 
 			return &http.Response{StatusCode: http.StatusOK, Body: io.NopCloser(strings.NewReader(body)), Header: make(http.Header)}, nil
 		}))
 	}
+	binding := danmakuBinding{DandanEpisode: danmaku.DandanEpisode{ID: 421, Shift: 0.25}}
+	if !include {
+		// The saved count lets the test observe only requests from the transfer.
+		count := 1
+		binding.Count = &count
+	}
 	state := map[string]string{
 		sourcesKey:             downloadFixtureJSON(t, []source{selected}),
 		subtitlePreferencesKey: `{"Languages":["zh-Hant","en"],"Mode":"always"}`,
 		playbackPreferencesKey: `{"DisableProgressRecording":true}`,
-		danmakuBindingKey(route{source: selected, item: movie}): downloadFixtureJSON(t, danmaku.DandanEpisode{ID: 421, Shift: 0.25}),
+		danmakuBindingKey(route{source: selected, item: movie}): downloadFixtureJSON(t, binding),
 	}
 	if target == "android" {
 		state[downloadWiFiKey] = "false"
@@ -137,6 +143,7 @@ func testDockerOfflineTracks(t *testing.T, provider string, height int, include 
 	card := "id:title-" + movie.ID
 	app.WaitFor(card, 10*time.Second)
 	app.Press(card)
+	app.WaitFor("text:弹幕 1", 5*time.Second)
 	app.WaitFor("id:detail-download", 5*time.Second)
 	app.Press("id:detail-download")
 	if height > 0 {

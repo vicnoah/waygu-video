@@ -87,6 +87,17 @@ type danmakuBinding struct {
 	Count *int `json:"commentCount,omitempty"`
 }
 
+func decodeDanmakuBinding(raw string) danmakuBinding {
+	var binding danmakuBinding
+	if json.Unmarshal([]byte(raw), &binding) != nil {
+		return danmakuBinding{}
+	}
+	if binding.Count != nil && *binding.Count < 0 {
+		binding.Count = nil
+	}
+	return binding
+}
+
 func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.Stream,
 	apply func([]danmaku.Comment, float64), closePanel, showOnMiss func()) core.Node {
 	form, _ := a.remoteDanmaku(cx, current, stream, false, apply, closePanel, showOnMiss)
@@ -219,8 +230,17 @@ func (a *application) remoteDanmaku(cx *core.Scope, current route, stream media.
 			count := len(result.comments)
 			binding.Count = &count
 		}
-		encoded, _ := json.Marshal(binding)
 		key := bindingKeys.GetUntracked()
+		if apply == nil {
+			previous := core.Untracked(cx, func() danmakuBinding {
+				raw, _ := a.storage.GetItem(key.item)
+				return decodeDanmakuBinding(raw)
+			})
+			if previous.ID == result.bound.ID {
+				binding.Count = previous.Count
+			}
+		}
+		encoded, _ := json.Marshal(binding)
 		err := a.storage.SetItem(key.item, string(encoded))
 		if err == nil && key.season != "" && result.bound.AnimeID > 0 && !result.inferred &&
 			(query.GetUntracked().action == danmakuPick || bindings.GetUntracked().item.ID <= 0) {

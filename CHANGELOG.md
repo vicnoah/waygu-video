@@ -9,6 +9,7 @@
 - Check the selected video's estimated size against available space before queueing a download. [Download picker review](docs/ui-review/desktop-movie.md#download-picker)
 - Show IMDb and TMDB ratings by name in desktop and phone movie details. [Rating badge review](docs/ui-review/desktop-movie.md#rating-badges)
 - Show the Atmos badge in phone movie details when the selected version reports Atmos audio. [Phone movie comparison](docs/ui-review/phone-movie.md#rating-badges)
+- Show counts for matched and saved danmaku in desktop and phone movie details. [Danmaku count review](docs/ui-review/desktop-movie.md#danmaku-counts)
 - Pause downloads when the connection leaves Wi-Fi and resume when it returns. [Download network review](docs/ui-review/storage-downloads.md#wi-fi-downloads)
 - Automatically delete watched downloads after 24 hours when enabled. [Storage review](docs/ui-review/storage-downloads.md#automatically-delete-watched-downloads)
 - Save text subtitles and danmaku with videos for offline playback. [Storage review](docs/ui-review/storage-downloads.md#download-subtitles-and-danmaku)
