@@ -80,6 +80,18 @@ jobs:
           go-version-file: go.mod
       - name: Check Apple device targets
         run: go tool nsgo check -target ios,tvos,ios_simulator,tvos_simulator -jobs 2
+      - name: Package macOS for Intel and Apple silicon
+        if: inputs.scope == 'apple'
+        run: |
+          go tool nsgo build -target macos -output dist/apple-desktop -jobs 2 -installers=false
+          tar -czf waygu-video-macos.tar.gz -C dist/apple-desktop .
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: inputs.scope == 'apple'
+        with:
+          name: waygu-video-macos
+          path: waygu-video-macos.tar.gz
+          retention-days: 7
+          if-no-files-found: error
       - name: Build unsigned device IPAs
         run: go tool nsgo build -target ios,tvos -output dist/apple-devices -jobs 2 -installers=false
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -127,12 +139,12 @@ jobs:
               continue
             fi
             target=ios_simulator
-            tests='TestChineseAppName|TestNativeVideoDecodes'
+            tests='TestChineseAppName|TestNativeVideoDecodes|TestApplePlaybackNetworkMonitor'
             if [[ "$kind" == Apple-TV ]]; then
               target=tvos_simulator
               tests+='|TestTVNavigation'
             else
-              tests+='|TestSkipOnboarding|TestApplePlaybackNetworkMonitor'
+              tests+='|TestSkipOnboarding'
             fi
             echo "::group::$kind simulator tests"
             run_simulator -target "$target" -device "$simulator" -run "^($tests)$" -timeout 2m . || failed=1
