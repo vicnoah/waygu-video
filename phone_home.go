@@ -39,10 +39,9 @@ func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult]
 	}
 	gap, inset, margins := "gap-8", "px-5", "mx-5"
 	bodyStyle := func() core.Style {
-		return core.Style{PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea},
-			Padding: core.Edges{Top: 12, Bottom: 12 + max(tabBarInset(cx), core.Insets(cx).Bottom)}}
+		return core.Style{Padding: core.Edges{Top: 12, Bottom: 12 + max(tabBarInset(cx), core.Insets(cx).Bottom)}}
 	}
-	summary := a.homeSummary(cx, results)
+	summary := a.homeSummary(cx, results, a.homeDailyAdditions(cx))
 	picker := a.homeSourceSelect(cx, results, selectSource, tablet)
 	header := a.phoneHomeHeader(cx, summary, picker)
 	if tablet {
@@ -56,7 +55,7 @@ func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult]
 			picker,
 		}}
 	}
-	scroll := core.Scroll{Class: "flex-1", TestID: "home-scroll", Children: []core.Node{
+	scroll := core.Scroll{Class: "flex-1", TestID: "home-scroll", HideIndicator: !tablet, Children: []core.Node{
 		core.View{Class: gap, StyleFunc: bodyStyle, Children: []core.Node{
 			header,
 			core.Dynamic(func(cx *core.Scope) core.Node {
@@ -173,8 +172,10 @@ func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult]
 	if tablet {
 		return core.View{Class: "relative flex-1", Children: []core.Node{glow, scroll}}
 	}
-	return core.View{Class: "relative flex-1 bg-waygu-page", Children: []core.Node{
-		homeAmbient(false, false), homeAmbient(true, false), glow, scroll,
+	return core.View{Class: "relative flex-1 bg-waygu-page", TestID: "phone-home", Children: []core.Node{
+		homeAmbient(false, false), homeAmbient(true, false), glow,
+		core.View{Class: "flex-1", Style: core.Style{PaddingEnv: core.EnvEdges{Top: core.EnvSafeArea}},
+			Children: []core.Node{scroll}},
 	}}
 }
 
@@ -231,7 +232,7 @@ func (a *application) phoneHomeHeader(cx *core.Scope, summary, picker core.Node)
 	}}
 }
 
-func (a *application) homeSummary(cx *core.Scope, results *core.Resource[catalogResult]) core.Node {
+func (a *application) homeSummary(cx *core.Scope, results *core.Resource[catalogResult], daily *core.Resource[int]) core.Node {
 	return core.Text{TestID: "home-summary", Class: "text-sm " + setupMuted, ContentFunc: func() string {
 		if len(a.browseSources()) == 0 {
 			return ""
@@ -246,7 +247,11 @@ func (a *application) homeSummary(cx *core.Scope, results *core.Resource[catalog
 				online++
 			}
 		}
-		return locales.HomeSummary(cx, strconv.Itoa(online), strconv.Itoa(len(result.items)))
+		additions, ready := daily.Get()
+		if !ready || daily.Loading() || daily.Err() != nil {
+			return locales.SourcesOnline(cx, strconv.Itoa(online))
+		}
+		return locales.HomeSummary(cx, strconv.Itoa(online), strconv.Itoa(additions))
 	}}
 }
 
@@ -369,9 +374,10 @@ func (a *application) homeSourceCards(cx *core.Scope, sources []source, statuses
 				}},
 			}})
 	}
+	rail := homeRail("home-source-rail", "gap-2.5", "px-5", cards)
+	rail.HideIndicator = true
 	return core.View{Class: "gap-3", Children: []core.Node{
-		homeSectionTitle(cx, locales.HomeBySource(cx), "", nil, "", "px-5"),
-		homeRail("home-source-rail", "gap-2.5", "px-5", cards),
+		homeSectionTitle(cx, locales.HomeBySource(cx), "", nil, "", "px-5"), rail,
 	}}
 }
 
@@ -388,7 +394,7 @@ func homeSectionTitle(cx *core.Scope, title, more string, selectMore func(), id,
 	return core.View{Class: "flex-row items-center justify-between " + padding, Children: nodes}
 }
 
-func homeRail(id, gap, padding string, cards []core.Node) core.Node {
+func homeRail(id, gap, padding string, cards []core.Node) core.Scroll {
 	return core.Scroll{Horizontal: true, TestID: id, Style: core.Style{FlexShrink: 0}, Children: []core.Node{
 		core.View{Class: "flex-row " + padding + " " + gap, Children: cards},
 	}}
@@ -401,7 +407,9 @@ func homeShelf(id, label string, cards []core.Node, expansion *core.Signal[strin
 		if tablet {
 			gap, padding = "gap-4", "px-6"
 		}
-		var row core.Node = homeRail("home-"+id+"-rail", gap, padding, cards[:min(len(cards), 12)])
+		rail := homeRail("home-"+id+"-rail", gap, padding, cards[:min(len(cards), 12)])
+		rail.HideIndicator = !tablet
+		var row core.Node = rail
 		if expansion.Get() == id {
 			title = locales.HomeCollapse(cx)
 			row = core.View{Class: "flex-row flex-wrap " + gap + " " + padding, Children: cards}

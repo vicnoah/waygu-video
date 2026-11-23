@@ -35,6 +35,7 @@ type catalogRequest struct {
 	search       string
 	limit        int
 	home         bool
+	addedDay     homeDay
 	personal     screen
 	category     libraryCategory
 	categorize   bool
@@ -161,7 +162,7 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 		}
 		request := catalogRequest{sources: sources, parental: a.parentalRules(), filter: a.sourceFilter.Get(), library: library.Get(), search: term,
 			limit: limit.Get(), home: page == screenHome, personal: personal, category: selectedCategory, merge: a.mergeTitles.Get(),
-			libraryFacts: page == screenHome && (idiom == core.IdiomTV || idiom == core.IdiomDesktop)}
+			libraryFacts: page == screenHome}
 		if request.home {
 			request.cachedResume = core.Untracked(cx, func() map[string][]media.Item { return a.readResumeCache(sources) })
 		}
@@ -495,7 +496,9 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 		query := media.Query{LibraryID: library.ID, Limit: q.limit, Search: q.search, CatalogFacts: q.libraryFacts}
 		var page media.Page
 		var err error
-		if q.scan {
+		if !q.addedDay.start.IsZero() {
+			page, err = homeAddedOnDay(ctx, client.Catalog, query, q.addedDay, source.Provider != media.Flymoo)
+		} else if q.scan {
 			page, err = scanCatalogPages(ctx, client.Catalog, query)
 		} else {
 			page, err = list(ctx, library.Library, query)
@@ -559,7 +562,7 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 		}
 		result.hasMore = result.hasMore || page.Total > len(page.Items)
 	}
-	if q.home {
+	if q.home && q.addedDay.start.IsZero() {
 		var refreshed bool
 		var resumeError error
 		result.resume, refreshed, resumeError = resumeShelf(ctx, client, source, libraries, q.cachedResume[source.ID])

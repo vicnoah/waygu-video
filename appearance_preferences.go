@@ -179,6 +179,19 @@ func observeAppearance(cx *core.Scope, appearance func() string) {
 	cx.Effect(apply)
 }
 
+func pageStatusBar(cx *core.Scope) {
+	cx.Effect(func() {
+		foreground := core.StatusBarDark
+		if cx.Dark() {
+			foreground = core.StatusBarLight
+		}
+		cx.SetStatusBar(core.StatusBarSetting{Foreground: foreground})
+	})
+	cx.Cleanup(func() {
+		cx.SetStatusBar(core.StatusBarSetting{Foreground: core.StatusBarAuto})
+	})
+}
+
 func (a *application) saveAppearance(edit func(*appearancePreferences)) error {
 	value := a.appearancePrefs.GetUntracked()
 	edit(&value)

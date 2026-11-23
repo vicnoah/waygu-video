@@ -136,7 +136,7 @@ func TestAppearanceNightResolvesRunningTheme(t *testing.T) {
 	}, nsgotest.WallTime(time.Date(2026, 11, 22, 17, 59, 56, 0, time.UTC)),
 		nsgotest.Storage(map[string]string{seenKey: "true", appearanceKey: "light",
 			appearancePreferencesKey: `{"Night":true,"OLED":true}`}))
-	background := func() core.Color { return app.Find("id:home-scroll").Parent.Style.Background }
+	background := func() core.Color { return app.Find("id:phone-home").Style.Background }
 	if got := background(); got != core.RGB(0xf4f4f7) {
 		t.Fatalf("home before sunset = %#x", got)
 	}

@@ -30,6 +30,22 @@ func TestFlymooReferenceSignature(t *testing.T) {
 	}
 }
 
+func TestFlymooCatalogAdditionTime(t *testing.T) {
+	instant := time.Date(2026, 11, 24, 1, 0, 0, 0, time.UTC)
+	for _, row := range []map[string]any{
+		{"create_time": float64(instant.UnixMilli())},
+		{"created_at": instant.Format(time.RFC3339)},
+		{"created_at": fmt.Sprint(instant.Unix())},
+	} {
+		if got := (&flymooClient{}).item(row).AddedAt; !got.Equal(instant) {
+			t.Errorf("catalog addition time = %v, want %v", got, instant)
+		}
+	}
+	if got := (&flymooClient{}).item(map[string]any{"release_date": "2026-11-24"}).AddedAt; !got.IsZero() {
+		t.Errorf("a release date is not a catalog addition: %v", got)
+	}
+}
+
 // This fixture follows fnmovie server_test.go at de2b3dd, with the same
 // request bodies and representative envelopes for the shared operations.
 func TestFlymooReferenceProtocol(t *testing.T) {

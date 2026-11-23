@@ -114,7 +114,7 @@ navigation: Navigation
 browse: Browse
 sourcesOnline: "{count} sources online"
 homeGreeting: Welcome back
-homeSummary: "{sources} online · {count} loaded"
+homeSummary: "{sources} sources online · {count} added today"
 homeBySource: By source
 homeItemCount: "{count} items"
 homeUnavailable: Connection error

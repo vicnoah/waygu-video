@@ -7455,7 +7455,7 @@ func HomeGreeting(cx *core.Scope) string { return For(cx).HomeGreeting() }
 // HomeGreeting is the package's HomeGreeting in the language of msgs.
 func (msgs Messages) HomeGreeting() string { return msgs.text(textHomeGreeting) }
 
-// HomeSummary says "{sources} online · {count} loaded"
+// HomeSummary says "{sources} sources online · {count} added today"
 // in the language the app shows under cx.
 func HomeSummary(cx *core.Scope, sources string, count string) string {
 	return For(cx).HomeSummary(sources, count)
@@ -7472,9 +7472,9 @@ func (msgs Messages) HomeSummary(sources string, count string) string {
 		}
 		switch lang {
 		case "", "en":
-			return msgs.arg(sources) + " online · " + msgs.arg(count) + " loaded"
+			return msgs.arg(sources) + " sources online · " + msgs.arg(count) + " added today"
 		case "zh-Hans":
-			return sources + " 个媒体源在线 · 已载入 " + count + " 项"
+			return sources + " 个媒体源在线 · 今日新入库 " + count + " 部"
 		}
 	}
 }

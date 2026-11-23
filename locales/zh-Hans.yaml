@@ -114,7 +114,7 @@ navigation: 导航
 browse: 浏览
 sourcesOnline: "{count} 个媒体源在线"
 homeGreeting: 欢迎回来
-homeSummary: "{sources} 个媒体源在线 · 已载入 {count} 项"
+homeSummary: "{sources} 个媒体源在线 · 今日新入库 {count} 部"
 homeBySource: 按媒体源
 homeItemCount: "{count} 项"
 homeUnavailable: 连接异常

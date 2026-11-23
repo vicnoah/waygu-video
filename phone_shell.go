@@ -16,6 +16,7 @@ func tabBarInset(cx *core.Scope) core.Points {
 }
 
 func (a *application) phoneShell(cx *core.Scope, definitions []ui.ShellTab) core.Node {
+	pageStatusBar(cx)
 	env := cx.Env()
 	insets := core.InsetsFunc(cx)
 	phoneTabInset.Provide(cx, func() core.Points {

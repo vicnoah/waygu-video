@@ -118,10 +118,11 @@ func (a *application) homeHero(cx *core.Scope, entry catalogItem, tablet bool) c
 	if item.Year > 0 {
 		meta = append(meta, strconv.Itoa(item.Year))
 	}
-	if tablet && len(item.Genres) > 0 {
-		meta = append(meta, strings.Join(item.Genres[:min(2, len(item.Genres))], " / "))
-	}
+	genre := strings.Join(item.Genres[:min(2, len(item.Genres))], " / ")
 	if tablet {
+		if genre != "" {
+			meta = append(meta, genre)
+		}
 		if item.Duration > 0 {
 			meta = append(meta, detailMediaRuntime(cx, item.Duration))
 		}
@@ -131,19 +132,17 @@ func (a *application) homeHero(cx *core.Scope, entry catalogItem, tablet bool) c
 	} else if minutes := int(item.Duration / time.Minute); minutes > 0 {
 		meta = append(meta, locales.HomeDuration(cx, strconv.Itoa(minutes)))
 	}
-	if !tablet && item.Rating > 0 {
-		meta = append(meta, strconv.FormatFloat(item.Rating, 'f', 1, 64))
-	}
-	genreNames := item.Genres
-	if len(genreNames) == 0 {
-		genreNames = []string{locales.MovieType(cx)}
-		if item.Kind == media.Series {
-			genreNames[0] = locales.SeriesType(cx)
+	if !tablet {
+		if genre != "" {
+			meta = append(meta, genre)
 		}
-	}
-	genres := make([]core.Node, 0, min(len(genreNames), 3))
-	for _, genre := range genreNames[:min(len(genreNames), 3)] {
-		genres = append(genres, core.Text{Content: genre, Class: "rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white", MaxLines: 1})
+		if score := movieRatingDecimal(item.Ratings.IMDb); score != "" {
+			meta = append(meta, "IMDb "+score)
+		} else if score := movieRatingPercent(item.Ratings.TMDB); score != "" {
+			meta = append(meta, "TMDB "+score)
+		} else if score := movieRatingDecimal(item.Rating); score != "" {
+			meta = append(meta, score)
+		}
 	}
 	var byline []core.Node
 	if homeIsFresh(cx, item) {
@@ -171,7 +170,7 @@ func (a *application) homeHero(cx *core.Scope, entry catalogItem, tablet bool) c
 		}}
 	}
 	return core.View{TestID: "home-hero", Class: "relative mx-5 h-[440px] overflow-hidden rounded-3xl shadow-xl shadow-black/20", Children: []core.Node{
-		homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0 pt-16"),
+		homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0"),
 		core.View{Class: "absolute inset-0 bg-linear-to-t from-black/85 via-black/25 to-transparent"},
 		core.View{Class: "absolute top-4 left-4 flex-row items-center gap-1.5 rounded-full bg-black/40 px-2.5 py-1", Children: []core.Node{
 			core.Icon{SVG: lucide.Sparkles(), Class: "size-3 text-amber-300"},
@@ -180,11 +179,36 @@ func (a *application) homeHero(cx *core.Scope, entry catalogItem, tablet bool) c
 		core.View{Class: "absolute inset-x-0 bottom-0 gap-3 p-5", Children: []core.Node{
 			core.View{Class: "flex-row items-center gap-2", Children: byline},
 			core.Text{Content: item.Title, TestID: "home-hero-title", Class: "text-4xl font-bold tracking-tight text-white", MaxLines: 2},
-			core.Text{Content: strings.Join(meta, " · "), Class: "text-xs text-white/75", MaxLines: 1},
-			core.View{Class: "flex-row flex-wrap gap-1.5", Children: genres},
+			core.Text{Content: strings.Join(meta, " · "), TestID: "phone-hero-facts", Class: "text-xs text-white/75", MaxLines: 1},
+			phoneHomeFormatBadges(item, a.appearancePrefs.Get().ShowQuality),
 			core.View{Class: "flex-row gap-3 pt-1", Children: actions},
 		}},
 	}}
+}
+
+func phoneHomeFormatBadges(item media.Item, showQuality bool) core.Node {
+	if !showQuality {
+		return nil
+	}
+	profile := highestVideoProfile(item.VideoProfiles)
+	var resolution, audio string
+	if height := libraryResolution(profile); height > 0 {
+		resolution = libraryResolutionName(height)
+	}
+	if item.DolbyAtmos {
+		audio = "Atmos"
+	}
+	var badges []core.Node
+	for _, label := range []string{resolution, detailVideoRange(media.Version{VideoRange: profile.Range}), audio} {
+		if label != "" {
+			badges = append(badges, core.Text{Content: label,
+				Class: "rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"})
+		}
+	}
+	if len(badges) == 0 {
+		return nil
+	}
+	return core.View{Class: "flex-row gap-1.5", TestID: "phone-hero-formats", Children: badges}
 }
 
 func homeHeroAction(cx *core.Scope, id, label string, icon *core.SVG, primary, tablet bool, press func()) core.Node {
@@ -222,7 +246,7 @@ func artworkWithIconSize(url, class string, iconSize core.Points) core.Node {
 }
 
 func homeIsFresh(cx *core.Scope, item media.Item) bool {
-	age := cx.Now().Sub(item.AddedAt)
+	age := cx.WallTime().Sub(item.AddedAt)
 	return !item.AddedAt.IsZero() && age >= 0 && age < 7*24*time.Hour
 }
 
@@ -254,13 +278,13 @@ func (a *application) homePoster(cx *core.Scope, entry catalogItem, prefix strin
 			quality = libraryResolutionName(resolution)
 		}
 	}
-	if (desktop || tablet) && quality != "" && prefs.ShowQuality {
+	if quality != "" && prefs.ShowQuality {
 		class := "absolute top-2 left-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-white"
-		if tablet {
+		if !desktop {
 			class = "absolute top-1.5 left-1.5 rounded-md bg-black/55 px-1.5 py-0.5 text-[9px] font-bold text-white"
 		}
 		cover.Children = append(cover.Children, core.Text{Content: quality, TestID: "poster-quality", Class: class})
-	} else if !tablet && homeIsFresh(cx, item) {
+	} else if !tablet && (desktop || item.Kind == media.Series) && homeIsFresh(cx, item) {
 		cover.Children = append(cover.Children, core.Text{Content: locales.HomeNewShort(cx), Class: "absolute top-1.5 left-1.5 rounded-md bg-violet-500 px-1.5 py-0.5 text-[9px] font-bold text-white"})
 	}
 	if item.Duration > 0 && item.Position > 0 && !item.Watched {
@@ -302,7 +326,7 @@ func (a *application) homeResumeCard(cx *core.Scope, entry catalogItem) core.Nod
 		core.View{Class: "absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-black/60 to-transparent"},
 	}}
 	if item.Duration > 0 {
-		remaining := locales.ResumeRemaining(cx, playbackClock(max(0, item.Duration-item.Position)))
+		remaining := locales.ResumeRemaining(cx, detailMediaRuntime(cx, max(0, item.Duration-item.Position)))
 		art.Children = append(art.Children,
 			core.View{Class: "absolute bottom-3 left-2.5 flex-row items-center gap-1 rounded-full bg-black/55 px-2 py-1", Children: []core.Node{
 				core.Icon{SVG: lucide.Play(), Class: "size-3 text-white"},

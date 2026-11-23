@@ -64,7 +64,7 @@ func TestPhoneMovieRatingReview(t *testing.T) {
 				app.Scroll("id:phone-movie-scroll", -1500)
 				expectStatusBar(core.StatusBarLight)
 				app.Press("id:back")
-				expectStatusBar(core.StatusBarAuto)
+				expectStatusBar(body)
 			}
 		})
 	}

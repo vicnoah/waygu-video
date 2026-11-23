@@ -30,9 +30,12 @@ func TestDockerHomeReview(t *testing.T) {
 				return Root(cx)
 			}, nsgotest.Idiom(core.IdiomPhone), nsgotest.Size(390, height),
 				nsgotest.Environment(core.Environment{Locale: "zh-Hans"}),
-				nsgotest.Storage(config), nsgotest.Secrets(secrets))
+				nsgotest.WallTime(time.Now()), nsgotest.Storage(config), nsgotest.Secrets(secrets))
 			app.WaitFor("text:最近添加", 10*time.Second)
 			app.WaitFor("text:继续观看", 5*time.Second)
+			app.WaitUntil(5*time.Second, func() bool {
+				return strings.HasPrefix(app.Find("id:home-summary").Text, "3 个媒体源在线 · 今日新入库 ")
+			})
 			app.Advance(500 * time.Millisecond)
 			app.Screenshot("home-" + variant.name)
 			if height := app.Find("id:home-hero").Frame.Size.Height; height != 440 {
@@ -53,7 +56,8 @@ func TestDockerHomeReview(t *testing.T) {
 			app.WaitFor("text:收起", time.Second)
 			app.Press("id:home-recent-all")
 			app.WaitFor("id:home-recent-rail", time.Second)
-			app.Scroll("id:home-scroll", 500)
+			app.Scroll("id:home-scroll", 2000)
+			app.Advance(400 * time.Millisecond)
 			app.WaitFor("id:home-source-emby", time.Second)
 			app.Screenshot("home-" + variant.name + "-sources")
 			app.Press("id:home-source-emby")

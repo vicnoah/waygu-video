@@ -16,16 +16,7 @@ import (
 )
 
 func (a *application) tabletShell(cx *core.Scope) core.Node {
-	cx.Effect(func() {
-		foreground := core.StatusBarDark
-		if cx.Dark() {
-			foreground = core.StatusBarLight
-		}
-		cx.SetStatusBar(core.StatusBarSetting{Foreground: foreground})
-	})
-	cx.Cleanup(func() {
-		cx.SetStatusBar(core.StatusBarSetting{Foreground: core.StatusBarAuto})
-	})
+	pageStatusBar(cx)
 	category := core.NewSignal(cx, libraryCategory(""))
 	collapsed := core.NewSignal(cx, false)
 	drawer := core.NewSignal(cx, false)

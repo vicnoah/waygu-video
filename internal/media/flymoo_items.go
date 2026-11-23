@@ -144,6 +144,22 @@ func flymooKind(row map[string]any, series string, season, episode int) Kind {
 	return Movie
 }
 
+func flymooAddedAt(row map[string]any) time.Time {
+	for _, key := range []string{"create_time", "created_at"} {
+		value := flymooText(row, key)
+		if instant, err := time.Parse(time.RFC3339Nano, value); err == nil {
+			return instant
+		}
+		if timestamp, err := strconv.ParseInt(value, 10, 64); err == nil && timestamp > 0 {
+			if timestamp < 100_000_000_000 {
+				return time.Unix(timestamp, 0).UTC()
+			}
+			return time.UnixMilli(timestamp).UTC()
+		}
+	}
+	return time.Time{}
+}
+
 func (f *flymooClient) item(row map[string]any) Item {
 	series := flymooText(row, "tv_guid", "tvGuid", "series_guid", "seriesGuid", "tv_id", "tvId", "series_id", "seriesId")
 	season := flymooInt(row, "season_number", "seasonNumber")
@@ -154,7 +170,7 @@ func (f *flymooClient) item(row map[string]any) Item {
 		ID: flymooText(row, "guid", "id", "media_id", "mediaId"), Kind: flymooKind(row, series, season, episode),
 		Title:    flymooText(row, "title", "name", "original_title", "display_name", "file_name"),
 		SeriesID: series, SeriesTitle: flymooText(row, "tv_title", "tvTitle", "series_title", "seriesTitle", "tv_name", "show_title", "showTitle"),
-		Season: season, Episode: episode, Year: yearNumber,
+		Season: season, Episode: episode, Year: yearNumber, AddedAt: flymooAddedAt(row),
 		OriginalTitle: flymooText(row, "original_title", "originalTitle"),
 		Rating:        flymooNumber(row, "rating", "score", "vote_average"),
 		Overview:      flymooText(row, "overview", "description", "summary", "plot"),
