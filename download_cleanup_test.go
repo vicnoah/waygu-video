@@ -168,6 +168,10 @@ func watchedDownloadFixture(account, id, title string) downloadEntry {
 }
 
 func startWatchedDownloadApp(t *testing.T, now time.Time, theme core.Appearance, config map[string]string, entries ...downloadEntry) (*nsgotest.App, string) {
+	return startDownloadTestApp(t, now, theme, config, entries)
+}
+
+func startDownloadTestApp(t *testing.T, now time.Time, theme core.Appearance, config map[string]string, entries []downloadEntry, options ...nsgotest.Option) (*nsgotest.App, string) {
 	t.Helper()
 	if config == nil {
 		config = make(map[string]string)
@@ -197,8 +201,8 @@ func startWatchedDownloadApp(t *testing.T, now time.Time, theme core.Appearance,
 			}
 		}
 		return Root(cx)
-	}, nsgotest.Size(390, height), nsgotest.Idiom(core.IdiomPhone), nsgotest.WallTime(now),
-		nsgotest.Environment(core.Environment{Locale: "zh-Hans"}), nsgotest.Storage(config))
+	}, append([]nsgotest.Option{nsgotest.Size(390, height), nsgotest.Idiom(core.IdiomPhone), nsgotest.WallTime(now),
+		nsgotest.Environment(core.Environment{Locale: "zh-Hans"}), nsgotest.Storage(config)}, options...)...)
 	app.Press("id:tab-settings")
 	if nsgotest.Target() == "android" {
 		app.Scroll("id:phone-settings-home", 440)

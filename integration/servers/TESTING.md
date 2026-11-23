@@ -33,13 +33,13 @@ Flymoo quality fixtures cover the original NAS URL, NAS-hosted direct renditions
 
 ### Live Flymoo connection
 
-Set `WAYGU_FLYMOO_LIVE_URL`, `WAYGU_FLYMOO_LIVE_USER` and `WAYGU_FLYMOO_LIVE_PASSWORD` in the local test process for a NAS account with library access. Set `WAYGU_FLYMOO_LIVE_FNID` to check FN Connect resolution independently. The test discovers the media gateway and reads one 1024-byte range from an episode's original file. It logs only the stage, error code and aggregate counts.
+Set `WAYGU_FLYMOO_LIVE_URL`, `WAYGU_FLYMOO_LIVE_USER` and `WAYGU_FLYMOO_LIVE_PASSWORD` in the local test process for a NAS account with library access. Set `WAYGU_FLYMOO_LIVE_FNID` to check FN Connect resolution independently. The test discovers the gateway, signs in, checks the catalog and direct lookup of an episode, and reads a signed 1024-byte range from its original file. It logs only the stage, error code and aggregate counts.
 
 ```sh
 go tool nsgo test . -run '^TestFlymooLive(Connection|FNConnect)$' -count=1 -v
 ```
 
-On the tested Flymoo 0.9.8 NAS, local gateway discovery and FN Connect returned the same server identity. The reference login request and the NAS web login request both returned code `-15` (incorrect password). Catalog and signed media reads remain pending on the live account.
+The supplied test account passed authentication, library discovery, season and episode lookup, and the signed original-file range. FN Connect and the LAN gateway reported the same server identity. The live test reads the original stream. The transcoding and progress cases use the protocol fixtures. [FnMovie item lookup](https://github.com/vicnoah/fnmovie/blob/de2b3dd817011de1e5f54b65b5bcb8310431b306/internal/app/server.go#L499-L515)
 
 Stop the fixture services with `docker compose -f integration/servers/compose.yaml down`. The named volumes keep the fixture setup for subsequent runs.
 
@@ -77,6 +77,19 @@ sh build/android/package.sh test -device <serial> -env WAYGU_TEST_SERVERS=1 \
 ```
 
 Forward the fixture ports 18096, 28096 and 32400 with `adb reverse tcp:<port> tcp:<port>` before the Android TV test. The emulator opens an episode from the completed queue and advances playback with the Emby gateway disconnected. [Dialog captures and flow comparison](../../docs/ui-review/phone-series.md#season-downloads)
+
+## Expired downloads
+
+`TestDockerExpiredDownloads` seeds downloaded MP4s with absent item IDs and one still-visible item. Refreshing each source makes the app verify those IDs against actual Emby, Jellyfin and Plex responses. The test keeps and plays an expired file, advances past the watched-file cleanup time, and verifies that only a confirmed manual deletion removes it. GTK runs capture both appearances. `TestDownloadExpirationAfterSourceOutage` checks the persistent outage clock, reconnecting to a missing item, and clearing expiration when the item returns. `TestFlymooItemPresence` verifies the signed reference lookup and the missing-item, authorization and unsupported endpoint responses. [Screen comparison](../../docs/ui-review/storage-downloads.md#expired-downloads) · [Emby item lookup](https://dev.emby.media/doc/restapi/Browsing-the-Library.html) · [Plex metadata API](https://developer.plex.tv/pms/)
+
+```sh
+WAYGU_TEST_SERVERS=1 go tool nsgo test . -run 'TestDockerExpiredDownloads|TestDownloadExpirationAfterSourceOutage'
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerExpiredDownloads$' -screenshots .nsgo/ui-review/expired-downloads
+go tool nsgo test ./internal/media -run '^TestFlymooItemPresence$'
+sh build/android/package.sh test -device <serial> -run '^TestAndroidExpiredDownload$' \
+  -timeout 150s -screenshots .nsgo/ui-review/android-expired-downloads
+```
 
 ## Download network transitions
 

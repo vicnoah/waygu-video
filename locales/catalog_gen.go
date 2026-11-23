@@ -695,6 +695,11 @@ const (
 	textDownloadPause
 	textDownloadResume
 	textDownloadRemove
+	textDownloadExpired
+	textDownloadExpiredMissing
+	textDownloadExpiredOffline
+	textDownloadKeepCopy
+	textDownloadCopyKept
 	textDownloadOfflinePlayback
 	textDownloadBusy
 	textSettingsPlaybackExperience
@@ -1623,6 +1628,11 @@ var keyOfText = [numTexts]string{
 	"downloadPause",
 	"downloadResume",
 	"downloadRemove",
+	"downloadExpired",
+	"downloadExpiredMissing",
+	"downloadExpiredOffline",
+	"downloadKeepCopy",
+	"downloadCopyKept",
 	"downloadOfflinePlayback",
 	"downloadBusy",
 	"settingsPlaybackExperience",
@@ -2549,6 +2559,11 @@ var textsEn = i18n.NewTexts(""+
 	"Pause download"+
 	"Resume download"+
 	"Delete downloaded file"+
+	"Download expired"+
+	"The media source can no longer find the original item."+
+	"At least 30 days have passed since the first failed connection."+
+	"Keep local copy"+
+	"Local copy kept"+
 	"Offline playback"+
 	"Pause active downloads before deleting them."+
 	"Playback experience"+
@@ -3472,6 +3487,11 @@ var textsEn = i18n.NewTexts(""+
 		14,
 		15,
 		22,
+		16,
+		54,
+		63,
+		15,
+		15,
 		16,
 		44,
 		19,
@@ -4398,6 +4418,11 @@ var textsZhHans = i18n.NewTexts(""+
 	"暂停下载"+
 	"继续下载"+
 	"删除下载文件"+
+	"下载已过期"+
+	"媒体源已找不到原条目。"+
+	"距首次无法连接媒体服务器已满 30 天。"+
+	"保留本地副本"+
+	"已保留本地副本"+
 	"离线播放"+
 	"请先暂停正在下载的任务。"+
 	"播放体验"+
@@ -5321,6 +5346,11 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		12,
 		18,
+		15,
+		33,
+		52,
+		18,
+		21,
 		12,
 		36,
 		12,
@@ -10535,6 +10565,41 @@ func DownloadRemove(cx *core.Scope) string { return For(cx).DownloadRemove() }
 
 // DownloadRemove is the package's DownloadRemove in the language of msgs.
 func (msgs Messages) DownloadRemove() string { return msgs.text(textDownloadRemove) }
+
+// DownloadExpired says "Download expired"
+// in the language the app shows under cx.
+func DownloadExpired(cx *core.Scope) string { return For(cx).DownloadExpired() }
+
+// DownloadExpired is the package's DownloadExpired in the language of msgs.
+func (msgs Messages) DownloadExpired() string { return msgs.text(textDownloadExpired) }
+
+// DownloadExpiredMissing says "The media source can no longer find the original item."
+// in the language the app shows under cx.
+func DownloadExpiredMissing(cx *core.Scope) string { return For(cx).DownloadExpiredMissing() }
+
+// DownloadExpiredMissing is the package's DownloadExpiredMissing in the language of msgs.
+func (msgs Messages) DownloadExpiredMissing() string { return msgs.text(textDownloadExpiredMissing) }
+
+// DownloadExpiredOffline says "At least 30 days have passed since the first failed connection."
+// in the language the app shows under cx.
+func DownloadExpiredOffline(cx *core.Scope) string { return For(cx).DownloadExpiredOffline() }
+
+// DownloadExpiredOffline is the package's DownloadExpiredOffline in the language of msgs.
+func (msgs Messages) DownloadExpiredOffline() string { return msgs.text(textDownloadExpiredOffline) }
+
+// DownloadKeepCopy says "Keep local copy"
+// in the language the app shows under cx.
+func DownloadKeepCopy(cx *core.Scope) string { return For(cx).DownloadKeepCopy() }
+
+// DownloadKeepCopy is the package's DownloadKeepCopy in the language of msgs.
+func (msgs Messages) DownloadKeepCopy() string { return msgs.text(textDownloadKeepCopy) }
+
+// DownloadCopyKept says "Local copy kept"
+// in the language the app shows under cx.
+func DownloadCopyKept(cx *core.Scope) string { return For(cx).DownloadCopyKept() }
+
+// DownloadCopyKept is the package's DownloadCopyKept in the language of msgs.
+func (msgs Messages) DownloadCopyKept() string { return msgs.text(textDownloadCopyKept) }
 
 // DownloadOfflinePlayback says "Offline playback"
 // in the language the app shows under cx.

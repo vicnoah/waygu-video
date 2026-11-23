@@ -427,6 +427,11 @@ downloadPlay: "Play {title} offline"
 downloadPause: Pause download
 downloadResume: Resume download
 downloadRemove: Delete downloaded file
+downloadExpired: Download expired
+downloadExpiredMissing: The media source can no longer find the original item.
+downloadExpiredOffline: At least 30 days have passed since the first failed connection.
+downloadKeepCopy: Keep local copy
+downloadCopyKept: Local copy kept
 downloadOfflinePlayback: Offline playback
 downloadBusy: Pause active downloads before deleting them.
 settingsPlaybackExperience: Playback experience

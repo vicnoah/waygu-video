@@ -18,7 +18,7 @@
 | Storage card | The native card shows local download usage, available disk space when the OS reports it, and the violet usage segment. The single legend line makes the card shorter than the reference. Separate image and danmaku cache measurements and cleanup remain pending. |
 | Queue | The completed and transferring rows use the designed thumbnail, status and progress treatments. The test slows one real transfer to capture both states. The queue offers pause, resume, retry, play and confirmed deletion. Transfer size and speed come from the actual response. Completed rows have a separate delete action. Thumbnails use the artwork placeholder because the offline manifest omits signed media URLs. |
 | Options | The app saves download quality, Wi-Fi policy, concurrency from one to three, the disk quota, watched-file cleanup and whether to include subtitles and danmaku. Download location is local to the device. |
-| Detail and library | The detail action saves the active version of a movie or individual episode. The series picker queues selected episodes from one season. The tablet sidebar opens the same storage screen. Completed copies display a download badge and remain in the library while an included source is unreachable. Offline expiration handling remains pending. [Season download review](phone-series.md#season-downloads) |
+| Detail and library | The detail action saves the active version of a movie or individual episode. The series picker queues selected episodes from one season. The tablet sidebar opens the same storage screen. Completed copies display a download badge and remain in the library while an included source is unreachable. Storage flags expired copies for review while they remain playable. [Season download review](phone-series.md#season-downloads) |
 | Recovery and verification | Queue metadata survives restart. An original-file transfer reuses a partial range when the server supplies a matching validator. A transcoded transfer starts a new encode when resumed. The store checks response sizes when known, verifies supplied MD5 checksums, and records a SHA-256 of each completed file. OS-managed background work during sleep or app suspension remains pending. |
 
 ## Download quality
@@ -74,6 +74,22 @@ The download keeps readable text subtitles from the selected version, including 
 The tests download original and server-transcoded videos from local Emby, Jellyfin and Plex. They deny all media gateway requests, start a new app without media or DandanPlay credentials, and verify Chinese and English captions and a saved comment. The DandanPlay responses are local fixtures. GTK decodes the same video the app downloaded. The headless tests also confirm the switch prevents optional requests and that an over-quota subtitle does not invalidate a completed video. Image-based subtitles and native selection of original audio tracks remain platform-dependent. [Test commands](../../integration/servers/TESTING.md#offline-subtitles-and-danmaku)
 
 The Android emulator opens the Emby original after disconnecting the gateway. Its screenshot is from the device display and includes the native video surface. The test checks the 360p badge against the fixture's original pixel height. [Android test command](../../integration/servers/TESTING.md#offline-subtitles-and-danmaku)
+
+## Expired downloads
+
+![Light storage page with the Scenra reference on the left and an expired download on the right](images/storage-expired-light.png)
+
+![Dark storage page with the Scenra reference on the left and an expired download on the right](images/storage-expired-dark.png)
+
+The saved row retains the thumbnail, quality, size and playback action. The status icon turns amber and the row shows a reason and **保留本地副本**. The flow specifies the expiration state and its actions. The standard storage frame supplies the row layout. The fixture includes a healthy completed row to show the difference from an expired copy. [Storage frame](../../design/settings-storage.scenra) · [Offline workflow](../../design/flows/offline-download.scenra)
+
+Library sync checks the original item using the saved account. A confirmed missing item expires immediately. A failed connection starts a persistent clock, and another failed check at or after 30 days marks the copy expired. After reconnecting, the app checks that the original item is available before clearing the status. Expiration leaves the file available for playback and review. **保留本地副本** retains the copy even if automatic watched-file cleanup is enabled. The existing confirmed delete action can remove it.
+
+The Docker cases use actual missing-item responses from Emby, Jellyfin and Plex and retain an adjacent valid episode. The GTK tests advance playback of an expired local copy. The clock fixture verifies the 30-day boundary, reconnecting while the item is still missing, and recovery after the item returns. [Fixture tests](../../integration/servers/TESTING.md#expired-downloads)
+
+![Expired download in the storage page on the Android phone emulator](images/storage-expired-android.png)
+
+The Android phone emulator opens a saved expired row, keeps the file, and advances its local playback. Android still draws square corners around some grouped rows where the design shows rounded corners. [Android test command](../../integration/servers/TESTING.md#expired-downloads)
 
 ## Interaction checks
 

@@ -427,6 +427,11 @@ downloadPlay: "离线播放 {title}"
 downloadPause: 暂停下载
 downloadResume: 继续下载
 downloadRemove: 删除下载文件
+downloadExpired: 下载已过期
+downloadExpiredMissing: 媒体源已找不到原条目。
+downloadExpiredOffline: 距首次无法连接媒体服务器已满 30 天。
+downloadKeepCopy: 保留本地副本
+downloadCopyKept: 已保留本地副本
 downloadOfflinePlayback: 离线播放
 downloadBusy: 请先暂停正在下载的任务。
 settingsPlaybackExperience: 播放体验

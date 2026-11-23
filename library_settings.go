@@ -186,6 +186,11 @@ func (a *application) manageLibraries(cx *core.Scope, current source) core.Node 
 			}
 			cx.Post(func() {
 				busy.Set(false)
+				if viewContext.Err() == nil && slices.ContainsFunc(a.sources.GetUntracked(), func(entry source) bool {
+					return entry.ID == current.ID && entry.connection() == current.connection()
+				}) {
+					a.downloads.reconcileDownloadSource(current, client, err, true)
+				}
 				if err != nil {
 					failure.Set(errorText(cx, err))
 					return

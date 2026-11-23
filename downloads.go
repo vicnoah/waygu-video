@@ -48,7 +48,9 @@ type downloadEntry struct {
 	Rate                    int64 `json:"-"`
 	Position                time.Duration
 	Failure                 string
-	Completion              *downloadCompletion `json:",omitempty"`
+	Completion              *downloadCompletion  `json:",omitempty"`
+	Availability            downloadAvailability `json:",omitzero"`
+	SavedAt                 int64                `json:",omitempty"`
 }
 
 type downloadQueue struct {
@@ -66,6 +68,7 @@ type downloadQueue struct {
 	failure  *core.Signal[string]
 	running  map[string]context.CancelFunc
 	removing map[string]bool
+	audits   map[string]*downloadSourceAudit
 }
 
 func newDownloadQueue(cx *core.Scope, a *application) *downloadQueue {
@@ -92,7 +95,7 @@ func newDownloadQueue(cx *core.Scope, a *application) *downloadQueue {
 	cleanup, _ := a.storage.GetItem(downloadCleanupKey)
 	tracks, _ := a.storage.GetItem(downloadTracksKey)
 	queue := &downloadQueue{app: a, lifetime: cx.Context(), store: downloads.Store{Dir: dir}, running: make(map[string]context.CancelFunc),
-		removing: make(map[string]bool), slots: core.NewSignal(cx, count), quota: core.NewSignal(cx, quota),
+		removing: make(map[string]bool), audits: make(map[string]*downloadSourceAudit), slots: core.NewSignal(cx, count), quota: core.NewSignal(cx, quota),
 		height: core.NewSignal(cx, height), wifiOnly: core.NewSignal(cx, wifiOnly != "false"),
 		cleanup: core.NewSignal(cx, cleanup),
 		tracks:  core.NewSignal(cx, tracks != "false"),
@@ -113,6 +116,7 @@ func newDownloadQueue(cx *core.Scope, a *application) *downloadQueue {
 			entry.EncodedHeight = file.Height
 		} else {
 			entry.Completion = nil
+			entry.Availability = downloadAvailability{}
 			entry.Transferred = queue.store.Bytes(entry.ID)
 			switch entry.State {
 			case downloadRunning:
@@ -321,6 +325,8 @@ func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, curre
 			if err == nil {
 				e.State, e.Failure, e.Total = downloadComplete, "", bytes
 				e.EncodedHeight = file.Height
+				e.SavedAt = q.app.scope.WallTime().UnixNano()
+				e.Availability = downloadAvailability{}
 				return
 			}
 			if e.State == downloadRunning {

@@ -72,6 +72,11 @@ func TestFlymooLiveConnection(t *testing.T) {
 	if episode.ID == "" {
 		t.Fatal("the sampled libraries contained no playable episode")
 	}
+	exists, err := media.ItemExists(ctx, client, episode)
+	assertFlymooLive(t, "download source item lookup", err)
+	if !exists {
+		t.Fatal("the server could not find the episode it had listed")
+	}
 	stream, err := client.Playback(ctx, episode, media.PlaybackOptions{})
 	assertFlymooLive(t, "episode playback", err)
 	original := stream.Original()

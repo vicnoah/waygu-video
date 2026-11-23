@@ -50,7 +50,7 @@ box class="relative flex-1 bg-[#f4f4f7]"
           end
           icon pause class="size-5 text-zinc-900/80"
         end
-        box class="flex-row items-center gap-3 bg-white px-4 py-3"
+        box class="flex-row items-center gap-3 bg-white px-4 py-3" note="联网同步确认条目缺失或媒体源失联满 30 天后显示过期提示；本地文件仍可播放，可保留或删除。"
           image "奥本海默 剧照缩略图" class="h-12 w-20 rounded-lg"
           box class="flex-1 gap-1"
             text "奥本海默" class="truncate text-sm text-zinc-900"
@@ -136,7 +136,7 @@ box class="relative flex-1 bg-[#0f1017]"
           end
           icon pause class="size-5 text-zinc-50/80"
         end
-        box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-3"
+        box class="flex-row items-center gap-3 bg-[#1a1b25] px-4 py-3" note="联网同步确认条目缺失或媒体源失联满 30 天后显示过期提示；本地文件仍可播放，可保留或删除。"
           image "奥本海默 剧照缩略图" class="h-12 w-20 rounded-lg"
           box class="flex-1 gap-1"
             text "奥本海默" class="truncate text-sm text-zinc-50"

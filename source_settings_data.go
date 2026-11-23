@@ -125,6 +125,7 @@ func (a *application) checkSourceWithScan(entry source, refresh, scan bool) {
 				}
 			}
 			a.setSourceCheck(entry.ID, finished)
+			a.downloads.reconcileDownloadSource(entry, client, err, refresh)
 			if scan && scanSent {
 				a.scope.AfterFunc(15*time.Second, func() {
 					for _, current := range a.sources.GetUntracked() {

@@ -139,6 +139,7 @@ func mediaBytes(bytes int64) string {
 
 func (a *application) downloadStorage(cx *core.Scope) core.Node {
 	queue := a.downloads
+	cx.Untrack(queue.checkDownloadSources)
 	confirm := core.NewSignal(cx, "")
 	slots := []ui.Option[int]{{Value: 1, Label: "1"}, {Value: 2, Label: "2"}, {Value: 3, Label: "3"}}
 	quotas := []ui.Option[int64]{{Label: locales.DownloadUnlimited(cx)}}
@@ -368,8 +369,30 @@ func (a *application) downloadRow(cx *core.Scope, entry downloadEntry, confirm *
 	data = append(data, core.Text{Content: state, TestID: "download-state-" + id, Class: "text-[11px] " + tint, MaxLines: 2})
 	content := []core.Node{art, core.View{Class: "min-w-0 flex-1 gap-1", Children: data}}
 	var actions []core.Node
+	var expiration core.Node
 	if entry.State == downloadComplete {
-		content = append(content, core.Icon{SVG: lucide.CircleCheck(), Class: "size-5 text-emerald-500"})
+		statusIcon, statusTint := lucide.CircleCheck(), "text-emerald-500"
+		if entry.Availability.Expired != "" {
+			statusIcon, statusTint = lucide.CircleAlert(), "text-amber-600 dark:text-amber-400"
+			reason := locales.DownloadExpiredOffline(cx)
+			if entry.Availability.Expired == downloadMissingFromSource {
+				reason = locales.DownloadExpiredMissing(cx)
+			}
+			label := locales.DownloadExpired(cx)
+			var keep core.Node = ui.Button{Text: locales.DownloadKeepCopy(cx), Variant: ui.ButtonOutline,
+				TestID: "download-keep-" + id, OnPress: func() { queue.keepExpired(id) }}
+			if entry.Availability.Keep {
+				label, keep = locales.DownloadCopyKept(cx), nil
+			}
+			expiration = core.View{Class: "flex-row flex-wrap items-center justify-between gap-2",
+				TestID: "download-expired-" + id, Children: []core.Node{
+					core.View{Class: "min-w-0 flex-1 gap-0.5", Children: []core.Node{
+						core.Text{Content: label, Class: "text-xs font-medium " + statusTint},
+						core.Text{Content: reason, Class: "text-[11px] " + setupMuted},
+					}}, keep,
+				}}
+		}
+		content = append(content, core.Icon{SVG: statusIcon, Class: "size-5 " + statusTint})
 		actions = append(actions, base.Button{Class: "min-w-0 flex-1 flex-row items-center gap-3", Label: locales.DownloadPlay(cx, title),
 			TestID: "download-play-" + id, Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
 			OnPress: func(core.PressEvent) { a.openDownload(entry) }, Children: content})
@@ -393,6 +416,7 @@ func (a *application) downloadRow(cx *core.Scope, entry downloadEntry, confirm *
 	}}
 	return core.View{Class: "gap-2 bg-white px-4 py-3 dark:bg-[#1a1b25]", TestID: "download-row-" + id, Children: []core.Node{
 		core.View{Class: "flex-row items-center gap-2", Children: actions},
+		expiration,
 		useCellular,
 		core.Show{When: func() bool { return confirm.Get() == id }, Then: func(cx *core.Scope) core.Node {
 			return core.View{Class: "flex-row items-center justify-end gap-2", Children: []core.Node{

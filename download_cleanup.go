@@ -41,7 +41,7 @@ func (q *downloadQueue) finishedPlayback(current route) {
 	if id == "" {
 		id = downloadID(mediaAccountKey(current.source), current.item.ID)
 	}
-	if entry, ok := q.find(id, q.entries.GetUntracked()); ok && entry.State == downloadComplete && !q.removing[id] {
+	if entry, ok := q.find(id, q.entries.GetUntracked()); ok && entry.State == downloadComplete && !entry.Availability.Keep && !q.removing[id] {
 		completion := &downloadCompletion{At: q.app.scope.WallTime().UnixNano(), Policy: policy}
 		q.update(id, true, func(e *downloadEntry) { e.Completion = completion })
 	}
@@ -87,7 +87,8 @@ func (q *downloadQueue) completedDownloads(policy string, entries []downloadEntr
 	var due []string
 	var next time.Time
 	for _, entry := range entries {
-		if entry.State != downloadComplete || entry.Completion == nil || entry.Completion.Policy != policy || entry.Completion.At <= 0 {
+		if entry.State != downloadComplete || entry.Availability.Keep || entry.Availability.Expired != "" ||
+			entry.Completion == nil || entry.Completion.Policy != policy || entry.Completion.At <= 0 {
 			continue
 		}
 		if downloadInPlayer(stack, entry.ID) {
