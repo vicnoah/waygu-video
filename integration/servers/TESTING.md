@@ -35,6 +35,8 @@ Flymoo quality fixtures cover the original NAS URL, NAS-hosted direct renditions
 
 Set `WAYGU_FLYMOO_LIVE_URL`, `WAYGU_FLYMOO_LIVE_USER` and `WAYGU_FLYMOO_LIVE_PASSWORD` in the local test process for a NAS account with library access. Set `WAYGU_FLYMOO_LIVE_FNID` to check FN Connect resolution independently. The test discovers the gateway, signs in, checks the catalog and direct lookup of an episode, and reads a signed 1024-byte range from its original file. It logs only the stage, error code and aggregate counts.
 
+The LAN and FN Connect checks passed against an authenticated NAS. The original-file request returned HTTP 206 and 1024 bytes, and FN Connect identified the same media server as the LAN endpoint.
+
 ```sh
 go tool nsgo test . -run '^TestFlymooLive(Connection|FNConnect)$' -count=1 -v
 ```
@@ -146,6 +148,8 @@ sh build/android/package.sh test -device <serial> \
 Run the Android selector with `dark` in place of `light` to exercise the password-protected fixture and choose a result from the landscape player.
 
 For a live deployment, set `WAYGU_LOGVAR_LIVE_URL` and `WAYGU_LOGVAR_LIVE_TITLE`. Set `WAYGU_LOGVAR_LIVE_TOKEN` when the server requires a password. The test submits the public title through both the filename match and episode search endpoints, then reads and decodes the first search result's comments. [Settings comparison](../../docs/ui-review/phone-danmaku-settings.md#custom-logvar-server) · [Logvar API](https://github.com/huangxd-/danmu_api)
+
+The live check passed against a passwordless LAN deployment.
 
 ```sh
 go tool nsgo test ./internal/danmaku -run '^TestLogvarLive$' -count=1 -v

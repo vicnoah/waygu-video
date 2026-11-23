@@ -40,9 +40,9 @@ The Scenra files in `design/` define the product. The current app connects to Em
 
 ## Platform verification
 
-Run checks locally during development. Start the GitHub Actions build and test matrix manually when a milestone is ready for platform verification. Select the Desktop scope for macOS, Linux and Windows, the Apple scope for Xcode builds and all Apple simulators, or the Apple TV scope for tvOS checks and its simulator.
+Run checks locally during development. Start the GitHub Actions build and test matrix manually when a milestone is ready for platform verification. Desktop runs macOS, Linux and Windows. Desktop macOS runs only the two macOS desktop architectures. Apple runs Xcode builds and all Apple simulators. Apple TV runs tvOS checks and its simulator.
 
 - Build tvOS with `sh build/apple/package.sh build -target tvos` on a Mac with Xcode. The package applies NSGo fixes for controller-level focus and the default text scale. Test signed macOS, iOS and tvOS packages and verify controller behavior on TV devices.
 - Verify Android remote control on physical TVs, store distribution of the TV banners, and signed release builds on TVs, phones and tablets. [Android TV launcher evidence](ui-review/welcome.md#android-tv-launcher)
 - Verify HarmonyOS signing, authenticated LAN sessions and video playback on HarmonyOS phones and tablets, including secure credential persistence and authenticated streams.
-- Verify Linux and Windows runtime behavior across both architectures, including media codecs, hardware decoding and libmpv distribution.
+- Verify broader codec coverage, hardware decoding and libmpv distribution on Linux and Windows across both architectures. Native sample video decode and window smoke checks pass on amd64 and arm64. [Desktop matrix](https://github.com/vicnoah/waygu-video/actions/runs/45153238364)
