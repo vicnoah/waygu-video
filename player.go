@@ -711,7 +711,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 						return current.source.capBitrate(active.endpoint, active.requestedBitrate)
 					}, seek: seek, toggle: toggle,
 					stream: activeStream, client: initial.client, tracks: tracks, comments: comments,
-					qualityAvailable: quality != nil, next: nextEpisode.card, hints: showTVHints(),
+					qualityAvailable: quality != nil, next: nextEpisode, finished: ended.Get, hints: showTVHints(),
 				}, tvSettings)
 			})
 		}

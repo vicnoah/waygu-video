@@ -17,6 +17,18 @@ Scenra is on the left and the Linux GTK app is on the right at 1920 × 1080 pt i
 
 `TestDockerTVPlayerReview` checks overlay geometry, remote actions, saved opacity, seeking, playback speed, auto-hide, and the route back from settings. The `seek-preview` subtests in `TestDockerServers` retrieve and decode server-generated images at 0 and 12 seconds from all three providers. `TestSeekPreviewProviders` checks file selection and frame indexing with local HTTP fixtures. [Docker test setup](../../integration/servers/TESTING.md)
 
+## Next episode
+
+![TV playback with the early next-episode card, Dismiss focus, the countdown and the next season](images/tv-next-episode-flow.png)
+
+The playback flow specifies a card in the last 30 seconds and a ten-second countdown when an episode ends. The GTK captures show the card on the TV player, using the white action focus and violet ring from the player design. At 1920 × 1080 it is 500 pt wide with a 96 pt right inset and a 210 pt bottom inset. The card uses the playback flow's interaction notes and the player panel's styling. Short clips show the card in their last third. [Scenra playback flow](../../design/flows/playback.scenra) · [TV player design](../../design/tv-player.scenra)
+
+The four frames show the 18-second Emby clip in the final episode of season one. The card stays visible after the playback controls fade. Down moves focus to Play, Right moves to Dismiss, and Select dismisses the card and returns focus to the playback surface. After reopening the episode, natural completion focuses Play and starts the countdown. The next media opens at season two, episode one. Select pauses the new episode and Back restores the original detail page. The headless test runs the same transition through Emby, Jellyfin and Plex. [Fixture and test commands](../../integration/servers/TESTING.md#tv-next-episode)
+
+![Android TV system screenshot with the next-episode card over decoded video](images/tv-next-episode-android.png)
+
+The system screenshot shows the decoded Emby clip after submitting a search on the Android TV API 36 x86_64 emulator at 1920 × 1080. The on-screen keyboard is closed. The native test verifies actual D-pad focus, dismissal, the countdown and playback in season two. The clips run at their recorded duration while the test advances the app's UI timers. [Android TV test command](../../integration/servers/TESTING.md#tv-next-episode)
+
 ## Android TV
 
 The Android x64 Leanback APK played the Emby Docker clip on the 1920 × 1080 Android TV emulator. The remote smoke test verifies that Select changes the play state, Menu opens quick settings, the directional buttons adjust opacity and seek, Up opens tracks, and Back returns to the same detail screen.

@@ -30,3 +30,5 @@ sh build/android/rebuild-tv-runtime.sh
 ```
 
 The installed-APK smoke test launches through the Leanback intent and checks onboarding, server setup, and settings using directional keys, Select, and Back. See the [Android TV focus comparison](../../docs/ui-review/welcome.md#android-tv-remote-focus).
+
+Use the `test` subcommand of `build/android/package.sh` with an Android TV device or emulator. It applies the same pinned Android runtime and manifest as packaging, then passes the arguments to `nsgo test -target android`. [Docker media fixture and replay](../../integration/servers/TESTING.md#tv-next-episode)

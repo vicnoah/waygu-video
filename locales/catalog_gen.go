@@ -1227,6 +1227,7 @@ const (
 	textOnlineSubtitleRemove
 	textOnlineSubtitleEnabled
 	textOnlineSubtitleDisabled
+	textTvNextEpisodeHint
 	numTexts
 )
 
@@ -2133,6 +2134,7 @@ var keyOfText = [numTexts]string{
 	"onlineSubtitleRemove",
 	"onlineSubtitleEnabled",
 	"onlineSubtitleDisabled",
+	"tvNextEpisodeHint",
 }
 
 // textsEn are the messages without arguments in en.
@@ -3036,7 +3038,8 @@ var textsEn = i18n.NewTexts(""+
 	"Save OpenSubtitles"+
 	"Remove OpenSubtitles credentials"+
 	"Enabled"+
-	"Disabled",
+	"Disabled"+
+	"Down to choose the next episode",
 	[]uint16{
 		11,
 		47,
@@ -3938,6 +3941,7 @@ var textsEn = i18n.NewTexts(""+
 		32,
 		7,
 		8,
+		31,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -4841,7 +4845,8 @@ var textsZhHans = i18n.NewTexts(""+
 	"保存 OpenSubtitles"+
 	"删除 OpenSubtitles 凭据"+
 	"已启用"+
-	"未启用",
+	"未启用"+
+	"按下方向键选择下一集",
 	[]uint16{
 		12,
 		45,
@@ -5743,6 +5748,7 @@ var textsZhHans = i18n.NewTexts(""+
 		27,
 		9,
 		9,
+		30,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -15930,3 +15936,10 @@ func OnlineSubtitleDisabled(cx *core.Scope) string { return For(cx).OnlineSubtit
 
 // OnlineSubtitleDisabled is the package's OnlineSubtitleDisabled in the language of msgs.
 func (msgs Messages) OnlineSubtitleDisabled() string { return msgs.text(textOnlineSubtitleDisabled) }
+
+// TvNextEpisodeHint says "Down to choose the next episode"
+// in the language the app shows under cx.
+func TvNextEpisodeHint(cx *core.Scope) string { return For(cx).TvNextEpisodeHint() }
+
+// TvNextEpisodeHint is the package's TvNextEpisodeHint in the language of msgs.
+func (msgs Messages) TvNextEpisodeHint() string { return msgs.text(textTvNextEpisodeHint) }

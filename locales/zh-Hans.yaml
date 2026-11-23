@@ -1040,3 +1040,5 @@ onlineSubtitleRemove: 删除 OpenSubtitles 凭据
 onlineSubtitleAccount: '已登录 · {name}'
 onlineSubtitleEnabled: 已启用
 onlineSubtitleDisabled: 未启用
+
+tvNextEpisodeHint: 按下方向键选择下一集

@@ -120,6 +120,27 @@ go tool nsgo test -target android -device <serial> -env WAYGU_TEST_SERVERS=1 \
 
 The range test retrieves both captions within 8 KiB of an indexed file over 16 MiB. It also exercises a small file without an index and rejects a sequential scan above 16 MiB. The app uses CuePoints with cluster and block positions for indexed files. [Matroska specification](https://www.rfc-editor.org/rfc/rfc9559.html#section-22) · [Phone player comparison](../../docs/ui-review/phone-player.md#plex-matroska-subtitles)
 
+## TV next episode
+
+`TestDockerTVNextEpisodeAcrossSeasons` opens season one, episode five of `Waygu Review Series`. Headless runs cover Emby, Jellyfin and Plex. The GTK and Android TV runs use the Emby clip and actual decoded video. The test verifies that the card remains visible after the playback controls fade, checks remote focus and dismissal, then reopens the episode to check the countdown and the transition into season two. On native targets the fixture finishes at its real duration. The test advances the app clock for UI timers.
+
+```sh
+WAYGU_TEST_SERVERS=1 go tool nsgo test . -run '^TestDockerTVNextEpisodeAcrossSeasons$'
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerTVNextEpisodeAcrossSeasons$' -timeout 125s \
+  -screenshots .nsgo/ui-review/tv-next-episode
+```
+
+For Android TV, boot a TV system image and forward Docker ports 18096, 28096 and 32400 with `adb reverse`. The test uses the same D-pad and focus runtime as the packaged app.
+
+```sh
+sh build/android/package.sh test -device <serial> -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerTVNextEpisodeAcrossSeasons$' -timeout 180s \
+  -screenshots .nsgo/ui-review/android-tv-next-episode
+```
+
+[TV player comparison](../../docs/ui-review/tv-player.md#next-episode)
+
 ## Online subtitles
 
 The application uses OpenSubtitles.com with an API key and an optional account. It searches the original file hash first and can fall back to IMDb, title, year or season and episode filters. Shooter uses its four-block file hash for Chinese and English. File reads go to the media server. The public providers receive the fingerprint and the search parameters. The selected SRT or WebVTT is cached by source, media item and version. The app restores that subtitle and its delay without another external request. [OpenSubtitles API guide](https://blog.opensubtitles.com/opensubtitles/how-to-build-a-movie-subtitle-finder-cli-with-python-and-the-opensubtitles-api) · [Shooter protocol implementation](https://sources.debian.org/src/deepin-movie-reborn/6.5.60-1/src/libdmr/online_sub.cpp)

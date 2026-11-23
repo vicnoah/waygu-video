@@ -1040,3 +1040,5 @@ onlineSubtitleRemove: Remove OpenSubtitles credentials
 onlineSubtitleAccount: 'Signed in · {name}'
 onlineSubtitleEnabled: Enabled
 onlineSubtitleDisabled: Disabled
+
+tvNextEpisodeHint: Down to choose the next episode

@@ -274,10 +274,17 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 		}})
 	}
 	if page == screenSearch {
-		submit := func() { query.Set(strings.TrimSpace(draft.GetUntracked())); limit.Set(36) }
+		input := &core.Ref{}
+		submit := func() {
+			if idiom == core.IdiomTV {
+				input.Blur()
+			}
+			query.Set(strings.TrimSpace(draft.GetUntracked()))
+			limit.Set(36)
+		}
 		controls = append(controls, core.View{Class: "flex-row items-center gap-2", Children: []core.Node{
 			ui.Input{Label: locales.SearchHint(cx), Placeholder: locales.SearchHint(cx), TestID: "search-query",
-				AutoFocus: idiom == core.IdiomTablet, Value: draft.Get, OnChange: func(value string) {
+				Ref: input, AutoFocus: idiom == core.IdiomTablet, Value: draft.Get, OnChange: func(value string) {
 					draft.Set(value)
 					if strings.TrimSpace(value) == "" {
 						query.Set("")

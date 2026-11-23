@@ -19,6 +19,10 @@ type nextEpisodeControls struct {
 	card        core.Node
 	play        func()
 	unavailable func() bool
+	visible     func() bool
+	title       func() string
+	status      func() string
+	dismiss     func()
 }
 
 func (a *application) nextEpisodeCard(cx *core.Scope, current route, client media.Client,
@@ -86,27 +90,37 @@ func (a *application) nextEpisodeCard(cx *core.Scope, current route, client medi
 		length, at := duration.Get(), position.Get()
 		return length > 0 && at > 0 && length-at <= min(30*time.Second, length/3)
 	})
+	isVisible := func() bool {
+		_, ready := eligibleNext()
+		return ready && visible.Get()
+	}
+	title := func() string {
+		next, _ := eligibleNext()
+		return next.Title
+	}
+	status := func() string {
+		if seconds := countdown.Get(); seconds > 0 {
+			return locales.NextEpisodeCountdown(cx, strconv.Itoa(seconds))
+		}
+		return locales.NextEpisode(cx)
+	}
+	dismiss := func() { dismissed.Set(true) }
 	card := core.Dynamic(func(cx *core.Scope) core.Node {
-		next, ready := eligibleNext()
-		if !ready || !visible.Get() {
+		if !isVisible() {
 			return nil
 		}
+		next, _ := eligibleNext()
 		return core.View{Class: "self-end w-full max-w-[360px] gap-2 rounded-xl border border-border bg-card p-4", Children: []core.Node{
-			core.Text{Class: "text-sm text-muted-foreground", ContentFunc: func() string {
-				if seconds := countdown.Get(); seconds > 0 {
-					return locales.NextEpisodeCountdown(cx, strconv.Itoa(seconds))
-				}
-				return locales.NextEpisode(cx)
-			}},
+			core.Text{Class: "text-sm text-muted-foreground", ContentFunc: status},
 			heading(next.Title),
 			core.View{Class: "flex-row flex-wrap gap-2", Children: []core.Node{
 				ui.Button{Text: locales.Play(cx), Icon: lucide.SkipForward, TestID: "play-next-episode", OnPress: func() { play(next) }},
-				ui.Button{Text: locales.Dismiss(cx), Variant: ui.ButtonGhost, TestID: "dismiss-next-episode", OnPress: func() { dismissed.Set(true) }},
+				ui.Button{Text: locales.Dismiss(cx), Variant: ui.ButtonGhost, TestID: "dismiss-next-episode", OnPress: dismiss},
 			}},
 		}}
 	})
 	return nextEpisodeControls{
-		card: card,
+		card: card, visible: isVisible, title: title, status: status, dismiss: dismiss,
 		play: func() {
 			cx.Untrack(func() {
 				if next, ready := eligibleNext(); ready {

@@ -2,6 +2,11 @@
 set -eu
 
 cd "$(dirname "$0")/../.."
+mode=build
+if [ "${1:-}" = test ]; then
+    mode=test
+    shift
+fi
 module=github.com/nsgo-dev/nsgo
 go mod download "$module"
 source=$(go list -m -f '{{.Dir}}' "$module")
@@ -11,7 +16,8 @@ if [ ! -s "$runtime" ]; then
     printf '%s\n' "Rebuild the TV runtime for NSGo $version with build/android/rebuild-tv-runtime.sh." >&2
     exit 1
 fi
-staging=$(mktemp -d "${TMPDIR:-/tmp}/waygu-android.XXXXXXXX")
+mkdir -p .nsgo
+staging=$(mktemp -d "$PWD/.nsgo/waygu-android.XXXXXXXX")
 trap 'rm -rf -- "$staging"' EXIT
 
 cp -R "$source" "$staging/nsgo"
@@ -22,4 +28,9 @@ gzip -dc "$runtime" > "$staging/nsgo/internal/platform/android/runtime/classes.d
 cp go.mod "$staging/build.mod"
 cp go.sum "$staging/build.sum"
 go mod edit -modfile="$staging/build.mod" -replace="$module=$staging/nsgo"
-go tool -modfile="$staging/build.mod" nsgo build -target android_arm64 "$@"
+if [ "$mode" = test ]; then
+    GOFLAGS="${GOFLAGS:+$GOFLAGS }'-modfile=$staging/build.mod'" \
+        go tool nsgo test -target android "$@"
+else
+    go tool -modfile="$staging/build.mod" nsgo build -target android_arm64 "$@"
+fi

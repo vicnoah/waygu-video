@@ -32,7 +32,8 @@ type tvPlayerControls struct {
 	comments           danmakuControls
 	qualityAvailable   bool
 	hints              bool
-	next               core.Node
+	next               nextEpisodeControls
+	finished           func() bool
 }
 
 func (a *application) showTVPlayerHints() bool {
@@ -50,12 +51,32 @@ func (a *application) tvPlayer(cx *core.Scope, p tvPlayerControls, settings *cor
 	osd := core.NewSignal(cx, true)
 	scrub := core.NewSignal(cx, time.Duration(-1))
 	focus := &core.Ref{}
+	var nextButtons [2]core.Ref
+	nextFocus := core.NewSignal(cx, tvNextUnfocused)
+	nextVisible := core.NewMemo(cx, func() bool {
+		return p.next.visible != nil && !settings.Get() && !p.tracks.panelOpen() &&
+			!p.comments.panelOpen() && scrub.Get() < 0 && p.next.visible()
+	})
+	focusNext := func(target tvNextFocus) {
+		nextFocus.Set(target)
+		cx.Post(nextButtons[target-1].Focus)
+	}
 	focusPlayer := func() {
-		if !p.tracks.panelOpen() && !p.comments.panelOpen() {
+		nextFocus.Set(tvNextUnfocused)
+		if !settings.GetUntracked() && !p.tracks.panelOpen() && !p.comments.panelOpen() {
 			cx.Post(focus.Focus)
 		}
 	}
 	cx.Post(focus.Focus)
+	cx.Effect(func() {
+		if nextVisible.Get() {
+			if p.finished() && nextFocus.GetUntracked() == tvNextUnfocused {
+				focusNext(tvNextPlay)
+			}
+		} else if nextFocus.GetUntracked() != tvNextUnfocused {
+			focusPlayer()
+		}
+	})
 	var hideOSD, commitSeek func() bool
 	wake := func() {
 		osd.Set(true)
@@ -102,10 +123,22 @@ func (a *application) tvPlayer(cx *core.Scope, p tvPlayerControls, settings *cor
 	toggle := func() { p.toggle(); wake() }
 	activateTracks := func() { p.tracks.show(trackSubtitleTab); wake() }
 	openSettings := func() { settings.Set(true); wake() }
+	openDown := func() {
+		if nextVisible.GetUntracked() {
+			focusNext(tvNextPlay)
+		} else {
+			openSettings()
+		}
+	}
+	dismissNext := func() { p.next.dismiss(); focusPlayer(); wake() }
 	closeSettings := func() { settings.Set(false); focusPlayer(); wake() }
 	cx.OnBackPress(func() bool {
 		if settings.GetUntracked() {
 			closeSettings()
+			return true
+		}
+		if nextFocus.GetUntracked() != tvNextUnfocused {
+			dismissNext()
 			return true
 		}
 		return false
@@ -113,6 +146,8 @@ func (a *application) tvPlayer(cx *core.Scope, p tvPlayerControls, settings *cor
 	cx.OnKey("escape", func() {
 		if settings.GetUntracked() {
 			closeSettings()
+		} else if nextFocus.GetUntracked() != tvNextUnfocused {
+			dismissNext()
 		} else {
 			a.back()
 		}
@@ -131,11 +166,24 @@ func (a *application) tvPlayer(cx *core.Scope, p tvPlayerControls, settings *cor
 		if settings.Get() {
 			return
 		}
+		if nextFocus.Get() != tvNextUnfocused && nextVisible.Get() {
+			cx.OnKey("left", func() { focusNext(tvNextPlay) })
+			cx.OnKey("right", func() { focusNext(tvNextDismiss) })
+			cx.OnKey("up", focusPlayer)
+			cx.OnKey("enter", func() {
+				if nextFocus.GetUntracked() == tvNextDismiss {
+					dismissNext()
+				} else {
+					p.next.play()
+				}
+			})
+			return
+		}
 		options := core.KeyOptions{When: core.KeyNotEditing, Repeat: true}
 		cx.OnKeyWith("left", options, func() { seekBy(-tvSeekStep) })
 		cx.OnKeyWith("right", options, func() { seekBy(tvSeekStep) })
 		cx.OnKey("up", activateTracks)
-		cx.OnKey("down", openSettings)
+		cx.OnKey("down", openDown)
 		cx.OnKeyWith("enter", core.KeyOptions{When: core.KeyNotEditing}, toggle)
 	})
 	cx.Cleanup(func() {
@@ -146,7 +194,8 @@ func (a *application) tvPlayer(cx *core.Scope, p tvPlayerControls, settings *cor
 			commitSeek()
 		}
 	})
-	footer := p.tvPlayerFooter(cx, l, scrub, p.hints, settings.Get)
+	footer := p.tvPlayerFooter(cx, l, scrub, p.hints, settings.Get, nextVisible.Get,
+		func() bool { return nextFocus.Get() != tvNextUnfocused })
 	top := p.tvPlayerHeader(cx, l)
 	showChrome := func() bool { return osd.Get() || settings.Get() }
 	apple := cx.Env().OS() == core.OSIOS
@@ -154,13 +203,15 @@ func (a *application) tvPlayer(cx *core.Scope, p tvPlayerControls, settings *cor
 	if apple {
 		surfaceClass = "absolute top-1/2 left-1/2 size-16"
 		cx.Effect(func() {
-			if !settings.Get() && !p.tracks.panelOpen() && !p.comments.panelOpen() {
+			if !settings.Get() && !p.tracks.panelOpen() && !p.comments.panelOpen() &&
+				(!nextVisible.Get() || !p.finished()) && nextFocus.GetUntracked() == tvNextUnfocused {
 				cx.Post(focus.Focus)
 			}
 		})
 	}
 	layer := core.View{Class: "absolute inset-0", TestID: "tv-player", PointerEvents: core.PointerEventsBoxNone,
 		Children: []core.Node{core.View{Class: surfaceClass, TestID: "toggle-play", Role: core.RoleButton, Ref: focus,
+			OnFocus: func() { nextFocus.Set(tvNextUnfocused) },
 			LabelFunc: func() string {
 				if p.paused.Get() {
 					return locales.Play(cx)
@@ -179,11 +230,16 @@ func (a *application) tvPlayer(cx *core.Scope, p tvPlayerControls, settings *cor
 	}}, core.Show{When: settings.Get, Then: func(cx *core.Scope) core.Node {
 		return a.tvPlayerSettings(cx, l, p, closeSettings)
 	}})
+	if p.next.visible != nil {
+		layer.Children = append(layer.Children, core.Show{When: nextVisible.Get, Then: func(cx *core.Scope) core.Node {
+			return tvNextEpisodeCard(cx, l, p.next, nextFocus, &nextButtons, dismissNext, p.finished)
+		}})
+	}
 	if apple {
 		layer.Children = append(layer.Children, core.Show{When: func() bool {
-			return !settings.Get() && !p.tracks.panelOpen() && !p.comments.panelOpen()
+			return !settings.Get() && !p.tracks.panelOpen() && !p.comments.panelOpen() && nextFocus.Get() == tvNextUnfocused
 		}, Then: func(cx *core.Scope) core.Node {
-			return tvAppleRemoteTargets(cx, focus, activateTracks, openSettings, func() { seekBy(-tvSeekStep) }, func() { seekBy(tvSeekStep) })
+			return tvAppleRemoteTargets(cx, focus, activateTracks, openDown, func() { seekBy(-tvSeekStep) }, func() { seekBy(tvSeekStep) })
 		}})
 	}
 	return layer
@@ -203,7 +259,9 @@ func (p tvPlayerControls) tvPlayerHeader(cx *core.Scope, l tvLayout) core.Node {
 	heading.TestID = "player-title"
 	names := []core.Node{heading}
 	if episode != "" {
-		names = append(names, l.text(episode, 24, "text-zinc-300"))
+		label := l.text(episode, 24, "text-zinc-300")
+		label.TestID = "tv-player-episode"
+		names = append(names, label)
 	}
 	dot, _ := tvProviderStyle(p.current.source.Provider)
 	mode := l.text("", 18, "text-white")

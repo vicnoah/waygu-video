@@ -11,7 +11,8 @@ import (
 	"waygu-video/locales"
 )
 
-func (p tvPlayerControls) tvPlayerFooter(cx *core.Scope, l tvLayout, scrub *core.Signal[time.Duration], hints bool, settings func() bool) core.Node {
+func (p tvPlayerControls) tvPlayerFooter(cx *core.Scope, l tvLayout, scrub *core.Signal[time.Duration], hints bool,
+	settings, nextVisible, choosingNext func() bool) core.Node {
 	rail := core.View{Class: "relative rounded-full bg-white/20", TestID: "tv-player-progress",
 		Style: core.Style{Height: l.length(10)}, Children: []core.Node{
 			core.View{Class: "absolute inset-y-0 left-0 rounded-full bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/50",
@@ -26,25 +27,32 @@ func (p tvPlayerControls) tvPlayerFooter(cx *core.Scope, l tvLayout, scrub *core
 	timeline := core.View{Style: core.Style{Gap: l.points(12)}, Children: []core.Node{
 		rail, core.View{Class: "flex-row items-center justify-between", Children: []core.Node{position, remaining}},
 	}}
-	nodes := []core.Node{p.next, tvPlayerPreview(cx, l, p, scrub, settings), timeline}
+	nodes := []core.Node{tvPlayerPreview(cx, l, p, scrub, settings), timeline}
 	if hints {
 		chip := func(width core.Length, padding core.Points, parts ...core.Node) core.Node {
 			return core.View{Class: "flex-row items-center justify-center rounded-lg border border-white/15 bg-white/15",
 				Style: core.Style{Width: width, Height: l.length(40), Gap: l.points(4), Padding: l.padding(padding, 0)}, Children: parts}
 		}
-		hint := func(key core.Node, text string) core.Node {
-			return core.View{Class: "flex-row items-center", Style: core.Style{Gap: l.points(12)}, Children: []core.Node{
-				key, l.text(text, 20, "text-zinc-300"),
-			}}
+		hint := func(key core.Node, label core.Text) core.Node {
+			return core.View{Class: "flex-row items-center", Style: core.Style{Gap: l.points(12)}, Children: []core.Node{key, label}}
 		}
 		arrow := func(icon *core.SVG) core.Node { return l.icon(icon, 20, "text-white") }
-		nodes = append(nodes, core.View{Class: "flex-row items-center", TestID: "tv-player-remote-hints",
-			Style: core.Style{Gap: l.points(40)}, Children: []core.Node{
-				hint(chip(l.length(40), 0, arrow(lucide.ArrowUp())), locales.TvPlayerTrackHint(cx)),
-				hint(chip(l.length(40), 0, arrow(lucide.ArrowDown())), locales.TvPlayerDanmakuHint(cx)),
-				hint(chip(core.Length{}, 8, arrow(lucide.ArrowLeft()), arrow(lucide.ArrowRight())), locales.TvPlayerSeekHint(cx)),
-				hint(chip(core.Length{}, 12, l.text(locales.TvPlayerOK(cx), 18, "font-bold text-white")), locales.Pause(cx)),
-			}})
+		down := l.text("", 20, "text-zinc-300")
+		down.ContentFunc = func() string {
+			if nextVisible() {
+				return locales.NextEpisode(cx)
+			}
+			return locales.TvPlayerDanmakuHint(cx)
+		}
+		nodes = append(nodes, core.Show{When: func() bool { return !choosingNext() }, Then: func(*core.Scope) core.Node {
+			return core.View{Class: "flex-row items-center", TestID: "tv-player-remote-hints",
+				Style: core.Style{Gap: l.points(40)}, Children: []core.Node{
+					hint(chip(l.length(40), 0, arrow(lucide.ArrowUp())), l.text(locales.TvPlayerTrackHint(cx), 20, "text-zinc-300")),
+					hint(chip(l.length(40), 0, arrow(lucide.ArrowDown())), down),
+					hint(chip(core.Length{}, 8, arrow(lucide.ArrowLeft()), arrow(lucide.ArrowRight())), l.text(locales.TvPlayerSeekHint(cx), 20, "text-zinc-300")),
+					hint(chip(core.Length{}, 12, l.text(locales.TvPlayerOK(cx), 18, "font-bold text-white")), l.text(locales.Pause(cx), 20, "text-zinc-300")),
+				}}
+		}})
 	}
 	return core.View{Class: "absolute", PointerEvents: core.PointerEventsBoxNone,
 		StyleFunc: func() core.Style {
