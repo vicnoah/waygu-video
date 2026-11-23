@@ -86,6 +86,10 @@ func TestDockerDesktopMovieReview(t *testing.T) {
 			app.WaitFor("id:detail-subtitle", 8*time.Second)
 			app.WaitFor("id:detail-favorite", 8*time.Second)
 			app.WaitFor("id:detail-download", 5*time.Second)
+			app.WaitFor("id:desktop-movie-hero >> text:8.3", 5*time.Second)
+			if app.Exists("id:desktop-movie-hero >> text:IMDb") || app.Exists("id:desktop-movie-hero >> text:TMDB") {
+				t.Fatal("the Emby community rating acquired a provider label")
+			}
 			if nsgotest.Target() != "" {
 				app.Advance(800 * time.Millisecond)
 				app.Screenshot("app-desktop-movie-" + theme.name)
@@ -189,6 +193,8 @@ func (desktopMovieFixture) Catalog(context.Context, media.Query) (media.Page, er
 
 func (desktopMovieFixture) Detail(_ context.Context, item media.Item) (media.Item, error) {
 	item.Overview = "一位气象学家沿着被遗忘的海岸寻找失踪的考察队。旅途越深入，远处的灯塔就越清晰，她也逐渐发现，过去的讯息一直与眼前的人产生着联系。"
+	item.Rating = 9.6
+	item.Ratings = media.TitleRatings{IMDb: 8.5, TMDB: 8.2}
 	item.AddedAt = time.Date(2026, time.November, 17, 22, 41, 0, 0, time.UTC)
 	item.Countries = []string{"中国", "新加坡"}
 	item.People = []media.Person{
@@ -232,20 +238,35 @@ func (desktopMovieFixture) Favorites(context.Context, media.Query) (media.Page, 
 	return media.Page{}, nil
 }
 
-func TestDesktopMovieDesignReview(t *testing.T) {
-	if target := nsgotest.Target(); target != "" && target != "linux" {
-		t.Skip("desktop design capture runs on Linux GTK")
-	}
+func movieDesignFixtureConfig(t *testing.T) map[string]string {
+	t.Helper()
 	entry := source{ID: "capture", Name: "电影档案", Address: "http://catalog.example.test", Provider: media.Jellyfin,
 		Libraries: []sourceLibrary{{Library: media.Library{ID: "test-library", Name: "Movies"}, Category: libraryMovies}}}
 	data, err := json.Marshal([]source{entry})
 	if err != nil {
 		t.Fatal(err)
 	}
-	config := map[string]string{sourcesKey: string(data),
+	return map[string]string{sourcesKey: string(data),
 		danmakuBindingKey(route{source: entry, item: media.Item{ID: "test-film"}}): `{"episodeId":123}`}
+}
+
+func movieDesignFixtureRoot(cx *core.Scope) core.Node {
+	return appRoot(cx, func(_ media.Provider, _ string, _ media.Device, session media.Session) (media.Client, error) {
+		return desktopMovieFixture{fixtureServer{session: session}}, nil
+	}, nil)
+}
+
+func TestDesktopMovieDesignReview(t *testing.T) {
+	if target := nsgotest.Target(); target != "" && target != "linux" {
+		t.Skip("desktop design capture runs on Linux GTK")
+	}
+	config := movieDesignFixtureConfig(t)
 	for _, theme := range reviewAppearances {
 		t.Run(theme.name, func(t *testing.T) {
+			height := core.Points(1500)
+			if nsgotest.Target() == "linux" {
+				height += 37
+			}
 			free, quota := int64(20<<30), int64(5<<30)
 			if theme.appearance == core.AppearanceDark {
 				free, quota = quota, free
@@ -254,15 +275,20 @@ func TestDesktopMovieDesignReview(t *testing.T) {
 			app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
 				shellIdiom.Provide(cx, core.IdiomDesktop)
 				cx.SetSubtreeAppearance(theme.appearance)
-				return appRoot(cx, func(_ media.Provider, _ string, _ media.Device, session media.Session) (media.Client, error) {
-					return desktopMovieFixture{fixtureServer{session: session}}, nil
-				}, nil)
-			}, nsgotest.Size(1440, 1500), nsgotest.Environment(core.Environment{OS: core.OSLinux, Locale: "zh-Hans"}),
+				return movieDesignFixtureRoot(cx)
+			}, nsgotest.Size(1440, height), nsgotest.Environment(core.Environment{OS: core.OSLinux, Locale: "zh-Hans"}),
 				nsgotest.Idiom(core.IdiomDesktop), nsgotest.Storage(config), nsgotest.Secrets(map[string]string{"capture": "fixture-token"}),
 				nsgotest.DiskSpace(core.DiskSpace{Available: free}, nil))
 			app.Press("id:tab-library")
 			app.WaitFor("id:title-test-film", 5*time.Second)
 			app.Press("id:title-test-film")
+			app.WaitFor("id:desktop-movie-hero >> text:IMDb", 5*time.Second)
+			app.WaitFor("id:desktop-movie-hero >> text:8.5", 5*time.Second)
+			app.WaitFor("id:desktop-movie-hero >> text:TMDB", 5*time.Second)
+			app.WaitFor("id:desktop-movie-hero >> text:82%", 5*time.Second)
+			if app.Exists("id:desktop-movie-hero >> text:9.6") {
+				t.Fatal("the hero mixed the generic star with named ratings")
+			}
 			app.WaitFor("id:desktop-movie-recommendations", 5*time.Second)
 			app.WaitFor("id:playback-version", 5*time.Second)
 			app.WaitFor("id:detail-favorite", 5*time.Second)

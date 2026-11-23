@@ -45,7 +45,10 @@ type plexMetadata struct {
 	ParentRatingKey, GrandparentRatingKey       string
 	GrandparentTitle                            string
 	Year, Index, ParentIndex, LibrarySectionID  int
-	Rating                                      float64
+	Rating                                      float64      `json:"rating"`
+	Ratings                                     []plexRating `json:"Rating"`
+	AudienceRating                              json.Number
+	RatingImage, AudienceRatingImage            string
 	Duration, ViewOffset                        int64
 	AddedAt                                     int64
 	LastViewedAt                                int64
@@ -59,6 +62,36 @@ type plexMetadata struct {
 	Media                                       []plexMedia
 	Chapter                                     []plexChapter
 	Marker                                      []plexMarker
+}
+
+type plexRating struct {
+	Image, Type string
+	Value       json.Number
+}
+
+func (entry plexMetadata) titleRatings() TitleRatings {
+	var ratings TitleRatings
+	add := func(image string, value float64) {
+		if !(value > 0 && value <= 10) {
+			return
+		}
+		switch image {
+		case "imdb://image.rating":
+			ratings.IMDb = value
+		case "themoviedb://image.rating":
+			ratings.TMDB = value
+		}
+	}
+	add(entry.RatingImage, entry.Rating)
+	audience, _ := entry.AudienceRating.Float64()
+	add(entry.AudienceRatingImage, audience)
+	for _, rating := range entry.Ratings {
+		if rating.Type == "audience" {
+			value, _ := rating.Value.Float64()
+			add(rating.Image, value)
+		}
+	}
+	return ratings
 }
 
 type plexMedia struct {
@@ -275,7 +308,7 @@ func (p *plexClient) items(entries []plexMetadata) []Item {
 
 func (p *plexClient) item(entry plexMetadata) Item {
 	item := Item{ID: entry.RatingKey, Kind: Kind(entry.Type), Title: entry.Title, Year: entry.Year,
-		Overview: entry.Summary, Rating: entry.Rating, Duration: millis(entry.Duration),
+		Overview: entry.Summary, Rating: entry.Rating, Ratings: entry.titleRatings(), Duration: millis(entry.Duration),
 		Trailer:       strings.EqualFold(entry.Subtype, "trailer") || strings.EqualFold(entry.Type, "trailer"),
 		OriginalTitle: entry.OriginalTitle, ContentRating: entry.ContentRating,
 		Position: millis(entry.ViewOffset), Watched: entry.ViewCount > 0, SeriesTitle: entry.GrandparentTitle,

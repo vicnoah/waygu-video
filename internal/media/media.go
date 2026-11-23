@@ -82,6 +82,11 @@ type VideoProfile struct {
 	Range         string
 }
 
+// TitleRatings holds scores with a known source, each on a scale of ten.
+type TitleRatings struct {
+	IMDb, TMDB float64
+}
+
 type Item struct {
 	ID                string
 	LibraryID         string
@@ -96,6 +101,7 @@ type Item struct {
 	Season            int
 	Episode           int
 	Rating            float64
+	Ratings           TitleRatings `json:",omitzero"`
 	Genres            []string
 	Countries         []string
 	Writers           []string

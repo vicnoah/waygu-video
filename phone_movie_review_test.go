@@ -13,6 +13,35 @@ import (
 	"waygu-video/internal/media"
 )
 
+func TestPhoneMovieRatingReview(t *testing.T) {
+	if target := nsgotest.Target(); target != "" && target != "linux" && target != "android" {
+		t.Skip("phone design capture runs on Linux GTK and Android")
+	}
+	config := movieDesignFixtureConfig(t)
+	for _, theme := range reviewAppearances {
+		t.Run(theme.name, func(t *testing.T) {
+			app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
+				cx.SetSubtreeAppearance(theme.appearance)
+				return movieDesignFixtureRoot(cx)
+			}, nsgotest.Size(390, 840), nsgotest.Environment(core.Environment{Locale: "zh-Hans"}),
+				nsgotest.Idiom(core.IdiomPhone), nsgotest.Storage(config), nsgotest.Secrets(map[string]string{"capture": "fixture-token"}))
+			app.Press("id:tab-library")
+			app.WaitFor("id:title-test-film", 5*time.Second)
+			app.Press("id:title-test-film")
+			for _, label := range []string{"IMDb", "8.5", "TMDB", "8.2", "Atmos"} {
+				app.WaitFor("id:phone-movie-hero >> text:"+label, 5*time.Second)
+			}
+			if app.Exists("id:phone-movie-hero >> text:9.6") {
+				t.Fatal("the hero mixed the generic star with named ratings")
+			}
+			if nsgotest.Target() != "" {
+				app.Advance(750 * time.Millisecond)
+				app.Screenshot("phone-movie-ratings-" + theme.name)
+			}
+		})
+	}
+}
+
 func TestDockerMovieFeatures(t *testing.T) {
 	if os.Getenv("WAYGU_TEST_SERVERS") != "1" {
 		t.Skip("requires the Docker fixtures")
@@ -73,10 +102,21 @@ func TestDockerPhoneMovieReview(t *testing.T) {
 			app.WaitFor("id:home-source-filter", 8*time.Second)
 			app.Press("id:home-source-filter")
 			app.Press("role:option Emby 影视库")
-			card := "id:title-emby-" + movie.ID
-			waitForHomeCatalogTitle(app, card)
-			app.Press(card)
+			openMovie := func(id string) {
+				card := "id:title-emby-" + id
+				waitForHomeCatalogTitle(app, card)
+				if app.Exists("id:home-recent-rail") {
+					app.Press("id:home-recent-all")
+					app.WaitForGone("id:home-recent-rail", 3*time.Second)
+				}
+				app.Press(card)
+			}
+			openMovie(movie.ID)
 			app.WaitFor("id:phone-movie-hero", 5*time.Second)
+			app.WaitFor("id:phone-movie-hero >> text:8.3", 5*time.Second)
+			if app.Exists("id:phone-movie-hero >> text:IMDb") || app.Exists("id:phone-movie-hero >> text:TMDB") {
+				t.Fatal("the Emby community rating acquired a provider label")
+			}
 			app.WaitFor("id:detail-download", 5*time.Second)
 			app.WaitFor("id:detail-audio", 5*time.Second)
 			app.WaitFor("id:detail-subtitle", 5*time.Second)
@@ -141,8 +181,7 @@ func TestDockerPhoneMovieReview(t *testing.T) {
 			if variant.appearance != core.AppearanceLight {
 				return
 			}
-			app.WaitFor("id:title-emby-"+resume, 5*time.Second)
-			app.Press("id:title-emby-" + resume)
+			openMovie(resume)
 			app.WaitFor("role:button /继续播放/", 5*time.Second)
 			app.LongPress("id:detail-play")
 			app.WaitFor("id:detail-play-menu", 3*time.Second)

@@ -23,13 +23,15 @@ var imdbID = regexp.MustCompile(`^tt[0-9]{5,14}$`)
 var imagePath = regexp.MustCompile(`^/[a-zA-Z0-9_-]+\.(jpg|jpeg|png|webp)$`)
 
 type titleInfo struct {
-	Title         string `json:"title"`
-	Name          string `json:"name"`
-	OriginalTitle string `json:"original_title"`
-	OriginalName  string `json:"original_name"`
-	Overview      string `json:"overview"`
-	Poster        string `json:"poster_path"`
-	Backdrop      string `json:"backdrop_path"`
+	Title         string  `json:"title"`
+	Name          string  `json:"name"`
+	OriginalTitle string  `json:"original_title"`
+	OriginalName  string  `json:"original_name"`
+	Overview      string  `json:"overview"`
+	Poster        string  `json:"poster_path"`
+	Backdrop      string  `json:"backdrop_path"`
+	VoteAverage   float64 `json:"vote_average"`
+	VoteCount     int     `json:"vote_count"`
 }
 
 type cacheKey struct{ kind, id, language string }
@@ -60,7 +62,8 @@ func (c *Cache) Clear() {
 }
 
 func (c *Cache) Enrich(ctx context.Context, item media.Item, token, language string, preferExternal bool) (media.Item, error) {
-	if token == "" || (!preferExternal && item.Overview != "" && item.Poster != "" && item.Backdrop != "") {
+	needsScore := item.Kind == media.Movie && item.Ratings.TMDB == 0
+	if token == "" || (!preferExternal && !needsScore && item.Overview != "" && item.Poster != "" && item.Backdrop != "") {
 		return item, nil
 	}
 	key, ok := tmdbKey(item, language)
@@ -165,6 +168,9 @@ func (c *Cache) get(ctx context.Context, path string, query url.Values, token st
 }
 
 func (info titleInfo) apply(item media.Item, preferExternal bool) media.Item {
+	if info.VoteCount > 0 && info.VoteAverage > 0 && info.VoteAverage <= 10 && (item.Ratings.TMDB == 0 || preferExternal) {
+		item.Ratings.TMDB = info.VoteAverage
+	}
 	set := func(target *string, value string) {
 		if value = strings.TrimSpace(value); value != "" && (*target == "" || preferExternal) {
 			*target = value

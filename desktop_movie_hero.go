@@ -2,6 +2,7 @@ package main
 
 import (
 	"cmp"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -177,7 +178,21 @@ func desktopMediaRuntime(cx *core.Scope, duration time.Duration) string {
 
 func desktopMovieBadges(cx *core.Scope, item media.Item, version media.Version) core.Node {
 	var nodes []core.Node
-	if item.Rating > 0 {
+	for _, rating := range []struct {
+		label, value, background, tint string
+	}{
+		{"IMDb", movieRatingDecimal(item.Ratings.IMDb), "bg-amber-400/15", "text-amber-300"},
+		{"TMDB", movieRatingPercent(item.Ratings.TMDB), "bg-sky-500/15", "text-sky-300"},
+	} {
+		if rating.value != "" {
+			nodes = append(nodes, core.View{Class: "flex-row items-center gap-1.5 rounded-md px-2 py-1 " + rating.background,
+				Children: []core.Node{
+					core.Text{Content: rating.label, Class: "text-xs font-bold " + rating.tint},
+					core.Text{Content: rating.value, Class: "text-xs font-bold text-white"},
+				}})
+		}
+	}
+	if len(nodes) == 0 && item.Rating > 0 {
 		nodes = append(nodes, core.View{Class: "flex-row items-center gap-1.5 rounded-md bg-amber-400/15 px-2 py-1", Children: []core.Node{
 			core.Icon{SVG: lucide.Star(), Class: "size-3 text-amber-300"},
 			core.Text{Content: strconv.FormatFloat(item.Rating, 'f', 1, 64), Class: "text-xs font-bold text-white"},
@@ -210,6 +225,20 @@ func desktopMovieBadges(cx *core.Scope, item media.Item, version media.Version) 
 		return nil
 	}
 	return core.View{Class: "flex-row flex-wrap items-center gap-2", Children: nodes}
+}
+
+func movieRatingDecimal(score float64) string {
+	if !(score > 0 && score <= 10) {
+		return ""
+	}
+	return strconv.FormatFloat(score, 'f', 1, 64)
+}
+
+func movieRatingPercent(score float64) string {
+	if !(score > 0 && score <= 10) {
+		return ""
+	}
+	return strconv.Itoa(int(math.Round(score*10))) + "%"
 }
 
 func desktopMovieAction(cx *core.Scope, id, label string, icon *core.SVG, primary bool, action func()) core.Node {

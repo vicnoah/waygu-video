@@ -237,14 +237,34 @@ func (a *application) phoneMovieHero(cx *core.Scope, item media.Item, version me
 	if len(facts) != 0 {
 		title = append(title, core.Text{Content: strings.Join(facts, " · "), Class: "text-xs text-white/80", MaxLines: 2})
 	}
-	if item.Rating > 0 {
+	var ratings []core.Node
+	for _, rating := range []struct {
+		label, value, style string
+	}{
+		{"IMDb", movieRatingDecimal(item.Ratings.IMDb), "bg-amber-400 text-black"},
+		{"TMDB", movieRatingDecimal(item.Ratings.TMDB), "bg-sky-600 text-white"},
+	} {
+		if rating.value != "" {
+			ratings = append(ratings, core.View{Class: "flex-row items-center gap-1", Children: []core.Node{
+				core.Text{Content: rating.label, Class: "rounded px-1 text-[10px] font-bold " + rating.style},
+				core.Text{Content: rating.value, Class: "text-sm font-semibold text-white"},
+			}})
+		}
+	}
+	if len(ratings) > 0 {
+		title = append(title, core.View{Class: "flex-row items-center gap-3", Children: ratings})
+	} else if item.Rating > 0 {
 		title = append(title, core.View{Class: "flex-row items-center gap-1", Children: []core.Node{
 			core.Icon{SVG: lucide.Star(), Class: "size-4 text-amber-400"},
 			core.Text{Content: strconv.FormatFloat(item.Rating, 'f', 1, 64), Class: "text-sm font-semibold text-white"},
 		}})
 	}
 	var badges []core.Node
-	for _, label := range []string{detailResolution(version), detailVideoRange(version)} {
+	formats := []string{detailResolution(version), detailVideoRange(version)}
+	if slices.ContainsFunc(version.Tracks, media.Track.HasAtmos) {
+		formats = append(formats, "Atmos")
+	}
+	for _, label := range formats {
 		if label != "" {
 			badges = append(badges, core.Text{Content: label, Class: "rounded-md bg-white/15 px-1.5 py-0.5 text-[10px] font-semibold text-white"})
 		}
