@@ -17,6 +17,19 @@ type captionFile struct {
 	size     int64
 }
 
+func openCaptionFile(resource mediahttp.Resource, size int64) (captionFile, func(), error) {
+	client, err := newCaptionClient(resource.URL, resource.Trust)
+	if err != nil {
+		return captionFile{}, nil, err
+	}
+	closeIdle := func() {}
+	if transport, ok := client.Transport.(*http.Transport); ok {
+		closeIdle = transport.CloseIdleConnections
+	}
+	client.Transport = resource.Authorize.Transport(client.Transport)
+	return captionFile{resource, client, size}, closeIdle, nil
+}
+
 func (file captionFile) read(ctx context.Context, offset, length int64) ([]byte, error) {
 	if offset < 0 || length <= 0 || offset > file.size-length {
 		return nil, errCaptions

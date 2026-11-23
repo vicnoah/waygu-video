@@ -38,15 +38,11 @@ type mp4CaptionMask struct {
 }
 
 func probeCaptionMask(ctx context.Context, resource mediahttp.Resource, size int64) (mp4CaptionMask, error) {
-	client, err := newCaptionClient(resource.URL, resource.Trust)
+	file, closeIdle, err := openCaptionFile(resource, size)
 	if err != nil {
 		return mp4CaptionMask{}, err
 	}
-	if transport, ok := client.Transport.(*http.Transport); ok {
-		defer transport.CloseIdleConnections()
-	}
-	client.Transport = resource.Authorize.Transport(client.Transport)
-	file := captionFile{resource, client, size}
+	defer closeIdle()
 	movie, _, err := file.mp4Regions(ctx)
 	if err != nil {
 		return mp4CaptionMask{}, err

@@ -141,23 +141,29 @@ type Page struct {
 }
 
 type Track struct {
-	ID       string
-	Type     string
-	Language string
-	Title    string
-	Codec    string
-	URL      string
-	Default  bool
-	Forced   bool
-	Selected bool
-	External bool
-	// FileSubtitleIndex is the zero-based stream index in the original MP4.
-	FileSubtitleIndex *int
+	ID           string
+	Type         string
+	Language     string
+	Title        string
+	Codec        string
+	URL          string
+	Default      bool
+	Forced       bool
+	Selected     bool
+	External     bool
+	FileSubtitle *FileSubtitle
+}
+
+// FileSubtitle locates a text track in the original version, even during
+// server remuxing or transcoding. Index is the zero-based stream index.
+type FileSubtitle struct {
+	Container string
+	Index     int
 }
 
 // ReadableSubtitle reports whether the app can read the subtitle as timed text.
 func (t Track) ReadableSubtitle() bool {
-	return t.Type == "subtitle" && (t.URL != "" || t.FileSubtitleIndex != nil)
+	return t.Type == "subtitle" && (t.URL != "" || t.FileSubtitle != nil)
 }
 
 type PlayMethod string

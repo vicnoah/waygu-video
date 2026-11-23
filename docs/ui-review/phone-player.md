@@ -52,11 +52,25 @@ Both captures use the 360 pt right-side panel at 844 pt width. The fixture suppl
 
 Emby and Jellyfin return the timed cues from their subtitle endpoints. Plex returns the original MP4, and the app uses HTTP byte ranges to read its movie index and the selected text samples. Timed Text and MP4 WebVTT use the same language order, Chinese conversion, styling and delay as sidecars. The video proxy hides those tracks from the native decoder to prevent duplicate captions. It preserves the video and audio bytes and the file's range offsets. [Fixture and test commands](../../integration/servers/TESTING.md#native-embedded-mp4-subtitles)
 
-The GTK test played the MP4 clips from all three Docker services and checked the default pair, switching and Off. Embedded Plex Matroska subtitles, styled ASS and image subtitles still need native phone integration.
+The GTK test played the MP4 clips from all three Docker services and checked the default pair, switching and Off. Styled ASS and image subtitles still need native phone integration.
 
 ![Android 15 Pixel 7 emulator with the English track selected on the Plex clip](images/phone-embedded-subtitle-picker-android.png)
 
 Separate Android 15 Pixel 7 emulator runs passed for Emby, Jellyfin and Plex. The capture shows the app's captions and controls at the emulator's landscape viewport. NSGo's Android software capture omits the decoder's underlying video texture. The playback test checks the decoder's reported resolution and seeks using the phone timeline. [Android reproduction](../../integration/servers/TESTING.md#native-embedded-mp4-subtitles)
+
+### Plex Matroska subtitles
+
+![Scenra subtitle picker and GTK with embedded English selected during Plex HLS playback](images/phone-matroska-subtitle-picker.png)
+
+The Scenra panel and the app use the same right-side width, tab positions, subtitle rows and selected-row treatment. Scenra shows three example tracks and an online-search action. This clip shows two playable text tracks and the local-file action. The shorter list moves the delay and styling controls up. The source video is the generated 16:9 clip, and the reference uses a rounded phone frame and placeholder image.
+
+![The decoded Plex HLS clip with Traditional Chinese and English captions from the original Matroska file](images/phone-matroska-subtitles.png)
+
+GTK sought to three seconds and paused the Plex HLS video. The app read the subtitle index and the original UTF-8 packets, converted Chinese to Traditional and showed English below it. Selecting English made it the top line while retaining the parked position. Off cleared both lines. [Fixture and reproduction](../../integration/servers/TESTING.md#native-embedded-matroska-subtitles)
+
+![Android 15 Pixel 7 emulator with English selected during the same Plex HLS playback](images/phone-matroska-subtitle-picker-android.png)
+
+The Android run also decoded the HLS stream, sought using the phone timeline and kept the paused position through track changes. The visible panel starts inside the system insets. NSGo's software capture preserves the controls and both subtitle lines while the underlying Android video texture is black in the image.
 
 ## Danmaku
 

@@ -99,6 +99,27 @@ go tool nsgo test -target android -device <serial> -env WAYGU_TEST_SERVERS=1 \
   -screenshots .nsgo/ui-review/embedded-mp4-subtitles-android
 ```
 
+## Native embedded Matroska subtitles
+
+`TestDockerNativeMatroskaSubtitles` uses the original `Waygu Embedded Subtitle Test` from Plex. The native player decodes HLS while the two SRT tracks come from authenticated byte ranges in the original MKV. The test seeks, verifies Traditional Chinese and English cues, promotes English, and toggles Off while paused. It also verifies that both captions use the same playhead across the selection change.
+
+```sh
+WAYGU_TEST_SERVERS=1 go tool nsgo test . -run '^TestDockerNativeMatroskaSubtitles$'
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerNativeMatroskaSubtitles$' -screenshots .nsgo/ui-review/embedded-matroska-subtitles
+go tool nsgo test ./internal/playback -run '^(TestFetchMatroskaCaptions|TestMatroskaSubtitleWebVTTFrame)$'
+```
+
+The Android 15 emulator runs the same test after forwarding the three fixture ports as in the MP4 test above.
+
+```sh
+go tool nsgo test -target android -device <serial> -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerNativeMatroskaSubtitles$' -timeout 150s \
+  -screenshots .nsgo/ui-review/embedded-matroska-subtitles-android
+```
+
+The range test retrieves both captions within 8 KiB of an indexed file over 16 MiB. It also exercises a small file without an index and rejects a sequential scan above 16 MiB. The app uses CuePoints with cluster and block positions for indexed files. [Matroska specification](https://www.rfc-editor.org/rfc/rfc9559.html#section-22) · [Phone player comparison](../../docs/ui-review/phone-player.md#plex-matroska-subtitles)
+
 ## Embedded subtitle tracks
 
 `fixtures.sh` creates `Waygu Embedded Subtitle Test`, an 18-second H.264/AAC Matroska file with Simplified Chinese, English and positioned ASS dialogue. Refresh the media servers with `bootstrap.py` to index it. The desktop GTK test uses libmpv to open each server's original file, shows Chinese converted to Traditional and English below it, promotes the second track, and toggles the ASS rendering preferences while paused. The libmpv test also applies a shared delay and compares frames after toggling a locally attached font.

@@ -540,10 +540,13 @@ func (p *plexClient) partTracks(part plexPart, audio *int, container string) []T
 				current.URL = p.mediaURL(track.Key, nil)
 			}
 		}
-		if kind == "subtitle" && track.Key == "" && track.Index != nil && *track.Index >= 0 &&
-			part.Size > 0 && part.Key != "" && includesCodec("mp4,m4v,mov", container) &&
-			includesCodec("mov_text,tx3g,webvtt,wvtt,vtt", track.Codec) {
-			current.FileSubtitleIndex = track.Index
+		if kind == "subtitle" && track.Key == "" && track.Index != nil && *track.Index >= 0 && part.Size > 0 && part.Key != "" {
+			switch {
+			case includesCodec("mp4,m4v,mov", container) && includesCodec("mov_text,tx3g,webvtt,wvtt,vtt", track.Codec):
+				current.FileSubtitle = &FileSubtitle{Container: "mp4", Index: *track.Index}
+			case includesCodec("mkv,matroska,webm", container) && includesCodec("srt,subrip,utf8,webvtt,vtt", track.Codec):
+				current.FileSubtitle = &FileSubtitle{Container: "matroska", Index: *track.Index}
+			}
 		}
 		tracks = append(tracks, current)
 	}

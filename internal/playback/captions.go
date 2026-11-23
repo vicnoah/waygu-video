@@ -19,7 +19,11 @@ import (
 	"waygu-video/internal/mediatls"
 )
 
-const captionLimit = 4 << 20
+const (
+	captionLimit      = 4 << 20
+	maxCaptionSamples = 24_000
+	maxCaptionTime    = 30 * 24 * time.Hour
+)
 
 var (
 	errCaptions = errors.New("could not read subtitles")

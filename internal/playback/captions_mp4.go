@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"context"
 	"encoding/binary"
-	"net/http"
 	"slices"
 	"strings"
 	"time"
@@ -18,11 +17,7 @@ import (
 	"waygu-video/internal/mediahttp"
 )
 
-const (
-	maxCaptionMovieBox = 24 << 20
-	maxCaptionSamples  = 24_000
-	maxCaptionTime     = 30 * 24 * time.Hour
-)
+const maxCaptionMovieBox = 24 << 20
 
 type mp4Region struct{ start, end int64 }
 
@@ -37,17 +32,13 @@ func FetchMP4Captions(ctx context.Context, original mediahttp.Resource, size int
 	if size < 8 || index < 0 {
 		return nil, errCaptions
 	}
-	client, err := newCaptionClient(original.URL, original.Trust)
+	file, closeIdle, err := openCaptionFile(original, size)
 	if err != nil {
 		return nil, err
 	}
-	if transport, ok := client.Transport.(*http.Transport); ok {
-		defer transport.CloseIdleConnections()
-	}
-	client.Transport = original.Authorize.Transport(client.Transport)
+	defer closeIdle()
 	ctx, cancel := context.WithTimeout(ctx, 50*time.Second)
 	defer cancel()
-	file := captionFile{original, client, size}
 	movie, data, err := file.mp4Regions(ctx)
 	if err != nil {
 		return nil, err
