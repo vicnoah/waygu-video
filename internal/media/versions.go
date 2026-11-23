@@ -7,6 +7,7 @@ import (
 	"path"
 	"slices"
 	"strings"
+	"unicode"
 )
 
 // Version describes a playable file or rendition exposed by one media server.
@@ -30,6 +31,23 @@ func (item *Item) addVideoProfile(profile VideoProfile) {
 	if !slices.Contains(item.VideoProfiles, profile) {
 		item.VideoProfiles = append(item.VideoProfiles, profile)
 	}
+}
+
+// HasAtmos reports whether this audio track is labeled as Dolby Atmos.
+func (track Track) HasAtmos() bool {
+	return track.Type == "audio" && atmosMetadata(track.Codec, track.Title)
+}
+
+func atmosMetadata(values ...string) bool {
+	for _, value := range values {
+		words := strings.FieldsFunc(strings.ToLower(value), func(r rune) bool {
+			return !unicode.IsLetter(r) && !unicode.IsDigit(r)
+		})
+		if slices.Contains(words, "atmos") {
+			return true
+		}
+	}
+	return false
 }
 
 func localMediaPath(value string) string {

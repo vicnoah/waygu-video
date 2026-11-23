@@ -51,19 +51,20 @@ func (library sourceLibrary) category() libraryCategory {
 }
 
 func (library sourceLibrary) matchesCategory(category libraryCategory, item media.Item) bool {
-	if category == "" {
-		return true
-	}
-	if configured := library.category(); configured != "" {
-		return configured == category
+	return category == "" || library.titleCategory(item) == category
+}
+
+func (library sourceLibrary) titleCategory(item media.Item) libraryCategory {
+	if category := library.category(); category != "" {
+		return category
 	}
 	switch item.Kind {
 	case media.Movie, media.Video:
-		return category == libraryMovies
+		return libraryMovies
 	case media.Series, media.Season, media.Episode:
-		return category == librarySeries
+		return librarySeries
 	default:
-		return false
+		return ""
 	}
 }
 

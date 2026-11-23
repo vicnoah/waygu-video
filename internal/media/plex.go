@@ -66,6 +66,7 @@ type plexMedia struct {
 	Bitrate                           int
 	Width, Height                     int
 	Container, VideoCodec, AudioCodec string
+	AudioProfile                      string
 	Part                              []plexPart
 }
 
@@ -340,6 +341,17 @@ func (p *plexClient) item(entry plexMetadata) Item {
 		item.FileSize = max(item.FileSize, size)
 		if medium.Width > 0 || medium.Height > 0 {
 			item.addVideoProfile(VideoProfile{Width: medium.Width, Height: medium.Height, Range: videoRange})
+		}
+		item.DolbyAtmos = item.DolbyAtmos || atmosMetadata(medium.AudioCodec, medium.AudioProfile)
+		if !item.DolbyAtmos {
+			for _, part := range medium.Part {
+				if slices.ContainsFunc(part.Stream, func(stream plexTrack) bool {
+					return stream.StreamType == 2 && atmosMetadata(stream.Codec, stream.Title, stream.DisplayTitle)
+				}) {
+					item.DolbyAtmos = true
+					break
+				}
+			}
 		}
 	}
 	return item

@@ -19,3 +19,5 @@
 - Give the primary featured action initial focus on Apple TV Home. [TV Home review](docs/ui-review/tv-home.md#apple-tv-initial-focus)
 - Move from the featured actions to the Home tab with Up on Apple TV. [TV Home review](docs/ui-review/tv-home.md#apple-tv-initial-focus)
 - Use the tvOS default text size for the design's typography. [Apple TV typography review](docs/ui-review/tv-home.md#apple-tv-typography)
+- Show catalog totals beside the four desktop library categories. [Desktop sidebar comparison](docs/ui-review/desktop-home.md#category-totals-and-atmos)
+- Show an Atmos badge for featured titles with reported Atmos audio. [Desktop Home comparison](docs/ui-review/desktop-home.md#category-totals-and-atmos)

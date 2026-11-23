@@ -14,6 +14,8 @@ type browserStream struct {
 	Type             string
 	Codec            string
 	Language         string
+	Title            string
+	Profile          string
 	DisplayTitle     string
 	VideoRangeType   string
 	Width            int

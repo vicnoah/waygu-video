@@ -106,8 +106,8 @@ func (a *application) initDesktopPreferences(cx *core.Scope, first screen) {
 }
 
 func (a *application) desktopDefaultSource() string {
-	id := a.desktopPrefs.GetUntracked().DefaultSource
-	if id != "" && slices.ContainsFunc(a.sources.GetUntracked(), func(entry source) bool { return entry.ID == id }) {
+	id := a.desktopPrefs.Get().DefaultSource
+	if id != "" && slices.ContainsFunc(a.sources.Get(), func(entry source) bool { return entry.ID == id }) {
 		return id
 	}
 	return ""

@@ -100,6 +100,7 @@ type Item struct {
 	Countries         []string
 	Writers           []string
 	VideoProfiles     []VideoProfile
+	DolbyAtmos        bool
 	SeasonCount       int
 	EpisodeCount      int
 	UnplayedCount     *int

@@ -205,8 +205,7 @@ func tvDetailFormats(cx *core.Scope, version media.Version) []string {
 	formats := []string{detailResolution(version), detailVideoRange(version)}
 	hasChinese := false
 	for _, track := range version.Tracks {
-		profile := strings.ToLower(track.Title)
-		if track.Type == "audio" && strings.Contains(profile, "atmos") && !slices.Contains(formats, "Dolby Atmos") {
+		if track.HasAtmos() && !slices.Contains(formats, "Dolby Atmos") {
 			formats = append(formats, "Dolby Atmos")
 		}
 		if track.Type == "subtitle" {

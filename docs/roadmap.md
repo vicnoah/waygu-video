@@ -12,7 +12,7 @@ The Scenra files in `design/` define the product. The current app connects to Em
 ## Playback and library
 
 - Movie and series details offer the matched copies in visible imported libraries. Each copy offers the versions or qualities its server exposes. Playback reports progress to the selected server. The player switches versions at the current position on that server. Emby, Jellyfin and Plex support playback presets that cap both server output height and bitrate. The phone quality panel shows both limits. Playback settings can prefer the highest quality, fit the configured streaming bitrate or remember the last version played. Add choosing other servers inside the player. [Quality panel comparison](ui-review/phone-player.md#subtitles-and-audio)
-- The desktop movie library offers grid, list and poster wall layouts, a pinyin index, stackable filters and saved smart collections. The GTK comparison records the remaining sidebar and platform differences.
+- The desktop movie library offers grid, list and poster wall layouts, a pinyin index, stackable filters and saved smart collections. The desktop sidebar counts visible catalog titles by category. [Desktop sidebar comparison](ui-review/desktop-home.md#category-totals-and-atmos)
 - Desktop movie details keep the sidebar visible and show playback actions, version and track selection, cast, related titles, file metadata and DandanPlay matching.
 - Continue Watching shows one record per matched movie or episode, ordered by the server's last-played time. Records without a timestamp retain their source order. The selected card resumes its own server's copy and position. The app caches the last successful resume list for each account, applying the current library visibility when a server is unavailable.
 - Playback checkpoints that fail to reach the server survive app restarts and appear in Continue Watching. The app retries after leaving the player or restarting and checks the server's current progress before sending a checkpoint. Turning off Remember playback progress prevents new checkpoints and player reports for subsequent sessions. Existing resume points can still be used. Flymoo compares positions when the server supplies no timestamp. [Progress settings comparison](ui-review/phone-player-settings.md#remember-playback-progress)
@@ -40,7 +40,7 @@ The Scenra files in `design/` define the product. The current app connects to Em
 
 ## Platform verification
 
-Run checks locally during development. Start the GitHub Actions build and test matrix manually when a milestone is ready for platform verification. Select the Apple scope for Xcode builds and all Apple simulators, or the Apple TV scope for tvOS checks and its simulator.
+Run checks locally during development. Start the GitHub Actions build and test matrix manually when a milestone is ready for platform verification. Select the Desktop scope for macOS, Linux and Windows, the Apple scope for Xcode builds and all Apple simulators, or the Apple TV scope for tvOS checks and its simulator.
 
 - Build tvOS with `sh build/apple/package.sh build -target tvos` on a Mac with Xcode. The package applies NSGo fixes for controller-level focus and the default text scale. Test signed macOS, iOS and tvOS packages and verify controller behavior on TV devices.
 - Verify Android remote control on physical TVs, store distribution of the TV banners, and signed release builds on TVs, phones and tablets. [Android TV launcher evidence](ui-review/welcome.md#android-tv-launcher)

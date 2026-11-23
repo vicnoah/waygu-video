@@ -21,6 +21,7 @@ import (
 type catalogItem struct {
 	source     source
 	item       media.Item
+	category   libraryCategory
 	match      *catalogMatch
 	pending    bool
 	downloadID string
@@ -36,6 +37,7 @@ type catalogRequest struct {
 	home         bool
 	personal     screen
 	category     libraryCategory
+	categorize   bool
 	libraryFacts bool
 	scan         bool
 	merge        bool
@@ -476,7 +478,11 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 		list = history.History
 	}
 	var result catalogResult
-	seen := make(map[string]bool)
+	type itemKey struct {
+		id       string
+		category libraryCategory
+	}
+	seen := make(map[itemKey]bool)
 	for _, library := range libraries {
 		query := media.Query{LibraryID: library.ID, Limit: q.limit, Search: q.search, CatalogFacts: q.libraryFacts}
 		var page media.Page
@@ -513,24 +519,35 @@ func (a *application) loadServerCatalog(ctx context.Context, source source, q ca
 			if globalSearch && (len(libraries) < len(source.Libraries) || q.category != "") && item.LibraryID != library.ID {
 				continue
 			}
-			if !seen[item.ID] && library.matchesCategory(q.category, item) {
-				if item.LibraryID == "" && !globalSearch {
-					item.LibraryID = library.ID
-				}
-				decision := q.parental.assess(source.ID, item)
-				if decision != parentalAllowed {
-					if decision == parentalUnrated && q.search != "" {
-						result.unrated = append(result.unrated, catalogItem{source: source, item: item})
-						seen[item.ID] = true
-					}
+			if !library.matchesCategory(q.category, item) {
+				continue
+			}
+			key := itemKey{id: item.ID}
+			if q.categorize {
+				key.category = library.titleCategory(item)
+				if key.category == "" {
 					continue
 				}
-				if q.parental.Enabled {
-					result.total++
-				}
-				result.items = append(result.items, catalogItem{source: source, item: item})
-				seen[item.ID] = true
 			}
+			if seen[key] {
+				continue
+			}
+			if item.LibraryID == "" && !globalSearch {
+				item.LibraryID = library.ID
+			}
+			decision := q.parental.assess(source.ID, item)
+			if decision != parentalAllowed {
+				if decision == parentalUnrated && q.search != "" {
+					result.unrated = append(result.unrated, catalogItem{source: source, item: item})
+					seen[key] = true
+				}
+				continue
+			}
+			if q.parental.Enabled {
+				result.total++
+			}
+			result.items = append(result.items, catalogItem{source: source, item: item, category: key.category})
+			seen[key] = true
 		}
 		result.hasMore = result.hasMore || page.Total > len(page.Items)
 	}

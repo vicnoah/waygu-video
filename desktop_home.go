@@ -30,6 +30,10 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 		return value, prefs.PosterAmbient && !(prefs.OLED && cx.Dark()) && value.image != ""
 	})
 	openSearch := func() { a.tab.Set(2) }
+	refresh := func() {
+		a.desktopTotals.Refetch()
+		results.Refetch()
+	}
 	openLibrary := func(filter string, next libraryCategory) {
 		a.openDesktopLibrary(next, filter)
 	}
@@ -48,7 +52,7 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 				a.checkSource(entry, true)
 			}
 			a.scheduleProgressReplay(0)
-			results.Refetch()
+			refresh()
 		}),
 		desktopToolbarAction(cx, "desktop-home-notices", locales.DesktopNotices(cx), lucide.Bell(), func() { notices.Set(true) }),
 		a.desktopProfile(cx),
@@ -68,7 +72,7 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 		nodes := make([]core.Node, 0, 7)
 		if result.failure != nil {
 			nodes = append(nodes, core.View{Class: "mx-8 gap-2", Children: []core.Node{
-				notice(errorText(cx, result.failure)), ui.Button{Text: locales.Retry(cx), Variant: ui.ButtonOutline, OnPress: results.Refetch},
+				notice(errorText(cx, result.failure)), ui.Button{Text: locales.Retry(cx), Variant: ui.ButtonOutline, OnPress: refresh},
 			}})
 		}
 		rules := a.parentalRules()
@@ -255,8 +259,12 @@ func (a *application) desktopFeaturedTitle(cx *core.Scope, entry catalogItem) co
 	}
 	buttons = append(buttons, a.tvHeroFavorite(cx, tvLayout(.55), entry))
 	meta := []core.Node{core.Text{Content: strings.Join(labels, "    "), Class: "text-sm text-zinc-300", MaxLines: 1}}
+	const badge = "shrink-0 rounded border border-white/30 px-1.5 text-[11px] font-semibold text-white"
 	if quality := tvQuality(entry); quality != "" {
-		meta = append(meta, core.Text{Content: quality, Class: "rounded border border-white/30 px-1.5 text-[11px] font-semibold text-white"})
+		meta = append(meta, core.Text{Content: quality, Class: badge})
+	}
+	if item.DolbyAtmos {
+		meta = append(meta, core.Text{Content: "Atmos", Class: badge, TestID: "home-hero-atmos"})
 	}
 	return core.View{Class: "absolute inset-0", Children: []core.Node{
 		homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0"),

@@ -340,6 +340,9 @@ func (m *mediaBrowser) item(entry browserItem) Item {
 			if strings.EqualFold(stream.Type, "video") && (stream.Width > 0 || stream.Height > 0) {
 				item.addVideoProfile(VideoProfile{Width: stream.Width, Height: stream.Height, Range: stream.VideoRangeType})
 			}
+			if !item.DolbyAtmos && strings.EqualFold(stream.Type, "audio") {
+				item.DolbyAtmos = atmosMetadata(stream.Codec, stream.Title, stream.DisplayTitle, stream.Profile)
+			}
 		}
 	}
 	addStreams(entry.MediaStreams)

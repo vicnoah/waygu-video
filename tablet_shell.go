@@ -185,11 +185,15 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 				entryID = "tab-library"
 			}
 		}
-		browsing = append(browsing, tabletSidebarLink(cx, entryID, option.Label, icons[i],
+		link := tabletSidebarLink(cx, entryID, option.Label, icons[i],
 			func() bool {
 				return a.tab.Get() == 1 && a.libraryView.Get() == screenLibrary && category.Get() == option.Value &&
 					(!wide || a.desktopLibraryState.Get().collection == "")
-			}, func() { open(1, option.Value) }))
+			}, func() { open(1, option.Value) })
+		if wide {
+			appendDesktopCategoryCount(cx, &link, a.desktopTotals, option.Value)
+		}
+		browsing = append(browsing, link)
 	}
 	return core.View{Class: width + " shrink-0 border-r border-zinc-900/8 bg-[#e9e9f0]/40 dark:border-white/8 dark:bg-[#1a1b25]/40", TestID: id,
 		Children: []core.Node{
@@ -225,7 +229,7 @@ func tabletSidebarHeading(label string) core.Node {
 	return core.Text{Content: label, Class: "px-3 pb-1 text-[11px] font-medium " + setupMuted}
 }
 
-func tabletSidebarLink(cx *core.Scope, id, label string, icon func() *core.SVG, selected func() bool, press func()) core.Node {
+func tabletSidebarLink(cx *core.Scope, id, label string, icon func() *core.SVG, selected func() bool, press func()) base.Button {
 	return base.Button{Label: label, TestID: id, Selected: selected, Class: tabletSidebarRow,
 		Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, OnPress: func(core.PressEvent) { press() },
 		Children: []core.Node{
@@ -236,7 +240,7 @@ func tabletSidebarLink(cx *core.Scope, id, label string, icon func() *core.SVG, 
 				}
 				return core.Icon{SVG: icon(), Class: "size-4 " + tint}
 			}),
-			core.Text{Content: label, Class: "text-sm " + setupTitle, ClassFunc: func() string {
+			core.Text{Content: label, Class: "min-w-0 flex-1 text-sm " + setupTitle, MaxLines: 1, ClassFunc: func() string {
 				if selected() {
 					return "font-medium"
 				}

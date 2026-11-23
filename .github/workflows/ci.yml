@@ -7,7 +7,7 @@ on:
         description: Verification scope
         type: choice
         default: all
-        options: [all, apple, apple-tv]
+        options: [all, desktop, apple, apple-tv]
 
 permissions:
   contents: read
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   desktop:
-    if: inputs.scope == 'all'
+    if: inputs.scope == 'all' || inputs.scope == 'desktop'
     name: Desktop / ${{ matrix.target }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 25
@@ -51,10 +51,16 @@ jobs:
           sudo apt-get install -y libgtk-4-1 xvfb xauth gstreamer1.0-plugins-good gstreamer1.0-libav
       - name: Native window smoke test on Linux
         if: runner.os == 'Linux'
-        run: xvfb-run -a go tool nsgo test -target linux -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes)$' -timeout 2m .
+        run: xvfb-run -a go tool nsgo test -target linux -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes|TestDesktopSidebarCounts)$' -timeout 2m -screenshots desktop-review .
       - name: Native window smoke test
         if: runner.os != 'Linux'
-        run: go tool nsgo test -target ${{ matrix.native }} -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes)$' -timeout 2m .
+        run: go tool nsgo test -target ${{ matrix.native }} -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes|TestDesktopSidebarCounts)$' -timeout 2m -screenshots desktop-review .
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: waygu-video-${{ matrix.target }}-review
+          path: desktop-review/
+          retention-days: 7
+          if-no-files-found: error
       - name: Package desktop app
         shell: bash
         run: |
@@ -68,6 +74,7 @@ jobs:
           if-no-files-found: error
 
   apple:
+    if: inputs.scope != 'desktop'
     name: iOS and tvOS
     runs-on: macos-26
     timeout-minutes: 35

@@ -188,7 +188,7 @@ func desktopMovieBadges(cx *core.Scope, item media.Item, version media.Version) 
 	}
 	atmos, chinese := "", ""
 	for _, track := range version.Tracks {
-		if track.Type == "audio" && strings.Contains(strings.ToLower(track.Title), "atmos") {
+		if track.HasAtmos() {
 			atmos = "Atmos"
 		}
 		if track.Type == "subtitle" {
