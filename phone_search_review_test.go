@@ -94,7 +94,8 @@ func TestDockerPhoneSearchReview(t *testing.T) {
 			if !app.Find("id:search-source-all").Props.Selected {
 				t.Fatal("new search did not start with all sources")
 			}
-			if height := app.Find("id:phone-search-field").Frame.Size.Height; height != 44 {
+			// Native views round fractional device pixels at the display scale.
+			if height := app.Find("id:phone-search-field").Frame.Size.Height; height < 43.5 || height > 44.5 {
 				t.Fatalf("search field height = %v, want 44", height)
 			}
 			capture("-idle")

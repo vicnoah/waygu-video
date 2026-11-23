@@ -41,4 +41,10 @@
 | Metadata | Real series data provides episode counts, unwatched counts and the active episode bookmark. The list preview retains the layout and filters after opening and closing a title. Movie counts reflect the merged results from the chosen sources. Large collections show a partial count while later pages load. |
 | Anime and documentaries | The design uses placeholders for both panels and specifies movie-style poster walls. The app shows the same poster layout when a category contains titles. This review assigns the two Jellyfin fixture libraries to anime and documentaries using the app's category overrides. The empty state uses the panel icon. |
 
-`TestDockerPhoneLibraryReview` exercises category, source, collection, year, genre, resolution, watch-state and layout controls with three servers. `TestDockerLibraryFormats` reads real format metadata from Emby, Jellyfin and Plex. The multi-page test finds a matching title beyond item 200. Device screenshots and metadata available only from a separate Flymoo playback lookup remain pending. [Fixture setup](../../integration/servers/TESTING.md) · [Capture commands](README.md)
+`TestDockerPhoneLibraryReview` exercises category, source, collection, year, genre, resolution, watch-state and layout controls with three servers. `TestDockerLibraryFormats` reads real format metadata from Emby, Jellyfin and Plex. The multi-page test finds a matching title beyond item 200. Metadata available only from a separate Flymoo playback lookup remains pending. [Fixture setup](../../integration/servers/TESTING.md) · [Capture commands](README.md)
+
+## Android phone
+
+![Native Android movie and series library views in light appearance](images/phone-library-android.png)
+
+The Android emulator captured the light movie and series panels at 1080 × 2400 px and 420 dpi. The 411 pt wide app keeps three posters per row and shows the selected category, quality badges and episode progress. The native test also completed the list, anime, documentary and empty states. The revised Android test host sends screenshot chunks with time for logcat to drain them, and the full-resolution run saved all six images.

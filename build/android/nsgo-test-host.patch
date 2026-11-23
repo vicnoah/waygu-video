@@ -5,3 +5,13 @@
 +	if t.Host != nil {
 +		o.Host.Channel = t.Host
 +	}
+--- a/nsgotest/target.go
++++ b/nsgotest/target.go
+@@ -942 +942,6 @@
+-	for i := range n {
++	android := Target() == "android"
++	for i := range n {
++		if android && i > 0 {
++			// Leave time for logcat to forward the previous chunk on Android.
++			time.Sleep(4 * time.Millisecond)
++		}

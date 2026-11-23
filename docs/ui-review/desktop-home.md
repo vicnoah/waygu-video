@@ -71,4 +71,10 @@ Linux amd64 and arm64 passed the native count check and generated 1280 × 937 px
 
 ![Dark Scenra reference at left and the macOS amd64 app at right](images/desktop-home-counts-atmos-macos.png)
 
-Both macOS comparison frames cover 1440 × 900 px. The native amd64 capture shows the Command shortcut, the four category totals and the Atmos badge. Sidebar and carousel dimensions align with Scenra. Window controls, the active row tint, and the hero and search treatments retain the differences shown above. The native sample video decode passed and the amd64 package was built. The arm64 platform check passed before a playback version fixture timed out waiting for a request. The fixture now controls the network response and passed five local repetitions. The Linux host reached app signing in a cross-build, which requires macOS `codesign`. The arm64 native capture and package still need verification. [macOS desktop run](https://github.com/vicnoah/waygu-video/actions/runs/45154718688)
+Both macOS comparison frames cover 1440 × 900 px. The native amd64 capture shows the Command shortcut, the four category totals and the Atmos badge. Sidebar and carousel dimensions align with Scenra. Window controls, the active row tint, and the hero and search treatments retain the differences shown above. The native sample video decode passed and the amd64 package was built. The same run exposed a playback version fixture that waited for the runner's network response on arm64. The fixture now supplies a fixed network response. [Earlier macOS desktop run](https://github.com/vicnoah/waygu-video/actions/runs/45154718688)
+
+### Apple silicon
+
+![Dark Scenra carousel at left and the current macOS arm64 app at right](images/desktop-home-counts-atmos-macos-arm64.png)
+
+The current desktop milestone passed the native Home and sample video tests and built packages on both macOS architectures. The Apple silicon capture has a visible 1024 × 705 px region inside its 1440 × 900 px image. Both comparison frames crop that same region. The placeholder, separate metadata fields, format badges and plus action are visible. The runner clips most of the sidebar and outer window edges. [Desktop milestone run](https://github.com/vicnoah/waygu-video/actions/runs/45182834079)

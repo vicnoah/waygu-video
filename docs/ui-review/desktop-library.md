@@ -31,3 +31,15 @@ The dark GTK captures use the same 4K HDR catalog in the grid above and the wall
 `TestDockerDesktopLibraryReview` covers the three Docker sources, resolution and HDR filters, file-size sorting, all three layouts, a detail round trip, smart collections and shuffle. `TestDesktopLibraryGridReview` checks the first-row column count, the format in each mode, the wall badges and the index jumps.
 
 The side-by-side references retain the platform window controls and the default sidebar rows drawn by Scenra. GTK displays the active category tint and the native Ctrl+K shortcut.
+
+## Native desktop captures
+
+![Dark Scenra frame and native Linux arm64, macOS amd64 and Windows arm64 frames](images/desktop-library-native.png)
+
+The top pair is Scenra and Linux arm64. The bottom pair is macOS amd64 and Windows arm64. Each frame shows the same upper-left region. The full-size grid fits seven covers and the 1028 pt Windows viewport fits four, with Clear All wrapping below the filter row. The Chinese text renders on both Linux runners. Both macOS jobs passed the native grid and wall checks. The arm64 capture has transparent margins where the window extends outside the captured display area.
+
+Linux amd64 and arm64, macOS amd64 and arm64, and Windows arm64 passed the native checks and built packages. Windows amd64 passed the Home checks and sample video decode. Its library test terminated inside Direct2D's `EndDraw` after recording the light grid and wall. [Desktop milestone run](https://github.com/vicnoah/waygu-video/actions/runs/45182834079)
+
+![Dark Scenra frame at left and the local native Windows amd64 app at right](images/desktop-library-windows-amd64.png)
+
+A local Windows amd64 run of commit `9c756b8` passed all five native checks and built the app package. The 1440 pt window uses 150% display scaling. The comparison resamples the same upper 650 pt of the app and the Scenra frame. The full-width Windows grid shows seven columns with the filter controls on one row. The hosted Direct2D crash remains open.
