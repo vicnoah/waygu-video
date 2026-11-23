@@ -30,6 +30,13 @@ func TestPlaybackUsesNetworkQuality(t *testing.T) {
 	if target != "" && (target != "android" || (want != "default" && want != "cellular")) {
 		t.Skip("requires the headless host or an Android emulator with a configured network")
 	}
+	if target == "" {
+		// A simulated Android environment uses its host bridge even if the
+		// executable was built on a platform with its own network monitor.
+		probe := nativeCellularPlayback
+		t.Cleanup(func() { nativeCellularPlayback = probe })
+		nativeCellularPlayback = func(context.Context) bool { return false }
+	}
 	file := filepath.Join(t.TempDir(), "network-fixture.mp4")
 	if err := os.WriteFile(file, nativePlaybackFixture, 0600); err != nil {
 		t.Fatal(err)

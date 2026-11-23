@@ -41,6 +41,11 @@ func playbackNetwork(cx *core.Scope, local bool) *core.Signal[playbackTransport]
 	switch {
 	case local || appleTV:
 		finish(false)
+	case env.OS() == core.OSAndroid:
+		cx.CallHostTimeout(androidCellularHostCall, nil, timeout, func(result any, err error) {
+			cellular, _ := result.(bool)
+			finish(err == nil && cellular)
+		})
 	case probe != nil:
 		cx.AfterFunc(timeout, func() { finish(false) })
 		lifetime := cx.Context()
@@ -50,11 +55,6 @@ func playbackNetwork(cx *core.Scope, local bool) *core.Signal[playbackTransport]
 			cellular := probe(ctx)
 			cx.Post(func() { finish(cellular) })
 		}()
-	case env.OS() == core.OSAndroid:
-		cx.CallHostTimeout(androidCellularHostCall, nil, timeout, func(result any, err error) {
-			cellular, _ := result.(bool)
-			finish(err == nil && cellular)
-		})
 	default:
 		finish(false)
 	}
