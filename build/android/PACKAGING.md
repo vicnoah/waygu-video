@@ -10,6 +10,8 @@ The script stages the pinned NSGo tool with the launcher and media service entri
 
 The APK advertises the normal and Leanback launcher categories. It declares touchscreen, Leanback, camera, and autofocus optional so the QR scanner permission leaves camera-free TV devices eligible. [Android TV hardware requirements](https://developer.android.com/training/tv/get-started/hardware)
 
+The APK and the App Bundle (`-channel store`) use the 320 × 180 launch banners in `assets/tv-banner.png` and `assets/tv-banner-zh-Hans.png`. Android selects the Simplified Chinese banner from the device language and falls back to the English banner. The regular launcher still uses the app icon. [Android TV launcher evidence](../../docs/ui-review/welcome.md#android-tv-launcher) · [Android TV banner requirements](https://developer.android.com/training/tv/get-started/create)
+
 The bundled launcher queries Android's current default network for the playback profile and cellular warning. Its default-network callback reports Wi-Fi, wired, cellular and connection loss to the download queue. [Android network state](https://developer.android.com/reference/android/net/ConnectivityManager)
 
 On an Android phone emulator, select Wi-Fi as the default network and run `sh build/android/test-network.sh default <serial>`. Select cellular data and run `sh build/android/test-network.sh cellular <serial>`. The test verifies the launcher response, the two negotiated profiles, and both warning actions. The cellular capture is written to `.nsgo/android-network-cellular/`. [Playback settings evidence](../../docs/ui-review/phone-player-settings.md#playback)

@@ -23,6 +23,8 @@ trap 'rm -rf -- "$staging"' EXIT
 cp -R "$source" "$staging/nsgo"
 chmod -R u+w "$staging/nsgo"
 patch -d "$staging/nsgo" -F 0 -p1 < build/android/nsgo-tv.patch
+patch -d "$staging/nsgo" -F 0 -p1 < build/android/nsgo-tv-banner.patch
+cp assets/tv-banner.png assets/tv-banner-zh-Hans.png "$staging/nsgo/cmd/nsgo/"
 patch -d "$staging/nsgo" -F 0 -p1 < build/android/nsgo-playback-manifest.patch
 gzip -dc "$runtime" > "$staging/nsgo/internal/platform/android/runtime/classes.dex"
 cp go.mod "$staging/build.mod"

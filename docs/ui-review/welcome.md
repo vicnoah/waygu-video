@@ -40,3 +40,11 @@ Left is commit `445d75b`. Right is the revised APK. Both emulator captures are s
 Both captures follow the first D-pad Down after a cold start on Android TV 36. The left image uses `3965d66`, which leaves focus on the window. The right image shows **Add media source** focused with a violet outline, consistent with the [TV design's focus treatment](../../design/tv-home.scenra). Both captures are shown at half size from 1920 × 1080 px.
 
 The installed x86-64 APK passed `build/android/tv-smoke.py` after a Leanback launch. The remote opens the Emby form, returns to welcome, skips setup, enters Settings, and reopens the provider chooser. The app reports focus through Android's native accessibility tree. Physical remote testing is pending.
+
+## Android TV launcher
+
+![Focused waygu-video and 肥牛视频 banners in the Android TV launcher](images/android-tv-launcher.png)
+
+These crops show the focused app tile in the Android 36 TV launcher at `en-US` and `zh-Hans-CN`. The launcher is outside the Scenra welcome screen. Its banner uses the existing app mark and the localized app name. In each locale, D-pad Select opened the installed app from the Apps tab. The English run also passed the onboarding and Settings remote test above.
+
+Local builds produced ARM64 and x86-64 APKs and an ARM64 App Bundle. The APK and the binary resources converted from the bundle with `aapt2 convert --output-format binary` contain both 320 × 180 PNGs under `drawable/tv_banner`. The application manifest's `android:banner` points to that resource. [Android TV launcher requirements](https://developer.android.com/training/tv/get-started/create)
