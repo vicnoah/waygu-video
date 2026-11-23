@@ -40,9 +40,9 @@ The Scenra files in `design/` define the product. The current app connects to Em
 
 ## Platform verification
 
-Run checks locally during development. Start the GitHub Actions build and test matrix manually when a milestone is ready for platform verification. Select the Apple scope when the milestone needs Xcode builds and Apple simulators.
+Run checks locally during development. Start the GitHub Actions build and test matrix manually when a milestone is ready for platform verification. Select the Apple scope for Xcode builds and all Apple simulators, or the Apple TV scope for tvOS checks and its simulator.
 
-- Test signed macOS packages and iOS and tvOS builds on a Mac with Xcode. Verify controller, keyboard and focus behavior on TV devices.
+- Build tvOS with `sh build/apple/package.sh build -target tvos` on a Mac with Xcode. This applies the NSGo fix for controller-level focus updates. Test signed macOS, iOS and tvOS packages and verify controller behavior on TV devices.
 - Verify Android remote control on physical TVs, store distribution of the TV banners, and signed release builds on TVs, phones and tablets. [Android TV launcher evidence](ui-review/welcome.md#android-tv-launcher)
 - Verify HarmonyOS signing, authenticated LAN sessions and video playback on HarmonyOS phones and tablets, including secure credential persistence and authenticated streams.
 - Verify Linux and Windows runtime behavior across both architectures, including media codecs, hardware decoding and libmpv distribution.

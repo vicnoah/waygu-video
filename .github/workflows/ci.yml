@@ -86,7 +86,7 @@ jobs:
           if [[ "$SCOPE" == apple-tv ]]; then
             targets=tvos,tvos_simulator
           fi
-          go tool nsgo check -target "$targets" -jobs 2
+          sh build/apple/package.sh check -target "$targets" -jobs 2
       - name: Package macOS for Intel and Apple silicon
         if: inputs.scope == 'apple'
         run: |
@@ -101,7 +101,7 @@ jobs:
           if-no-files-found: error
       - name: Build unsigned device IPAs
         if: inputs.scope != 'apple-tv'
-        run: go tool nsgo build -target ios,tvos -output dist/apple-devices -jobs 2 -installers=false
+        run: sh build/apple/package.sh build -target ios,tvos -output dist/apple-devices -jobs 2 -installers=false
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: inputs.scope != 'apple-tv'
         with:
@@ -111,7 +111,7 @@ jobs:
           if-no-files-found: error
       - name: Build simulator apps
         if: inputs.scope != 'apple-tv'
-        run: go tool nsgo build -target ios_simulator,tvos_simulator -output dist/apple-simulators -jobs 2 -installers=false
+        run: sh build/apple/package.sh build -target ios_simulator,tvos_simulator -output dist/apple-simulators -jobs 2 -installers=false
       - name: Archive simulator apps
         if: inputs.scope != 'apple-tv'
         run: tar -czf waygu-video-apple-simulators.tar.gz -C dist/apple-simulators .
@@ -136,11 +136,11 @@ jobs:
           }
           run_simulator() {
             report=$(mktemp)
-            if go tool nsgo test "$@" 2>&1 | tee "$report"; then
+            if sh build/apple/package.sh test "$@" 2>&1 | tee "$report"; then
               return
             fi
             if grep -Fq 'the simulator app ended without its exit code' "$report" && grep -Eq ' [0-9]+ passed, 1 failed, [0-9]+ skipped' "$report"; then
-              go tool nsgo test "$@"
+              sh build/apple/package.sh test "$@"
               return
             fi
             return 1

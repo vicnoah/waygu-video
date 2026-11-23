@@ -66,3 +66,11 @@ The 1920 × 1080 Android TV emulator ran the installed x86-64 Leanback APK again
 ![Android TV remote focus on the hero, resume bookmark, and recent poster](images/tv-home-android-remote.png)
 
 With a connected test library and at least two saved bookmarks, start Waygu from Leanback and run `python3 build/android/tv-smoke.py --with-library` on the host. The script uses the connected emulator's Android serial. Physical TV and tvOS validation remain pending.
+
+## Apple TV initial focus
+
+The Apple TV simulator ran the Simplified Chinese layout in a 1920 × 1080 pt viewport. The initial capture shows UIKit focusing Search when the featured panel appeared. The static cover remained on screen and the trailer did not start. The updated app requests the primary action after UIKit reports its first focus inside the featured panel. The handoff runs once per panel. The Apple package applies the controller-level focus update while the destination is the preferred focus. [Initial Apple TV run](https://github.com/vicnoah/waygu-video/actions/runs/45142961369)
+
+![Apple TV homepage before the initial focus fix, with Search focused](images/tv-home-tvos-initial-focus.png)
+
+The Apple TV build uses `sh build/apple/package.sh build -target tvos`. [UIKit focus updates](https://developer.apple.com/documentation/uikit/uifocussystem/requestfocusupdate%28to%3A%29?language=objc)
