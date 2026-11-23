@@ -9,3 +9,4 @@
 - Pause downloads when the connection leaves Wi-Fi and resume when it returns. [Download network review](docs/ui-review/storage-downloads.md#wi-fi-downloads)
 - Automatically delete watched downloads after 24 hours when enabled. [Storage review](docs/ui-review/storage-downloads.md#automatically-delete-watched-downloads)
 - Save text subtitles and danmaku with videos for offline playback. [Storage review](docs/ui-review/storage-downloads.md#download-subtitles-and-danmaku)
+- Queue selected episodes from a season in one action. [Season download review](docs/ui-review/phone-series.md#season-downloads)

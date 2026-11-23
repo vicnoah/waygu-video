@@ -383,6 +383,11 @@ storageDownloads: Storage and downloads
 storageCache: Cache
 offlineDownloads: Offline downloads
 downloadAction: Download
+downloadSeason: Download season
+downloadSelectAll: Select all
+downloadEpisodeSelection: "Episodes selected: {count}"
+downloadMinimumEstimate: "At least {size}"
+downloadSpaceComparison: "Estimated download {needed} · {available} available"
 downloaded: Downloaded
 downloadRunning: Downloading
 downloadQueued: Queued

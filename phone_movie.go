@@ -264,8 +264,13 @@ func (a *application) phoneMovieHero(cx *core.Scope, item media.Item, version me
 }
 
 func (a *application) phoneMediaHero(cx *core.Scope, item media.Item, height, id string, title []core.Node, tools ...core.Node) core.Node {
+	art := homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0")
+	return a.phoneMediaHeroFrame(cx, art, height, id, title, tools...)
+}
+
+func (a *application) phoneMediaHeroFrame(cx *core.Scope, art core.Node, height, id string, title []core.Node, tools ...core.Node) core.Node {
 	return core.View{Class: "relative shrink-0 overflow-hidden " + height, TestID: id, Children: []core.Node{
-		homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0"),
+		art,
 		core.View{Class: "absolute inset-0 bg-linear-to-t from-black/90 via-black/35 to-black/45"},
 		core.View{Class: "absolute inset-x-0 bottom-0 h-12 bg-linear-to-b from-transparent to-waygu-page"},
 		core.View{Class: "absolute inset-x-0 top-0 flex-row items-center justify-between px-4 pt-1", Style: core.Style{

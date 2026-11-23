@@ -128,6 +128,10 @@ func (a *application) openSeriesEpisode(view seriesViewState, entry catalogItem,
 			next.downloadID = saved.ID
 		}
 	}
+	a.pushFromSeries(view, next)
+}
+
+func (a *application) pushFromSeries(view seriesViewState, next route) {
 	stack := slices.Clone(a.routes.GetUntracked())
 	stack[len(stack)-1].seriesView = view
 	a.routes.Set(append(stack, next))

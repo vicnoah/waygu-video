@@ -104,6 +104,9 @@ var Parameters = map[string][]string{
 	"DetailResumeAt":                  {"time_"},
 	"FileSource":                      {"source"},
 	"FileSubtitleCount":               {"count"},
+	"DownloadEpisodeSelection":        {"count"},
+	"DownloadMinimumEstimate":         {"size"},
+	"DownloadSpaceComparison":         {"needed", "available"},
 	"DownloadPercent":                 {"percent"},
 	"DownloadQualityPreset":           {"height", "bitrate"},
 	"DownloadEstimatedSize":           {"size"},
@@ -249,6 +252,9 @@ type Translation struct {
 	DetailResumeAt                  func(time_ string) string
 	FileSource                      func(source string) string
 	FileSubtitleCount               func(count string) string
+	DownloadEpisodeSelection        func(count string) string
+	DownloadMinimumEstimate         func(size string) string
+	DownloadSpaceComparison         func(needed string, available string) string
 	DownloadPercent                 func(percent string) string
 	DownloadQualityPreset           func(height string, bitrate string) string
 	DownloadEstimatedSize           func(size string) string
@@ -651,6 +657,8 @@ const (
 	textStorageCache
 	textOfflineDownloads
 	textDownloadAction
+	textDownloadSeason
+	textDownloadSelectAll
 	textDownloaded
 	textDownloadRunning
 	textDownloadQueued
@@ -1566,6 +1574,8 @@ var keyOfText = [numTexts]string{
 	"storageCache",
 	"offlineDownloads",
 	"downloadAction",
+	"downloadSeason",
+	"downloadSelectAll",
 	"downloaded",
 	"downloadRunning",
 	"downloadQueued",
@@ -2479,6 +2489,8 @@ var textsEn = i18n.NewTexts(""+
 	"Cache"+
 	"Offline downloads"+
 	"Download"+
+	"Download season"+
+	"Select all"+
 	"Downloaded"+
 	"Downloading"+
 	"Queued"+
@@ -3389,6 +3401,8 @@ var textsEn = i18n.NewTexts(""+
 		5,
 		17,
 		8,
+		15,
+		10,
 		10,
 		11,
 		6,
@@ -4302,6 +4316,8 @@ var textsZhHans = i18n.NewTexts(""+
 	"缓存"+
 	"离线下载"+
 	"下载"+
+	"按季下载"+
+	"全选"+
 	"已下载"+
 	"下载中"+
 	"等待下载"+
@@ -5212,6 +5228,8 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		12,
 		6,
+		12,
+		6,
 		9,
 		9,
 		12,
@@ -6039,6 +6057,15 @@ func Supply(lang string, t Translation) {
 	}
 	if t.FileSubtitleCount != nil {
 		s.FileSubtitleCount = t.FileSubtitleCount
+	}
+	if t.DownloadEpisodeSelection != nil {
+		s.DownloadEpisodeSelection = t.DownloadEpisodeSelection
+	}
+	if t.DownloadMinimumEstimate != nil {
+		s.DownloadMinimumEstimate = t.DownloadMinimumEstimate
+	}
+	if t.DownloadSpaceComparison != nil {
+		s.DownloadSpaceComparison = t.DownloadSpaceComparison
 	}
 	if t.DownloadPercent != nil {
 		s.DownloadPercent = t.DownloadPercent
@@ -9956,6 +9983,92 @@ func DownloadAction(cx *core.Scope) string { return For(cx).DownloadAction() }
 
 // DownloadAction is the package's DownloadAction in the language of msgs.
 func (msgs Messages) DownloadAction() string { return msgs.text(textDownloadAction) }
+
+// DownloadSeason says "Download season"
+// in the language the app shows under cx.
+func DownloadSeason(cx *core.Scope) string { return For(cx).DownloadSeason() }
+
+// DownloadSeason is the package's DownloadSeason in the language of msgs.
+func (msgs Messages) DownloadSeason() string { return msgs.text(textDownloadSeason) }
+
+// DownloadSelectAll says "Select all"
+// in the language the app shows under cx.
+func DownloadSelectAll(cx *core.Scope) string { return For(cx).DownloadSelectAll() }
+
+// DownloadSelectAll is the package's DownloadSelectAll in the language of msgs.
+func (msgs Messages) DownloadSelectAll() string { return msgs.text(textDownloadSelectAll) }
+
+// DownloadEpisodeSelection says "Episodes selected: {count}"
+// in the language the app shows under cx.
+func DownloadEpisodeSelection(cx *core.Scope, count string) string {
+	return For(cx).DownloadEpisodeSelection(count)
+}
+
+// DownloadEpisodeSelection is the package's DownloadEpisodeSelection in the language of msgs.
+func (msgs Messages) DownloadEpisodeSelection(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DownloadEpisodeSelection(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DownloadEpisodeSelection; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return "Episodes selected: " + msgs.arg(count)
+		case "zh-Hans":
+			return "已选 " + count + " 集"
+		}
+	}
+}
+
+// DownloadMinimumEstimate says "At least {size}"
+// in the language the app shows under cx.
+func DownloadMinimumEstimate(cx *core.Scope, size string) string {
+	return For(cx).DownloadMinimumEstimate(size)
+}
+
+// DownloadMinimumEstimate is the package's DownloadMinimumEstimate in the language of msgs.
+func (msgs Messages) DownloadMinimumEstimate(size string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DownloadMinimumEstimate(size))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DownloadMinimumEstimate; f != nil {
+			return f(size)
+		}
+		switch lang {
+		case "", "en":
+			return "At least " + msgs.arg(size)
+		case "zh-Hans":
+			return "至少 " + size
+		}
+	}
+}
+
+// DownloadSpaceComparison says "Estimated download {needed} · {available} available"
+// in the language the app shows under cx.
+func DownloadSpaceComparison(cx *core.Scope, needed string, available string) string {
+	return For(cx).DownloadSpaceComparison(needed, available)
+}
+
+// DownloadSpaceComparison is the package's DownloadSpaceComparison in the language of msgs.
+func (msgs Messages) DownloadSpaceComparison(needed string, available string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DownloadSpaceComparison(needed, available))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DownloadSpaceComparison; f != nil {
+			return f(needed, available)
+		}
+		switch lang {
+		case "", "en":
+			return "Estimated download " + msgs.arg(needed) + " · " + msgs.arg(available) + " available"
+		case "zh-Hans":
+			return "预计需要 " + needed + " · 可用 " + available
+		}
+	}
+}
 
 // Downloaded says "Downloaded"
 // in the language the app shows under cx.

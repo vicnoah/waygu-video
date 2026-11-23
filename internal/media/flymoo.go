@@ -165,6 +165,9 @@ func (f *flymooClient) SignIn(ctx context.Context, credentials Credentials) (Ses
 		AppName  string `json:"app_name"`
 	}{credentials.Username, credentials.Password, "fnmovie"}
 	data, err := f.call(ctx, http.MethodPost, "login", nil, body, "")
+	if err == flymooError(-15) {
+		return Session{}, fmt.Errorf("%w: %w", ErrAuthentication, err)
+	}
 	if err != nil {
 		return Session{}, err
 	}

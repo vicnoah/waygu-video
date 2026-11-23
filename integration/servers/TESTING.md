@@ -31,6 +31,16 @@ Flymoo tests run against a local HTTP fixture and exercise the wire formats in `
 
 Flymoo quality fixtures cover the original NAS URL, NAS-hosted direct renditions, quality enumeration and the server's `play/play` transcode request. The progress fixture verifies that transcoding reports the actual media GUID and the active play link. The transcode request follows [Feiniu TV Lite's NAS client](https://github.com/greatbody/feiniu-tv-lite/blob/7688390e3bb6207d0fb806d9b8648257afecf229/app/src/main/java/ink/sunrui/feiniutv/network/NasApiClient.kt#L473-L526). A Flymoo NAS has yet to be used for transcode verification.
 
+### Live Flymoo connection
+
+Set `WAYGU_FLYMOO_LIVE_URL`, `WAYGU_FLYMOO_LIVE_USER` and `WAYGU_FLYMOO_LIVE_PASSWORD` in the local test process for a NAS account with library access. Set `WAYGU_FLYMOO_LIVE_FNID` to check FN Connect resolution independently. The test discovers the media gateway and reads one 1024-byte range from an episode's original file. It logs only the stage, error code and aggregate counts.
+
+```sh
+go tool nsgo test . -run '^TestFlymooLive(Connection|FNConnect)$' -count=1 -v
+```
+
+On the tested Flymoo 0.9.8 NAS, local gateway discovery and FN Connect returned the same server identity. The reference login request and the NAS web login request both returned code `-15` (incorrect password). Catalog and signed media reads remain pending on the live account.
+
 Stop the fixture services with `docker compose -f integration/servers/compose.yaml down`. The named volumes keep the fixture setup for subsequent runs.
 
 With the same three fixtures, `TestDockerOfflineDownloadReview` saves an original video from the detail page, restarts the app with the saved data, disconnects the test gateway, opens the cached movie from the library and probes the local file with `ffprobe`. The headless case reconnects and verifies the offline checkpoint in the server's detail response. GTK also advances the native playback clock while the gateway refuses requests. The download store fixture checks byte ranges after cancellation, verifies the supplied response MD5 and final SHA-256, and checks the space limit and deletion.
@@ -52,6 +62,21 @@ go tool nsgo test -target android -device <serial> -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerTranscodedDownload$/^plex$' -timeout 150s \
   -screenshots .nsgo/ui-review/android-download-quality
 ```
+
+## Season downloads
+
+`TestDockerSeasonDownloads` selects two episodes, switches seasons, clears the selection, checks the quota warning, and verifies that existing tasks stay excluded. It also verifies that Jellyfin applies the same 720p preset to both episodes. The three providers' tests deny gateway requests before reopening an episode from its completed file.
+
+```sh
+WAYGU_TEST_SERVERS=1 go tool nsgo test . -run '^TestDockerSeasonDownloads$'
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerSeasonDownloads$' -screenshots .nsgo/ui-review/season-downloads
+sh build/android/package.sh test -device <serial> -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestAndroidTVSeasonDownloads$' -timeout 150s \
+  -screenshots .nsgo/ui-review/android-tv-season-downloads
+```
+
+Forward the fixture ports 18096, 28096 and 32400 with `adb reverse tcp:<port> tcp:<port>` before the Android TV test. The emulator opens an episode from the completed queue and advances playback with the Emby gateway disconnected. [Dialog captures and flow comparison](../../docs/ui-review/phone-series.md#season-downloads)
 
 ## Download network transitions
 

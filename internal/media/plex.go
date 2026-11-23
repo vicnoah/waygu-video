@@ -195,6 +195,11 @@ func (p *plexClient) Catalog(ctx context.Context, q Query) (Page, error) {
 		params.Set("includeOptionalElements", optional)
 	}
 	container, err := p.get(ctx, route, params)
+	if q.CatalogFacts && errors.Is(err, StatusError(http.StatusInternalServerError)) {
+		// Some Plex show libraries reject requests for embedded stream facts.
+		params.Del("includeOptionalElements")
+		container, err = p.get(ctx, route, params)
+	}
 	if err != nil {
 		return Page{}, err
 	}

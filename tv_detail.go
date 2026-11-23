@@ -31,7 +31,11 @@ func (a *application) tvMediaDetail(cx *core.Scope, current route, copies func()
 			return media.Item{}
 		}
 	}
-	hero := a.tvDetailHero(cx, l, current, state, trailer, copies, selectCopy)
+	chooseDownload, downloadDialog := a.seasonDownload(cx, current, func() []media.Item {
+		result, _ := state.loaded.Get()
+		return result.children
+	}, nil)
+	hero := a.tvDetailHero(cx, l, current, state, trailer, copies, selectCopy, chooseDownload)
 	content := []core.Node{homeAmbient(false, true), homeAmbient(true, true), state.personal.error}
 	content = append(content, core.Dynamic(func(cx *core.Scope) core.Node {
 		result, ready := state.loaded.Get()
@@ -66,11 +70,17 @@ func (a *application) tvMediaDetail(cx *core.Scope, current route, copies func()
 				continue
 			}
 			seen[item.ID] = true
-			item.LibraryID = cmp.Or(item.LibraryID, current.item.LibraryID)
+			item = attachSeriesParent(current.item, item)
 			if !a.parentalRules().visible(current.source.ID, item) {
 				continue
 			}
-			entries = append(entries, catalogItem{source: current.source, item: item})
+			entry := catalogItem{source: current.source, item: item}
+			if item.Kind == media.Episode {
+				if saved, ok := a.seriesDownload(current.source, item, a.downloads.entries.Get()); ok && saved.State == downloadComplete {
+					entry.downloadID = saved.ID
+				}
+			}
+			entries = append(entries, entry)
 		}
 		if len(entries) == 0 {
 			return nil
@@ -80,11 +90,12 @@ func (a *application) tvMediaDetail(cx *core.Scope, current route, copies func()
 	return core.Scroll{Class: "flex-1 " + tvBackground, HideIndicator: true, TestID: "tv-detail-scroll", Children: []core.Node{
 		hero,
 		core.View{Class: "relative", Style: core.Style{Gap: l.points(56), Padding: core.Edges{Top: l.points(16), Bottom: l.points(96)}}, Children: content},
+		downloadDialog,
 	}}
 }
 
 func (a *application) tvDetailHero(cx *core.Scope, l tvLayout, current route, state movieDetailState, trailer func() media.Item,
-	copies func() []ui.Option[copyKey], selectCopy func(copyKey)) core.Node {
+	copies func() []ui.Option[copyKey], selectCopy func(copyKey), chooseDownload func()) core.Node {
 	back := l.action("back", locales.Back(cx), lucide.ArrowLeft(), tvDetailAction, a.back)
 	back.Class = "flex-row items-center justify-center rounded-full border border-white/20 bg-black/35"
 	back.Style.Height, back.Style.Padding, back.Style.Gap = l.length(42), l.padding(16, 0), l.points(8)
@@ -96,7 +107,7 @@ func (a *application) tvDetailHero(cx *core.Scope, l tvLayout, current route, st
 	}
 	cx.Post(focus.Focus)
 
-	actions := tvDetailActions(cx, l, a, current, state, trailer, copies, selectCopy, focus)
+	actions := tvDetailActions(cx, l, a, current, state, trailer, copies, selectCopy, focus, chooseDownload)
 	return core.View{Class: "relative bg-[#171720]", TestID: "tv-detail-hero", Style: core.Style{Height: l.length(980)}, Children: []core.Node{
 		core.Dynamic(func(*core.Scope) core.Node {
 			item := state.item()
@@ -233,7 +244,7 @@ func tvDetailByline(cx *core.Scope, l tvLayout, people []media.Person) core.Node
 }
 
 func tvDetailActions(cx *core.Scope, l tvLayout, a *application, current route, state movieDetailState, trailer func() media.Item,
-	copies func() []ui.Option[copyKey], selectCopy func(copyKey), focus *core.Ref) core.Node {
+	copies func() []ui.Option[copyKey], selectCopy func(copyKey), focus *core.Ref, chooseDownload func()) core.Node {
 	var buttons []core.Node
 	if playable(current.item) {
 		text := func() string {
@@ -272,6 +283,25 @@ func tvDetailActions(cx *core.Scope, l tvLayout, a *application, current route, 
 	}
 	if playable(current.item) || current.item.Kind == media.Series {
 		buttons = append(buttons, favorite)
+	}
+	if chooseDownload != nil {
+		buttons = append(buttons, core.Show{When: func() bool {
+			result, _ := state.loaded.Get()
+			return current.item.Kind == media.Season || slices.ContainsFunc(result.children, func(child media.Item) bool { return child.Kind == media.Season })
+		}, Then: func(cx *core.Scope) core.Node {
+			return tvDetailSecondary(l, seasonDownloadID, locales.DownloadSeason(cx), lucide.Download(), chooseDownload)
+		}})
+	}
+	if current.item.Kind == media.Episode {
+		buttons = append(buttons, a.downloadAction(cx, current,
+			func(cx *core.Scope, id, label string, icon *core.SVG, _ bool, _ func() bool, press func()) core.Node {
+				return tvDetailSecondary(l, id, label, icon, press)
+			}, func() route {
+				chosen := current
+				chosen.item = core.Untracked(cx, state.item)
+				chosen.versionID = core.Untracked(cx, state.active).ID
+				return chosen
+			}))
 	}
 	buttons = append(buttons, tvDetailVersionChooser(cx, l, current, state, copies, selectCopy))
 	return core.View{Style: core.Style{Gap: l.points(16), Padding: core.Edges{Top: l.points(8)}}, Children: []core.Node{

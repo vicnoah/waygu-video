@@ -191,22 +191,56 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 		bookmarks.Refetch()
 		episodes.Refetch()
 	}
-	hero := core.Dynamic(func(cx *core.Scope) core.Node {
-		result, ready := detail.Get()
-		if !ready {
-			result.item = current.item
+	chooseDownload, downloadDialog := a.seasonDownload(cx, current, seasons.Get, viewState)
+	seriesItem := func() media.Item {
+		if result, ready := detail.Get(); ready {
+			return result.item
 		}
+		return current.item
+	}
+	art := core.Dynamic(func(*core.Scope) core.Node {
+		item := seriesItem()
+		return homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0")
+	})
+	title := core.Dynamic(func(cx *core.Scope) core.Node {
 		badges, _ := version.Get()
 		if badges.itemID != episodeID.Get() {
 			badges = seriesVersion{}
 		}
-		var cast func()
-		if entry := target.Get(); entry.item.ID != "" && canCast(cx) {
-			cast = func() { a.openSeriesEpisode(viewState(), entry, true, false, true) }
-		}
-		return a.phoneSeriesHero(cx, current, result.item, seasons.Get(), badges.version,
-			personal.buttons(cx, result, phoneHeroAction), copies, selectCopy, refresh, cast)
+		return phoneSeriesHeading(cx, current, seriesItem(), seasons.Get(), badges.version)
 	})
+	menu := []core.Node{ui.MenuItem{Text: locales.ReloadMovieDetail(cx), TestID: "series-reload", OnSelect: refresh}}
+	if chooseDownload != nil {
+		menu = append(menu, core.Show{When: func() bool { return len(seasons.Get()) > 0 }, Then: func(cx *core.Scope) core.Node {
+			return ui.MenuItem{Text: locales.DownloadSeason(cx), TestID: seasonDownloadID, OnSelect: chooseDownload}
+		}})
+	}
+	menu = append(menu, core.Show{When: func() bool { return target.Get().item.ID != "" && canCast(cx) }, Then: func(cx *core.Scope) core.Node {
+		return ui.MenuItem{Text: locales.PhonePlayerCast(cx), TestID: "series-cast-device", OnSelect: func() {
+			a.openSeriesEpisode(viewState(), target.GetUntracked(), true, false, true)
+		}}
+	}})
+	if copies != nil && selectCopy != nil {
+		menu = append(menu, core.Dynamic(func(cx *core.Scope) core.Node {
+			active := (catalogCopy{current.source, current.item}).key()
+			var options []core.Node
+			for _, option := range copies() {
+				options = append(options, ui.MenuItem{Text: option.Label, Checked: func() bool { return option.Value == active },
+					OnSelect: func() { selectCopy(option.Value) }})
+			}
+			return core.Group(options)
+		}))
+	}
+	more := base.Menu{Label: locales.DetailMore(cx), TestID: "detail-hero-more",
+		Class: "size-9 rounded-full bg-black/40", Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, PopupClass: tabletDetailPopup,
+		Trigger: core.View{Class: "flex-1 items-center justify-center", Children: []core.Node{
+			core.Icon{SVG: lucide.Ellipsis(), Class: "size-4 text-white"},
+		}}, Children: menu}
+	hero := a.phoneMediaHeroFrame(cx, art, "h-[420px]", "phone-series-hero", []core.Node{title},
+		core.Dynamic(func(cx *core.Scope) core.Node {
+			result, _ := detail.Get()
+			return core.Group(personal.buttons(cx, result, phoneHeroAction))
+		}), more)
 	summary := core.Dynamic(func(cx *core.Scope) core.Node {
 		result, ready := detail.Get()
 		item := current.item
@@ -282,6 +316,7 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 				}},
 			}},
 		}},
+		downloadDialog,
 		ui.Dialog{
 			TitleFunc: func() string { return menuEpisode.Get().item.Title }, Open: menuOpen.Get,
 			TestID: "series-episode-menu", OnOpenChange: func(open bool, _ base.Reason) { menuOpen.Set(open) },
@@ -298,8 +333,7 @@ func (a *application) phoneSeriesDetail(cx *core.Scope, current route, copies fu
 	}}
 }
 
-func (a *application) phoneSeriesHero(cx *core.Scope, current route, item media.Item, seasons []media.Item, version media.Version, tools []core.Node,
-	copies func() []ui.Option[copyKey], selectCopy func(copyKey), refresh, cast func()) core.Node {
+func phoneSeriesHeading(cx *core.Scope, current route, item media.Item, seasons []media.Item, version media.Version) core.Node {
 	var facts []string
 	if item.Year > 0 {
 		facts = append(facts, strconv.Itoa(item.Year))
@@ -336,23 +370,7 @@ func (a *application) phoneSeriesHero(cx *core.Scope, current route, item media.
 		TestID:  "series-source", Class: "bg-sky-500/30 " + badgeStyle, MaxLines: 1,
 	})
 	title = append(title, core.View{Class: "flex-row flex-wrap gap-1.5", Children: badges})
-	menu := []core.Node{ui.MenuItem{Text: locales.ReloadMovieDetail(cx), TestID: "series-reload", OnSelect: refresh}}
-	if cast != nil {
-		menu = append(menu, ui.MenuItem{Text: locales.PhonePlayerCast(cx), TestID: "series-cast-device", OnSelect: cast})
-	}
-	if copies != nil && selectCopy != nil {
-		active := (catalogCopy{current.source, current.item}).key()
-		for _, option := range copies() {
-			menu = append(menu, ui.MenuItem{Text: option.Label, Checked: func() bool { return option.Value == active },
-				OnSelect: func() { selectCopy(option.Value) }})
-		}
-	}
-	tools = append(tools, base.Menu{Label: locales.DetailMore(cx), TestID: "detail-hero-more",
-		Class: "size-9 rounded-full bg-black/40", Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, PopupClass: tabletDetailPopup,
-		Trigger: core.View{Class: "flex-1 items-center justify-center", Children: []core.Node{
-			core.Icon{SVG: lucide.Ellipsis(), Class: "size-4 text-white"},
-		}}, Children: menu})
-	return a.phoneMediaHero(cx, item, "h-[420px]", "phone-series-hero", title, tools...)
+	return core.Group(title)
 }
 
 func phoneHeroAction(cx *core.Scope, id, label string, icon *core.SVG, selected bool, disabled func() bool, press func()) core.Node {
@@ -483,8 +501,13 @@ func (a *application) phoneEpisodeRow(cx *core.Scope, current route, item media.
 	} else if item.Watched {
 		facts = append(facts, locales.SeriesFinished(cx))
 	}
-	if entry, ok := a.seriesDownload(current.source, item, a.downloads.entries.Get()); ok && entry.State == downloadComplete {
-		facts = append(facts, locales.Downloaded(cx))
+	if entry, ok := a.seriesDownload(current.source, item, a.downloads.entries.Get()); ok {
+		status := a.downloads.stateLabel(cx, entry)
+		if entry.State == downloadRunning && entry.Total > 0 {
+			percent := min(100, int(100*float64(entry.Transferred)/float64(entry.Total)))
+			status = locales.DownloadPercent(cx, strconv.Itoa(percent))
+		}
+		facts = append(facts, status)
 	}
 	info := []core.Node{
 		core.Text{Content: label, Class: "text-sm font-medium " + title, MaxLines: 2},

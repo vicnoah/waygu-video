@@ -2,6 +2,7 @@ package media
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -57,8 +58,15 @@ func TestFlymooReferenceProtocol(t *testing.T) {
 		case "sys/version":
 			response = `{"version":"1.0"}`
 		case "login":
-			if body["app_name"] != "fnmovie" || body["username"] != "user" || body["password"] != "password" || len(body) != 3 {
+			if body["app_name"] != "fnmovie" || body["username"] != "user" || len(body) != 3 {
 				t.Error("login fields differ from the reference")
+			}
+			if body["password"] == "wrong" {
+				fmt.Fprint(w, `{"code":-15,"msg":"Incorrect password"}`)
+				return
+			}
+			if body["password"] != "password" {
+				t.Error("login password differs from the reference")
 			}
 			response = `{"token":"reference-token"}`
 		case "mdb/list":
@@ -116,6 +124,9 @@ func TestFlymooReferenceProtocol(t *testing.T) {
 	session, err := guest.SignIn(ctx, Credentials{Username: "user", Password: "password"})
 	if err != nil || session.Token != "reference-token" {
 		t.Fatalf("sign in failed: %v", err)
+	}
+	if _, err := guest.SignIn(ctx, Credentials{Username: "user", Password: "wrong"}); !errors.Is(err, ErrAuthentication) {
+		t.Fatalf("incorrect password returned %v", err)
 	}
 	client, err := NewClient(Flymoo, server.URL+"/v", Device{}, session)
 	if err != nil {

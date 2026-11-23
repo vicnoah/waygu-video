@@ -383,6 +383,11 @@ storageDownloads: 存储与下载
 storageCache: 缓存
 offlineDownloads: 离线下载
 downloadAction: 下载
+downloadSeason: 按季下载
+downloadSelectAll: 全选
+downloadEpisodeSelection: "已选 {count} 集"
+downloadMinimumEstimate: "至少 {size}"
+downloadSpaceComparison: "预计需要 {needed} · 可用 {available}"
 downloaded: 已下载
 downloadRunning: 下载中
 downloadQueued: 等待下载

@@ -177,21 +177,40 @@ func (q *downloadQueue) update(id string, save bool, change func(*downloadEntry)
 }
 
 func (q *downloadQueue) enqueue(current route, height int, waitForWiFi bool) bool {
-	account := mediaAccountKey(current.source)
-	id := downloadID(account, current.item.ID)
-	entries := q.entries.GetUntracked()
-	if _, existing := q.find(id, entries); existing {
-		return true
-	}
-	if q.store.Dir == "" || !playable(current.item) || current.item.ID == "" {
+	return q.enqueueBatch([]route{current}, height, waitForWiFi)
+}
+
+func (q *downloadQueue) enqueueBatch(requests []route, height int, waitForWiFi bool) bool {
+	if !q.available() || len(requests) == 0 {
 		return false
 	}
-	options, _ := q.app.initialPlaybackOptions(current)
-	options.AudioIndex, options.SubtitleIndex = nil, nil
-	entry := downloadEntry{ID: id, Account: account, SourceName: current.source.Name, Item: offlineItem(current.item),
-		Version: options, Height: height, WaitForWiFi: waitForWiFi, IncludeTracks: q.tracks.GetUntracked(),
-		State: downloadQueued, Position: current.item.Position}
-	if !q.persist(append(slices.Clone(entries), entry)) {
+	previous := q.entries.GetUntracked()
+	entries := slices.Clone(previous)
+	seen := make(map[string]bool, len(entries)+len(requests))
+	for _, entry := range entries {
+		seen[entry.ID] = true
+	}
+	includeTracks := q.tracks.GetUntracked()
+	for _, current := range requests {
+		if !playable(current.item) || current.item.ID == "" {
+			return false
+		}
+		account := mediaAccountKey(current.source)
+		id := downloadID(account, current.item.ID)
+		if seen[id] {
+			continue
+		}
+		seen[id] = true
+		options, _ := q.app.initialPlaybackOptions(current)
+		options.AudioIndex, options.SubtitleIndex = nil, nil
+		entries = append(entries, downloadEntry{ID: id, Account: account, SourceName: current.source.Name, Item: offlineItem(current.item),
+			Version: options, Height: height, WaitForWiFi: waitForWiFi, IncludeTracks: includeTracks,
+			State: downloadQueued, Position: current.item.Position})
+	}
+	if len(entries) == len(previous) {
+		return true
+	}
+	if !q.persist(entries) {
 		return false
 	}
 	q.pump()

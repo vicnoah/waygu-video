@@ -246,7 +246,11 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 	personal := a.detailPersonal(cx, current, loaded)
 	versionID := core.NewSignal(cx, "")
 	versions := a.versionPicker(cx, current, versionID)
-	return core.Dynamic(func(cx *core.Scope) core.Node {
+	chooseDownload, downloadDialog := a.seasonDownload(cx, current, func() []media.Item {
+		result, _ := loaded.Get()
+		return result.children
+	}, nil)
+	content := core.Dynamic(func(cx *core.Scope) core.Node {
 		result, ready := loaded.Get()
 		if !ready {
 			result.item = current.item
@@ -285,6 +289,10 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 			rows = append(rows, versions)
 		}
 		buttons := personal.buttons(cx, result, nil)
+		if chooseDownload != nil && (item.Kind == media.Season || slices.ContainsFunc(result.children, func(child media.Item) bool { return child.Kind == media.Season })) {
+			buttons = append(buttons, ui.Button{Text: locales.DownloadSeason(cx), Icon: lucide.Download, Variant: ui.ButtonOutline,
+				TestID: seasonDownloadID, OnPress: chooseDownload})
+		}
 		if ready {
 			if download := a.downloadAction(cx, current, nil, func() route {
 				selected := current
@@ -320,6 +328,7 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 			}
 			rows = append(rows, heading(section))
 			for _, child := range result.children {
+				child = attachSeriesParent(item, child)
 				label := child.Title
 				if child.Kind == media.Episode && child.Episode > 0 {
 					label = locales.EpisodeLabel(cx, strconv.Itoa(child.Episode)) + " · " + label
@@ -333,7 +342,11 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 						if playable(child) {
 							target = screenPlayer
 						}
-						a.push(route{screen: target, source: current.source, item: child, resume: true})
+						next := route{screen: target, source: current.source, item: child, resume: true}
+						if entry, ok := a.seriesDownload(current.source, child, a.downloads.entries.GetUntracked()); ok && entry.State == downloadComplete {
+							next.downloadID = entry.ID
+						}
+						a.push(next)
 					}}
 				if result.hasVersions && child.Kind == media.Episode {
 					rows = append(rows, core.View{Class: "flex-row flex-wrap items-center gap-3", Children: []core.Node{
@@ -348,4 +361,5 @@ func (a *application) detailContent(cx *core.Scope, current route) core.Node {
 		}
 		return core.View{Class: "gap-5", Children: rows}
 	})
+	return core.Group([]core.Node{content, downloadDialog})
 }

@@ -17,7 +17,7 @@ box class="relative flex-1 bg-[#f4f4f7]"
           box class="size-9 items-center justify-center rounded-full bg-black/40"
             icon heart class="size-4 text-white"
           end
-          box class="size-9 items-center justify-center rounded-full bg-black/40"
+          box class="size-9 items-center justify-center rounded-full bg-black/40" note="更多菜单中的「按季下载」打开选集和画质设置"
             icon ellipsis class="size-4 text-white"
           end
         end
@@ -162,7 +162,7 @@ box class="relative flex-1 bg-[#0f1017]"
           box class="size-9 items-center justify-center rounded-full bg-black/40"
             icon heart class="size-4 text-white"
           end
-          box class="size-9 items-center justify-center rounded-full bg-black/40"
+          box class="size-9 items-center justify-center rounded-full bg-black/40" note="更多菜单中的「按季下载」打开选集和画质设置"
             icon ellipsis class="size-4 text-white"
           end
         end

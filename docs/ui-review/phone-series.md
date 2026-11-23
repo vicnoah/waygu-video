@@ -31,3 +31,21 @@
 | Second season and specials | Scenra uses a placeholder box for each panel. The app uses the first season's row treatment for populated seasons and specials. Empty panels use the design's icon and text treatment. Art and episode names come from each server. |
 
 The native review plays the second-season file and checks that the clock advances. The test opens a downloaded episode from its season row and checks that it loads a local file. Headless coverage verifies the first-season seek and all three media adapters' season indexing. Phone device comparisons remain pending. [Fixture setup](../../integration/servers/TESTING.md) · [Capture commands](README.md)
+
+## Season downloads
+
+The series More menu opens the picker on the active season. The picker follows the offline flow's season selection, quality estimate, space check and queue steps. Scenra specifies those steps in the flow. The dialog reuses the existing individual download controls and app theme. [Series design](../../design/series-detail.scenra) · [Offline download flow](../../design/flows/offline-download.scenra)
+
+![Light GTK picker with two episodes checked](images/season-download-light.png)
+
+![Dark GTK picker with two episodes checked](images/season-download-dark.png)
+
+![Android TV picker with two episodes checked at 1920 × 1080](images/season-download-tv.png)
+
+| Flow step | Verified behavior |
+| --- | --- |
+| Choose episodes | The picker opens on the active season. Switching seasons refreshes the list. Users can select individual episodes or use Select all. Existing queue entries show their state and cannot be selected a second time. |
+| Choose quality and check space | The chosen quality applies to all selected episodes. Available metadata supplies a total estimate. Original sizes can be absent, as in these captures. The space step compares known sizes with both available storage and the app's download limit. |
+| Queue and play | The app adds the selected episodes together and opens Storage and Downloads. Returning to the phone detail restores the previously active season. With the gateway disconnected, a completed episode opens from its local file. |
+
+The GTK captures use the phone layout in both themes. Headless testing verifies the same queue with Emby, Jellyfin and Plex and opens the picker on the desktop and tablet layouts. On the Android TV emulator, the test queues two Emby episodes and advances playback on a saved copy with the gateway disconnected. Device layout and remote checks beyond this Android TV run remain open. [Fixture tests](../../integration/servers/TESTING.md#season-downloads)

@@ -62,71 +62,11 @@ func (a *application) downloadAction(cx *core.Scope, current route, render detai
 			a.push(route{screen: screenDownloads})
 		}
 	}
-	queue := a.downloads
-	network := queue.network.Get
-	wait := func() downloadNetworkWait { return downloadWaitFor(network(), queue.wifiOnly.Get()) }
-	allowChoice := func() bool {
-		transport := network()
-		return !queue.wifiOnly.Get() && (transport == downloadNetworkCellular || transport == downloadNetworkOffline)
-	}
-	title := locales.DownloadQuality(cx)
-	dialog := ui.Dialog{Title: title, Open: open.Get, TestID: "detail-download-quality",
-		OnOpenChange: func(show bool, _ base.Reason) { open.Set(show) },
-		OnConfirm:    func() { confirm(false) },
-		Children: []core.Node{core.Dynamic(func(cx *core.Scope) core.Node {
-			if network() == downloadNetworkCellular && allowChoice() {
-				return hint(locales.DownloadCellularNotice(cx))
-			}
-			if waiting := wait(); waiting != downloadNetworkReady {
-				return hint(waiting.label(cx))
-			}
-			return nil
-		}), core.Dynamic(func(cx *core.Scope) core.Node {
-			chosen := selected.Get()
-			options := downloadQualityOptions(cx)
-			if !canDownloadTranscodes(chosen.source.Provider) {
-				options = options[:1]
-			}
-			rows := make([]core.Node, 0, len(options))
-			for _, option := range options {
-				bytes := chosen.item.FileSize
-				if option.Value > 0 {
-					bytes = int64(chosen.item.Duration.Seconds() * float64(downloadBitrate(option.Value)/8))
-				}
-				var estimate core.Node
-				if bytes > 0 {
-					estimate = core.Text{Content: locales.DownloadEstimatedSize(cx, mediaBytes(bytes)), Class: "text-xs text-muted-foreground"}
-				}
-				rows = append(rows, core.View{Class: "min-h-11 flex-row items-center justify-between gap-3", Children: []core.Node{
-					ui.Radio{Text: option.Label, TestID: "detail-download-quality-" + strconv.Itoa(option.Value),
-						Checked: func() bool { return height.Get() == option.Value },
-						OnChange: func(checked bool) {
-							if checked {
-								height.Set(option.Value)
-							}
-						}},
-					estimate,
-				}})
-			}
-			return ui.RadioGroup{Label: title, Children: rows}
-		})},
-		Footer: []core.Node{
-			ui.Button{Text: locales.DesktopSettingsCancel(cx), Variant: ui.ButtonOutline, OnPress: func() { open.Set(false) }},
-			core.Show{When: allowChoice, Then: func(cx *core.Scope) core.Node {
-				return ui.Button{Text: locales.DownloadWaitWiFi(cx), TestID: "detail-download-wait-wifi",
-					Variant: ui.ButtonOutline, OnPress: func() { confirm(true) }}
-			}},
-			ui.Button{TextFunc: func() string {
-				if waiting := wait(); waiting != downloadNetworkReady {
-					return waiting.label(cx)
-				}
-				if network() == downloadNetworkCellular {
-					return locales.DownloadUseCellular(cx)
-				}
-				return locales.DownloadAction(cx)
-			}, TestID: "detail-download-confirm", OnPress: func() { confirm(false) }},
-		},
-	}
+	dialog := a.downloads.selectionDialog(cx, downloadDialog{
+		id: "detail-download", title: locales.DownloadQuality(cx), open: open, height: height,
+		transcodes: func() bool { return canDownloadTranscodes(selected.Get().source.Provider) },
+		selection:  func() []route { return []route{selected.Get()} }, confirm: confirm,
+	})
 	return core.Group([]core.Node{action, dialog})
 }
 
