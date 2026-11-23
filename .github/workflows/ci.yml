@@ -153,7 +153,7 @@ jobs:
             fi
             target=ios_simulator
             tests='TestChineseAppName|TestNativeVideoDecodes|TestApplePlaybackNetworkMonitor'
-            options=()
+            set -- -timeout 2m
             if [[ "$kind" == Apple-TV ]]; then
               target=tvos_simulator
               tests+='|TestTVNavigation|TestTVHomeNativeFixture'
@@ -161,12 +161,12 @@ jobs:
               mkdir -p "$screenshots"
               capture_tv_preview "$simulator" "$screenshots" &
               capture_pid=$!
-              options=(-env WAYGU_CAPTURE_TV_DISPLAY=1 -screenshots "$screenshots")
+              set -- "$@" -env WAYGU_CAPTURE_TV_DISPLAY=1 -screenshots "$screenshots"
             else
               tests+='|TestSkipOnboarding'
             fi
             echo "::group::$kind simulator tests"
-            run_simulator -target "$target" -device "$simulator" -run "^($tests)$" -timeout 2m "${options[@]}" . || failed=1
+            run_simulator -target "$target" -device "$simulator" -run "^($tests)$" "$@" . || failed=1
             if [[ "$kind" == Apple-TV ]]; then
               kill "$capture_pid" 2>/dev/null || true
               wait "$capture_pid" 2>/dev/null || true
