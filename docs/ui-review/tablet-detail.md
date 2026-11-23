@@ -31,11 +31,11 @@ The separate fixture has a saved position and displays the resume bar and poster
 
 ![Scenra and GTK tablet ratings and formats in light and dark appearance](images/tablet-detail-badges.png)
 
-Scenra is on the left and GTK is on the right, with light above dark. The fixture supplies IMDb 8.5, TMDB 82%, a 4K Dolby Vision file, an Atmos audio track and Chinese subtitles. `TestDetailBadges/tablet` confirms those badges, the P7 and HDR10 file information, and the update to 1080p when selecting the SDR version. It also checks that the TMDB rating stays visible. The Emby Docker movie exercises the generic 8.3 score. The Douban badge still needs a rating source. [Rating sources](desktop-movie.md#rating-badges)
+Scenra is on the left and GTK is on the right, with light above dark. Both use NSGo 0.3.0. The fixture supplies IMDb 8.5, TMDB 82%, a 4K Dolby Vision file, an Atmos audio track and Chinese subtitles. `TestDetailBadges/tablet` confirms those badges, the P7 and HDR10 file information, and the update to 1080p when selecting the SDR version. It also checks that the TMDB rating stays visible. The Emby Docker movie exercises the generic 8.3 score. The Douban badge still needs a rating source. [Rating sources](desktop-movie.md#rating-badges)
 
 ![Scenra and the Android dark tablet layout with the 4K fixture](images/tablet-detail-badges-android.png)
 
-The Android 15 emulator ran the landscape tablet layout at 1180 × 820 dp. The test selected both versions and checked the Dolby Vision file information and the rating row. The Android content starts lower because the device supplies its own safe area. The poster panel and cast placeholders have square corners on this Android capture. Scenra rounds the panel and uses circular portraits.
+The Android 15 emulator ran the landscape tablet layout at 1180 × 820 dp. The test selected both versions and checked the Dolby Vision file information and the rating row. The rendered Android window shows the rounded poster panel and circular cast placeholders. Android's native bottom inset leaves a band below the content, and the icon in its empty poster is vertically centered. Physical tablet checks remain pending. [Android capture method](../../build/android/PACKAGING.md)
 
 ## Interaction checks
 

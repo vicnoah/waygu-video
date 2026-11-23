@@ -66,6 +66,10 @@ public final class WayguPlaybackService extends Service {
         if (wanted != null && wanted.view() == view) cancel(wanted);
     }
 
+    static boolean keepsPlaying(NsgoView view) {
+        return active != null && wanted != null && active.serving == wanted && wanted.view() == view;
+    }
+
     private static void cancel(Lease lease) {
         if (wanted == lease) wanted = null;
         lease.reply().resolve(false);

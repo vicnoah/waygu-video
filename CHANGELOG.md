@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Upgrade the app, packaging tools and Scenra reference renderer to NSGo 0.3.0. [NSGo release](https://github.com/nsgo-dev/nsgo/releases/tag/v0.3.0)
 - Bundle libmpv in portable Windows x64 and ARM64 builds. [Windows packaging](docs/roadmap.md#platform-verification)
 - Play embedded Plex Matroska text subtitles in the native player. [Playback verification](docs/ui-review/phone-player.md#plex-matroska-subtitles)
 - Search, download and restore online subtitles from the player. [Playback verification](docs/ui-review/phone-player.md#online-subtitle-search)

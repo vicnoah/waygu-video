@@ -1,10 +1,28 @@
 --- a/internal/platform/android/java/dev/oneo/nsgo/NsgoActivity.java
 +++ b/internal/platform/android/java/dev/oneo/nsgo/NsgoActivity.java
-@@ -73,2 +73,3 @@
+@@ -81,6 +81,7 @@
+         }
+         view.handle("waygu.network.type", (data, reply) -> reply.resolve(view.defaultNetworkType()));
+         view.handle("waygu.network.cellular", (data, reply) -> reply.resolve("cellular".equals(view.defaultNetworkType())));
 +        WayguPlaybackService.bind(this, view);
          setContentView(view);
          if (!share) openNotification(intent);
-@@ -198,2 +199,3 @@
+         // A share delivers content, so it reaches a restored activity too; a link only opens a fresh one.
+@@ -267,6 +268,7 @@
+     /** Ends the app with the activity unless an overlay, a background location stream or a recording keeps it running for the next activity. */
+     @Override
      protected void onDestroy() {
 +        WayguPlaybackService.detach(view);
-         if (view.keepOffScreen()) {
+         if (devHost != null) {
+             devHost.close();
+             if (view != null) view.stopHostView();
+--- a/internal/platform/android/java/dev/oneo/nsgo/NsgoView.java
++++ b/internal/platform/android/java/dev/oneo/nsgo/NsgoView.java
+@@ -767,5 +767,6 @@
+         if (!visible) {
+             pauseAudio();
+-            if (videoPictureInPicture != null && !videoPictureInPicture.isActive()) pauseVideos();
++            if (videoPictureInPicture != null && !videoPictureInPicture.isActive()
++                    && !WayguPlaybackService.keepsPlaying(this)) pauseVideos();
+         }
+     }

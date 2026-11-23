@@ -24,7 +24,7 @@ The Controls group uses the design's history icon, 28 pt badge and 51 × 31 pt s
 
 ![Android phone switch enabled on the left and disabled on the right](images/phone-settings-playback-progress-android.png)
 
-On the Android 15 Pixel 7 emulator, the test scrolled to Controls, tapped the switch, and checked the saved state after reopening the page. The installed x86-64 APK kept the saved value after its process restarted. The system screenshots show the actual rounded group corners and status bar. NSGo's software screenshots show square group corners when the capture bypasses Android's hardware clipping. [Capture commands](README.md)
+On the Android 15 Pixel 7 emulator, the test scrolled to Controls, tapped the switch, and checked the saved state after reopening the page. The installed x86-64 APK kept the saved value after its process restarted. The system screenshots show the rounded groups and status bar. NSGo 0.3's native window captures preserve the same hardware outline clipping. [Capture commands](README.md) · [Android screenshot testing](../../build/android/PACKAGING.md)
 
 The switch defaults to on. Turning it off prevents future playback sessions from saving or sending new progress and from changing an existing resume point for a download. Existing resume points and manual watched actions remain available. Enabling it again restores progress recording and honors the source's writeback setting. [Docker progress evidence](../../integration/servers/TESTING.md#remember-playback-progress) · [Per-source writeback](phone-sync-accounts.md)
 

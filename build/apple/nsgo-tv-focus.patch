@@ -1,62 +1,32 @@
 --- a/internal/platform/ios/focus.go
 +++ b/internal/platform/ios/focus.go
-@@ -159,11 +159,20 @@
- 
- // focusView asks tvOS's focus engine to move to this stop. Touch-only UIKit continues to focus inputs, without opening a keyboard for views.
- func (s *surface) focusView(v *view) {
+@@ -217,5 +217,13 @@
 -	system := objc.ID(apple.Class("UIFocusSystem")).Send(sel("focusSystemForEnvironment:"), v.native)
 -	if system != 0 {
 -		system.Send(sel("requestFocusUpdateToEnvironment:"), v.native)
 -		system.Send(sel("updateFocusIfNeeded"))
+-	}
 +	controller := s.viewController()
 +	if controller == 0 {
 +		return
- 	}
++	}
 +	system := objc.ID(apple.Class("UIFocusSystem")).Send(sel("focusSystemForEnvironment:"), controller)
 +	if system == 0 {
 +		return
 +	}
-+	// The requesting environment must contain the current focus. The
-+	// controller can express the destination through its preferred focus.
++	// The controller contains the current focus and names the destination.
 +	s.focusRequest = v
 +	defer func() { s.focusRequest = nil }()
 +	system.Send(sel("requestFocusUpdateToEnvironment:"), controller)
 +	system.Send(sel("updateFocusIfNeeded"))
- }
- 
- // hiddenWithin reports whether view or a view around it is hidden.
-@@ -244,10 +253,12 @@
- 	})
- }
- 
--// preferredFocus is where the focus goes when the controller's view asks:
--// into the newest modal, back to what had it before one, else UIKit's
--// choice.
-+// preferredFocus returns the requested view, the newest modal, the
-+// view focused before the modal, or UIKit's default in that order.
- func (s *surface) preferredFocus() objc.ID {
+@@ -333,0 +342,3 @@
 +	if v := s.focusRequest; v != nil && s.views[v.id] == v && v.focusable() {
 +		return v.native
 +	}
- 	if top := s.topModal(); top != nil {
- 		return top.native
- 	}
 --- a/internal/platform/ios/ios.go
 +++ b/internal/platform/ios/ios.go
-@@ -238,11 +238,11 @@
- 	changes []stackChange
- 	// history is how many entries back goes through (ItemHistory).
- 	history int
--	// On an Apple TV (focus.go): modals are those shown, oldest first;
--	// focused is the view with the focus, focusBack the one to give it
--	// back to as a modal goes.
--	modals             []*view
--	focused, focusBack *view
-+	// On an Apple TV (focus.go), modals are shown oldest first. The
-+	// current focus and the focus to restore after a modal are tracked
-+	// independently of the destination of a programmatic focus request.
-+	modals                           []*view
-+	focused, focusBack, focusRequest *view
- 
- 	// What a batch touched, finished once its frames are set.
- 	images, presenting []*view
+@@ -260,2 +260,2 @@
+-	modals, topmostCaptures        []*view
+-	focusScope, focused, focusBack *view
++	modals, topmostCaptures                      []*view
++	focusScope, focused, focusBack, focusRequest *view

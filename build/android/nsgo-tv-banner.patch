@@ -1,117 +1,10 @@
---- a/cmd/nsgo/android.go
-+++ b/cmd/nsgo/android.go
-@@ -178,6 +178,7 @@
- 		ShareTypes:        p.Android.ShareTypes,
- 		VersionCode:       p.versionCode(),
- 		Icon:              icon,
-+		TVBanners:         wayguTVBanners,
- 		Adaptive:          adaptive,
- 		Theme:             androidThemes[p.Appearance],
- 		Debuggable:        p.testBinary,
---- a/cmd/nsgo/apk/axml.go
-+++ b/cmd/nsgo/apk/axml.go
-@@ -29,6 +29,8 @@
- 	ShareTypes []string
- 	// Icon is the launcher icon, an IconSize PNG; nil keeps the system's.
- 	Icon []byte
-+	// TVBanners are xhdpi PNGs by BCP 47 tag, with an entry for the default locale.
-+	TVBanners map[string][]byte
- 	// Adaptive is the adaptive launcher icon's layers, which @mipmap/ic_launcher names from API 26 on, Icon below it; nil leaves Icon alone.
- 	Adaptive *AdaptiveIcon
- 	// Theme replaces the application's theme, a framework style; empty
-@@ -113,6 +115,7 @@
- 	"grantUriPermissions": {0x0101001b, typeBool, parseBool},
- 	"theme":               {0x01010000, typeReference, parseStyle},
- 	"icon":                {0x01010002, typeReference, parseAppResource},
-+	"banner":              {0x010103f2, typeReference, parseResourceID},
- 	"debuggable":          {0x0101000f, typeBool, parseBool},
- 	"required":            {0x0101028e, typeBool, parseBool},
- 	"appCategory":         {0x01010545, typeInt, parseAppCategory},
-@@ -288,6 +291,12 @@
- 	}
- 	if m.Icon != nil {
- 		setAttr(app, androidNS, "icon", iconResource)
-+	}
-+	if len(m.TVBanners) != 0 {
-+		if len(m.TVBanners[""]) == 0 {
-+			return nil, errors.New("manifest: a TV banner needs a default PNG")
-+		}
-+		setAttr(app, androidNS, "banner", fmt.Sprintf("@0x%08x", tvBannerResourceID(m)))
- 	}
- 	if m.LoopbackCleartext {
- 		setAttr(app, androidNS, "networkSecurityConfig", fmt.Sprintf("@0x%08x", xmlResourceID(m)))
---- a/cmd/nsgo/apk/apk.go
-+++ b/cmd/nsgo/apk/apk.go
-@@ -29,6 +29,9 @@
- 			return err
- 		}
- 		all = append(all, adaptive...)
-+	}
-+	for _, banner := range m.tvBannerFiles() {
-+		all = append(all, File{Name: banner.path, Data: banner.png, Stored: true})
- 	}
- 	for _, resource := range m.xmlResources() {
- 		data, err := encodeXML(resource.node(), false)
---- a/cmd/nsgo/apk/bundle.go
-+++ b/cmd/nsgo/apk/bundle.go
-@@ -53,6 +53,9 @@
- 			file.Name = "base/" + file.Name
- 			all = append(all, file)
- 		}
-+	}
-+	for _, banner := range m.tvBannerFiles() {
-+		all = append(all, File{Name: "base/" + banner.path, Data: banner.png, Stored: true})
- 	}
- 	for _, resource := range m.xmlResources() {
- 		data, err := protoElement(resource.node(), false, false)
-@@ -294,6 +297,21 @@
- 	default:
- 		types = append(types, protoTypeEntries(xmlType, "xml", xmlEntries))
- 	}
-+	if banners := m.tvBannerFiles(); len(banners) > 0 {
-+		var values [][2][]byte
-+		for _, banner := range banners {
-+			var config []byte
-+			if banner.locale != "" {
-+				config = pbString(config, 3, banner.locale)
-+			}
-+			config = pbVarint(config, 18, densityXHigh)
-+			config = pbVarint(config, 24, 4)
-+			png := pbVarint(pbString(nil, 1, banner.path), 2, 1)
-+			values = append(values, [2][]byte{config, pbBytes(nil, 5, png)})
-+		}
-+		drawableType := uint64(tvBannerResourceID(m) >> 16 & 0xff)
-+		types = append(types, protoType(drawableType, "drawable", "tv_banner", values))
-+	}
- 	p := pbBytes(nil, 1, pbVarint(nil, 1, appPackageID))
- 	p = pbString(p, 2, m.Package)
- 	for _, t := range types {
---- a/cmd/nsgo/apk/resources.go
-+++ b/cmd/nsgo/apk/resources.go
-@@ -196,4 +196,17 @@
- 		types = append(types, resType{name: "xml", entries: xmlEntries})
- 	}
-+	if banners := m.tvBannerFiles(); len(banners) > 0 {
-+		entry := resEntry{key: "tv_banner"}
-+		for _, banner := range banners {
-+			config := newConfig()
-+			if banner.locale != "" {
-+				config = localeConfig(banner.locale)
-+			}
-+			binary.LittleEndian.PutUint16(config[14:], densityXHigh)
-+			binary.LittleEndian.PutUint16(config[24:], 4)
-+			entry.values = append(entry.values, resValue{config, banner.path})
-+		}
-+		types = append(types, resType{name: "drawable", varies: configLocale | configDensity, entries: []resEntry{entry}})
-+	}
- 	return table(m.Package, types)
- }
 --- /dev/null
 +++ b/cmd/nsgo/apk/tvbanner.go
-@@ -0,0 +1,45 @@
+@@ -0,0 +1,78 @@
 +package apk
 +
 +import (
++	"encoding/binary"
 +	"slices"
 +	"strings"
 +)
@@ -148,11 +41,43 @@
 +}
 +
 +func tvBannerResourceID(m Manifest) uint32 {
-+	id := xmlResourceID(m)
-+	if len(m.xmlResources()) > 0 {
++	id := launchStyleID(m)
++	if m.Launch != nil {
 +		id += 1 << 16
++		if _, drawables := launchValues(m); len(drawables) > 0 {
++			id++ // The launcher artwork is the first entry of the same drawable type.
++		}
 +	}
 +	return id
++}
++
++func (m Manifest) tvBannerEntry() resEntry {
++	entry := resEntry{key: "tv_banner"}
++	for _, banner := range m.tvBannerFiles() {
++		config := newConfig()
++		if banner.locale != "" {
++			config = localeConfig(banner.locale)
++		}
++		binary.LittleEndian.PutUint16(config[14:], densityXHigh)
++		binary.LittleEndian.PutUint16(config[24:], 4)
++		entry.values = append(entry.values, resValue{config: config, str: banner.path})
++	}
++	return entry
++}
++
++func (m Manifest) tvBannerProtoEntry() protoEntry {
++	entry := protoEntry{key: "tv_banner"}
++	for _, banner := range m.tvBannerFiles() {
++		var config []byte
++		if banner.locale != "" {
++			config = pbString(config, 3, banner.locale)
++		}
++		config = pbVarint(config, 18, densityXHigh)
++		config = pbVarint(config, 24, 4)
++		png := pbVarint(pbString(nil, 1, banner.path), 2, 1)
++		entry.values = append(entry.values, [2][]byte{config, pbBytes(nil, 5, png)})
++	}
++	return entry
 +}
 --- /dev/null
 +++ b/cmd/nsgo/waygu_tv_banner.go
@@ -171,3 +96,60 @@
 +	"":        wayguBannerDefault,
 +	"zh-Hans": wayguBannerSimplifiedChinese,
 +}
+--- a/cmd/nsgo/android.go
++++ b/cmd/nsgo/android.go
+@@ -221,0 +222 @@
++		TVBanners:           wayguTVBanners,
+--- a/cmd/nsgo/apk/axml.go
++++ b/cmd/nsgo/apk/axml.go
+@@ -34,0 +35,2 @@
++	// TVBanners are xhdpi PNGs by BCP 47 tag, with an entry for the default locale.
++	TVBanners map[string][]byte
+@@ -148,0 +151 @@
++	"banner":              {0x010103f2, typeReference, parseResourceID},
+@@ -350,0 +354,6 @@
++	}
++	if len(m.TVBanners) != 0 {
++		if len(m.TVBanners[""]) == 0 {
++			return nil, errors.New("manifest: a TV banner needs a default PNG")
++		}
++		setAttr(app, androidNS, "banner", fmt.Sprintf("@0x%08x", tvBannerResourceID(m)))
+--- a/cmd/nsgo/apk/apk.go
++++ b/cmd/nsgo/apk/apk.go
+@@ -33,0 +34,3 @@
++	for _, banner := range m.tvBannerFiles() {
++		all = append(all, File{Name: banner.path, Data: banner.png, Stored: true})
++	}
+--- a/cmd/nsgo/apk/bundle.go
++++ b/cmd/nsgo/apk/bundle.go
+@@ -59,0 +60,3 @@
++	}
++	for _, banner := range m.tvBannerFiles() {
++		all = append(all, File{Name: "base/" + banner.path, Data: banner.png, Stored: true})
+@@ -339,0 +343,2 @@
++	} else if entry := m.tvBannerProtoEntry(); len(entry.values) != 0 {
++		types = append(types, protoTypeEntries(uint64(tvBannerResourceID(m)>>16&0xff), "drawable", []protoEntry{entry}))
+--- a/cmd/nsgo/apk/resources.go
++++ b/cmd/nsgo/apk/resources.go
+@@ -207,0 +208,8 @@
++	}
++	if entry := m.tvBannerEntry(); len(entry.values) != 0 {
++		if n := len(types); n > 0 && types[n-1].name == "drawable" {
++			types[n-1].entries = append(types[n-1].entries, entry)
++			types[n-1].varies |= configLocale | configDensity | configVersion
++		} else {
++			types = append(types, resType{name: "drawable", varies: configLocale | configDensity | configVersion, entries: []resEntry{entry}})
++		}
+--- a/cmd/nsgo/apk/launch.go
++++ b/cmd/nsgo/apk/launch.go
+@@ -215,0 +216 @@
++	var entries []protoEntry
+@@ -222 +223,7 @@
+-		types = append(types, protoType(id+1, "drawable", launchImageName, files))
++		entries = append(entries, protoEntry{key: launchImageName, values: files})
++	}
++	if entry := m.tvBannerProtoEntry(); len(entry.values) != 0 {
++		entries = append(entries, entry)
++	}
++	if len(entries) > 0 {
++		types = append(types, protoTypeEntries(id+1, "drawable", entries))

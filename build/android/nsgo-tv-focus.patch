@@ -1,19 +1,18 @@
 --- a/internal/platform/android/java/dev/oneo/nsgo/NsgoView.java
 +++ b/internal/platform/android/java/dev/oneo/nsgo/NsgoView.java
-@@ -2834,6 +2834,10 @@
-                 if (n != null && n.field != null && n.field.requestFocus()) {
-                     EditText field = n.field;
-                     field.post(() -> ime.showSoftInput(field, InputMethodManager.SHOW_IMPLICIT));
-+                } else if (n != null && n.field == null && isTelevision() && n.view.isEnabled()) {
-+                    n.view.post(() -> {
-+                        if (n.view.isShown() && n.view.isEnabled()) n.view.requestFocusFromTouch();
-+                    });
-                 }
-                 break;
-             case Protocol.ITEM_BLUR:
-@@ -4345 +4349,26 @@
--        return keyBinding(e) || super.dispatchKeyEvent(e);
-+        return keyBinding(e) || focusFirstTvControl(e) || super.dispatchKeyEvent(e);
+@@ -5647,7 +5647,7 @@
+     }
+
+     private boolean continueHardwareKey(KeyEvent event) {
+-        if (keyBinding(event) || activateKey(event) || super.dispatchKeyEvent(event)) return true;
++        if (keyBinding(event) || focusFirstTvControl(event) || activateKey(event) || super.dispatchKeyEvent(event)) return true;
+         // ViewRoot searches for the next focus after an unhandled key; a key that waited for Go's answer comes back through the Activity after that dispatch has ended, so it searches here, with Android's own focus search.
+         if (deliveringHardwareContinuation && event.getAction() == KeyEvent.ACTION_DOWN &&
+                 !event.isCtrlPressed() && !event.isAltPressed() && !event.isMetaPressed()) {
+@@ -5671,6 +5671,31 @@
+             }
+         }
+         return false;
 +    }
 +
 +    private boolean focusFirstTvControl(KeyEvent event) {
@@ -39,7 +38,11 @@
 +    private boolean isTelevision() {
 +        return (getResources().getConfiguration().uiMode & Configuration.UI_MODE_TYPE_MASK)
 +                == Configuration.UI_MODE_TYPE_TELEVISION;
-@@ -4419,4 +4448,9 @@
+     }
+
+     @Override
+@@ -5851,6 +5876,11 @@
+         if (code >= KeyEvent.KEYCODE_F1 && code <= KeyEvent.KEYCODE_F12) return "f" + (code - KeyEvent.KEYCODE_F1 + 1);
          switch (code) {
              case KeyEvent.KEYCODE_ENTER: case KeyEvent.KEYCODE_NUMPAD_ENTER: return "enter";
 +            case KeyEvent.KEYCODE_DPAD_CENTER: return "enter";
@@ -49,8 +52,4 @@
 +            case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD: return "mediafastforward";
              case KeyEvent.KEYCODE_ESCAPE: return "escape";
              case KeyEvent.KEYCODE_TAB: return "tab";
-@@ -5114,0 +5149,4 @@
-+        if (n.field == null && isTelevision()) {
-+            view.setOnFocusChangeListener(press ? (v, focused) ->
-+                    report(n, focused ? Protocol.EVENT_FOCUS : Protocol.EVENT_BLUR) : null);
-+        }
+             case KeyEvent.KEYCODE_SPACE: return "space";

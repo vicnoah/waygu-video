@@ -38,7 +38,7 @@ The reference and app crops show the playback row and its progress in light and 
 
 ![Scenra and GTK TV ratings and formats in light and dark appearance](images/tv-detail-badges.png)
 
-Scenra is on the left and GTK is on the right, with light above dark. The ratings appear in the same row as the year and runtime. The selected 4K version has separate Dolby Vision and HDR10 badges, followed by Dolby Atmos and Chinese subtitles. `TestDetailBadges/tv` checks these values and the badge update after choosing the SDR version. The Emby Docker movie exercises the generic 8.3 score. The Douban badge still needs a rating source. [Rating sources](desktop-movie.md#rating-badges) · [Dynamic range mapping](desktop-movie.md#video-range)
+Scenra is on the left and GTK is on the right, with light above dark. Both use NSGo 0.3.0. The ratings appear in the same row as the year and runtime. The selected 4K version has separate Dolby Vision and HDR10 badges, followed by Dolby Atmos and Chinese subtitles. `TestDetailBadges/tv` checks these values and the badge update after choosing the SDR version. The Emby Docker movie exercises the generic 8.3 score. The Douban badge still needs a rating source. [Rating sources](desktop-movie.md#rating-badges) · [Dynamic range mapping](desktop-movie.md#video-range)
 
 ## Android TV
 
@@ -48,7 +48,9 @@ The installed Leanback APK was checked on a 1920 × 1080 Android TV emulator aga
 
 ![Scenra and Android TV showing the same attributed ratings and selected video formats](images/tv-detail-badges-android.png)
 
-The dark Android TV crop uses the same 4K fixture as the GTK comparison. The emulator also selects the 1080p SDR version and checks that the 4K format badges disappear.
+The dark Android TV crop uses the same 4K fixture as the GTK comparison. NSGo 0.3 captures the rendered window, which shows thicker badge borders and larger corner radii at Android TV's display density. The emulator also selects the 1080p SDR version and checks that the 4K format badges disappear. [Android capture method](../../build/android/PACKAGING.md)
+
+The installed NSGo 0.3.0 APK also passed Leanback launch, onboarding, server setup and Settings navigation with the D-pad. [Android packaging](../../build/android/PACKAGING.md)
 
 With a featured movie that has credits, recommendations and playable versions, launch Waygu and run `python3 build/android/tv-smoke.py --with-detail` on the host with the device's `ANDROID_SERIAL`.
 

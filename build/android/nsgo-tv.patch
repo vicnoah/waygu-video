@@ -1,13 +1,17 @@
 --- a/internal/platform/android/runtime/AndroidManifest.xml
 +++ b/internal/platform/android/runtime/AndroidManifest.xml
-@@ -15 +15,5 @@
--    <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="36" />
-+    <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="36" />
+@@ -13,6 +13,10 @@
+     android:versionName="0.1.0">
+
+     <uses-sdk android:minSdkVersion="28" android:targetSdkVersion="36" />
 +    <uses-feature android:name="android.software.leanback" android:required="false" />
 +    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 +    <uses-feature android:name="android.hardware.camera" android:required="false" />
 +    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
-@@ -40,6 +44,10 @@
+
+     <uses-permission android:name="android.permission.INTERNET" />
+     <!-- The runtime tells the app the network's DNS servers. -->
+@@ -53,6 +57,10 @@
                  <action android:name="android.intent.action.MAIN" />
                  <category android:name="android.intent.category.LAUNCHER" />
              </intent-filter>
@@ -16,5 +20,5 @@
 +                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
 +            </intent-filter>
          </activity>
-         <!-- Serves the app's files to the apps it hands them to: the
-              clipboard's image, a file it opens and the files it shares;
+         <!-- Play Review's empty translucent host launches the store's card. -->
+         <activity

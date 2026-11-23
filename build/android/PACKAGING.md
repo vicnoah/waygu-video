@@ -23,9 +23,9 @@ sh build/android/test-background-audio.sh off <serial>
 sh build/android/test-background-audio.sh on <serial>
 ```
 
-The [runtime patch](nsgo-tv-focus.patch) applies while Android reports TV mode. A directional key moves focus into the first control when the window itself has focus. Focus and blur on pressable controls reach NSGo so it can draw the app's focus indicator.
+The [runtime patch](nsgo-tv-focus.patch) preserves TV remote key names and moves focus into the first control when the window itself has focus. NSGo reports focus and blur on pressable controls so the app can draw the focus indicator.
 
-After changing the patch or the pinned NSGo version, point `ANDROID_HOME` to a development SDK with API 36 and D8, then run the rebuild script with JDK 17 or later. The archive filename identifies the NSGo version it was built against. Keep the upstream [license](LICENSE.nsgo) and [notices](NOTICE.nsgo) with the archive.
+After changing a runtime patch or the pinned NSGo version, point `ANDROID_HOME` to a development SDK with API 36 and D8, then run the rebuild script with JDK 17 or later. The archive filename identifies the NSGo version it was built against. Keep the upstream [license](LICENSE.nsgo) and [notices](NOTICE.nsgo) with the archive.
 
 ```sh
 sh build/android/rebuild-tv-runtime.sh
@@ -34,5 +34,7 @@ sh build/android/rebuild-tv-runtime.sh
 The installed-APK smoke test launches through the Leanback intent and checks onboarding, server setup, and settings using directional keys, Select, and Back. See the [Android TV focus comparison](../../docs/ui-review/welcome.md#android-tv-remote-focus).
 
 Use the `test` subcommand of `build/android/package.sh` with an Android TV device or emulator. It applies the same pinned Android runtime and manifest as packaging, then passes the arguments to `nsgo test -target android`. [Docker media fixture and replay](../../integration/servers/TESTING.md#tv-next-episode)
+
+The NSGo 0.3 test agent captures the rendered Android window with PixelCopy. Run `TestAndroidScreenshotClipsArtwork` on an emulator to check the rounded artwork in the captured pixels. [Android PixelCopy API](https://developer.android.com/reference/android/view/PixelCopy)
 
 Run `python3 build/android/test-download-network.py <serial>` on an Android phone emulator with the Docker fixtures running. The driver switches the emulator between AndroidWifi, mobile data and offline while the app transfers an actual movie. It restores the Wi-Fi and mobile-data settings on exit. [Download network proof](../../docs/ui-review/storage-downloads.md#wi-fi-downloads)

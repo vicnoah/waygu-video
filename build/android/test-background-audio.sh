@@ -18,6 +18,7 @@ trap 'rm -rf -- "$stage"' EXIT
 cp -R "$source" "$stage/nsgo"
 chmod -R u+w "$stage/nsgo"
 gzip -dc "build/android/classes-$version.dex.gz" > "$stage/nsgo/internal/platform/android/runtime/classes.dex"
+patch -d "$stage/nsgo" -F 0 -p1 < build/android/nsgo-tv.patch
 patch -d "$stage/nsgo" -F 0 -p1 < build/android/nsgo-playback-manifest.patch
 # Preserve the real launcher channel when the native test has no simulated host.
 patch -d "$stage/nsgo" -F 0 -p1 < build/android/nsgo-test-host.patch
