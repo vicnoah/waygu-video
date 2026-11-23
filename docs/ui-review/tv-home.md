@@ -50,7 +50,7 @@ After 750 ms of focus in the featured actions, Waygu looks for a trailer attache
 
 The test footage uses a synthetic color chart, and the buttons and scrims occupy the same positions as in the artwork captures. GTK elides the fixture title sooner than Android because of native font metrics. The Android image comes from the emulator display. The native test host's software snapshot omits the video texture.
 
-`TestDockerTVSilentTrailer` uses Emby and Jellyfin trailer fixtures and checks mute, fill mode, focus and artwork restoration. The GTK and Android TV runs decode the Emby trailer. The preview has its own encoding session and creates no viewing history. Plex supplies trailers when present in Extras. Its unclaimed Docker fixture has no trailer. Flymoo displays artwork because its adapter has no trailer endpoint. tvOS preview decoding remains to be verified.
+`TestDockerTVSilentTrailer` uses Emby and Jellyfin trailer fixtures and checks mute, fill mode, focus and artwork restoration. The GTK and Android TV runs decode the Emby trailer. The preview has its own encoding session and creates no viewing history. Plex supplies trailers when present in Extras. Its unclaimed Docker fixture has no trailer. Flymoo displays artwork because its adapter has no trailer endpoint. The Apple TV simulator decoded the authorized synthetic trailer and captured the active video layer. [Apple TV native evidence](#apple-tv-initial-focus)
 
 ```sh
 go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
@@ -65,12 +65,14 @@ The 1920 × 1080 Android TV emulator ran the installed x86-64 Leanback APK again
 
 ![Android TV remote focus on the hero, resume bookmark, and recent poster](images/tv-home-android-remote.png)
 
-With a connected test library and at least two saved bookmarks, start Waygu from Leanback and run `python3 build/android/tv-smoke.py --with-library` on the host. The script uses the connected emulator's Android serial. Physical TV and tvOS validation remain pending.
+With a connected test library and at least two saved bookmarks, start Waygu from Leanback and run `python3 build/android/tv-smoke.py --with-library` on the host. The script uses the connected emulator's Android serial. Physical TV checks and the equivalent Apple TV shelf and detail navigation remain pending.
 
 ## Apple TV initial focus
 
-The Apple TV simulator ran the Simplified Chinese layout in a 1920 × 1080 pt viewport. The initial capture shows UIKit focusing Search when the featured panel appeared. The static cover remained on screen and the trailer did not start. The updated app requests the primary action after UIKit reports its first focus inside the featured panel. The handoff runs once per panel. The Apple package applies the controller-level focus update while the destination is the preferred focus. [Initial Apple TV run](https://github.com/vicnoah/waygu-video/actions/runs/45142961369)
+The Apple TV simulator ran the Simplified Chinese layout in a 1920 × 1080 pt viewport. The left frame shows UIKit initially focusing Search over the static cover. The right frame shows Play focused over the purple H.264 test frame. The app requests the primary action after UIKit reports its first focus inside the featured panel. Each frame is shown at 960 × 540 px. UIKit elides the test title earlier and wraps the synopsis sooner than GTK. [Initial Apple TV run](https://github.com/vicnoah/waygu-video/actions/runs/45142961369) · [Native Apple TV capture](https://github.com/vicnoah/waygu-video/actions/runs/45145736372)
 
-![Apple TV homepage before the initial focus fix, with Search focused](images/tv-home-tvos-initial-focus.png)
+![Apple TV Home before and after the focus fix, showing Search over artwork and Play over the decoded trailer](images/tv-home-tvos-initial-focus.png)
 
-The Apple TV build uses `sh build/apple/package.sh build -target tvos`. [UIKit focus updates](https://developer.apple.com/documentation/uikit/uifocussystem/requestfocusupdate%28to%3A%29?language=objc)
+`TestTVHomeNativeFixture` verified the visible Play focus ring, the authorized trailer request, muted cover playback and replacement of the artwork after the native player advanced. The second frame comes from the simulator display. The run stopped when Up from Play left the trailer mounted, so artwork restoration and the Home layout sequence still need Apple TV validation. GTK and Android TV pass that fixture. [Apple TV test result](https://github.com/vicnoah/waygu-video/actions/runs/45145736372)
+
+The Apple TV build uses `sh build/apple/package.sh build -target tvos`. The package applies a controller-level focus update with the requested view set as the preferred focus. [UIKit focus updates](https://developer.apple.com/documentation/uikit/uifocussystem/requestfocusupdate%28to%3A%29?language=objc)

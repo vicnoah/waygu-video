@@ -49,4 +49,4 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerTVHomeLayout$' -screenshots .nsgo/ui-review/tv-home-layout
 ```
 
-On Android TV, forward the Docker fixture ports 18096, 28096 and 32400 with `adb reverse` and run `sh build/android/package.sh test -device <serial> -env WAYGU_TEST_SERVERS=1 -run '^TestDockerTVHomeLayout$'`. The tvOS remote still needs a native run.
+On Android TV, forward the Docker fixture ports 18096, 28096 and 32400 with `adb reverse` and run `sh build/android/package.sh test -device <serial> -env WAYGU_TEST_SERVERS=1 -run '^TestDockerTVHomeLayout$'`. The Apple TV simulator test reached the background trailer and stopped at the Up transition before this panel. [Apple TV run](tv-home.md#apple-tv-initial-focus)
