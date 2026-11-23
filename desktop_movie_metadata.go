@@ -210,7 +210,7 @@ func desktopMovieFile(cx *core.Scope, current route, item media.Item, version me
 		{pathLabel, file},
 		{locales.DesktopMovieContainer(cx), desktopMovieFacts(strings.ToUpper(version.Container), positiveMediaBytes(version.Size))},
 		{locales.MovieFileVideo(cx), desktopMovieFacts(strings.ToUpper(version.VideoCodec), dimensions, videoFrameRate(version))},
-		{locales.DesktopMovieDynamicRange(cx), describeVideoRange(desktopVideoRange(cx, version), version)},
+		{locales.DesktopMovieDynamicRange(cx), describeVideoRange(localizedDetailVideoRange(cx, version), version)},
 		{locales.MovieFileBitrate(cx), bitrate},
 		{locales.DetailAudio(cx), audio},
 		{locales.Subtitles(cx), subtitles},
@@ -233,20 +233,12 @@ func desktopMovieFileRow(label string, value core.Node) core.Node {
 	}}
 }
 
-func desktopVideoRange(cx *core.Scope, version media.Version) string {
-	value := detailVideoRange(version)
-	if value == "Dolby Vision" {
-		return locales.DesktopMovieDolbyVision(cx)
-	}
-	return value
-}
-
 func desktopVideoFormat(cx *core.Scope, profile media.VideoProfile) string {
 	var parts []string
 	if resolution := libraryResolution(profile); resolution > 0 {
 		parts = append(parts, libraryResolutionName(resolution))
 	}
-	if dynamicRange := desktopVideoRange(cx, media.Version{VideoRange: profile.Range}); dynamicRange != "" {
+	if dynamicRange := localizedDetailVideoRange(cx, media.Version{VideoRange: profile.Range}); dynamicRange != "" {
 		parts = append(parts, dynamicRange)
 	}
 	return strings.Join(parts, " ")

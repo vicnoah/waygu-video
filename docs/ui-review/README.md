@@ -19,9 +19,9 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Phone appearance · light and dark | [Layout and saved preference checks](phone-appearance.md) | Compared on GTK at phone width. The local Docker fixtures verify home and library effects. Mobile device captures remain pending. |
 | Phone parental controls · light and dark | [PIN, rating and viewing-time comparisons](phone-parental.md) | Compared on GTK with Docker fixtures and verified with a simulated playback clock. Mobile and TV device checks remain pending. |
 | Tablet home · light and dark | [Screenshots and tablet interaction checks](tablet-home.md) | The tablet layout was compared on Linux GTK with three Docker media servers. Real-device captures remain pending. |
-| Tablet movie detail · light and dark | [Screenshots and playback checks](tablet-detail.md) | Compared on GTK with Docker movie metadata and tracks. Tablet device checks remain pending. |
+| Tablet movie detail · light and dark | [Screenshots and playback checks](tablet-detail.md) | Compared on GTK with Docker playback and on an Android landscape viewport with rating and format fixtures. Android artwork clipping and physical tablet checks remain pending. |
 | TV home · light and dark | [Design, shelf and remote checks](tv-home.md) | Compared at 1920 × 1760 pt on GTK with three Docker media servers. Android TV D-pad navigation passed at 1920 × 1080. Apple TV simulator checks cover preview playback, moving focus to Home and artwork restoration. |
-| TV detail · light and dark | [Movie details, resume and remote checks](tv-detail.md) | Compared at 1920 × 1640 pt on GTK. Android TV remote navigation passed at 1920 × 1080. |
+| TV detail · light and dark | [Movie details, resume and remote checks](tv-detail.md) | Compared at 1920 × 1640 pt on GTK. Android TV checks cover remote navigation, attributed ratings and the format change between 4K and SDR at 1920 × 1080. |
 | TV player | [Playback, seek preview and quick settings comparisons](tv-player.md) | Compared at 1920 × 1080 pt on GTK. Android TV remote playback passed against Emby. The TV next-episode flow has captures of the preview, focus, countdown and season transition. Buffered progress and tvOS checks remain pending. |
 | TV settings · light and dark | [Danmaku, focus and pairing comparisons](tv-settings.md) | Compared at 1920 × 1080 pt on GTK. Pairing was tested with a Docker media source and the phone form. Android and Apple TV captures compare the focused danmaku area. Apple TV simulator checks also cover Home layout row order and visibility. |
 | Desktop home · light and dark | [Sidebar, carousel and shelf comparisons](desktop-home.md) | Compared on GTK in both appearances and on native Windows and macOS in dark appearance. The Apple silicon runner clips the outer edges. |
@@ -127,6 +127,12 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
 ```
 
 Use `WAYGU_REVIEW_DESIGN=tv-detail.scenra` to export the reference.
+
+Capture the tablet and TV rating and format rows using the simulated 4K and 1080p versions. Export the matching `tablet-detail.scenra` and `tv-detail.scenra` references.
+
+```sh
+go tool nsgo test -target linux -run '^TestDetailBadges$' -screenshots .nsgo/ui-review/detail-badges
+```
 
 Capture the TV player's full-screen controls, quick settings, seek preview and track picker at 1920 × 1080 pt.
 

@@ -259,7 +259,7 @@ func (p desktopPlayerControls) information(cx *core.Scope) core.Node {
 		if width > 0 && height > 0 {
 			resolution = fmt.Sprintf("%d×%d", width, height)
 		}
-		fps, bitrate, videoRange, codec := active.Rendition.FrameRate, int64(active.Rendition.Bitrate), desktopVideoRange(cx, active.Rendition),
+		fps, bitrate, videoRange, codec := active.Rendition.FrameRate, int64(active.Rendition.Bitrate), localizedDetailVideoRange(cx, active.Rendition),
 			strings.ToUpper(active.Rendition.VideoCodec)
 		if active.Method == media.Transcode {
 			fps, bitrate, videoRange, codec = 0, 0, "", ""

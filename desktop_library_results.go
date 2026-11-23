@@ -148,7 +148,7 @@ func (a *application) desktopLibraryResults(cx *core.Scope, rows *core.Memo[[]de
 
 func desktopLibraryBadge(cx *core.Scope, profile media.VideoProfile, resolutionOnly bool) string {
 	if !resolutionOnly {
-		if value := desktopVideoRange(cx, media.Version{VideoRange: profile.Range}); value != "" {
+		if value := localizedDetailVideoRange(cx, media.Version{VideoRange: profile.Range}); value != "" {
 			return value
 		}
 	}

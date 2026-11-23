@@ -2,6 +2,7 @@ package main
 
 import (
 	"cmp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -370,22 +371,40 @@ func tabletDetailHeader(cx *core.Scope, item media.Item, version media.Version) 
 	if len(meta) == 0 {
 		meta = append(meta, itemMetadata(cx, item))
 	}
-	nodes = append(nodes, core.Text{Content: strings.Join(meta, " · "), MaxLines: 2, Class: "text-sm " + setupTitle})
+	nodes = append(nodes, core.Text{Content: strings.Join(meta, " · "), MaxLines: 2, Class: "text-sm text-zinc-900/80 dark:text-zinc-50/80"})
 	var badges []core.Node
-	if item.Rating > 0 {
+	for _, rating := range []struct{ name, value, background, tint string }{
+		{"IMDb", movieRatingDecimal(item.Ratings.IMDb), "bg-amber-500/15", "text-amber-500"},
+		{"TMDB", movieRatingPercent(item.Ratings.TMDB), "bg-sky-500/15", "text-sky-500"},
+	} {
+		if rating.value != "" {
+			badges = append(badges, core.View{Class: "flex-row items-center gap-1.5 rounded-md px-2 py-1 " + rating.background, Children: []core.Node{
+				core.Text{Content: rating.name, Class: "text-xs font-bold " + rating.tint},
+				core.Text{Content: rating.value, Class: "text-xs font-bold " + setupTitle},
+			}})
+		}
+	}
+	if len(badges) == 0 && item.Rating > 0 {
 		badges = append(badges, core.View{Class: "flex-row items-center gap-1.5 rounded-md bg-amber-500/15 px-2 py-1", Children: []core.Node{
 			core.Icon{SVG: lucide.Star(), Class: "size-3 text-amber-500"},
 			core.Text{Content: strconv.FormatFloat(item.Rating, 'f', 1, 64), Class: "text-xs font-bold " + setupTitle},
 		}})
 	}
-	for _, label := range []string{detailResolution(version), detailVideoRange(version)} {
+	formats := []string{detailResolution(version), localizedDetailVideoRange(cx, version)}
+	if slices.ContainsFunc(version.Tracks, media.Track.HasAtmos) {
+		formats = append(formats, "Atmos")
+	}
+	if slices.ContainsFunc(version.Tracks, chineseSubtitleTrack) {
+		formats = append(formats, locales.DesktopMovieChineseSubtitles(cx))
+	}
+	for _, label := range formats {
 		if label != "" {
 			badges = append(badges, core.Text{Content: label,
 				Class: "rounded-md bg-zinc-900/5 px-1.5 py-0.5 text-[11px] font-semibold dark:bg-zinc-50/5 " + setupBorder + " " + setupTitle})
 		}
 	}
 	if len(badges) != 0 {
-		nodes = append(nodes, core.View{Class: "flex-row flex-wrap items-center gap-2", Children: badges})
+		nodes = append(nodes, core.View{Class: "flex-row flex-wrap items-center gap-2", TestID: "tablet-detail-badges", Children: badges})
 	}
 	return nodes
 }
@@ -409,6 +428,32 @@ func detailVideoRange(version media.Version) string {
 		return rangeType
 	}
 	return ""
+}
+
+func localizedDetailVideoRange(cx *core.Scope, version media.Version) string {
+	value := detailVideoRange(version)
+	if value == "Dolby Vision" {
+		return locales.DesktopMovieDolbyVision(cx)
+	}
+	return value
+}
+
+func detailCompatibleHDR(version media.Version) string {
+	if version.CompatibleRange == "SDR" {
+		return ""
+	}
+	return version.CompatibleRange
+}
+
+func chineseSubtitleTrack(track media.Track) bool {
+	if track.Type != "subtitle" {
+		return false
+	}
+	switch subtitleLanguage(track.Language) {
+	case "zh", "zh-Hans", "zh-Hant", "cmn":
+		return true
+	}
+	return false
 }
 
 func describeVideoRange(label string, version media.Version) string {
@@ -483,9 +528,7 @@ func tabletDetailFile(cx *core.Scope, source string, version media.Version) core
 	if version.Width > 0 && version.Height > 0 {
 		video = append(video, strconv.Itoa(version.Width)+"×"+strconv.Itoa(version.Height))
 	}
-	if name := describeVideoRange(detailVideoRange(version), version); name != "" {
-		video = append(video, name)
-	}
+	videoLine := desktopMovieFacts(strings.Join(video, " "), describeVideoRange(localizedDetailVideoRange(cx, version), version))
 	subtitles := 0
 	for _, track := range version.Tracks {
 		if track.Type == "subtitle" {
@@ -508,7 +551,7 @@ func tabletDetailFile(cx *core.Scope, source string, version media.Version) core
 			core.View{Class: "flex-row items-center justify-between", Children: header},
 			core.View{Class: "flex-row gap-6", Children: []core.Node{
 				row(locales.FileSource(cx, source), strings.Join(file, " · ")),
-				row(strings.Join(video, " "), strings.Join(audio, " · ")),
+				row(videoLine, strings.Join(audio, " · ")),
 			}},
 		}}
 }

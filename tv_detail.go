@@ -170,14 +170,24 @@ func tvDetailFacts(cx *core.Scope, l tvLayout, src source, item media.Item, vers
 		meta = append(meta, item.ContentRating)
 	}
 	detailMeta := l.text(strings.Join(meta, " · "), 24, "text-white/80 min-w-0 shrink")
-	facts := core.View{Class: "flex-row items-center", Style: core.Style{Gap: l.points(20)}, Children: []core.Node{detailMeta}}
-	if item.Rating > 0 {
-		rating := core.View{Class: "flex-row items-center", Style: core.Style{Gap: l.points(8)}, Children: []core.Node{
-			l.text(locales.TvRating(cx), 16, "rounded bg-emerald-600 px-2 py-0.5 font-bold text-white"),
-			l.text(strconv.FormatFloat(item.Rating, 'f', 1, 64), 24, "font-semibold text-white"),
+	facts := core.View{Class: "flex-row items-center", Style: core.Style{Gap: l.points(20)}, TestID: "tv-detail-facts"}
+	ratingBadge := func(name, score, tint string) core.Node {
+		label := l.text(name, 16, "rounded font-bold "+tint)
+		label.Style.Padding = l.padding(8, 2)
+		return core.View{Class: "flex-row shrink-0 items-center", Style: core.Style{Gap: l.points(8)}, Children: []core.Node{
+			label, l.text(score, 24, "font-semibold text-white"),
 		}}
-		facts.Children = append([]core.Node{rating}, facts.Children...)
 	}
+	if score := movieRatingDecimal(item.Ratings.IMDb); score != "" {
+		facts.Children = append(facts.Children, ratingBadge("IMDb", score, "bg-amber-400 text-black"))
+	}
+	if score := movieRatingPercent(item.Ratings.TMDB); score != "" {
+		facts.Children = append(facts.Children, ratingBadge("TMDB", score, "bg-sky-500 text-white"))
+	}
+	if len(facts.Children) == 0 && item.Rating > 0 {
+		facts.Children = append(facts.Children, ratingBadge(locales.TvRating(cx), strconv.FormatFloat(item.Rating, 'f', 1, 64), "bg-emerald-600 text-white"))
+	}
+	facts.Children = append(facts.Children, detailMeta)
 	dotClass, _ := tvProviderStyle(src.Provider)
 	tag := core.View{Class: "flex-row items-center rounded-md border border-emerald-400/30 bg-emerald-500/25",
 		Style: core.Style{Gap: l.points(8), Padding: l.padding(10, 4)}, Children: []core.Node{
@@ -202,18 +212,11 @@ func tvDetailFacts(cx *core.Scope, l tvLayout, src source, item media.Item, vers
 }
 
 func tvDetailFormats(cx *core.Scope, version media.Version) []string {
-	formats := []string{detailResolution(version), detailVideoRange(version)}
-	hasChinese := false
-	for _, track := range version.Tracks {
-		if track.HasAtmos() && !slices.Contains(formats, "Dolby Atmos") {
-			formats = append(formats, "Dolby Atmos")
-		}
-		if track.Type == "subtitle" {
-			language := strings.ToLower(track.Language)
-			hasChinese = hasChinese || language == "chi" || language == "zho" || language == "cmn" || language == "zh" || strings.HasPrefix(language, "zh-")
-		}
+	formats := []string{detailResolution(version), localizedDetailVideoRange(cx, version), detailCompatibleHDR(version)}
+	if slices.ContainsFunc(version.Tracks, media.Track.HasAtmos) {
+		formats = append(formats, "Dolby Atmos")
 	}
-	if hasChinese {
+	if slices.ContainsFunc(version.Tracks, chineseSubtitleTrack) {
 		formats = append(formats, locales.TvChineseSubtitles(cx))
 	}
 	return slices.DeleteFunc(formats, func(value string) bool { return value == "" })

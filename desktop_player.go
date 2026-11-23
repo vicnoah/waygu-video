@@ -151,7 +151,7 @@ func (p desktopPlayerControls) format(cx *core.Scope) string {
 	if p.stream().Method == media.Transcode {
 		version.VideoRange = ""
 	}
-	return desktopMovieFacts(detailResolution(version), desktopVideoRange(cx, version))
+	return desktopMovieFacts(detailResolution(version), localizedDetailVideoRange(cx, version))
 }
 
 func (p desktopPlayerControls) transport(cx *core.Scope, showDanmaku func()) core.Node {

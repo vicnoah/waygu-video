@@ -3,6 +3,7 @@ package main
 import (
 	"cmp"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -199,24 +200,14 @@ func desktopMovieBadges(cx *core.Scope, item media.Item, version media.Version) 
 		}})
 	}
 	atmos, chinese := "", ""
-	for _, track := range version.Tracks {
-		if track.HasAtmos() {
-			atmos = "Atmos"
-		}
-		if track.Type == "subtitle" {
-			language, _, _ := strings.Cut(strings.ReplaceAll(strings.ToLower(track.Language), "_", "-"), "-")
-			switch language {
-			case "zh", "zho", "chi":
-				chinese = locales.DesktopMovieChineseSubtitles(cx)
-			}
-		}
+	if slices.ContainsFunc(version.Tracks, media.Track.HasAtmos) {
+		atmos = "Atmos"
+	}
+	if slices.ContainsFunc(version.Tracks, chineseSubtitleTrack) {
+		chinese = locales.DesktopMovieChineseSubtitles(cx)
 	}
 	var tech []core.Node
-	compatible := version.CompatibleRange
-	if compatible == "SDR" {
-		compatible = ""
-	}
-	for _, badge := range []string{detailResolution(version), desktopVideoRange(cx, version), compatible, atmos, strings.ToUpper(version.VideoCodec), chinese} {
+	for _, badge := range []string{detailResolution(version), localizedDetailVideoRange(cx, version), detailCompatibleHDR(version), atmos, strings.ToUpper(version.VideoCodec), chinese} {
 		if badge != "" {
 			tech = append(tech, core.Text{Content: badge,
 				Class: "rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"})

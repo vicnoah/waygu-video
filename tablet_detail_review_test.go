@@ -87,6 +87,7 @@ func TestDockerTabletDetailReview(t *testing.T) {
 				app.WaitFor("id:tablet-detail-poster", 5*time.Second)
 			}
 			open(title)
+			app.WaitFor("id:tablet-detail-badges >> text:8.3", 5*time.Second)
 			app.WaitFor("id:detail-play", 5*time.Second)
 			app.WaitFor("id:detail-audio", 5*time.Second)
 			app.WaitFor("id:detail-subtitle", 5*time.Second)
