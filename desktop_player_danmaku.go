@@ -19,13 +19,20 @@ func (a *application) desktopPlayerDanmakuPanel(cx *core.Scope, p desktopPlayerC
 		return locales.DesktopDanmakuLoaded(cx, strconv.Itoa(p.comments.count()))
 	}
 	origins := func() string {
-		local, remote := p.comments.rawCounts()
+		local, dandan, logvar := p.comments.rawCounts()
 		var counts []string
 		if local > 0 {
 			counts = append(counts, locales.DesktopDanmakuLocalCount(cx, strconv.Itoa(local)))
 		}
-		if remote > 0 {
-			counts = append(counts, locales.DesktopDanmakuRemoteCount(cx, strconv.Itoa(remote)))
+		if dandan > 0 {
+			if p.current.downloadID != "" {
+				counts = append(counts, locales.LogvarSavedComments(cx))
+			} else {
+				counts = append(counts, locales.DesktopDanmakuRemoteCount(cx, strconv.Itoa(dandan)))
+			}
+		}
+		if logvar > 0 {
+			counts = append(counts, locales.LogvarCommentCount(cx, strconv.Itoa(logvar)))
 		}
 		return desktopMovieFacts(counts...)
 	}

@@ -64,13 +64,24 @@ func (a *application) tvDanmakuOptions(cx *core.Scope, l tvLayout, current route
 		content: func(focused func() bool) core.Node { return tvAreaSetting(cx, l, edit.prefs.Get, focused) }}
 	filters := core.NewSignal(cx, false)
 	credentials := core.NewSignal(cx, false)
+	custom := core.NewSignal(cx, false)
 	*dialogs = append(*dialogs,
 		ui.Dialog{Open: filters.Get, OnOpenChange: func(open bool, _ base.Reason) { filters.Set(open) }, Title: locales.DanmakuKeywords(cx),
 			Children: []core.Node{core.Func(func(cx *core.Scope) core.Node {
 				return edit.filterEditor(cx, func() { filters.Set(false) })
 			}), edit.warning()}},
 		ui.Dialog{Open: credentials.Get, OnOpenChange: func(open bool, _ base.Reason) { credentials.Set(open) }, Title: locales.DanmakuSources(cx),
-			Children: []core.Node{core.Func(a.danmakuSettings)}},
+			Children: []core.Node{core.Func(a.danmakuSettings),
+				ui.Button{Text: locales.PhoneDanmakuCustom(cx), Variant: ui.ButtonOutline, TestID: "tv-danmaku-logvar", OnPress: func() {
+					cx.Batch(func() { credentials.Set(false); custom.Set(true) })
+				}}}},
+		ui.Dialog{Open: custom.Get, Title: locales.PhoneDanmakuCustom(cx), OnOpenChange: func(open bool, _ base.Reason) { custom.Set(open) },
+			Children: []core.Node{core.Show{When: custom.Get, Then: func(cx *core.Scope) core.Node {
+				return core.View{Class: "gap-3", Children: []core.Node{
+					edit.toggle(locales.PhoneDanmakuDisableSource(cx), "tv-danmaku-disable-logvar", func(p *danmakuPreferences) *bool { return &p.DisableLogvar }),
+					a.logvarSettings(cx, nil),
+				}}
+			}}}},
 	)
 	return []tvOption{
 		toggle("tv-danmaku-visible", locales.TvDanmakuVisible(cx), func(p danmakuPreferences) bool { return p.Enabled },

@@ -130,6 +130,9 @@ func (a *application) settings(cx *core.Scope) core.Node {
 			}},
 			core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: playbackControls},
 			a.danmakuSettings(cx),
+			core.View{Class: "gap-3 rounded-2xl border border-border bg-card p-5", Children: []core.Node{
+				heading(locales.PhoneDanmakuCustom(cx)), a.logvarSettings(cx, nil),
+			}},
 			a.danmakuDefaults(cx),
 			ui.Button{Text: locales.SettingsAppearance(cx), Icon: lucide.Palette, TestID: "open-appearance-settings",
 				Variant: ui.ButtonOutline, OnPress: func() { a.push(route{screen: screenAppearanceSettings}) }},

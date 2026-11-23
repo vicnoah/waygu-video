@@ -89,11 +89,39 @@ type danmakuBinding struct {
 
 func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.Stream,
 	apply func([]danmaku.Comment, float64), closePanel, showOnMiss func()) core.Node {
-	key, seasonKey := danmakuBindingKey(current), danmakuSeasonKey(current)
-	bindings := core.Untracked(cx, func() danmakuMatchBindings {
-		return readDanmakuBindings(a.storage, key, seasonKey)
+	form, _ := a.remoteDanmaku(cx, current, stream, false, apply, closePanel, showOnMiss)
+	return form
+}
+
+func (a *application) remoteDanmaku(cx *core.Scope, current route, stream media.Stream, logvar bool,
+	apply func([]danmaku.Comment, float64), closePanel, showOnMiss func()) (core.Node, func() bool) {
+	type credentials struct {
+		dandan danmaku.DandanCredentials
+		logvar danmaku.LogvarConfig
+	}
+	config := core.NewResource(cx, nil, func(context.Context, struct{}, core.ResourceInfo) (credentials, error) {
+		if logvar {
+			value, err := a.logvarConfig()
+			return credentials{logvar: value}, err
+		}
+		value, err := a.dandanCredentials()
+		return credentials{dandan: value}, err
 	})
-	saved := bindings.item
+	type keys struct{ item, season string }
+	bindingKeys := core.NewMemo(cx, func() keys {
+		if !logvar {
+			return keys{danmakuBindingKey(current), danmakuSeasonKey(current)}
+		}
+		value, ready := config.Get()
+		if ready && value.logvar.Address != "" {
+			return keys{item: logvarBindingKey(current, value.logvar)}
+		}
+		return keys{}
+	})
+	bindings := core.NewMemoFunc(cx, func() danmakuMatchBindings {
+		key := bindingKeys.Get()
+		return core.Untracked(cx, func() danmakuMatchBindings { return readDanmakuBindings(a.storage, key.item, key.season) })
+	}, nil)
 	cache := cx.CacheDir()
 	title, _ := danmakuSearchTitle(current.item)
 	draft := core.NewSignal(cx, title)
@@ -102,40 +130,61 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 		initial.action = danmakuIdentify
 	}
 	query := core.NewSignal(cx, initial)
-	picked := core.NewSignal(cx, saved)
+	picked := core.NewSignal(cx, danmaku.DandanEpisode{})
+	cx.Effect(func() { picked.Set(bindings.Get().item) })
 	matches := core.NewSignalFunc(cx, danmaku.EpisodeMatches{}, nil)
 	saveError := core.NewSignal(cx, false)
-	credentials := core.NewResource(cx, nil, func(context.Context, struct{}, core.ResourceInfo) (danmaku.DandanCredentials, error) {
-		return a.dandanCredentials()
+	sourceEnabled := core.NewMemo(cx, func() bool {
+		prefs := a.danmakuPrefs.Get()
+		if logvar {
+			return !prefs.DisableLogvar
+		}
+		return !prefs.DisableDandan
 	})
-	sourceEnabled := core.NewMemo(cx, func() bool { return !a.danmakuPrefs.Get().DisableDandan })
+	configured := func() bool {
+		value, ok := config.Get()
+		return ok && (value.logvar.Address != "" || (value.dandan.AppID != "" && value.dandan.Secret != ""))
+	}
 	canSearch := func() bool {
-		value, ok := credentials.Get()
-		return sourceEnabled.Get() && ok && value.AppID != "" && value.Secret != ""
+		return sourceEnabled.Get() && configured()
 	}
 	autoMatch := core.NewMemo(cx, func() bool { return a.danmakuPrefs.Get().AutoMatch })
 	type danmakuQuery struct {
 		danmakuRequest
-		credentials danmaku.DandanCredentials
+		credentials
+		bindings danmakuMatchBindings
 	}
 	resource := core.NewResource(cx, func() (danmakuQuery, bool) {
 		request := query.Get()
-		value, _ := credentials.Get()
-		active := request.action != danmakuIdle && value.AppID != "" && value.Secret != "" && sourceEnabled.Get()
-		if request.action == danmakuIdentify && saved.ID <= 0 {
+		value, _ := config.Get()
+		saved := bindings.Get()
+		active := request.action != danmakuIdle && canSearch()
+		if request.action == danmakuIdentify && saved.item.ID <= 0 {
 			active = active && autoMatch.Get()
 		}
-		return danmakuQuery{request, value}, active
+		return danmakuQuery{request, value, saved}, active
 	}, func(ctx context.Context, request danmakuQuery, _ core.ResourceInfo) (danmakuResult, error) {
-		client := a.newDandan(request.credentials)
 		result := danmakuResult{bound: request.pick}
+		var client *danmaku.DandanClient
 		var err error
+		if logvar {
+			client, err = danmaku.NewLogvarClient(request.credentials.logvar)
+			if err != nil {
+				return result, err
+			}
+		} else {
+			client = a.newDandan(request.credentials.dandan)
+		}
 		switch request.action {
 		case danmakuSearch:
 			result.matches, err = client.Search(ctx, request.title, "")
 			return result, err
 		case danmakuIdentify:
-			result, err = findDanmakuBinding(ctx, client, stream, current.item, bindings)
+			if logvar {
+				result, err = findLogvarBinding(ctx, client, current.item, request.bindings.item)
+			} else {
+				result, err = findDanmakuBinding(ctx, client, stream, current.item, request.bindings)
+			}
 			if err != nil || result.bound.ID <= 0 {
 				return result, err
 			}
@@ -154,7 +203,7 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 		matches.Set(result.matches)
 		if result.bound.ID <= 0 {
 			prefs := a.danmakuPrefs.GetUntracked()
-			if showOnMiss != nil && !prompted && prefs.Enabled && prefs.AutoMatch && !prefs.DisableDandan &&
+			if showOnMiss != nil && !prompted && prefs.Enabled && prefs.AutoMatch && sourceEnabled.GetUntracked() &&
 				prefs.PromptOnMiss && query.GetUntracked().action == danmakuIdentify {
 				prompted = true
 				showOnMiss()
@@ -171,11 +220,12 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 			binding.Count = &count
 		}
 		encoded, _ := json.Marshal(binding)
-		err := a.storage.SetItem(key, string(encoded))
-		if err == nil && seasonKey != "" && result.bound.AnimeID > 0 && !result.inferred &&
-			(query.GetUntracked().action == danmakuPick || saved.ID <= 0) {
+		key := bindingKeys.GetUntracked()
+		err := a.storage.SetItem(key.item, string(encoded))
+		if err == nil && key.season != "" && result.bound.AnimeID > 0 && !result.inferred &&
+			(query.GetUntracked().action == danmakuPick || bindings.GetUntracked().item.ID <= 0) {
 			note, _ := json.Marshal(danmakuSeason{Episode: result.bound, Number: current.item.Episode})
-			err = a.storage.SetItem(seasonKey, string(note))
+			err = a.storage.SetItem(key.season, string(note))
 		}
 		saveError.Set(err != nil)
 		if err == nil && query.GetUntracked().action == danmakuPick {
@@ -195,15 +245,25 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 			submit(danmakuRequest{action: danmakuSearch, title: strings.TrimSpace(draft.GetUntracked())})
 		}
 	}
+	id := "danmaku"
+	searchLabel := locales.DanmakuSearch(cx)
+	if logvar {
+		id, searchLabel = "logvar", locales.LogvarSearch(cx)
+	}
 	state := core.Dynamic(func(cx *core.Scope) core.Node {
 		var rows []core.Node
 		if selected := picked.Get(); selected.ID > 0 {
-			rows = append(rows, hint(locales.DanmakuBoundEpisode(cx, selected.Label())),
-				ui.Button{Text: locales.DanmakuUnbind(cx), Variant: ui.ButtonGhost, TestID: "danmaku-unbind", OnPress: func() {
+			label := locales.DanmakuBoundEpisode(cx, selected.Label())
+			if logvar {
+				label = locales.LogvarBound(cx, selected.Label())
+			}
+			rows = append(rows, hint(label),
+				ui.Button{Text: locales.DanmakuUnbind(cx), Variant: ui.ButtonGhost, TestID: id + "-unbind", OnPress: func() {
 					query.Set(danmakuRequest{})
-					a.storage.RemoveItem(key)
-					if seasonKey != "" {
-						a.storage.RemoveItem(seasonKey)
+					key := bindingKeys.GetUntracked()
+					a.storage.RemoveItem(key.item)
+					if key.season != "" {
+						a.storage.RemoveItem(key.season)
 					}
 					picked.Set(danmaku.DandanEpisode{})
 					matches.Set(danmaku.EpisodeMatches{})
@@ -212,15 +272,21 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 					}
 				}})
 		}
-		if credentials.Loading() || resource.Loading() {
+		if config.Loading() || resource.Loading() {
 			return core.View{Class: "gap-3", Children: append(rows, hint(locales.Loading(cx)))}
 		}
-		if credentials.Err() != nil {
+		if config.Err() != nil {
 			rows = append(rows, notice(locales.SecretUnavailable(cx)))
 		} else if err := resource.Err(); err != nil && query.Get().action != danmakuIdle {
 			message := locales.DanmakuOnlineError(cx)
 			if errors.Is(err, danmaku.ErrDandanCredentials) {
 				message = locales.DanmakuCredentialsError(cx)
+			}
+			if logvar {
+				message = locales.LogvarFailed(cx)
+				if errors.Is(err, danmaku.ErrLogvarAuthentication) {
+					message = locales.LogvarRejected(cx)
+				}
 			}
 			rows = append(rows, notice(message), ui.Button{Text: locales.Retry(cx), Variant: ui.ButtonOutline,
 				OnPress: resource.Refetch})
@@ -242,16 +308,16 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 		}
 		for _, candidate := range results.Episodes[:min(40, len(results.Episodes))] {
 			rows = append(rows, ui.Button{Text: candidate.Label(), Variant: ui.ButtonOutline,
-				TestID:  "danmaku-episode-" + strconv.FormatInt(candidate.ID, 10),
+				TestID:  id + "-episode-" + strconv.FormatInt(candidate.ID, 10),
 				OnPress: func() { submit(danmakuRequest{action: danmakuPick, pick: candidate}) }})
 		}
 		return core.View{Class: "gap-3", Children: rows}
 	})
-	return core.View{Class: "gap-3",
+	form := core.View{Class: "gap-3",
 		Children: []core.Node{
 			ui.Input{Label: locales.DanmakuSearchTitle(cx), Placeholder: locales.DanmakuSearchTitle(cx), Value: draft.Get,
-				OnChange: draft.Set, TestID: "danmaku-search-title"},
-			ui.Button{Text: locales.DanmakuSearch(cx), Icon: lucide.Search, TestID: "danmaku-search",
+				OnChange: draft.Set, TestID: id + "-search-title"},
+			ui.Button{Text: searchLabel, Icon: lucide.Search, TestID: id + "-search",
 				Disabled: func() bool {
 					return !canSearch() || utf8.RuneCountInString(strings.TrimSpace(draft.Get())) < 2
 				},
@@ -259,6 +325,10 @@ func (a *application) onlineDanmaku(cx *core.Scope, current route, stream media.
 			state,
 		},
 	}
+	if logvar {
+		return core.Show{When: configured, Then: func(cx *core.Scope) core.Node { return form }}, configured
+	}
+	return form, configured
 }
 
 type danmakuMatchBindings struct {
@@ -268,8 +338,10 @@ type danmakuMatchBindings struct {
 
 func readDanmakuBindings(storage core.Storage, key, seasonKey string) danmakuMatchBindings {
 	var bindings danmakuMatchBindings
-	if value, found := storage.GetItem(key); found {
-		_ = json.Unmarshal([]byte(value), &bindings.item)
+	if key != "" {
+		if value, found := storage.GetItem(key); found {
+			_ = json.Unmarshal([]byte(value), &bindings.item)
+		}
 	}
 	if seasonKey != "" {
 		if value, found := storage.GetItem(seasonKey); found {

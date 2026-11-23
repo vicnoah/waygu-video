@@ -35,6 +35,7 @@ type DandanCredentials struct {
 type DandanClient struct {
 	credentials DandanCredentials
 	http        http.Client
+	logvar      *logvarEndpoint
 }
 
 func NewDandanClient(credentials DandanCredentials, transport http.RoundTripper) *DandanClient {
@@ -194,7 +195,11 @@ type dandanComments struct {
 func (c *DandanClient) Comments(ctx context.Context, episode int64) ([]Comment, error) {
 	var response dandanComments
 	route := "/api/v2/comment/" + strconv.FormatInt(episode, 10)
-	err := c.request(ctx, http.MethodGet, route, url.Values{"withRelated": {"true"}}, nil, &response, &response.dandanStatus)
+	query := url.Values{"withRelated": {"true"}}
+	if c.logvar != nil {
+		query = url.Values{"format": {"json"}}
+	}
+	err := c.request(ctx, http.MethodGet, route, query, nil, &response, &response.dandanStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -233,38 +238,58 @@ func (c *DandanClient) request(ctx context.Context, method, route string, query 
 		payload = bytes.NewReader(data)
 	}
 	address := dandanOrigin + route
+	if c.logvar != nil {
+		address = c.logvar.path + route
+	}
 	if len(query) > 0 {
 		address += "?" + query.Encode()
 	}
 	request, err := http.NewRequestWithContext(ctx, method, address, payload)
 	if err != nil {
+		if c.logvar != nil {
+			return ErrLogvarRequest
+		}
 		return err
 	}
-	stamp := strconv.FormatInt(time.Now().Unix(), 10)
-	signature := sha256.Sum256([]byte(c.credentials.AppID + stamp + route + c.credentials.Secret))
-	request.Header.Set("X-AppId", c.credentials.AppID)
-	request.Header.Set("X-Timestamp", stamp)
-	request.Header.Set("X-Signature", base64.StdEncoding.EncodeToString(signature[:]))
+	if c.logvar == nil {
+		stamp := strconv.FormatInt(time.Now().Unix(), 10)
+		signature := sha256.Sum256([]byte(c.credentials.AppID + stamp + route + c.credentials.Secret))
+		request.Header.Set("X-AppId", c.credentials.AppID)
+		request.Header.Set("X-Timestamp", stamp)
+		request.Header.Set("X-Signature", base64.StdEncoding.EncodeToString(signature[:]))
+	}
 	request.Header.Set("Accept", "application/json")
 	if body != nil {
 		request.Header.Set("Content-Type", "application/json")
 	}
 	reply, err := c.http.Do(request)
 	if err != nil {
+		if c.logvar != nil {
+			return ErrLogvarRequest
+		}
 		return err
 	}
 	defer reply.Body.Close()
 	switch reply.StatusCode {
 	case http.StatusForbidden, http.StatusUnauthorized:
+		if c.logvar != nil {
+			return ErrLogvarAuthentication
+		}
 		return ErrDandanCredentials
 	case http.StatusOK:
 	default:
+		if c.logvar != nil {
+			return fmt.Errorf("%w (HTTP %d)", ErrLogvarRequest, reply.StatusCode)
+		}
 		return fmt.Errorf("DandanPlay HTTP status %d", reply.StatusCode)
 	}
 	if err := decodeDanmakuJSON(reply.Body, response); err != nil {
 		return err
 	}
 	if status.ErrorCode != 0 || (status.Success != nil && !*status.Success) {
+		if c.logvar != nil {
+			return fmt.Errorf("%w (API %d)", ErrLogvarRequest, status.ErrorCode)
+		}
 		return fmt.Errorf("DandanPlay API error %d", status.ErrorCode)
 	}
 	return nil

@@ -831,7 +831,7 @@ desktopSettingsMetadata: "Library and metadata"
 desktopSourceLocal: "Local address"
 desktopDanmakuEnabled: "Enable danmaku"
 desktopDanmakuClearCache: "Clear cache"
-desktopDanmakuClearCacheHint: "Clear downloaded DandanPlay comments from this device?"
+desktopDanmakuClearCacheHint: "Clear downloaded danmaku from this device?"
 
 parentalEnabled: "Enable parental controls"
 parentalPIN: "Access PIN"
@@ -915,9 +915,22 @@ NSLocationUsageDescription: "Use approximate location to switch to dark appearan
 appearanceLanguage: "Language"
 phoneDanmakuBasic: Basic
 phoneDanmakuSourcesTitle: Danmaku sources
-phoneDanmakuSourceHint: Configure DandanPlay with a developer app ID and secret. Import XML or JSON from the player.
+phoneDanmakuSourceHint: Comments from enabled sources are loaded and merged. Custom servers must support the DandanPlay API.
 phoneDanmakuUnconfigured: Unconfigured
 phoneDanmakuCustom: Custom danmaku server
+logvarName: Logvar
+logvarHelp: Enter the Logvar danmu-api server address. Enter its password if the server requires one.
+logvarPassword: Password (optional)
+logvarKeepPassword: Keep the saved password
+logvarSave: Save server
+logvarRemove: Remove server
+logvarInvalid: Enter a valid HTTP or HTTPS server address and a password without slashes.
+logvarRejected: The custom danmaku server rejected the password.
+logvarFailed: Could not load comments or matches from the custom server.
+logvarBound: "Logvar · {episode}"
+logvarSearch: Search Logvar
+logvarSavedComments: Saved danmaku
+logvarCommentCount: "{count} from Logvar"
 phoneDanmakuMatchTitle: Matching
 phoneDanmakuMatchHint: Identify episodes using the file hash and file name
 phoneDanmakuOnMiss: When automatic matching fails
@@ -974,7 +987,7 @@ aboutVideoFormats: MP4 with H.264 and AAC works on supported native players. MKV
 aboutSubtitleFormats: Import SRT or WebVTT subtitle files. Available muxed tracks and image subtitles depend on the media server and decoder.
 aboutDanmakuFormats: Import Bilibili-style XML and DandanPlay JSON comments from the player.
 aboutPrivacyServers: Your server addresses and library preferences are stored on this device. Passwords, tokens and developer secrets use the platform credential store where available.
-aboutPrivacyPlayback: The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay. Online subtitle searches send the title or file name and file fingerprints to the selected providers.
+aboutPrivacyPlayback: The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay and the title and episode number to your custom danmaku server. Online subtitle searches send the title or file name and file fingerprints to the selected providers.
 aboutPrivacyDiagnostics: You can turn network logging on under Debugging. It records the provider, HTTP method, status, time and duration on this device. Export saves an archive to the location you choose.
 aboutPrivacyLocation: If you enable sunset-based dark mode, the app may request approximate location. The rounded coordinates stay on your device.
 aboutOverlayBitrate: Bitrate

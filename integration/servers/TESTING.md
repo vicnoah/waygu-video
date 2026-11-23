@@ -110,6 +110,25 @@ sh build/android/package.sh test -device <serial> -env WAYGU_TEST_SERVERS=1 \
 
 [Storage and offline player evidence](../../docs/ui-review/storage-downloads.md#download-subtitles-and-danmaku)
 
+## Logvar danmaku
+
+`TestPlayerLogvarSettingsAndMatching` uses generated video and public and password-protected loopback endpoints. It exercises the custom server form, automatic and manual binding, reuse after reopening the player, and the comment retrieval path used by downloads. The client tests cover password encoding, cache isolation and redirect handling.
+
+```sh
+go tool nsgo test ./... -run 'Test.*Logvar' -count=1
+go tool nsgo test -target linux -run '^TestPlayerLogvarSettingsAndMatching$' \
+  -screenshots .nsgo/ui-review/logvar
+sh build/android/package.sh test -device <serial> \
+  -run '^TestPlayerLogvarSettingsAndMatching$/^light$' -timeout 150s \
+  -screenshots .nsgo/ui-review/android-logvar
+```
+
+For a live deployment, set `WAYGU_LOGVAR_LIVE_URL` and `WAYGU_LOGVAR_LIVE_TITLE`. Set `WAYGU_LOGVAR_LIVE_TOKEN` when the server requires a password. The test submits the public title through both the filename match and episode search endpoints, then reads and decodes the first search result's comments. [Settings comparison](../../docs/ui-review/phone-danmaku-settings.md#custom-logvar-server) · [Logvar API](https://github.com/huangxd-/danmu_api)
+
+```sh
+go tool nsgo test ./internal/danmaku -run '^TestLogvarLive$' -count=1 -v
+```
+
 ## Remember playback progress
 
 `TestDockerRememberPlaybackPosition` seeds the same movie at 92 seconds on Emby, Jellyfin and Plex. The phone player seeks to the existing point, then advances and closes while recording is off. The containers retain the previous position and the app saves no pending checkpoint. Turning the setting back on and repeating playback updates each server to 123 seconds.

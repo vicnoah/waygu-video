@@ -25,8 +25,9 @@ func (c *DandanClient) CachedComments(ctx context.Context, cacheDir string, epis
 	if cacheDir == "" {
 		return c.Comments(ctx, episode)
 	}
-	dir := filepath.Join(cacheDir, "dandanplay")
-	key := sha256.Sum256(fmt.Appendf(nil, "v2:%s:%d", c.credentials.AppID, episode))
+	namespace, identity := c.cacheLocation(episode)
+	dir := filepath.Join(cacheDir, namespace)
+	key := sha256.Sum256([]byte(identity))
 	path := filepath.Join(dir, fmt.Sprintf("%x.json.gz", key))
 	if comments, ok := readCommentCache(path); ok {
 		return comments, nil
@@ -125,7 +126,11 @@ func visitCachedComments(cacheDir string, visit func(*os.Root, fs.DirEntry) erro
 	if cacheDir == "" {
 		return nil
 	}
-	dir := filepath.Join(cacheDir, "dandanplay")
+	return errors.Join(visitCommentDirectory(filepath.Join(cacheDir, "dandanplay"), visit),
+		visitCommentDirectory(filepath.Join(cacheDir, "logvar-danmu"), visit))
+}
+
+func visitCommentDirectory(dir string, visit func(*os.Root, fs.DirEntry) error) error {
 	info, err := os.Lstat(dir)
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil

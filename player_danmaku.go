@@ -35,7 +35,7 @@ type danmakuControls struct {
 	openMatch  func()
 	addLocal   func(danmaku.Comment) bool
 	events     func() []danmaku.Event
-	rawCounts  func() (local, remote int)
+	rawCounts  func() (local, dandan, logvar int)
 	offset     func() time.Duration
 	setOffset  func(time.Duration)
 }
@@ -50,17 +50,28 @@ type importedDanmaku struct {
 	format   string
 }
 
+func appendShiftedDanmaku(output []danmaku.Comment, source downloads.CommentTrack) []danmaku.Comment {
+	var shift time.Duration
+	if !math.IsNaN(source.Shift) {
+		shift = time.Duration(max(-86400, min(86400, source.Shift)) * float64(time.Second))
+	}
+	for _, comment := range source.Comments {
+		if shift > 0 && comment.At > time.Duration(math.MaxInt64)-shift {
+			continue
+		}
+		comment.At += shift
+		output = append(output, comment)
+	}
+	return output
+}
+
 func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.Stream, downloaded *downloads.CommentTrack,
 	sample *core.Signal[videoSample], size *core.Signal[core.Size], paused, buffering *core.Signal[bool],
 	resize func() core.ResizeMode, pictureArea func() core.Bounds, rate func() float32,
 	tvSettings, useCanvas func() bool, showOnMPV func(*danmaku.Track)) danmakuControls {
-	type remoteComments struct {
-		comments []danmaku.Comment
-		shift    float64
-	}
 	type input struct {
 		local, authored []danmaku.Comment
-		remote          remoteComments
+		dandan, logvar  downloads.CommentTrack
 		prefs           danmakuPreferences
 		offset          time.Duration
 		landscape       bool
@@ -96,41 +107,39 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 	})
 	authored := core.NewSignalFunc(cx, saved, nil)
 	local := core.NewSignalFunc(cx, importedDanmaku{}, nil)
-	var initial remoteComments
+	var initial downloads.CommentTrack
 	if downloaded != nil {
-		initial = remoteComments{downloaded.Comments, downloaded.Shift}
+		initial = *downloaded
 	}
 	remote := core.NewSignalFunc(cx, initial, nil)
+	custom := core.NewSignalFunc(cx, downloads.CommentTrack{}, nil)
 	enableLocal := core.NewSignal(cx, true)
 	enableRemote := core.NewSignal(cx, true)
+	enableCustom := core.NewSignal(cx, true)
+	onlineCount := func() int { return len(remote.Get().Comments) + len(custom.Get().Comments) }
 	track := core.NewResource(cx, func() (input, bool) {
 		sources := input{prefs: a.danmakuPrefs.Get(), offset: offset.Get(), authored: authored.Get(),
 			landscape: phoneLandscape(cx), headerInset: phoneInset.Get()}
 		if enableLocal.Get() && !sources.prefs.DisableLocal {
 			sources.local = local.Get().comments
 		}
-		if enableRemote.Get() && !sources.prefs.DisableDandan {
-			sources.remote = remote.Get()
+		if enableRemote.Get() && (downloaded != nil || !sources.prefs.DisableDandan) {
+			sources.dandan = remote.Get()
+		}
+		if enableCustom.Get() && !sources.prefs.DisableLogvar {
+			sources.logvar = custom.Get()
 		}
 		return sources, true
 	}, func(ctx context.Context, sources input, _ core.ResourceInfo) (*danmaku.Track, error) {
-		if len(sources.local)+len(sources.remote.comments)+len(sources.authored) == 0 {
+		count := len(sources.local) + len(sources.dandan.Comments) + len(sources.logvar.Comments) + len(sources.authored)
+		if count == 0 {
 			return nil, nil
 		}
-		comments := make([]danmaku.Comment, 0, len(sources.local)+len(sources.remote.comments)+len(sources.authored))
+		comments := make([]danmaku.Comment, 0, count)
 		comments = append(comments, sources.local...)
 		comments = append(comments, sources.authored...)
-		shift := time.Duration(0)
-		if !math.IsNaN(sources.remote.shift) {
-			shift = time.Duration(max(-86400, min(86400, sources.remote.shift)) * float64(time.Second))
-		}
-		for _, comment := range sources.remote.comments {
-			if shift > 0 && comment.At > time.Duration(math.MaxInt64)-shift {
-				continue
-			}
-			comment.At += shift
-			comments = append(comments, comment)
-		}
+		comments = appendShiftedDanmaku(comments, sources.dandan)
+		comments = appendShiftedDanmaku(comments, sources.logvar)
 		settings := sources.prefs.rendererSettings(sources.offset)
 		if tv {
 			settings.Height -= tvTopInset * settings.Height / 1080
@@ -161,12 +170,22 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 	busy := core.NewSignal(cx, false)
 	clock := core.NewSignal(cx, time.Duration(0))
 	viewContext := cx.Context()
-	var source core.Node
+	var source, customRow core.Node
 	if current.downloadID == "" {
-		source = a.onlineDanmaku(cx, current, stream, func(comments []danmaku.Comment, shift float64) {
-			remote.Set(remoteComments{comments, shift})
+		closeMatch := func() { panel.Set(false) }
+		dandan := a.onlineDanmaku(cx, current, stream, func(comments []danmaku.Comment, shift float64) {
+			remote.Set(downloads.CommentTrack{Comments: comments, Shift: shift})
 			enableRemote.Set(true)
-		}, func() { panel.Set(false) }, openMatch)
+		}, closeMatch, openMatch)
+		logvar, configured := a.remoteDanmaku(cx, current, stream, true, func(comments []danmaku.Comment, shift float64) {
+			custom.Set(downloads.CommentTrack{Comments: comments, Shift: shift})
+			enableCustom.Set(true)
+		}, closeMatch, openMatch)
+		source = core.Group([]core.Node{dandan, logvar})
+		customRow = core.Show{When: configured, Then: func(cx *core.Scope) core.Node {
+			return playerOnlineDanmakuRow(cx, locales.LogvarName(cx), "danmaku-toggle-logvar",
+				func() int { return len(custom.Get().Comments) }, enableCustom)
+		}}
 	} else if downloaded != nil {
 		source = ui.Checkbox{Text: locales.PhonePlayerDanmakuLoaded(cx, strconv.Itoa(len(downloaded.Comments))),
 			TestID: "danmaku-toggle-remote", Checked: enableRemote.Get, OnChange: enableRemote.Set}
@@ -248,8 +267,8 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 			}
 		case 1:
 			if compact {
-				node = editor.playerSources(cx, current, source, showMatch, local.Get, func() int { return len(remote.Get().comments) },
-					enableLocal, enableRemote, invalid.Get, busy.Get, choose)
+				node = editor.playerSources(cx, current, source, customRow, showMatch, local.Get, onlineCount,
+					func() int { return len(remote.Get().Comments) }, enableLocal, enableRemote, invalid.Get, busy.Get, choose)
 			} else {
 				node = core.View{Class: "gap-3", Children: []core.Node{
 					ui.Button{Text: locales.AddDanmaku(cx), Icon: lucide.FolderOpen, Variant: ui.ButtonOutline,
@@ -305,7 +324,7 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 			heading := core.View{Class: "min-w-0 flex-1 flex-row items-center gap-2", Children: []core.Node{
 				playerDanmakuBadge(cx), panelHeading(title),
 				core.Text{ContentFunc: func() string {
-					return locales.PhonePlayerDanmakuLoaded(cx, strconv.Itoa(len(local.Get().comments)+len(remote.Get().comments)))
+					return locales.PhonePlayerDanmakuLoaded(cx, strconv.Itoa(len(local.Get().comments)+onlineCount()))
 				}, Class: "text-xs text-zinc-500", MaxLines: 1},
 			}}
 			return playerSidePanel(cx, "danmaku-sources-dialog", "close-danmaku-sources", title, panel.Get, close,
@@ -332,7 +351,9 @@ func (a *application) playerDanmaku(cx *core.Scope, current route, stream media.
 			}
 			return nil
 		},
-		rawCounts: func() (int, int) { return len(local.Get().comments) + len(authored.Get()), len(remote.Get().comments) },
+		rawCounts: func() (int, int, int) {
+			return len(local.Get().comments) + len(authored.Get()), len(remote.Get().Comments), len(custom.Get().Comments)
+		},
 		addLocal: func(comment danmaku.Comment) bool {
 			before := authored.GetUntracked()
 			items := append(slices.Clone(before[max(0, len(before)-999):]), comment)

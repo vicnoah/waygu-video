@@ -174,6 +174,8 @@ var Parameters = map[string][]string{
 	"ParentalHours":                   {"hours"},
 	"ParentalUnratedResult":           {"index"},
 	"AppearanceMoveModule":            {"name"},
+	"LogvarBound":                     {"episode"},
+	"LogvarCommentCount":              {"count"},
 	"PhoneDanmakuUsers":               {"count"},
 	"PhoneDanmakuRules":               {"count"},
 	"PhoneDanmakuPreviewArea":         {"fraction"},
@@ -322,6 +324,8 @@ type Translation struct {
 	ParentalHours                   func(hours string) string
 	ParentalUnratedResult           func(index string) string
 	AppearanceMoveModule            func(name string) string
+	LogvarBound                     func(episode string) string
+	LogvarCommentCount              func(count string) string
 	PhoneDanmakuUsers               func(count string) string
 	PhoneDanmakuRules               func(count string) string
 	PhoneDanmakuPreviewArea         func(fraction string) string
@@ -1119,6 +1123,17 @@ const (
 	textPhoneDanmakuSourceHint
 	textPhoneDanmakuUnconfigured
 	textPhoneDanmakuCustom
+	textLogvarName
+	textLogvarHelp
+	textLogvarPassword
+	textLogvarKeepPassword
+	textLogvarSave
+	textLogvarRemove
+	textLogvarInvalid
+	textLogvarRejected
+	textLogvarFailed
+	textLogvarSearch
+	textLogvarSavedComments
 	textPhoneDanmakuMatchTitle
 	textPhoneDanmakuMatchHint
 	textPhoneDanmakuOnMiss
@@ -2036,6 +2051,17 @@ var keyOfText = [numTexts]string{
 	"phoneDanmakuSourceHint",
 	"phoneDanmakuUnconfigured",
 	"phoneDanmakuCustom",
+	"logvarName",
+	"logvarHelp",
+	"logvarPassword",
+	"logvarKeepPassword",
+	"logvarSave",
+	"logvarRemove",
+	"logvarInvalid",
+	"logvarRejected",
+	"logvarFailed",
+	"logvarSearch",
+	"logvarSavedComments",
 	"phoneDanmakuMatchTitle",
 	"phoneDanmakuMatchHint",
 	"phoneDanmakuOnMiss",
@@ -2871,7 +2897,7 @@ var textsEn = i18n.NewTexts(""+
 	"Local address"+
 	"Enable danmaku"+
 	"Clear cache"+
-	"Clear downloaded DandanPlay comments from this device?"+
+	"Clear downloaded danmaku from this device?"+
 	"Enable parental controls"+
 	"Access PIN"+
 	"Set access PIN"+
@@ -2948,9 +2974,20 @@ var textsEn = i18n.NewTexts(""+
 	"Language"+
 	"Basic"+
 	"Danmaku sources"+
-	"Configure DandanPlay with a developer app ID and secret. Import XML or JSON from the player."+
+	"Comments from enabled sources are loaded and merged. Custom servers must support the DandanPlay API."+
 	"Unconfigured"+
 	"Custom danmaku server"+
+	"Logvar"+
+	"Enter the Logvar danmu-api server address. Enter its password if the server requires one."+
+	"Password (optional)"+
+	"Keep the saved password"+
+	"Save server"+
+	"Remove server"+
+	"Enter a valid HTTP or HTTPS server address and a password without slashes."+
+	"The custom danmaku server rejected the password."+
+	"Could not load comments or matches from the custom server."+
+	"Search Logvar"+
+	"Saved danmaku"+
 	"Matching"+
 	"Identify episodes using the file hash and file name"+
 	"When automatic matching fails"+
@@ -3002,7 +3039,7 @@ var textsEn = i18n.NewTexts(""+
 	"Import SRT or WebVTT subtitle files. Available muxed tracks and image subtitles depend on the media server and decoder."+
 	"Import Bilibili-style XML and DandanPlay JSON comments from the player."+
 	"Your server addresses and library preferences are stored on this device. Passwords, tokens and developer secrets use the platform credential store where available."+
-	"The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay. Online subtitle searches send the title or file name and file fingerprints to the selected providers."+
+	"The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay and the title and episode number to your custom danmaku server. Online subtitle searches send the title or file name and file fingerprints to the selected providers."+
 	"You can turn network logging on under Debugging. It records the provider, HTTP method, status, time and duration on this device. Export saves an archive to the location you choose."+
 	"If you enable sunset-based dark mode, the app may request approximate location. The rounded coordinates stay on your device."+
 	"Bitrate"+
@@ -3783,7 +3820,7 @@ var textsEn = i18n.NewTexts(""+
 		13,
 		14,
 		11,
-		54,
+		42,
 		24,
 		10,
 		14,
@@ -3860,9 +3897,20 @@ var textsEn = i18n.NewTexts(""+
 		8,
 		5,
 		15,
-		92,
+		100,
 		12,
 		21,
+		6,
+		89,
+		19,
+		23,
+		11,
+		13,
+		74,
+		48,
+		58,
+		13,
+		13,
 		8,
 		51,
 		29,
@@ -3914,7 +3962,7 @@ var textsEn = i18n.NewTexts(""+
 		119,
 		71,
 		163,
-		298,
+		361,
 		180,
 		124,
 		7,
@@ -4698,7 +4746,7 @@ var textsZhHans = i18n.NewTexts(""+
 	"内网地址"+
 	"启用弹幕"+
 	"清除"+
-	"清除这台设备已下载的弹弹play弹幕？"+
+	"清除这台设备已下载的弹幕？"+
 	"启用家长控制"+
 	"访问密码"+
 	"设置访问密码"+
@@ -4775,9 +4823,20 @@ var textsZhHans = i18n.NewTexts(""+
 	"语言"+
 	"基础"+
 	"弹幕源"+
-	"使用开发者 App ID 和密钥配置弹弹play，也可在播放器内导入 XML 或 JSON。"+
+	"弹幕按优先顺序加载并合并；自定义服务器需兼容弹弹play API。"+
 	"未设置"+
 	"自定义弹幕服务器"+
+	"Logvar"+
+	"填写 Logvar danmu-api 服务器地址。服务器要求密码时，请同时填写密码。"+
+	"密码（选填）"+
+	"保留已保存的密码"+
+	"保存服务器"+
+	"移除服务器"+
+	"请输入有效的 HTTP 或 HTTPS 地址，密码不能包含斜杠。"+
+	"自定义弹幕服务器拒绝了密码。"+
+	"无法从自定义服务器获取匹配结果或弹幕。"+
+	"搜索 Logvar"+
+	"已保存的弹幕"+
 	"匹配"+
 	"使用文件哈希 + 文件名识别剧集与集数"+
 	"匹配失败时"+
@@ -4829,7 +4888,7 @@ var textsZhHans = i18n.NewTexts(""+
 	"可导入 SRT 或 WebVTT 字幕。内嵌轨道和图像字幕的可用性取决于媒体服务器和解码器。"+
 	"可在播放器导入哔哩哔哩格式的 XML 或弹弹play 格式的 JSON 弹幕。"+
 	"媒体服务器地址和媒体库偏好保存在此设备上。密码、令牌和开发者密钥使用平台提供的凭据存储。"+
-	"应用会连接你添加的媒体服务器，并向对应服务器报告播放进度。启用弹弹play 匹配后，可能向弹弹play 发送片名、文件名和文件指纹。 在线字幕搜索会向启用的服务发送片名或文件名及文件指纹。"+
+	"应用会连接你添加的媒体服务器，并向对应服务器报告播放进度。启用弹幕匹配后，可能向弹弹play 发送片名、文件名和文件指纹，也可能向自定义弹幕服务器发送片名和集数。在线字幕搜索会向启用的服务发送片名或文件名及文件指纹。"+
 	"可在「调试」里开启网络日志。它只在设备上记录服务类型、HTTP 方法、状态、时间和耗时。导出的压缩包保存到你选择的位置。"+
 	"打开按日落自动切换深色后，应用可能请求大致位置权限，取整后的位置坐标保存在此设备上。"+
 	"码率"+
@@ -5610,7 +5669,7 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		12,
 		6,
-		49,
+		39,
 		18,
 		12,
 		18,
@@ -5687,9 +5746,20 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		6,
 		9,
-		94,
+		83,
 		9,
 		24,
+		6,
+		93,
+		18,
+		24,
+		15,
+		15,
+		70,
+		42,
+		57,
+		13,
+		18,
 		6,
 		51,
 		15,
@@ -5741,7 +5811,7 @@ var textsZhHans = i18n.NewTexts(""+
 		112,
 		85,
 		132,
-		260,
+		314,
 		170,
 		126,
 		6,
@@ -6267,6 +6337,12 @@ func Supply(lang string, t Translation) {
 	}
 	if t.AppearanceMoveModule != nil {
 		s.AppearanceMoveModule = t.AppearanceMoveModule
+	}
+	if t.LogvarBound != nil {
+		s.LogvarBound = t.LogvarBound
+	}
+	if t.LogvarCommentCount != nil {
+		s.LogvarCommentCount = t.LogvarCommentCount
 	}
 	if t.PhoneDanmakuUsers != nil {
 		s.PhoneDanmakuUsers = t.PhoneDanmakuUsers
@@ -14400,7 +14476,7 @@ func (msgs Messages) DesktopDanmakuClearCache() string {
 	return msgs.text(textDesktopDanmakuClearCache)
 }
 
-// DesktopDanmakuClearCacheHint says "Clear downloaded DandanPlay comments from this device?"
+// DesktopDanmakuClearCacheHint says "Clear downloaded danmaku from this device?"
 // in the language the app shows under cx.
 func DesktopDanmakuClearCacheHint(cx *core.Scope) string {
 	return For(cx).DesktopDanmakuClearCacheHint()
@@ -15073,7 +15149,7 @@ func (msgs Messages) PhoneDanmakuSourcesTitle() string {
 	return msgs.text(textPhoneDanmakuSourcesTitle)
 }
 
-// PhoneDanmakuSourceHint says "Configure DandanPlay with a developer app ID and secret. Import XML or JSON from the player."
+// PhoneDanmakuSourceHint says "Comments from enabled sources are loaded and merged. Custom servers must support the DandanPlay API."
 // in the language the app shows under cx.
 func PhoneDanmakuSourceHint(cx *core.Scope) string { return For(cx).PhoneDanmakuSourceHint() }
 
@@ -15095,6 +15171,129 @@ func PhoneDanmakuCustom(cx *core.Scope) string { return For(cx).PhoneDanmakuCust
 
 // PhoneDanmakuCustom is the package's PhoneDanmakuCustom in the language of msgs.
 func (msgs Messages) PhoneDanmakuCustom() string { return msgs.text(textPhoneDanmakuCustom) }
+
+// LogvarName says "Logvar"
+// in the language the app shows under cx.
+func LogvarName(cx *core.Scope) string { return For(cx).LogvarName() }
+
+// LogvarName is the package's LogvarName in the language of msgs.
+func (msgs Messages) LogvarName() string { return msgs.text(textLogvarName) }
+
+// LogvarHelp says "Enter the Logvar danmu-api server address. Enter its password if the server requires one."
+// in the language the app shows under cx.
+func LogvarHelp(cx *core.Scope) string { return For(cx).LogvarHelp() }
+
+// LogvarHelp is the package's LogvarHelp in the language of msgs.
+func (msgs Messages) LogvarHelp() string { return msgs.text(textLogvarHelp) }
+
+// LogvarPassword says "Password (optional)"
+// in the language the app shows under cx.
+func LogvarPassword(cx *core.Scope) string { return For(cx).LogvarPassword() }
+
+// LogvarPassword is the package's LogvarPassword in the language of msgs.
+func (msgs Messages) LogvarPassword() string { return msgs.text(textLogvarPassword) }
+
+// LogvarKeepPassword says "Keep the saved password"
+// in the language the app shows under cx.
+func LogvarKeepPassword(cx *core.Scope) string { return For(cx).LogvarKeepPassword() }
+
+// LogvarKeepPassword is the package's LogvarKeepPassword in the language of msgs.
+func (msgs Messages) LogvarKeepPassword() string { return msgs.text(textLogvarKeepPassword) }
+
+// LogvarSave says "Save server"
+// in the language the app shows under cx.
+func LogvarSave(cx *core.Scope) string { return For(cx).LogvarSave() }
+
+// LogvarSave is the package's LogvarSave in the language of msgs.
+func (msgs Messages) LogvarSave() string { return msgs.text(textLogvarSave) }
+
+// LogvarRemove says "Remove server"
+// in the language the app shows under cx.
+func LogvarRemove(cx *core.Scope) string { return For(cx).LogvarRemove() }
+
+// LogvarRemove is the package's LogvarRemove in the language of msgs.
+func (msgs Messages) LogvarRemove() string { return msgs.text(textLogvarRemove) }
+
+// LogvarInvalid says "Enter a valid HTTP or HTTPS server address and a password without slashes."
+// in the language the app shows under cx.
+func LogvarInvalid(cx *core.Scope) string { return For(cx).LogvarInvalid() }
+
+// LogvarInvalid is the package's LogvarInvalid in the language of msgs.
+func (msgs Messages) LogvarInvalid() string { return msgs.text(textLogvarInvalid) }
+
+// LogvarRejected says "The custom danmaku server rejected the password."
+// in the language the app shows under cx.
+func LogvarRejected(cx *core.Scope) string { return For(cx).LogvarRejected() }
+
+// LogvarRejected is the package's LogvarRejected in the language of msgs.
+func (msgs Messages) LogvarRejected() string { return msgs.text(textLogvarRejected) }
+
+// LogvarFailed says "Could not load comments or matches from the custom server."
+// in the language the app shows under cx.
+func LogvarFailed(cx *core.Scope) string { return For(cx).LogvarFailed() }
+
+// LogvarFailed is the package's LogvarFailed in the language of msgs.
+func (msgs Messages) LogvarFailed() string { return msgs.text(textLogvarFailed) }
+
+// LogvarBound says "Logvar · {episode}"
+// in the language the app shows under cx.
+func LogvarBound(cx *core.Scope, episode string) string { return For(cx).LogvarBound(episode) }
+
+// LogvarBound is the package's LogvarBound in the language of msgs.
+func (msgs Messages) LogvarBound(episode string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.LogvarBound(episode))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].LogvarBound; f != nil {
+			return f(episode)
+		}
+		switch lang {
+		case "", "en":
+			return "Logvar · " + msgs.arg(episode)
+		case "zh-Hans":
+			return "Logvar · " + episode
+		}
+	}
+}
+
+// LogvarSearch says "Search Logvar"
+// in the language the app shows under cx.
+func LogvarSearch(cx *core.Scope) string { return For(cx).LogvarSearch() }
+
+// LogvarSearch is the package's LogvarSearch in the language of msgs.
+func (msgs Messages) LogvarSearch() string { return msgs.text(textLogvarSearch) }
+
+// LogvarSavedComments says "Saved danmaku"
+// in the language the app shows under cx.
+func LogvarSavedComments(cx *core.Scope) string { return For(cx).LogvarSavedComments() }
+
+// LogvarSavedComments is the package's LogvarSavedComments in the language of msgs.
+func (msgs Messages) LogvarSavedComments() string { return msgs.text(textLogvarSavedComments) }
+
+// LogvarCommentCount says "{count} from Logvar"
+// in the language the app shows under cx.
+func LogvarCommentCount(cx *core.Scope, count string) string {
+	return For(cx).LogvarCommentCount(count)
+}
+
+// LogvarCommentCount is the package's LogvarCommentCount in the language of msgs.
+func (msgs Messages) LogvarCommentCount(count string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.LogvarCommentCount(count))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].LogvarCommentCount; f != nil {
+			return f(count)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(count) + " from Logvar"
+		case "zh-Hans":
+			return "Logvar 提供 " + count + " 条"
+		}
+	}
+}
 
 // PhoneDanmakuMatchTitle says "Matching"
 // in the language the app shows under cx.
@@ -15573,7 +15772,7 @@ func AboutPrivacyServers(cx *core.Scope) string { return For(cx).AboutPrivacySer
 // AboutPrivacyServers is the package's AboutPrivacyServers in the language of msgs.
 func (msgs Messages) AboutPrivacyServers() string { return msgs.text(textAboutPrivacyServers) }
 
-// AboutPrivacyPlayback says "The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay. Online subtitle searches send the title or file name and file fingerprints to the selected providers."
+// AboutPrivacyPlayback says "The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay and the title and episode number to your custom danmaku server. Online subtitle searches send the title or file name and file fingerprints to the selected providers."
 // in the language the app shows under cx.
 func AboutPrivacyPlayback(cx *core.Scope) string { return For(cx).AboutPrivacyPlayback() }
 

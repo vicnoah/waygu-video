@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"waygu-video/internal/danmaku"
 	"waygu-video/internal/downloads"
 	"waygu-video/internal/media"
 )
@@ -28,17 +29,56 @@ func (q *downloadQueue) trackDownload(entry downloadEntry, current source) func(
 	subtitles := newOnlineSubtitlePlayback(a.scope, a, entry.Item, current.ID, true)
 	subtitlePrefs, commentPrefs := a.subtitlePrefs.GetUntracked(), a.danmakuPrefs.GetUntracked()
 	bindings := readDanmakuBindings(a.storage, danmakuBindingKey(currentRoute), danmakuSeasonKey(currentRoute))
+	var config danmaku.LogvarConfig
+	var logvarBinding danmaku.DandanEpisode
+	if !commentPrefs.DisableLogvar {
+		if value, err := a.logvarConfig(); err == nil && value.Address != "" {
+			config = value
+			logvarBinding = readDanmakuBindings(a.storage, logvarBindingKey(currentRoute, config), "").item
+		}
+	}
 	cache := a.scope.CacheDir()
 	return func(ctx context.Context, stream media.Stream) downloads.Tracks {
 		ctx, cancel := context.WithTimeout(ctx, 40*time.Second)
 		defer cancel()
 		comments := make(chan *downloads.CommentTrack, 1)
-		go func() { comments <- a.downloadDanmaku(ctx, entry.Item, stream, commentPrefs, bindings, cache) }()
+		go func() {
+			dandan := a.downloadDanmaku(ctx, entry.Item, stream, commentPrefs, bindings, cache)
+			custom := downloadLogvar(ctx, entry.Item, commentPrefs, config, logvarBinding, cache)
+			if dandan == nil {
+				dandan = custom
+			} else if custom != nil {
+				combined := appendShiftedDanmaku(nil, *dandan)
+				combined = appendShiftedDanmaku(combined, *custom)
+				dandan = &downloads.CommentTrack{Comments: combined}
+			}
+			comments <- dandan
+		}()
 		tracks := downloads.Tracks{AudioLanguage: activeAudio(stream.Tracks).Language}
 		tracks.Subtitles = a.downloadSubtitles(ctx, stream, entry.Height > 0, subtitles, subtitlePrefs)
 		tracks.Danmaku = <-comments
 		return tracks
 	}
+}
+
+func downloadLogvar(ctx context.Context, item media.Item, prefs danmakuPreferences, config danmaku.LogvarConfig,
+	binding danmaku.DandanEpisode, cache string) *downloads.CommentTrack {
+	if config.Address == "" || (binding.ID <= 0 && !prefs.AutoMatch) {
+		return nil
+	}
+	client, err := danmaku.NewLogvarClient(config)
+	if err != nil {
+		return nil
+	}
+	match, err := findLogvarBinding(ctx, client, item, binding)
+	if err != nil || match.bound.ID <= 0 {
+		return nil
+	}
+	comments, err := client.CachedComments(ctx, cache, match.bound.ID)
+	if err != nil || len(comments) == 0 {
+		return nil
+	}
+	return &downloads.CommentTrack{Comments: comments, Shift: match.bound.Shift}
 }
 
 func (a *application) downloadSubtitles(ctx context.Context, stream media.Stream, transcoded bool, service *onlineSubtitlePlayback, prefs subtitlePreferences) []downloads.Subtitle {

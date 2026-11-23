@@ -85,6 +85,8 @@ func (a *application) desktopSettingsDanmaku(cx *core.Scope) core.Node {
 			func(p *danmakuPreferences, value bool) { p.DisableDandan = !value }),
 	}})
 	local := locales.DesktopDanmakuLocalFiles(cx)
+	custom := locales.PhoneDanmakuCustom(cx)
+	customOpen := core.NewSignal(cx, false)
 	strategy := locales.DesktopDanmakuStrategy(cx)
 	providers := desktopFormGroup(locales.DanmakuSources(cx),
 		dandanRow,
@@ -114,7 +116,18 @@ func (a *application) desktopSettingsDanmaku(cx *core.Scope) core.Node {
 		ui.Dialog{Open: credentialsOpen.Get, OnOpenChange: func(open bool, _ base.Reason) { credentialsOpen.Set(open) },
 			OnClose: credentials.Refetch, Title: dandan, Children: []core.Node{
 				core.Show{When: credentialsOpen.Get, Then: a.danmakuSettings},
+				ui.Button{Text: custom, TestID: "desktop-danmaku-logvar", Variant: ui.ButtonOutline, OnPress: func() {
+					cx.Batch(func() { credentialsOpen.Set(false); customOpen.Set(true) })
+				}},
 			}},
+		ui.Dialog{Open: customOpen.Get, Title: custom, OnOpenChange: func(open bool, _ base.Reason) { customOpen.Set(open) },
+			Children: []core.Node{core.Show{When: customOpen.Get, Then: func(cx *core.Scope) core.Node {
+				return core.View{Class: "gap-3", Children: []core.Node{
+					editor.toggle(locales.PhoneDanmakuDisableSource(cx), "desktop-danmaku-disable-logvar",
+						func(p *danmakuPreferences) *bool { return &p.DisableLogvar }),
+					a.logvarSettings(cx, nil),
+				}}
+			}}}},
 	}}
 }
 

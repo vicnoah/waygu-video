@@ -831,7 +831,7 @@ desktopSettingsMetadata: "媒体库与元数据"
 desktopSourceLocal: "内网地址"
 desktopDanmakuEnabled: "启用弹幕"
 desktopDanmakuClearCache: "清除"
-desktopDanmakuClearCacheHint: "清除这台设备已下载的弹弹play弹幕？"
+desktopDanmakuClearCacheHint: "清除这台设备已下载的弹幕？"
 
 parentalEnabled: "启用家长控制"
 parentalPIN: "访问密码"
@@ -915,9 +915,22 @@ NSLocationUsageDescription: "使用大致位置，在日落后自动切换深色
 appearanceLanguage: "语言"
 phoneDanmakuBasic: 基础
 phoneDanmakuSourcesTitle: 弹幕源
-phoneDanmakuSourceHint: 使用开发者 App ID 和密钥配置弹弹play，也可在播放器内导入 XML 或 JSON。
+phoneDanmakuSourceHint: 弹幕按优先顺序加载并合并；自定义服务器需兼容弹弹play API。
 phoneDanmakuUnconfigured: 未设置
 phoneDanmakuCustom: 自定义弹幕服务器
+logvarName: Logvar
+logvarHelp: 填写 Logvar danmu-api 服务器地址。服务器要求密码时，请同时填写密码。
+logvarPassword: 密码（选填）
+logvarKeepPassword: 保留已保存的密码
+logvarSave: 保存服务器
+logvarRemove: 移除服务器
+logvarInvalid: 请输入有效的 HTTP 或 HTTPS 地址，密码不能包含斜杠。
+logvarRejected: 自定义弹幕服务器拒绝了密码。
+logvarFailed: 无法从自定义服务器获取匹配结果或弹幕。
+logvarBound: "Logvar · {episode}"
+logvarSearch: 搜索 Logvar
+logvarSavedComments: 已保存的弹幕
+logvarCommentCount: "Logvar 提供 {count} 条"
 phoneDanmakuMatchTitle: 匹配
 phoneDanmakuMatchHint: 使用文件哈希 + 文件名识别剧集与集数
 phoneDanmakuOnMiss: 匹配失败时
@@ -974,7 +987,7 @@ aboutVideoFormats: 支持原生解码的设备可以播放 H.264 和 AAC 编码�
 aboutSubtitleFormats: 可导入 SRT 或 WebVTT 字幕。内嵌轨道和图像字幕的可用性取决于媒体服务器和解码器。
 aboutDanmakuFormats: 可在播放器导入哔哩哔哩格式的 XML 或弹弹play 格式的 JSON 弹幕。
 aboutPrivacyServers: 媒体服务器地址和媒体库偏好保存在此设备上。密码、令牌和开发者密钥使用平台提供的凭据存储。
-aboutPrivacyPlayback: 应用会连接你添加的媒体服务器，并向对应服务器报告播放进度。启用弹弹play 匹配后，可能向弹弹play 发送片名、文件名和文件指纹。 在线字幕搜索会向启用的服务发送片名或文件名及文件指纹。
+aboutPrivacyPlayback: 应用会连接你添加的媒体服务器，并向对应服务器报告播放进度。启用弹幕匹配后，可能向弹弹play 发送片名、文件名和文件指纹，也可能向自定义弹幕服务器发送片名和集数。在线字幕搜索会向启用的服务发送片名或文件名及文件指纹。
 aboutPrivacyDiagnostics: 可在「调试」里开启网络日志。它只在设备上记录服务类型、HTTP 方法、状态、时间和耗时。导出的压缩包保存到你选择的位置。
 aboutPrivacyLocation: 打开按日落自动切换深色后，应用可能请求大致位置权限，取整后的位置坐标保存在此设备上。
 aboutOverlayBitrate: 码率

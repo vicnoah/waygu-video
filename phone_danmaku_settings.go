@@ -59,6 +59,10 @@ func (a *application) phoneDanmakuSettings(cx *core.Scope) core.Node {
 		credentials, err := a.dandanCredentials()
 		return credentials.AppID != "" && credentials.Secret != "", err
 	})
+	logvar := core.NewResource(cx, nil, func(context.Context, struct{}, core.ResourceInfo) (bool, error) {
+		config, err := a.logvarConfig()
+		return config.Address != "", err
+	})
 	dandanName := locales.TvDanmakuDandan(cx)
 	dandanStatus := func() string {
 		if prefs().DisableDandan {
@@ -74,7 +78,15 @@ func (a *application) phoneDanmakuSettings(cx *core.Scope) core.Node {
 			func() { panel.Set("credentials") }),
 		(phoneSetting{locales.DesktopDanmakuBilibili(cx), "", "bg-pink-500", lucide.Tv}).unavailable(cx),
 		(phoneSetting{locales.DesktopDanmakuBahamut(cx), "", "bg-sky-600", lucide.MessageSquare}).unavailable(cx),
-		(phoneSetting{locales.PhoneDanmakuCustom(cx), "", "bg-zinc-500", lucide.Link}).unavailable(cx),
+		(phoneSetting{locales.PhoneDanmakuCustom(cx), "", "bg-zinc-500", lucide.Link}).linkValue(cx, "phone-danmaku-logvar", func() string {
+			if prefs().DisableLogvar {
+				return locales.SettingsDisabled(cx)
+			}
+			if enabled, _ := logvar.Get(); enabled {
+				return locales.DesktopDanmakuConfigured(cx)
+			}
+			return locales.PhoneDanmakuUnconfigured(cx)
+		}, func() { panel.Set("logvar") }),
 	)
 	matching := setupGroup(locales.PhoneDanmakuMatchTitle(cx), "",
 		toggle(phoneSetting{locales.DanmakuAutoMatch(cx), locales.PhoneDanmakuMatchHint(cx), "bg-emerald-500", lucide.FingerprintPattern},
@@ -119,6 +131,13 @@ func (a *application) phoneDanmakuSettings(cx *core.Scope) core.Node {
 					toggle(phoneSetting{label: locales.PhoneDanmakuDisableSource(cx)}, "phone-danmaku-disable-dandan",
 						func(p *danmakuPreferences) *bool { return &p.DisableDandan }),
 					a.danmakuSettings(cx),
+				}}
+			case "logvar":
+				title = locales.PhoneDanmakuCustom(cx)
+				content = core.View{Class: "gap-3", Children: []core.Node{
+					toggle(phoneSetting{label: locales.PhoneDanmakuDisableSource(cx)}, "phone-danmaku-disable-logvar",
+						func(p *danmakuPreferences) *bool { return &p.DisableLogvar }),
+					a.logvarSettings(cx, logvar.Refetch),
 				}}
 			case "filters":
 				title, content = locales.DanmakuKeywords(cx), editor.filterEditor(cx, close)

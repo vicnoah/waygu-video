@@ -22,7 +22,7 @@ The page matches the video column and the stacked audio and behavior groups. Eng
 
 ## Danmaku
 
-The preview shows a sampled instant from the app's danmaku scheduler over a placeholder. The four sliders, area selector and enable switch update the saved preferences and preview. DandanPlay credentials use the platform secret store and the connection label indicates when credentials are configured. Local XML and JSON comments are supported. Filter chips use the actual keywords and regular expressions, and cache clearing removes downloaded DandanPlay comment files. The current cache retains files for 24 hours with a 128 MB limit. Bilibili, Bahamut and ASS imports remain pending. [Scenra Danmaku](../../design/views/desktop-settings-danmaku.scenra)
+The preview shows a sampled instant from the app's danmaku scheduler over a placeholder. The four sliders, area selector and enable switch update the saved preferences and preview. DandanPlay credentials use the platform secret store and the connection label indicates when credentials are configured. Open the DandanPlay configuration dialog and choose **Custom danmaku server** to add Logvar. Local XML, JSON and ASS comments are supported. Filter chips use the saved keywords and regular expressions. Cache clearing removes downloaded comment files for both online providers. Each provider's cache retains files for 24 hours with a 128 MB limit. Standalone Bilibili and Bahamut remain pending. [Scenra Danmaku](../../design/views/desktop-settings-danmaku.scenra) · [Logvar form](phone-danmaku-settings.md#custom-logvar-server)
 
 ![Desktop Danmaku settings in light and dark, Scenra and the GTK app](images/desktop-settings-danmaku.png)
 

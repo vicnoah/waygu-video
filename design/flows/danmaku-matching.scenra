@@ -2,12 +2,12 @@ flow name="弹幕匹配与加载" direction=down
 node start "开始播放" kind=start
 node cache "已有该集的匹配绑定或缓存？" kind=decision note="按 媒体源 + 条目 ID 记录匹配结果，缓存弹幕 24 小时"
 node hash "计算文件前 16MB 哈希 + 文件名" note="服务器源通过 HTTP Range 读取前 16MB；无法读取时只用文件名、剧名与集数"
-node match "调用弹弹play /match" note="提交 fileHash、fileName、fileSize、videoDuration"
+node match "调用弹弹play /match" note="提交 fileHash、fileName、fileSize、videoDuration；Logvar 等自定义服务器使用片名和季集号"
 node high "匹配度高？" kind=decision
 node auto "自动选用匹配结果"
 node manual "显示候选，或让用户手动搜索" note="播放器 弹幕 › 来源 面板；可按剧名搜索并选择对应集数"
 node bind "保存该集的匹配绑定" kind=data note="同一剧集后续各集自动按集数推算，换版本文件不需重新匹配"
-node fetch "并行拉取各源弹幕" note="弹弹play 评论接口（含 B站、巴哈等第三方关联源）、用户添加的 B站链接、本地 / 同目录 XML·ASS 弹幕文件"
+node fetch "并行拉取各源弹幕" note="弹弹play 评论接口（含 B站、巴哈等第三方关联源）、用户配置的 Logvar 等兼容服务器、用户添加的 B站链接、本地 / 同目录 XML·ASS 弹幕文件"
 node dedup "合并去重" note="相同内容在 3 秒内只保留一条，可在设置中关闭"
 node filter "应用屏蔽规则" note="关键词 / 正则、按类型屏蔽顶部·底部·彩色弹幕、同屏密度上限"
 node offset "按时间偏移对齐" note="用户设置的 ±秒 偏移按集保存"
