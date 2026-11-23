@@ -13,11 +13,14 @@ import (
 
 func TestPlaybackVersionSelectionAndRememberedFallback(t *testing.T) {
 	requests := make(chan media.PlaybackOptions, 8)
+	host := core.NewHost()
+	host.Handle(androidCellularHostCall, func(call *core.HostCall) { call.Resolve(false) })
 	app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
 		return appRoot(cx, func(_ media.Provider, _ string, _ media.Device, session media.Session) (media.Client, error) {
 			return versionFixtureServer{fixtureServer{session: session}, requests}, nil
 		}, nil)
 	}, nsgotest.Size(820, 900), nsgotest.Offscreen(),
+		nsgotest.Environment(core.Environment{OS: core.OSAndroid, Locale: "en"}), nsgotest.Host(host),
 		nsgotest.Storage(map[string]string{sourcesKey: `[{"ID":"example","Provider":"jellyfin","Address":"https://example.test",
 			"Name":"Example","Libraries":[{"ID":"movies"}]}]`}),
 		nsgotest.Secrets(map[string]string{"example": "fixture-token"}))
