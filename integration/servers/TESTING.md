@@ -123,6 +123,8 @@ sh build/android/package.sh test -device <serial> \
   -screenshots .nsgo/ui-review/android-logvar
 ```
 
+Run the Android selector with `dark` in place of `light` to exercise the password-protected fixture and choose a result from the landscape player.
+
 For a live deployment, set `WAYGU_LOGVAR_LIVE_URL` and `WAYGU_LOGVAR_LIVE_TITLE`. Set `WAYGU_LOGVAR_LIVE_TOKEN` when the server requires a password. The test submits the public title through both the filename match and episode search endpoints, then reads and decodes the first search result's comments. [Settings comparison](../../docs/ui-review/phone-danmaku-settings.md#custom-logvar-server) · [Logvar API](https://github.com/huangxd-/danmu_api)
 
 ```sh

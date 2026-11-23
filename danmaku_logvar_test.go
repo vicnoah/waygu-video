@@ -112,8 +112,16 @@ func TestPlayerLogvarSettingsAndMatching(t *testing.T) {
 					app.Press("id:danmaku-manual-match")
 				}
 				app.WaitFor("id:logvar-episode-521", 3*time.Second)
-				app.Press("id:logvar-search")
-				app.WaitFor("id:logvar-episode-521", 3*time.Second)
+				if nsgotest.Target() == "android" {
+					scroll := "id:danmaku-sources-dialog-scroll"
+					for range 2 {
+						app.DragAt(scroll, core.Point{X: 160, Y: 248}, core.Point{Y: -215})
+						app.Advance(350 * time.Millisecond)
+					}
+				} else {
+					app.Press("id:logvar-search")
+					app.WaitFor("id:logvar-episode-521", 3*time.Second)
+				}
 				if nsgotest.Target() == "linux" {
 					app.Advance(350 * time.Millisecond)
 					app.Screenshot("logvar-player-match")
