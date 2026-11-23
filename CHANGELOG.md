@@ -13,3 +13,4 @@
 - Play and save comments from a custom Logvar danmaku server. [Logvar review](docs/ui-review/phone-danmaku-settings.md#custom-logvar-server)
 - Flag expired downloads while keeping their local copies playable. [Storage review](docs/ui-review/storage-downloads.md#expired-downloads)
 - Show a localized banner in the Android TV launcher. [Launcher review](docs/ui-review/welcome.md#android-tv-launcher)
+- Reorder or hide individual media source rows in the TV Home layout. [TV settings review](docs/ui-review/tv-settings.md#home-layout)

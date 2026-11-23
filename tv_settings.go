@@ -27,7 +27,7 @@ const (
 const (
 	tvSettingsTitle     = "text-zinc-900 dark:text-zinc-50"
 	tvSettingsMuted     = "text-zinc-500 dark:text-zinc-400"
-	tvSettingsCard      = "rounded-2xl border border-zinc-900/8 bg-white shadow-sm shadow-black/5 dark:border-white/8 dark:bg-[#1a1b25]"
+	tvSettingsCard      = "border border-zinc-900/8 bg-white shadow-sm shadow-black/5 dark:border-white/8 dark:bg-[#1a1b25]"
 	tvSettingsFocusRow  = "group selected:bg-[#18181b] dark:selected:bg-zinc-50"
 	tvSettingsFocusText = "group-selected:text-[#f4f4f7] dark:group-selected:text-[#0f1017]"
 )
@@ -36,7 +36,19 @@ func (a *application) tvSettingsPage(cx *core.Scope, initial tvSettingsSection, 
 	l := tvLayoutFor(cx)
 	category := core.NewSignal(cx, initial)
 	inOptions := core.NewSignal(cx, false)
-	firstOption := &core.Ref{}
+	homeLayout := core.NewSignal(cx, false)
+	var focus func(string)
+	focusOption := func(id string) {
+		cx.Post(func() {
+			if focus != nil {
+				focus(id)
+			}
+		})
+	}
+	openHomeLayout := func() {
+		homeLayout.Set(true)
+		focusOption("")
+	}
 	categories := []struct {
 		label string
 		id    string
@@ -56,9 +68,16 @@ func (a *application) tvSettingsPage(cx *core.Scope, initial tvSettingsSection, 
 	}
 	refs := make([]core.Ref, len(categories))
 	cx.Post(refs[initial].Focus)
-	focusOptions := func() { cx.Post(firstOption.Focus) }
+	focusOptions := func() { focusOption("") }
 	focusCategory := func() { cx.Post(refs[category.GetUntracked()].Focus) }
-	exit := func() { back() }
+	exit := func() {
+		if homeLayout.GetUntracked() {
+			homeLayout.Set(false)
+			focusOption("tv-open-home-layout")
+			return
+		}
+		back()
+	}
 	cx.OnBackPress(func() bool { exit(); return true })
 	cx.OnKey("escape", exit)
 	sidebar := make([]core.Node, 0, len(categories))
@@ -81,13 +100,19 @@ func (a *application) tvSettingsPage(cx *core.Scope, initial tvSettingsSection, 
 				cx.OnKeyWith("down", keys, func() { move(1) })
 				cx.OnKeyWith("right", keys, focusOptions)
 			})
-			style := core.Style{Height: l.length(56), Gap: l.points(20), Padding: l.padding(24, 0), FocusVisible: l.focusRing()}
+			style := core.Style{Height: l.length(56), Gap: l.points(20), Padding: l.padding(24, 0),
+				CornerRadius: l.points(16), FocusVisible: l.focusRing()}
 			label := l.text(section.label, 24, "flex-1 min-w-0 text-zinc-900/80 dark:text-zinc-50/80 group-selected:font-semibold group-selected:text-violet-500")
 			value := l.text("", 20, "text-zinc-500/70 dark:text-zinc-400/70")
 			value.ContentFunc = section.value
-			return core.View{Class: "group relative flex-row items-center rounded-2xl selected:bg-violet-500/12", Style: style,
+			return core.View{Class: "group relative flex-row items-center selected:bg-violet-500/12", Style: style,
 				Role: core.RoleButton, Selected: selected, Ref: &refs[index], Label: section.label, TestID: "tv-settings-section-" + section.id,
-				OnFocus: func() { focused.Set(true); category.Set(item); inOptions.Set(false) },
+				OnFocus: func() {
+					focused.Set(true)
+					category.Set(item)
+					homeLayout.Set(false)
+					inOptions.Set(false)
+				},
 				OnBlur:  func() { focused.Set(false) },
 				OnPress: func(core.PressEvent) { category.Set(item); focusOptions() },
 				Children: []core.Node{
@@ -121,16 +146,36 @@ func (a *application) tvSettingsPage(cx *core.Scope, initial tvSettingsSection, 
 	}
 	right := core.Dynamic(func(cx *core.Scope) core.Node {
 		section := category.Get()
+		layout := section == tvAppearance && homeLayout.Get()
 		var sources []source
 		if section == tvSources || section == tvLibraries {
 			sources = a.sources.Get()
 		}
 		return core.Func(func(cx *core.Scope) core.Node {
 			var dialogs []core.Node
-			rows := a.tvSettingsOptions(cx, l, section, current, sources, &dialogs)
-			header := []core.Node{l.text(categories[section].label, 48, "text-5xl font-bold tracking-tight "+tvSettingsTitle)}
+			title := categories[section].label
+			var rows func() []tvOption
+			var description string
+			if layout {
+				title = locales.TvHomeLayout(cx)
+				description = locales.TvHomeLayoutHint(cx)
+				failure := core.NewSignal(cx, false)
+				rows = a.tvHomeLayoutOptions(cx, func(err error) { failure.Set(err != nil) })
+				dialogs = append(dialogs, core.Show{When: failure.Get, Then: func(cx *core.Scope) core.Node {
+					return core.View{Class: "absolute inset-x-0 bottom-0 items-center",
+						PointerEvents: core.PointerEventsNone,
+						Children:      []core.Node{notice(locales.TvHomeLayoutSaveError(cx))}}
+				}})
+			} else {
+				options := a.tvSettingsOptions(cx, l, section, current, sources, &dialogs, openHomeLayout)
+				rows = func() []tvOption { return options }
+			}
 			if section == tvDanmaku {
-				header = append(header, l.text(locales.TvDanmakuHint(cx), 20, tvSettingsMuted))
+				description = locales.TvDanmakuHint(cx)
+			}
+			header := []core.Node{l.text(title, 48, "text-5xl font-bold tracking-tight "+tvSettingsTitle)}
+			if description != "" {
+				header = append(header, l.text(description, 20, tvSettingsMuted))
 			}
 			clock := tvClock(cx, l)
 			clock.Class = "text-3xl font-medium " + tvSettingsTitle
@@ -139,7 +184,7 @@ func (a *application) tvSettingsPage(cx *core.Scope, initial tvSettingsSection, 
 					Top: l.points(64), Left: l.points(80), Right: l.points(80), Bottom: l.points(48)}},
 					Children: []core.Node{core.View{Class: "flex-row items-end justify-between", Children: []core.Node{
 						core.View{Style: core.Style{Gap: l.points(8)}, Children: header}, clock,
-					}}, tvSettingsRows(cx, l, rows, firstOption, func() { inOptions.Set(true) }, focusCategory)},
+					}}, tvSettingsRows(l, rows, &focus, func() { inOptions.Set(true) }, focusCategory)},
 				},
 			}}
 			return core.View{Class: "flex-1", Children: append([]core.Node{content}, dialogs...)}

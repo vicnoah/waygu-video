@@ -29,3 +29,24 @@ The crop compares the timeline offset row in Scenra and in the settings opened f
 The Android TV emulator passed the remote smoke test using a connected Emby fixture. The test opens Settings from Home, moves from the category list into the danmaku options, changes opacity, verifies that the pairing QR is present and returns Home. Run it with `python3 build/android/tv-smoke.py --with-settings`.
 
 Physical phone camera pairing and tvOS remote verification remain pending.
+
+## Home layout
+
+The TV Home design specifies one row per media source and places its order and visibility controls under **Settings → Appearance → Home layout**. The panel uses the TV Settings frame, 68 pt rows, switches and violet focus ring. These captures show the light and dark GTK panels at 1920 × 1080 pt, after moving Jellyfin above Emby and hiding Plex. [TV Home design note](../../design/tv-home.scenra#L144)
+
+![TV Home layout controls with the Plex row hidden, light and dark GTK](images/tv-settings-home-layout.png)
+
+Use Up and Down to choose the row, Left and Right to move it earlier or later, and Select to toggle its visibility. Back returns focus to **Home layout** in Appearance. The **Group by media source** switch controls the entire group, while each source retains its own position and visibility. Catalog browsing and playback preserve the configured media source priority.
+
+![Android TV display with the Plex source row focused and its switch off](images/tv-settings-home-layout-android.png)
+
+The Android TV emulator passed the same navigation and ordering checks. Its 1920 × 1080 display uses a 960 pt client width. The option rows scale from 68 to 34 pt and their corner radius scales from 16 to 8 pt. Android and GTK retain differences in native text rendering. The screenshot comes from the emulator display.
+
+`TestDockerTVHomeLayout` exercises this sequence with Emby, Jellyfin and Plex, checks the saved layout and verifies the displayed source order on Home. To reproduce the GTK captures with the local Docker fixtures running, use the following command.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerTVHomeLayout$' -screenshots .nsgo/ui-review/tv-home-layout
+```
+
+On Android TV, forward the Docker fixture ports 18096, 28096 and 32400 with `adb reverse` and run `sh build/android/package.sh test -device <serial> -env WAYGU_TEST_SERVERS=1 -run '^TestDockerTVHomeLayout$'`. The tvOS remote still needs a native run.

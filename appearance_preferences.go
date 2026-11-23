@@ -38,17 +38,18 @@ func defaultHomeModules() []homeModule {
 type solarLocation struct{ Latitude, Longitude float64 }
 
 type appearancePreferences struct {
-	Accent        string
-	Poster        string
-	Night, OLED   bool
-	ShowWatched   bool
-	ShowQuality   bool
-	HideFinished  bool
-	PosterAmbient bool
-	GroupingSet   bool
-	HomeOrdered   bool
-	SolarLocation *solarLocation `json:",omitempty"`
-	Home          []homeModule
+	Accent          string
+	Poster          string
+	Night, OLED     bool
+	ShowWatched     bool
+	ShowQuality     bool
+	HideFinished    bool
+	PosterAmbient   bool
+	GroupingSet     bool
+	HomeOrdered     bool
+	SolarLocation   *solarLocation `json:",omitempty"`
+	Home            []homeModule
+	TVSourceShelves []homeModule `json:",omitempty"`
 }
 
 func readAppearancePreferences(storage core.Storage) appearancePreferences {
@@ -67,9 +68,13 @@ func readAppearancePreferences(storage core.Storage) appearancePreferences {
 	default:
 		prefs.Poster = "portrait"
 	}
-	defaults := defaultHomeModules()
+	prefs.Home = normalizeHomeModules(prefs.Home, defaultHomeModules())
+	return prefs
+}
+
+func normalizeHomeModules(saved, defaults []homeModule) []homeModule {
 	var modules []homeModule
-	for _, item := range prefs.Home {
+	for _, item := range saved {
 		known := slices.ContainsFunc(defaults, func(option homeModule) bool { return option.ID == item.ID })
 		if known && !slices.ContainsFunc(modules, func(saved homeModule) bool { return saved.ID == item.ID }) {
 			modules = append(modules, item)
@@ -80,8 +85,15 @@ func readAppearancePreferences(storage core.Storage) appearancePreferences {
 			modules = append(modules, item)
 		}
 	}
-	prefs.Home = modules
-	return prefs
+	return modules
+}
+
+func (p appearancePreferences) tvSourceShelves(sources []source) []homeModule {
+	defaults := make([]homeModule, 0, len(sources))
+	for _, entry := range sources {
+		defaults = append(defaults, homeModule{ID: entry.ID, Enabled: true})
+	}
+	return normalizeHomeModules(p.TVSourceShelves, defaults)
 }
 
 func (p appearancePreferences) enabled(id string) bool {
@@ -189,18 +201,26 @@ func (a *application) saveHomeModule(id string, enabled bool) error {
 }
 
 func (a *application) moveHomeModule(id string, offset int) error {
+	modules, moved := reorderHomeModules(a.appearancePrefs.GetUntracked().Home, id, offset)
+	if !moved {
+		return nil
+	}
 	return a.saveAppearance(func(p *appearancePreferences) {
-		from := slices.IndexFunc(p.Home, func(item homeModule) bool { return item.ID == id })
-		to := from + offset
-		if from < 0 || to < 0 || to >= len(p.Home) || from == to {
-			return
-		}
-		modules := slices.Clone(p.Home)
-		item := modules[from]
-		modules = slices.Delete(modules, from, from+1)
-		p.Home = slices.Insert(modules, to, item)
+		p.Home = modules
 		p.HomeOrdered = true
 	})
+}
+
+func reorderHomeModules(modules []homeModule, id string, offset int) ([]homeModule, bool) {
+	from := slices.IndexFunc(modules, func(item homeModule) bool { return item.ID == id })
+	to := from + offset
+	if from < 0 || to < 0 || to >= len(modules) || from == to {
+		return modules, false
+	}
+	next := slices.Clone(modules)
+	item := next[from]
+	next = slices.Delete(next, from, from+1)
+	return slices.Insert(next, to, item), true
 }
 
 func isAppearanceNight(now time.Time, location *solarLocation) bool {

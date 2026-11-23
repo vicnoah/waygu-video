@@ -642,6 +642,9 @@ tvSettingsStorage: 存储
 tvSettingsParental: 家长控制
 tvSettingsAbout: 关于
 tvSettingsLight: 浅色
+tvHomeLayout: 首页布局
+tvHomeLayoutHint: 按左右键调整顺序，按确定键切换显示。
+tvHomeLayoutSaveError: 无法保存首页布局。
 tvSettingsDark: 深色
 tvDanmakuHint: 在播放中按 ↓ 键也可快速调整
 tvDanmakuVisible: 显示弹幕

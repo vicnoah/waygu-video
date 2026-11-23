@@ -881,6 +881,9 @@ const (
 	textTvSettingsParental
 	textTvSettingsAbout
 	textTvSettingsLight
+	textTvHomeLayout
+	textTvHomeLayoutHint
+	textTvHomeLayoutSaveError
 	textTvSettingsDark
 	textTvDanmakuHint
 	textTvDanmakuVisible
@@ -1814,6 +1817,9 @@ var keyOfText = [numTexts]string{
 	"tvSettingsParental",
 	"tvSettingsAbout",
 	"tvSettingsLight",
+	"tvHomeLayout",
+	"tvHomeLayoutHint",
+	"tvHomeLayoutSaveError",
 	"tvSettingsDark",
 	"tvDanmakuHint",
 	"tvDanmakuVisible",
@@ -2745,6 +2751,9 @@ var textsEn = i18n.NewTexts(""+
 	"Parental controls"+
 	"About"+
 	"Light"+
+	"Home layout"+
+	"Use Left and Right to reorder. Press Select to show or hide a row."+
+	"Could not save the Home layout."+
 	"Dark"+
 	"Press ↓ during playback for quick adjustments"+
 	"Show danmaku"+
@@ -3673,6 +3682,9 @@ var textsEn = i18n.NewTexts(""+
 		17,
 		5,
 		5,
+		11,
+		66,
+		31,
 		4,
 		47,
 		12,
@@ -4604,6 +4616,9 @@ var textsZhHans = i18n.NewTexts(""+
 	"家长控制"+
 	"关于"+
 	"浅色"+
+	"首页布局"+
+	"按左右键调整顺序，按确定键切换显示。"+
+	"无法保存首页布局。"+
 	"深色"+
 	"在播放中按 ↓ 键也可快速调整"+
 	"显示弹幕"+
@@ -5532,6 +5547,9 @@ var textsZhHans = i18n.NewTexts(""+
 		12,
 		6,
 		6,
+		12,
+		54,
+		27,
 		6,
 		41,
 		12,
@@ -12663,6 +12681,27 @@ func TvSettingsLight(cx *core.Scope) string { return For(cx).TvSettingsLight() }
 
 // TvSettingsLight is the package's TvSettingsLight in the language of msgs.
 func (msgs Messages) TvSettingsLight() string { return msgs.text(textTvSettingsLight) }
+
+// TvHomeLayout says "Home layout"
+// in the language the app shows under cx.
+func TvHomeLayout(cx *core.Scope) string { return For(cx).TvHomeLayout() }
+
+// TvHomeLayout is the package's TvHomeLayout in the language of msgs.
+func (msgs Messages) TvHomeLayout() string { return msgs.text(textTvHomeLayout) }
+
+// TvHomeLayoutHint says "Use Left and Right to reorder. Press Select to show or hide a row."
+// in the language the app shows under cx.
+func TvHomeLayoutHint(cx *core.Scope) string { return For(cx).TvHomeLayoutHint() }
+
+// TvHomeLayoutHint is the package's TvHomeLayoutHint in the language of msgs.
+func (msgs Messages) TvHomeLayoutHint() string { return msgs.text(textTvHomeLayoutHint) }
+
+// TvHomeLayoutSaveError says "Could not save the Home layout."
+// in the language the app shows under cx.
+func TvHomeLayoutSaveError(cx *core.Scope) string { return For(cx).TvHomeLayoutSaveError() }
+
+// TvHomeLayoutSaveError is the package's TvHomeLayoutSaveError in the language of msgs.
+func (msgs Messages) TvHomeLayoutSaveError() string { return msgs.text(textTvHomeLayoutSaveError) }
 
 // TvSettingsDark says "Dark"
 // in the language the app shows under cx.

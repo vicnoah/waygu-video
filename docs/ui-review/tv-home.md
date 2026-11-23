@@ -27,11 +27,16 @@ The design frame clips the first source shelf at 1760 pt. To compare this sectio
 | Featured metadata and actions | Source and freshness pills, title, metadata, synopsis, actions and page indicators use the reference layout. The title and synopsis change line breaks with the catalog text. Ratings use the server's value, and quality badges depend on available stream metadata. The primary focus uses a violet ring and a small scale increase. |
 | Continue watching | Cards use 420 × 236 pt artwork, a 32 pt gap, a source badge over the top-left corner and a 6 pt progress line. The fixture shows five saved bookmarks. The horizontal viewport clips the next card at the 96 pt right inset. |
 | Recently added and source shelves | The shelves use 220 × 330 pt artwork, 32 pt gaps and section markers. The fixture's available source names, provider badges and media count determine the labels. Content cards link to their media copy. |
-| Remaining checks | Silent background trailers and the settings controls for configuring TV shelves remain pending. The Android TV and tvOS results below track native input separately from the GTK geometry. |
+| Source shelf settings | **Settings → Appearance → Home layout** controls the visibility and order of each source row. The catalog and playback keep their original source priority. [Settings captures and checks](tv-settings.md#home-layout) |
+| Remaining checks | Silent background trailers remain pending. Native input verification is recorded separately from the GTK geometry. |
 
 ## Interaction checks
 
 `TestDockerTVHomeReview` verifies the featured and card dimensions, all three Docker source shelves, details, Movies, Series, Anime, Favorites, Search and the complete catalog shortcut. Headless it checks the six-second focus-gated rotation and the long-press removal of a resume bookmark. Removing a bookmark from the TV shelf preserves the server's progress. New playback progress makes the title eligible for the shelf again.
+
+After adjusting the Home layout, both appearances show Jellyfin above Emby and omit the Plex row. The covers and titles come from the fixture libraries. Items without artwork use the app's poster placeholder. [Home layout steps and settings captures](tv-settings.md#home-layout)
+
+![Jellyfin above Emby after changing the TV Home layout, light and dark GTK](images/tv-home-custom-source-shelves.png)
 
 The [screen inventory](screens.md) tracks the detail page and the other TV views.
 

@@ -8,7 +8,7 @@ import (
 	"waygu-video/locales"
 )
 
-func (a *application) tvSettingsOptions(cx *core.Scope, l tvLayout, section tvSettingsSection, current route, sources []source, dialogs *[]core.Node) []tvOption {
+func (a *application) tvSettingsOptions(cx *core.Scope, l tvLayout, section tvSettingsSection, current route, sources []source, dialogs *[]core.Node, openHomeLayout func()) []tvOption {
 	link := func(id, label string, destination route) tvOption {
 		return tvOption{id: id, label: label, action: func() { a.push(destination) }}
 	}
@@ -60,6 +60,7 @@ func (a *application) tvSettingsOptions(cx *core.Scope, l tvLayout, section tvSe
 		return []tvOption{
 			{id: "tv-settings-appearance", label: locales.SettingsAppearance(cx),
 				value: func() string { return labels[index()] }, adjust: adjust},
+			{id: "tv-open-home-layout", label: locales.TvHomeLayout(cx), action: openHomeLayout},
 			link("open-appearance-settings", locales.AppearanceMore(cx), route{screen: screenAppearanceSettings}),
 		}
 	case tvLibraries:

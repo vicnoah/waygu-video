@@ -277,7 +277,15 @@ func (a *application) tvHome(cx *core.Scope, results *core.Resource[catalogResul
 					unmerged = rules.catalog(result.resumeCatalog)
 				}
 				var grouped []core.Node
-				for _, source := range sources {
+				sourcesByID := make(map[string]source, len(sources))
+				for _, entry := range sources {
+					sourcesByID[entry.ID] = entry
+				}
+				for _, shelf := range settings.tvSourceShelves(sources) {
+					if !shelf.Enabled {
+						continue
+					}
+					source := sourcesByID[shelf.ID]
 					var items []catalogItem
 					for _, entry := range unmerged {
 						if entry.source.ID == source.ID {

@@ -642,6 +642,9 @@ tvSettingsStorage: Storage
 tvSettingsParental: Parental controls
 tvSettingsAbout: About
 tvSettingsLight: Light
+tvHomeLayout: Home layout
+tvHomeLayoutHint: Use Left and Right to reorder. Press Select to show or hide a row.
+tvHomeLayoutSaveError: Could not save the Home layout.
 tvSettingsDark: Dark
 tvDanmakuHint: Press ↓ during playback for quick adjustments
 tvDanmakuVisible: Show danmaku

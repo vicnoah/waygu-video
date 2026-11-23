@@ -14,104 +14,127 @@ type tvOption struct {
 	content   func(func() bool) core.Node
 	disabled  func() bool
 	large     bool
+	reorder   bool
 }
 
-func tvSettingsRows(cx *core.Scope, l tvLayout, rows []tvOption, first *core.Ref, enter, leave func()) core.Node {
-	options := make([]core.Node, 0, len(rows))
-	refs := make([]core.Ref, len(rows))
-	enabled := func(index int) bool { return rows[index].disabled == nil || !rows[index].disabled() }
-	for index, option := range rows {
-		ref := &refs[index]
-		if index == 0 {
-			ref = first
-		}
-		options = append(options, core.Func(func(cx *core.Scope) core.Node {
-			focused := core.NewSignal(cx, false)
-			move := func(delta int) {
-				for next := index + delta; next >= 0 && next < len(rows); next += delta {
-					if enabled(next) {
-						if next == 0 {
-							first.Focus()
-						} else {
-							refs[next].Focus()
-						}
-						return
-					}
-				}
-			}
-			cx.Effect(func() {
-				if !focused.Get() {
+func tvSettingsRows(l tvLayout, rows func() []tvOption, focus *func(string), enter, leave func()) core.Node {
+	refs := make(map[string]*core.Ref)
+	*focus = func(id string) {
+		for _, candidate := range rows() {
+			if (id == "" || candidate.id == id) && (candidate.disabled == nil || !candidate.disabled()) {
+				if ref := refs[candidate.id]; ref != nil {
+					ref.Focus()
 					return
 				}
-				keys := core.KeyOptions{When: core.KeyNotEditing, Repeat: true}
-				cx.OnKeyWith("up", keys, func() { move(-1) })
-				cx.OnKeyWith("down", keys, func() { move(1) })
-				cx.OnKeyWith("left", keys, func() {
-					if option.adjust != nil {
-						option.adjust(-1)
-					} else {
-						leave()
-					}
-				})
-				cx.OnKeyWith("right", keys, func() {
-					if option.adjust != nil {
-						option.adjust(1)
-					}
-				})
-			})
-			check := option.checked
-			style := core.Style{Height: l.length(68), Gap: l.points(20), Padding: l.padding(28, 0), Selected: l.focusRing()}
-			label := l.text(option.label, 24, "flex-1 min-w-0 "+tvSettingsTitle+" group-selected:font-semibold "+tvSettingsFocusText)
-			data := []core.Node{label}
-			role := core.RoleButton
-			switch {
-			case check != nil:
-				role = core.RoleSwitch
-				data = append(data, tvSettingsSwitch(l, check))
-			case option.content != nil:
-				if option.large {
-					style.Height, style.Gap, style.Padding = core.Length{}, l.points(16), l.padding(28, 20)
-					data = []core.Node{option.content(focused.Get)}
-				} else {
-					data = append(data, option.content(focused.Get))
-				}
-			default:
-				arrow := tvSettingsMuted + " " + tvSettingsFocusText
-				if option.adjust != nil {
-					data = append(data, l.icon(lucide.ChevronLeft(), 24, arrow))
-				}
-				if option.value != nil {
-					value := l.text("", 24, "min-w-0 max-w-[60%] text-right "+tvSettingsMuted+" "+tvSettingsFocusText)
-					value.ContentFunc, value.TestID = option.value, option.id+"-value"
-					if option.adjust != nil {
-						value.Class = tvSettingsTitle + " text-center " + tvSettingsFocusText
-						value.Style.MinWidth = l.length(96)
-					}
-					data = append(data, value)
-				}
-				if option.adjust != nil || option.action != nil {
-					data = append(data, l.icon(lucide.ChevronRight(), 24, arrow))
-				}
 			}
-			class := tvSettingsCard + " " + tvSettingsFocusRow + " flex-row items-center disabled:opacity-60"
-			if option.large {
-				class = tvSettingsCard + " " + tvSettingsFocusRow
-			}
-			button := core.View{Class: class, Style: style, Ref: ref, TestID: option.id,
-				Role: role, Label: option.label, Checked: check, Selected: focused.Get, Disabled: option.disabled,
-				OnFocus: func() { focused.Set(true); enter() }, OnBlur: func() { focused.Set(false) },
-				OnPress: func(core.PressEvent) {
-					if option.action != nil {
-						option.action()
-					}
-				}, Children: data}
-			if cx.Env().OS() == core.OSIOS && option.adjust != nil {
-				return tvAppleAdjustTargets(cx, l, button, option.adjust, ref)
-			}
-			return button
-		}))
+		}
 	}
-	return core.View{Style: core.Style{Gap: l.points(10)}, Children: options}
+	options := core.Each(rows, func(option tvOption) string { return option.id }, func(cx *core.Scope, item func() tvOption, index func() int) core.Node {
+		option := core.Untracked(cx, item)
+		ref := &core.Ref{}
+		refs[option.id] = ref
+		cx.Cleanup(func() { delete(refs, option.id) })
+		focused := core.NewSignal(cx, false)
+		adjust := func(delta int) {
+			option.adjust(delta)
+			if option.reorder {
+				// A native backend can clear focus when it moves a row.
+				cx.Post(ref.Focus)
+			}
+		}
+		move := func(delta int) {
+			current := rows()
+			for next := index() + delta; next >= 0 && next < len(current); next += delta {
+				candidate := current[next]
+				if ref := refs[candidate.id]; ref != nil && (candidate.disabled == nil || !candidate.disabled()) {
+					ref.Focus()
+					return
+				}
+			}
+		}
+		cx.Effect(func() {
+			if !focused.Get() {
+				return
+			}
+			keys := core.KeyOptions{When: core.KeyNotEditing, Repeat: true}
+			cx.OnKeyWith("up", keys, func() { move(-1) })
+			cx.OnKeyWith("down", keys, func() { move(1) })
+			cx.OnKeyWith("left", keys, func() {
+				if option.adjust != nil {
+					adjust(-1)
+				} else {
+					leave()
+				}
+			})
+			cx.OnKeyWith("right", keys, func() {
+				if option.adjust != nil {
+					adjust(1)
+				}
+			})
+		})
+		check := option.checked
+		if check != nil {
+			check = func() bool { return item().checked() }
+		}
+		style := core.Style{Height: l.length(68), Gap: l.points(20), Padding: l.padding(28, 0),
+			CornerRadius: l.points(16), BorderWidth: l.points(1), Selected: l.focusRing()}
+		label := l.text("", 24, "flex-1 min-w-0 "+tvSettingsTitle+" group-selected:font-semibold "+tvSettingsFocusText)
+		label.ContentFunc = func() string { return item().label }
+		data := []core.Node{label}
+		role := core.RoleButton
+		arrow := tvSettingsMuted + " " + tvSettingsFocusText
+		switch {
+		case check != nil:
+			role = core.RoleSwitch
+			if option.reorder {
+				data = append(data, l.icon(lucide.ChevronLeft(), 24, arrow))
+			}
+			data = append(data, tvSettingsSwitch(l, check))
+			if option.reorder {
+				data = append(data, l.icon(lucide.ChevronRight(), 24, arrow))
+			}
+		case option.content != nil:
+			if option.large {
+				style.Height, style.Gap, style.Padding = core.Length{}, l.points(16), l.padding(28, 20)
+				data = []core.Node{option.content(focused.Get)}
+			} else {
+				data = append(data, option.content(focused.Get))
+			}
+		default:
+			if option.adjust != nil {
+				data = append(data, l.icon(lucide.ChevronLeft(), 24, arrow))
+			}
+			if option.value != nil {
+				value := l.text("", 24, "min-w-0 max-w-[60%] text-right "+tvSettingsMuted+" "+tvSettingsFocusText)
+				value.ContentFunc, value.TestID = option.value, option.id+"-value"
+				if option.adjust != nil {
+					value.Class = tvSettingsTitle + " text-center " + tvSettingsFocusText
+					value.Style.MinWidth = l.length(96)
+				}
+				data = append(data, value)
+			}
+			if option.adjust != nil || option.action != nil {
+				data = append(data, l.icon(lucide.ChevronRight(), 24, arrow))
+			}
+		}
+		class := tvSettingsCard + " " + tvSettingsFocusRow + " flex-row items-center disabled:opacity-60"
+		if option.large {
+			class = tvSettingsCard + " " + tvSettingsFocusRow
+		}
+		button := core.View{Class: class, Style: style, Ref: ref, TestID: option.id,
+			Role: role, LabelFunc: func() string { return item().label }, Checked: check, Selected: focused.Get, Disabled: option.disabled,
+			OnFocus: func() { focused.Set(true); enter() }, OnBlur: func() { focused.Set(false) },
+			OnPress: func(core.PressEvent) {
+				if action := item().action; action != nil {
+					action()
+				}
+			}, Children: data}
+		if cx.Env().OS() == core.OSIOS && option.adjust != nil {
+			return tvAppleAdjustTargets(cx, l, button, option.adjust, ref)
+		}
+		return button
+	})
+	return core.View{Style: core.Style{Gap: l.points(10)}, Children: []core.Node{options}}
 }
 
 func tvSettingsSwitch(l tvLayout, enabled func() bool) core.Node {
