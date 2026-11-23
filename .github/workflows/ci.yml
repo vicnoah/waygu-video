@@ -7,7 +7,7 @@ on:
         description: Verification scope
         type: choice
         default: all
-        options: [all, desktop, apple, apple-tv]
+        options: [all, desktop, desktop-macos, apple, apple-tv]
 
 permissions:
   contents: read
@@ -18,20 +18,19 @@ concurrency:
 
 jobs:
   desktop:
-    if: inputs.scope == 'all' || inputs.scope == 'desktop'
+    if: inputs.scope == 'all' || inputs.scope == 'desktop' || inputs.scope == 'desktop-macos'
     name: Desktop / ${{ matrix.target }}
-    runs-on: ${{ matrix.runner }}
+    runs-on: >-
+      ${{ fromJSON('{"macos_x64":"macos-15-intel","macos_arm64":"macos-26",
+      "linux_x64":"ubuntu-24.04","linux_arm64":"ubuntu-24.04-arm",
+      "windows_x64":"windows-2025","windows_arm64":"windows-11-arm"}')[matrix.target] }}
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - {runner: macos-15-intel, target: macos_x64, native: macos}
-          - {runner: macos-26, target: macos_arm64, native: macos}
-          - {runner: ubuntu-24.04, target: linux_x64, native: linux}
-          - {runner: ubuntu-24.04-arm, target: linux_arm64, native: linux}
-          - {runner: windows-2025, target: windows_x64, native: windows}
-          - {runner: windows-11-arm, target: windows_arm64, native: windows}
+        target: >-
+          ${{ fromJSON(inputs.scope == 'desktop-macos' && '["macos_x64","macos_arm64"]'
+          || '["macos_x64","macos_arm64","linux_x64","linux_arm64","windows_x64","windows_arm64"]') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -48,13 +47,16 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-4-1 xvfb xauth gstreamer1.0-plugins-good gstreamer1.0-libav
+          sudo apt-get install -y fonts-noto-cjk libgtk-4-1 xvfb xauth gstreamer1.0-plugins-good gstreamer1.0-libav
       - name: Native window smoke test on Linux
         if: runner.os == 'Linux'
         run: xvfb-run -a go tool nsgo test -target linux -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes|TestDesktopSidebarCounts)$' -timeout 2m -screenshots desktop-review .
       - name: Native window smoke test
         if: runner.os != 'Linux'
-        run: go tool nsgo test -target ${{ matrix.native }} -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes|TestDesktopSidebarCounts)$' -timeout 2m -screenshots desktop-review .
+        env:
+          NATIVE_TARGET: ${{ runner.os == 'macOS' && 'macos' || 'windows' }}
+        shell: bash
+        run: go tool nsgo test -target "$NATIVE_TARGET" -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes|TestDesktopSidebarCounts)$' -timeout 2m -screenshots desktop-review .
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: waygu-video-${{ matrix.target }}-review
@@ -74,7 +76,7 @@ jobs:
           if-no-files-found: error
 
   apple:
-    if: inputs.scope != 'desktop'
+    if: inputs.scope == 'all' || inputs.scope == 'apple' || inputs.scope == 'apple-tv'
     name: iOS and tvOS
     runs-on: macos-26
     timeout-minutes: 35
