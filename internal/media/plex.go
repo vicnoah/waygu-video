@@ -81,6 +81,7 @@ type plexPart struct {
 
 type plexTrack struct {
 	ID           int
+	Index        *int
 	StreamType   int
 	Codec        string
 	Language     string
@@ -386,7 +387,7 @@ func (p *plexClient) Versions(ctx context.Context, item Item) ([]Version, error)
 	for _, medium := range entry.Media {
 		if medium.ID > 0 && len(medium.Part) > 0 {
 			version := medium.version()
-			version.Tracks = p.partTracks(medium.Part[0], nil)
+			version.Tracks = p.partTracks(medium.Part[0], nil, medium.Container)
 			versions = append(versions, version)
 		}
 	}
@@ -500,7 +501,7 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 			}
 		}
 		stream.Headers = p.withEndpointHeaders(stream.Headers)
-		stream.Tracks = p.partTracks(part, audio)
+		stream.Tracks = p.partTracks(part, audio, version.Container)
 		if stream.Method == DirectPlay {
 			stream.Rendition = version.version()
 		}
@@ -509,7 +510,7 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 	return Stream{}, ErrNoStream
 }
 
-func (p *plexClient) partTracks(part plexPart, audio *int) []Track {
+func (p *plexClient) partTracks(part plexPart, audio *int, container string) []Track {
 	var tracks []Track
 	for _, track := range part.Stream {
 		kind := "audio"
@@ -538,6 +539,11 @@ func (p *plexClient) partTracks(part plexPart, audio *int) []Track {
 			case "srt", "subrip", "vtt", "webvtt":
 				current.URL = p.mediaURL(track.Key, nil)
 			}
+		}
+		if kind == "subtitle" && track.Key == "" && track.Index != nil && *track.Index >= 0 &&
+			part.Size > 0 && part.Key != "" && includesCodec("mp4,m4v,mov", container) &&
+			includesCodec("mov_text,tx3g,webvtt,wvtt,vtt", track.Codec) {
+			current.FileSubtitleIndex = track.Index
 		}
 		tracks = append(tracks, current)
 	}

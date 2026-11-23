@@ -42,6 +42,22 @@ The quality panel pairs the 48 pt original row with three 40 pt preset rows. The
 
 ![Speed tab comparison](images/phone-player-tracks-speed.png)
 
+### Embedded text subtitles
+
+![Scenra subtitle picker on the left and GTK with the embedded English track selected on the right](images/phone-embedded-subtitle-picker.png)
+
+Both captures use the 360 pt right-side panel at 844 pt width. The fixture supplies the language names and embedded track labels. The selected row keeps the violet highlight and checkmark. The reference draws one extra action for online search. Changing the primary track updates both lines while playback remains paused, and Off clears both lines. [Scenra subtitle panel](../../design/player-tracks.scenra#L28)
+
+![The native GTK video and both app captions from the Plex MP4](images/phone-embedded-subtitles.png)
+
+Emby and Jellyfin return the timed cues from their subtitle endpoints. Plex returns the original MP4, and the app uses HTTP byte ranges to read its movie index and the selected text samples. Timed Text and MP4 WebVTT use the same language order, Chinese conversion, styling and delay as sidecars. The video proxy hides those tracks from the native decoder to prevent duplicate captions. It preserves the video and audio bytes and the file's range offsets. [Fixture and test commands](../../integration/servers/TESTING.md#native-embedded-mp4-subtitles)
+
+The GTK test played the MP4 clips from all three Docker services and checked the default pair, switching and Off. Embedded Plex Matroska subtitles, styled ASS and image subtitles still need native phone integration.
+
+![Android 15 Pixel 7 emulator with the English track selected on the Plex clip](images/phone-embedded-subtitle-picker-android.png)
+
+Separate Android 15 Pixel 7 emulator runs passed for Emby, Jellyfin and Plex. The capture shows the app's captions and controls at the emulator's landscape viewport. NSGo's Android software capture omits the decoder's underlying video texture. The playback test checks the decoder's reported resolution and seeks using the phone timeline. [Android reproduction](../../integration/servers/TESTING.md#native-embedded-mp4-subtitles)
+
 ## Danmaku
 
 ![Danmaku display tab comparison](images/phone-player-danmaku-show.png)

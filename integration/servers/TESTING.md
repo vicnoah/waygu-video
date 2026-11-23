@@ -78,6 +78,27 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
 
 The GTK test needs GStreamer with a working H.264/AAC decoder. [Screenshots and comparison](../../docs/ui-review/phone-player-settings.md#chinese-conversion-and-bilingual-captions)
 
+## Native embedded MP4 subtitles
+
+`Waygu Portable Captions Test` uses the same generated video, audio and two text tracks as the Matroska subtitle fixture. The MP4 contains both text tracks and has no sidecars. Refresh existing libraries with `fixtures.sh` and `bootstrap.py`. The test verifies direct play, automatic Chinese and English selection, changing the primary track, Off and the paused position. The GTK run captures the decoded clip and the picker.
+
+```sh
+WAYGU_TEST_SERVERS=1 go tool nsgo test . -run '^TestDockerNativeEmbeddedSubtitles$'
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerNativeEmbeddedSubtitles$' -screenshots .nsgo/ui-review/embedded-mp4-subtitles
+go tool nsgo test ./internal/playback -run '^(TestFetchMP4Captions.*|TestMP4Caption.*)$'
+```
+
+The range tests verify caption timing, authenticated partial reads, rejection of responses that contain unexpected bytes, UTF-16 and WebVTT decoding, and the four-byte video-side mask. [Phone player review](../../docs/ui-review/phone-player.md#embedded-text-subtitles)
+
+On the Android phone emulator, forward the fixture ports to the development machine with `adb reverse tcp:<port> tcp:<port>` for ports 18096, 28096 and 32400. Run one provider per invocation so each has its own native activity and screenshots. Substitute `emby`, `jellyfin` or `plex` in the test selector.
+
+```sh
+go tool nsgo test -target android -device <serial> -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerNativeEmbeddedSubtitles$/^plex$' -timeout 150s \
+  -screenshots .nsgo/ui-review/embedded-mp4-subtitles-android
+```
+
 ## Embedded subtitle tracks
 
 `fixtures.sh` creates `Waygu Embedded Subtitle Test`, an 18-second H.264/AAC Matroska file with Simplified Chinese, English and positioned ASS dialogue. Refresh the media servers with `bootstrap.py` to index it. The desktop GTK test uses libmpv to open each server's original file, shows Chinese converted to Traditional and English below it, promotes the second track, and toggles the ASS rendering preferences while paused. The libmpv test also applies a shared delay and compares frames after toggling a locally attached font.

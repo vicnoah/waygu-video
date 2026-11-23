@@ -63,6 +63,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 	failed := core.NewSignal(cx, false)
 	trackSource := core.NewMemo(cx, func() string { return stream().SourceID })
 	viewContext := cx.Context()
+	var cancelServerSubtitle context.CancelFunc
 	started := false
 	finishSubtitles := func(selection subtitleSelection, err error) {
 		loading.Set(false)
@@ -88,13 +89,23 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		started = true
 		loading.Set(true)
 		failed.Set(false)
-		source := trackSource.GetUntracked()
+		requestContext := viewContext
+		var cancel context.CancelFunc
+		if selection.id != "local" {
+			requestContext, cancel = context.WithCancel(viewContext)
+			cancelServerSubtitle = cancel
+		}
 		go func() {
-			cues, err := read(viewContext)
+			cues, err := read(requestContext)
 			cx.Post(func() {
-				if selection.id != "local" && trackSource.GetUntracked() != source {
-					loading.Set(false)
-				} else if err == nil {
+				if requestContext.Err() != nil {
+					return
+				}
+				if cancel != nil {
+					cancel()
+					cancelServerSubtitle = nil
+				}
+				if err == nil {
 					selection.cues = cues
 					applySubtitles(selection)
 				} else {
@@ -106,7 +117,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 	selectServerSubtitle := func(track media.Track) {
 		current := core.Untracked(cx, stream)
 		load(subtitleSelection{id: track.ID, name: trackLabel(cx, track), language: track.Language}, func(ctx context.Context) (*playback.Captions, error) {
-			return playback.FetchCaptions(ctx, track.URL, current.SubtitleHeaders, current.Trust)
+			return fetchSubtitleTrack(ctx, current, track)
 		})
 	}
 	selectDecoderSubtitle := func(d *desktopVideo, track mpv.Track) {
@@ -144,7 +155,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			}
 		}
 		for _, track := range core.Untracked(cx, stream).Tracks {
-			if track.Type == "subtitle" && track.URL != "" && (!native || track.External) {
+			if track.ReadableSubtitle() && (!native || track.External) {
 				choices = append(choices, trackOption{track.ID == subtitles.GetUntracked().id, func() { selectServerSubtitle(track) }})
 			}
 		}
@@ -175,6 +186,11 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 	}
 	cx.Effect(func() {
 		trackSource.Get()
+		if cancelServerSubtitle != nil {
+			cancelServerSubtitle()
+			cancelServerSubtitle = nil
+			loading.Set(false)
+		}
 		if choice := subtitles.GetUntracked(); choice.id != "local" {
 			subtitles.Set(subtitleSelection{})
 		}
@@ -195,7 +211,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		}
 		if initialSubtitle != "" {
 			for _, track := range available {
-				if track.ID == initialSubtitle && track.Type == "subtitle" && track.URL != "" {
+				if track.ID == initialSubtitle && track.ReadableSubtitle() {
 					selectServerSubtitle(track)
 					return
 				}
@@ -327,7 +343,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 				OnChange: func(bool) { selectDecoderSubtitle(d, track) }}, playerSubtitleDetails(cx, descriptor), false))
 		}
 		for _, track := range stream().Tracks {
-			if track.Type != "subtitle" || track.URL == "" || (nativeSubtitles && !track.External) {
+			if !track.ReadableSubtitle() || (nativeSubtitles && !track.External) {
 				continue
 			}
 			label := trackLabel(cx, track)

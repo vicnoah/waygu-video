@@ -55,7 +55,14 @@ func ReadCaptions(reader io.Reader) (*Captions, error) {
 		}
 	}
 	cues = appendCue(cues, lines)
-	if scanner.Err() != nil || len(cues) == 0 {
+	if scanner.Err() != nil {
+		return nil, errCaptions
+	}
+	return newCaptions(cues)
+}
+
+func newCaptions(cues []cue) (*Captions, error) {
+	if len(cues) == 0 {
 		return nil, errCaptions
 	}
 	slices.SortStableFunc(cues, func(a, b cue) int { return cmp.Compare(a.start, b.start) })
@@ -91,11 +98,15 @@ func appendCue(cues []cue, lines []string) []cue {
 	if !startOK || !endOK || start >= end {
 		return cues
 	}
-	text := strings.TrimSpace(html.UnescapeString(captionTags.ReplaceAllString(strings.Join(lines[1:], "\n"), "")))
+	text := plainCaptionText(strings.Join(lines[1:], "\n"))
 	if text != "" {
 		cues = append(cues, cue{start, end, text})
 	}
 	return cues
+}
+
+func plainCaptionText(text string) string {
+	return strings.TrimSpace(html.UnescapeString(captionTags.ReplaceAllString(text, "")))
 }
 
 func cueTime(value string) (time.Duration, bool) {
@@ -140,23 +151,12 @@ func (c *Captions) At(position time.Duration) string {
 }
 
 func FetchCaptions(ctx context.Context, address string, header http.Header, pins ...mediatls.Trust) (*Captions, error) {
-	origin, err := url.Parse(address)
-	if err != nil || origin.User != nil || origin.Hostname() == "" || (origin.Scheme != "http" && origin.Scheme != "https") {
-		return nil, errCaptions
-	}
-	transport, err := mediatls.Transport(address, pins...)
+	client, err := newCaptionClient(address, pins...)
 	if err != nil {
 		return nil, err
 	}
-	client := &http.Client{Timeout: 20 * time.Second, CheckRedirect: func(req *http.Request, via []*http.Request) error {
-		if len(via) >= 5 || req.URL.User != nil || req.URL.Scheme != origin.Scheme || !strings.EqualFold(req.URL.Host, origin.Host) {
-			return http.ErrUseLastResponse
-		}
-		return nil
-	}}
-	if transport != nil {
-		defer transport.CloseIdleConnections()
-		client.Transport = transport
+	if client.Transport != nil {
+		defer client.CloseIdleConnections()
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, address, nil)
 	if err != nil {
@@ -172,4 +172,25 @@ func FetchCaptions(ctx context.Context, address string, header http.Header, pins
 		return nil, errCaptions
 	}
 	return ReadCaptions(res.Body)
+}
+
+func newCaptionClient(address string, pins ...mediatls.Trust) (*http.Client, error) {
+	origin, err := url.Parse(address)
+	if err != nil || origin.User != nil || origin.Hostname() == "" || (origin.Scheme != "http" && origin.Scheme != "https") {
+		return nil, errCaptions
+	}
+	transport, err := mediatls.Transport(address, pins...)
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{Timeout: 20 * time.Second, CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 5 || req.URL.User != nil || req.URL.Scheme != origin.Scheme || !strings.EqualFold(req.URL.Host, origin.Host) {
+			return http.ErrUseLastResponse
+		}
+		return nil
+	}}
+	if transport != nil {
+		client.Transport = transport
+	}
+	return client, nil
 }

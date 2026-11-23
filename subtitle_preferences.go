@@ -206,7 +206,7 @@ func textSubtitleForPreference(tracks []media.Track, code, target string) media.
 func textSubtitleInLanguage(tracks []media.Track, code string) media.Track {
 	var match media.Track
 	for _, track := range tracks {
-		if track.Type == "subtitle" && track.ID != "" && track.URL != "" && subtitleLanguage(track.Language) == code &&
+		if track.ReadableSubtitle() && track.ID != "" && subtitleLanguage(track.Language) == code &&
 			(match.ID == "" || track.Default && !match.Default) {
 			match = track
 		}

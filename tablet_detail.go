@@ -334,7 +334,7 @@ func detailTrackOptions(cx *core.Scope, version media.Version, choice detailTrac
 	}
 	options = []ui.Option[string]{{Label: display}}
 	for _, track := range version.Tracks {
-		if track.Type != kind || (kind == "subtitle" && track.URL == "") {
+		if track.Type != kind || (kind == "subtitle" && !track.ReadableSubtitle()) {
 			continue
 		}
 		name := trackLabel(cx, track)

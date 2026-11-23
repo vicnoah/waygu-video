@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"net/http"
 	"slices"
 	"strings"
 	"time"
@@ -11,7 +10,6 @@ import (
 	"github.com/nsgo-dev/nsgo/core"
 
 	"waygu-video/internal/media"
-	"waygu-video/internal/mediatls"
 	"waygu-video/internal/playback"
 )
 
@@ -22,6 +20,13 @@ type captionLines struct {
 type activeCaptionLines struct {
 	captionLines
 	primaryLanguage, secondaryLanguage string
+}
+
+func fetchSubtitleTrack(ctx context.Context, stream media.Stream, track media.Track) (*playback.Captions, error) {
+	if track.URL == "" && track.FileSubtitleIndex != nil {
+		return playback.FetchMP4Captions(ctx, stream.Original(), stream.File.Size, *track.FileSubtitleIndex)
+	}
+	return playback.FetchCaptions(ctx, track.URL, stream.SubtitleHeaders, stream.Trust)
 }
 
 func playerCaptionText(cx *core.Scope, subtitles *core.Signal[subtitleSelection], stream func() media.Stream, prefs func() subtitlePreferences,
@@ -37,9 +42,8 @@ func playerCaptionText(cx *core.Scope, subtitles *core.Signal[subtitleSelection]
 	})
 
 	type request struct {
-		track   media.Track
-		headers http.Header
-		trust   mediatls.Trust
+		track  media.Track
+		stream media.Stream
 	}
 	type downloadedTrack struct {
 		track media.Track
@@ -50,10 +54,9 @@ func playerCaptionText(cx *core.Scope, subtitles *core.Signal[subtitleSelection]
 		if track.ID == "" {
 			return request{}, false
 		}
-		current := stream()
-		return request{track, current.SubtitleHeaders, current.Trust}, true
+		return request{track, stream()}, true
 	}, func(ctx context.Context, req request, _ core.ResourceInfo) (downloadedTrack, error) {
-		cues, err := playback.FetchCaptions(ctx, req.track.URL, req.headers, req.trust)
+		cues, err := fetchSubtitleTrack(ctx, req.stream, req.track)
 		return downloadedTrack{req.track, cues}, err
 	})
 	active := core.NewMemo(cx, func() activeCaptionLines {

@@ -8,9 +8,10 @@ resume='media/Movies/Waygu Resume Test (2025)'
 resume_pair='media/Movies/Waygu Resume Across Sources (2025)'
 tracks='media/Movies/Waygu Track Test (2025)'
 embedded='media/Movies/Waygu Embedded Subtitle Test (2025)'
+portable='media/Movies/Waygu Portable Captions Test (2025)'
 versions='media/Movies/Waygu Version Test (2025)'
 series='media/Shows/Waygu Review Series (2025)'
-mkdir -p "$movie" "$season" "$resume" "$resume_pair" "$tracks" "$versions" "$embedded" "$tracks/trailers" "$tracks/featurettes"
+mkdir -p "$movie" "$season" "$resume" "$resume_pair" "$tracks" "$versions" "$embedded" "$portable" "$tracks/trailers" "$tracks/featurettes"
 
 make_clip() {
     picture=$1
@@ -85,6 +86,12 @@ EOF
 )
 
 make_embedded_subtitle_clip
+
+portable_clip="$portable/Waygu Portable Captions Test (2025).mp4"
+if [ ! -s "$portable_clip" ]; then
+    ffmpeg -nostdin -hide_banner -loglevel error -y -i "$embedded/Waygu Embedded Subtitle Test (2025).mkv" \
+        -map 0:v:0 -map 0:a:0 -map 0:s:0 -map 0:s:1 -c copy -c:s mov_text -movflags +faststart "$portable_clip"
+fi
 
 mkdir -p "$series/Season 00" "$series/Season 01" "$series/Season 02"
 cat > "$series/tvshow.nfo" <<'EOF'

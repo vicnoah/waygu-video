@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -109,7 +111,7 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 				}
 			}
 		}
-		active, err := prepareVideo(ctx, client, stream, platform == core.OSAndroid)
+		active, err := prepareVideo(ctx, client, stream, platform == core.OSAndroid, len(options.Direct) > 0)
 		active.endpoint = endpoint
 		active.requestedBitrate = preset
 		return active, err
@@ -155,13 +157,21 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 	}}
 }
 
-func prepareVideo(lifetime context.Context, client media.Client, stream media.Stream, android bool) (playerMedia, error) {
+func prepareVideo(lifetime context.Context, client media.Client, stream media.Stream, android, useMPV bool) (playerMedia, error) {
 	medium := playerMedia{client: client, stream: stream, url: stream.URL, close: func() {}}
 	resource := stream.Resource()
-	if len(resource.Headers) == 0 && resource.Authorize == nil && !resource.Trust.Matches(resource.URL) && !(android && strings.HasPrefix(resource.URL, "http://")) {
+	maskCaptions := !useMPV && stream.Method == media.DirectPlay && stream.File.Size > 0 && nativeMP4Subtitles(stream)
+	if !maskCaptions && len(resource.Headers) == 0 && resource.Authorize == nil && !resource.Trust.Matches(resource.URL) && !(android && strings.HasPrefix(resource.URL, "http://")) {
 		return medium, nil
 	}
-	address, closeProxy, err := playback.Open(resource)
+	var address string
+	var closeProxy func()
+	var err error
+	if maskCaptions {
+		address, closeProxy, err = playback.OpenWithoutMP4Captions(lifetime, resource, stream.File.Size)
+	} else {
+		address, closeProxy, err = playback.Open(resource)
+	}
 	if err != nil {
 		return playerMedia{}, err
 	}
@@ -173,6 +183,14 @@ func prepareVideo(lifetime context.Context, client media.Client, stream media.St
 		}
 	}
 	return medium, nil
+}
+
+func nativeMP4Subtitles(stream media.Stream) bool {
+	switch strings.ToLower(filepath.Ext(stream.File.Name)) {
+	case ".mp4", ".m4v", ".mov":
+		return slices.ContainsFunc(stream.Tracks, func(track media.Track) bool { return !track.External && track.ReadableSubtitle() })
+	}
+	return false
 }
 
 func (a *application) playerView(cx *core.Scope, current route, initial playerMedia, showTVHints func() bool) core.Node {
@@ -403,7 +421,7 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 			stream, err := previous.client.Playback(ctx, current.item, options)
 			var next playerMedia
 			if err == nil {
-				next, err = prepareVideo(playerContext, previous.client, stream, android)
+				next, err = prepareVideo(playerContext, previous.client, stream, android, len(options.Direct) > 0)
 				next.endpoint = previous.endpoint
 				next.requestedBitrate = preset
 			}

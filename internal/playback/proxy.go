@@ -116,14 +116,15 @@ func startProxy(source mediahttp.Resource, bind string, receiver netip.Addr, con
 }
 
 type streamProxy struct {
-	origin    *url.URL
-	client    *http.Client
-	headers   http.Header
-	prefix    string
-	receiver  netip.Addr
-	mediaType string
-	routes    sync.Map
-	budget    *atomic.Int64
+	origin      *url.URL
+	client      *http.Client
+	headers     http.Header
+	prefix      string
+	receiver    netip.Addr
+	mediaType   string
+	routes      sync.Map
+	budget      *atomic.Int64
+	captionMask mp4CaptionMask
 }
 
 func (p *streamProxy) sameServer(endpoint *url.URL) bool {
@@ -163,6 +164,10 @@ func (p *streamProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		request.Header[name] = values
 	}
 	playlistPath := strings.HasSuffix(r.URL.Path, ".m3u8")
+	maskCaptions := endpoint == p.origin && len(p.captionMask.offsets) > 0
+	if maskCaptions {
+		request.Header.Set("Accept-Encoding", "identity")
+	}
 	for _, name := range []string{"Range", "If-Range", "If-None-Match", "If-Modified-Since"} {
 		if playlistPath {
 			// Playlist contents are rewritten in full. A 206 response can't
@@ -185,6 +190,14 @@ func (p *streamProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var body io.Reader = response.Body
+	if maskCaptions && r.Method == http.MethodGet && (response.StatusCode == http.StatusOK || response.StatusCode == http.StatusPartialContent) {
+		start, ok := p.captionMask.responseStart(response)
+		if !ok {
+			http.Error(w, "Unexpected media range", http.StatusBadGateway)
+			return
+		}
+		body = &maskedCaptionReader{source: body, pos: start, offsets: p.captionMask.offsets}
+	}
 	if p.budget != nil {
 		body = &budgetReader{body, p.budget}
 	}
@@ -206,6 +219,9 @@ func (p *streamProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, name := range []string{"Content-Type", "Content-Length", "Content-Range", "Accept-Ranges", "ETag", "Last-Modified"} {
+		if maskCaptions && name == "ETag" {
+			continue
+		}
 		if value := response.Header.Get(name); value != "" {
 			w.Header().Set(name, value)
 		}

@@ -151,6 +151,13 @@ type Track struct {
 	Forced   bool
 	Selected bool
 	External bool
+	// FileSubtitleIndex is the zero-based stream index in the original MP4.
+	FileSubtitleIndex *int
+}
+
+// ReadableSubtitle reports whether the app can read the subtitle as timed text.
+func (t Track) ReadableSubtitle() bool {
+	return t.Type == "subtitle" && (t.URL != "" || t.FileSubtitleIndex != nil)
 }
 
 type PlayMethod string
