@@ -26,6 +26,10 @@ type Source struct {
 	mediahttp.Resource
 	Name, MediaID string
 	Size          int64
+	// MaxHeight marks a newly encoded MP4 whose length may be unknown.
+	MaxHeight int
+	Duration  time.Duration
+	Playlist  bool
 }
 
 type revision struct {
@@ -61,9 +65,14 @@ func (s *Store) Transfer(ctx context.Context, id string, src Source, limits Limi
 		return File{}, err
 	}
 	resumePath, part := filepath.Join(dir, "resume.json"), filepath.Join(dir, "video.part")
+	if src.MaxHeight > 0 {
+		if err := os.Remove(part); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return File{}, err
+		}
+	}
 	var previous revision
 	position := fileSize(part)
-	if readJSON(resumePath, &previous) != nil || previous.Validator == "" ||
+	if src.MaxHeight > 0 || readJSON(resumePath, &previous) != nil || previous.Validator == "" ||
 		previous.MediaID != src.MediaID || position >= previous.Total {
 		position = 0
 	}
@@ -82,9 +91,11 @@ func (s *Store) Transfer(ctx context.Context, id string, src Source, limits Limi
 		request.Header = make(http.Header)
 	}
 	request.Header.Set("Accept-Encoding", "identity")
-	request.Header.Set("Range", "bytes="+strconv.FormatInt(position, 10)+"-")
-	if position > 0 {
-		request.Header.Set("If-Range", previous.Validator)
+	if src.MaxHeight <= 0 {
+		request.Header.Set("Range", "bytes="+strconv.FormatInt(position, 10)+"-")
+		if position > 0 {
+			request.Header.Set("If-Range", previous.Validator)
+		}
 	}
 	client := http.Client{CheckRedirect: func(next *http.Request, history []*http.Request) error {
 		if len(history) >= 5 || next.URL.Host != request.URL.Host || next.URL.Scheme != request.URL.Scheme || next.URL.User != nil {
@@ -99,8 +110,16 @@ func (s *Store) Transfer(ctx context.Context, id string, src Source, limits Limi
 		client.Transport = transport
 	}
 	client.Transport = src.Authorize.Transport(client.Transport)
-	response, err := client.Do(request)
+	var response *http.Response
+	if src.Playlist {
+		response, err = openMP4Playlist(&client, request)
+	} else {
+		response, err = client.Do(request)
+	}
 	if err != nil {
+		if errors.Is(err, ErrInvalidFile) {
+			return File{}, err
+		}
 		// The URL may carry a media server token.
 		return File{}, errors.New("could not connect to the download source")
 	}
@@ -116,10 +135,13 @@ func (s *Store) Transfer(ctx context.Context, id string, src Source, limits Limi
 	switch response.StatusCode {
 	case http.StatusOK:
 		position = 0
-		if current.Total < 0 {
+		if current.Total < 0 && src.MaxHeight <= 0 {
 			current.Total = src.Size
 		}
 	case http.StatusPartialContent:
+		if src.MaxHeight > 0 {
+			return File{}, ErrInvalidFile
+		}
 		var first, last int64
 		count, _ := fmt.Sscanf(response.Header.Get("Content-Range"), "bytes %d-%d/%d", &first, &last, &current.Total)
 		if count != 3 || first != position || last != current.Total-1 ||
@@ -134,10 +156,12 @@ func (s *Store) Transfer(ctx context.Context, id string, src Source, limits Limi
 		}
 		return File{}, fmt.Errorf("download HTTP status %d", response.StatusCode)
 	}
-	if current.Total <= 0 || current.Total <= position {
+	unknownSize := current.Total < 0 && src.MaxHeight > 0
+	if !unknownSize && current.Total <= position {
 		return File{}, ErrInvalidFile
 	}
-	release, err := s.allocate(id, current.Total, limits)
+	reserved := max(0, current.Total)
+	release, err := s.allocate(id, reserved, limits)
 	if err != nil {
 		return File{}, err
 	}
@@ -151,8 +175,10 @@ func (s *Store) Transfer(ctx context.Context, id string, src Source, limits Limi
 	if err := file.Truncate(position); err != nil {
 		return File{}, err
 	}
-	if err := writeJSON(resumePath, current); err != nil {
-		return File{}, err
+	if src.MaxHeight <= 0 {
+		if err := writeJSON(resumePath, current); err != nil {
+			return File{}, err
+		}
 	}
 	digest := sha256.New()
 	if position > 0 {
@@ -166,35 +192,91 @@ func (s *Store) Transfer(ctx context.Context, id string, src Source, limits Limi
 		progress(position, current.Total)
 	}
 	buffer := make([]byte, 128<<10)
-	length := current.Total - position
-	for remaining := length; remaining > 0; {
+	written := position
+	for {
 		if err := requestCtx.Err(); err != nil {
 			_ = file.Sync()
 			return File{}, err
 		}
-		n, readErr := io.ReadFull(response.Body, buffer[:min(int64(len(buffer)), remaining)])
+		var n int
+		var readErr error
+		if !unknownSize && written < current.Total {
+			n, readErr = io.ReadFull(response.Body, buffer[:min(int64(len(buffer)), current.Total-written)])
+		} else {
+			n, readErr = response.Body.Read(buffer)
+		}
 		if n > 0 {
+			next := written + int64(n)
+			if !unknownSize && next > current.Total {
+				_ = file.Truncate(position)
+				return File{}, ErrInvalidFile
+			}
+			if unknownSize && next > reserved {
+				const room = 4 << 20
+				reserved = next + room
+				if err := s.reserveSize(id, reserved, limits); errors.Is(err, ErrNoSpace) {
+					reserved = next
+					if err := s.reserveSize(id, reserved, limits); err != nil {
+						return File{}, err
+					}
+				} else if err != nil {
+					return File{}, err
+				}
+			}
 			deadline.Reset(idle)
 			if _, err := output.Write(buffer[:n]); err != nil {
 				return File{}, err
 			}
-			remaining -= int64(n)
+			written = next
 			if progress != nil {
-				progress(current.Total-remaining, current.Total)
+				progress(written, current.Total)
 			}
+		}
+		if errors.Is(readErr, io.EOF) {
+			break
 		}
 		if readErr != nil {
 			_ = file.Sync()
 			return File{}, readErr
 		}
 	}
-	if n, err := io.Copy(io.Discard, io.LimitReader(response.Body, 1)); n != 0 || err != nil {
-		_ = file.Truncate(position)
+	if written == 0 || (!unknownSize && written != current.Total) {
 		return File{}, ErrInvalidFile
 	}
 	if checksum := response.Header.Get("Content-MD5"); checksum != "" && checksum != base64.StdEncoding.EncodeToString(transferMD5.Sum(nil)) {
 		_ = file.Truncate(position)
 		return File{}, ErrInvalidFile
+	}
+	if err := ctx.Err(); err != nil {
+		return File{}, err
+	}
+	height := 0
+	if src.MaxHeight > 0 {
+		if extension != ".mp4" {
+			_ = file.Truncate(0)
+			return File{}, ErrInvalidFile
+		}
+		var indexOffset int64
+		var indexSize uint64
+		if src.Playlist {
+			fragments := response.Body.(*downloadFragments)
+			indexOffset, indexSize = fragments.indexOffset, fragments.indexSize
+		}
+		written, err = indexMP4Timeline(ctx, file, written, indexOffset, indexSize,
+			func(bytes int64) error { return s.reserveSize(id, bytes, limits) })
+		if err != nil {
+			_ = file.Truncate(0)
+			return File{}, err
+		}
+		height = transcodedMP4Height(file, written, src.MaxHeight, src.Duration)
+		if height == 0 {
+			_ = file.Truncate(0)
+			return File{}, ErrInvalidFile
+		}
+		digest.Reset()
+		if _, err := io.Copy(digest, io.NewSectionReader(file, 0, written)); err != nil {
+			return File{}, err
+		}
 	}
 	if err := file.Sync(); err != nil {
 		return File{}, err
@@ -205,7 +287,7 @@ func (s *Store) Transfer(ctx context.Context, id string, src Source, limits Limi
 	if err := ctx.Err(); err != nil {
 		return File{}, err
 	}
-	result := File{Extension: extension, Size: current.Total, SHA256: hex.EncodeToString(digest.Sum(nil)), MediaID: src.MediaID}
+	result := File{Extension: extension, Size: written, SHA256: hex.EncodeToString(digest.Sum(nil)), MediaID: src.MediaID, Height: height}
 	prepared := filepath.Join(dir, "complete.pending")
 	if err := writeJSON(prepared, result); err != nil {
 		return File{}, err

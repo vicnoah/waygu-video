@@ -398,6 +398,8 @@ downloadTransferError: The download could not be completed.
 downloadNone: There are no downloads yet.
 downloadOptions: Download options
 downloadQuality: Download quality
+downloadQualityPreset: "{height}p · {bitrate} Mbps"
+downloadEstimatedSize: "Approx. {size}"
 downloadConcurrency: Concurrent downloads
 downloadQuota: Download space limit
 downloadUnlimited: Unlimited

@@ -160,7 +160,7 @@ func TestDockerPreferredPlaybackMethod(t *testing.T) {
 				{"transcode", `{"DisableDirectPlay":true}`, "hls"},
 			} {
 				t.Run(mode.name, func(t *testing.T) {
-					config, secrets := homeReviewSources(t)
+					config, secrets := dockerReviewSources(t, false)
 					_, item := reviewFixtureItem(t, config, secrets, provider, "Waygu Test Movie")
 					config[playbackPreferencesKey] = mode.preferences
 					app := nsgotest.Start(t, func(cx *core.Scope) core.Node {

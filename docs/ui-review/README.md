@@ -32,7 +32,7 @@ The [screen inventory](screens.md) tracks each Scenra design variant and its pan
 | Phone landscape player · all seven panel tabs | [Playback and panel comparisons](phone-player.md) | Compared at 844 × 390 pt on GTK with an Emby video and subtitle fixture. Android emulator coverage includes rotation, saved swipe settings and timeline dragging. |
 | DLNA device picker · empty, list and connected | [Flow comparison and receiver checks](casting.md) | Captured on GTK. Linux GStreamer verifies multicast discovery and remote playback. Mobile and physical TV checks remain pending. |
 | Phone playback and subtitle settings · light and dark | [Settings comparison and playback checks](phone-player-settings.md) | Compared on GTK. Audio and caption preferences were verified against Emby and Jellyfin. Device captures and several controls remain pending. |
-| Storage and downloads · light and dark | [Design comparison and offline playback checks](storage-downloads.md) | Original-file downloads compared and tested on GTK. Transcoded downloads and platform background handling remain pending. |
+| Storage and downloads · light and dark | [Design comparison and offline playback checks](storage-downloads.md) | Original and transcoded copies were checked on GTK with Emby, Jellyfin and Plex. The review records the quality picker, queue and remaining storage controls. |
 | Personal library | [Favorite and watch-history captures](personal-library.md) | Compared the tablet sidebar and detail actions, and recorded both catalog destinations on GTK. |
 
 ## Capture a comparison

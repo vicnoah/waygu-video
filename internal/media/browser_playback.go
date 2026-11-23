@@ -34,6 +34,7 @@ type browserSource struct {
 	Size                    int64
 	RunTimeTicks            int64
 	Bitrate                 int
+	SupportsTranscoding     bool
 	DefaultAudioStreamIndex *int
 	SupportsDirectPlay      bool
 	SupportsDirectStream    bool
@@ -188,7 +189,25 @@ func (m *mediaBrowser) browserStream(item Item, source browserSource, sessionID 
 			return Stream{}, false
 		}
 	}
-	if audio == nil && source.SupportsDirectPlay && source.Bitrate <= bitrate {
+	if options.download {
+		if !source.SupportsTranscoding && source.TranscodingUrl == "" {
+			return Stream{}, false
+		}
+		params.Set("Static", "false")
+		params.Set("VideoCodec", "h264")
+		params.Set("AudioCodec", "aac")
+		params.Set("EnableAutoStreamCopy", "false")
+		params.Set("AllowVideoStreamCopy", "false")
+		params.Set("MaxHeight", strconv.Itoa(options.MaxHeight))
+		width := (options.MaxHeight*16/9 + 1) &^ 1
+		params.Set("MaxWidth", strconv.Itoa(width))
+		params.Set("MaxAudioChannels", "2")
+		params.Set("VideoBitRate", strconv.Itoa(bitrate-128_000))
+		params.Set("AudioBitRate", "128000")
+		params.Set("SubtitleStreamIndex", "-1")
+		stream.URL = m.mediaURL("Videos/"+url.PathEscape(item.ID)+"/stream.mp4", params)
+		stream.Headers, stream.Method = m.auth(), Transcode
+	} else if audio == nil && source.SupportsDirectPlay && source.Bitrate <= bitrate {
 		stream.URL = original
 		stream.Method = DirectPlay
 	} else if source.TranscodingUrl != "" {

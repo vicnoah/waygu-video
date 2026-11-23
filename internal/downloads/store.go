@@ -1,4 +1,4 @@
-// Package downloads manages resumable copies of original media files.
+// Package downloads manages verified copies of offline media files.
 package downloads
 
 import (
@@ -21,6 +21,7 @@ type File struct {
 	Size      int64
 	SHA256    string
 	MediaID   string
+	Height    int `json:",omitempty"`
 }
 
 type Limits struct {
@@ -123,11 +124,22 @@ func (s *Store) Remove(id string) error {
 }
 
 func (s *Store) allocate(id string, total int64, limits Limits) (func(), error) {
+	if err := s.reserveSize(id, total, limits); err != nil {
+		return nil, err
+	}
+	return func() {
+		s.mu.Lock()
+		delete(s.reserve, id)
+		s.mu.Unlock()
+	}, nil
+}
+
+func (s *Store) reserveSize(id string, total int64, limits Limits) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	entries, err := os.ReadDir(s.Dir)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	var totalUsed, remaining uint64
 	for _, entry := range entries {
@@ -152,17 +164,13 @@ func (s *Store) allocate(id string, total int64, limits Limits) (func(), error) 
 	}
 	if (limits.Quota > 0 && totalUsed > uint64(limits.Quota)) ||
 		(limits.Free != nil && remaining > uint64(max(0, *limits.Free))) {
-		return nil, ErrNoSpace
+		return ErrNoSpace
 	}
 	if s.reserve == nil {
 		s.reserve = make(map[string]int64)
 	}
 	s.reserve[id] = total
-	return func() {
-		s.mu.Lock()
-		delete(s.reserve, id)
-		s.mu.Unlock()
-	}, nil
+	return nil
 }
 
 func fileSize(path string) int64 {

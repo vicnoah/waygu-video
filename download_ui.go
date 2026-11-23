@@ -10,6 +10,7 @@ import (
 	"github.com/nsgo-dev/nsgo/icons/lucide"
 	"github.com/nsgo-dev/nsgo/ui"
 
+	"waygu-video/internal/media"
 	"waygu-video/locales"
 )
 
@@ -18,7 +19,10 @@ func (a *application) downloadAction(cx *core.Scope, current route, render detai
 		return nil
 	}
 	id := downloadID(mediaAccountKey(current.source), current.item.ID)
-	return core.Dynamic(func(cx *core.Scope) core.Node {
+	open := core.NewSignal(cx, false)
+	height := core.NewSignal(cx, 0)
+	selected := core.NewSignalFunc(cx, current, nil)
+	action := core.Dynamic(func(cx *core.Scope) core.Node {
 		entry, exists := a.downloads.find(id, a.downloads.entries.Get())
 		label, icon := locales.DownloadAction(cx), lucide.Download
 		if exists {
@@ -36,8 +40,15 @@ func (a *application) downloadAction(cx *core.Scope, current route, render detai
 				} else {
 					a.push(route{screen: screenDownloads})
 				}
-			} else if !a.downloads.enqueue(request()) {
-				a.push(route{screen: screenDownloads})
+			} else {
+				item := request()
+				selected.Set(item)
+				value := 0
+				if canDownloadTranscodes(item.source.Provider) {
+					value = a.downloads.height.GetUntracked()
+				}
+				height.Set(value)
+				open.Set(true)
 			}
 		}
 		if render != nil {
@@ -45,6 +56,64 @@ func (a *application) downloadAction(cx *core.Scope, current route, render detai
 		}
 		return ui.Button{Text: label, Icon: icon, Variant: ui.ButtonOutline, TestID: "detail-download", OnPress: press}
 	})
+	confirm := func() {
+		open.Set(false)
+		if !a.downloads.enqueue(selected.GetUntracked(), height.GetUntracked()) {
+			a.push(route{screen: screenDownloads})
+		}
+	}
+	title := locales.DownloadQuality(cx)
+	dialog := ui.Dialog{Title: title, Open: open.Get, TestID: "detail-download-quality",
+		OnOpenChange: func(show bool, _ base.Reason) { open.Set(show) },
+		OnConfirm:    confirm,
+		Children: []core.Node{core.Dynamic(func(cx *core.Scope) core.Node {
+			chosen := selected.Get()
+			options := downloadQualityOptions(cx)
+			if !canDownloadTranscodes(chosen.source.Provider) {
+				options = options[:1]
+			}
+			rows := make([]core.Node, 0, len(options))
+			for _, option := range options {
+				bytes := chosen.item.FileSize
+				if option.Value > 0 {
+					bytes = int64(chosen.item.Duration.Seconds() * float64(downloadBitrate(option.Value)/8))
+				}
+				var estimate core.Node
+				if bytes > 0 {
+					estimate = core.Text{Content: locales.DownloadEstimatedSize(cx, mediaBytes(bytes)), Class: "text-xs text-muted-foreground"}
+				}
+				rows = append(rows, core.View{Class: "min-h-11 flex-row items-center justify-between gap-3", Children: []core.Node{
+					ui.Radio{Text: option.Label, TestID: "detail-download-quality-" + strconv.Itoa(option.Value),
+						Checked: func() bool { return height.Get() == option.Value },
+						OnChange: func(checked bool) {
+							if checked {
+								height.Set(option.Value)
+							}
+						}},
+					estimate,
+				}})
+			}
+			return ui.RadioGroup{Label: title, Children: rows}
+		})},
+		Footer: []core.Node{
+			ui.Button{Text: locales.DesktopSettingsCancel(cx), Variant: ui.ButtonOutline, OnPress: func() { open.Set(false) }},
+			ui.Button{Text: locales.DownloadAction(cx), TestID: "detail-download-confirm", OnPress: confirm},
+		},
+	}
+	return core.Group([]core.Node{action, dialog})
+}
+
+func canDownloadTranscodes(provider media.Provider) bool {
+	return provider == media.Emby || provider == media.Jellyfin || provider == media.Plex
+}
+
+func downloadQualityOptions(cx *core.Scope) []ui.Option[int] {
+	options := []ui.Option[int]{{Label: locales.OriginalQuality(cx)}}
+	for _, height := range []int{1080, 720} {
+		options = append(options, ui.Option[int]{Value: height, Label: locales.DownloadQualityPreset(cx,
+			strconv.Itoa(height), strconv.Itoa(downloadBitrate(height)/1_000_000))})
+	}
+	return options
 }
 
 func downloadStateLabel(cx *core.Scope, entry downloadEntry) string {
@@ -138,7 +207,9 @@ func (a *application) downloadStorage(cx *core.Scope) core.Node {
 			return setupGroup(locales.OfflineDownloads(cx), "", rows...)
 		}),
 		setupGroup(locales.DownloadOptions(cx), "",
-			downloadPreference(cx, locales.DownloadQuality(cx), lucide.Film(), "bg-violet-500", hint(locales.OriginalQuality(cx))),
+			settingPicker(cx, "download-quality", locales.DownloadQuality(cx), downloadQualityOptions(cx), queue.height.Get, queue.setHeight,
+				[]core.Node{setupBadge(lucide.Film(), "bg-violet-500"),
+					core.Text{Content: locales.DownloadQuality(cx), Class: "min-w-0 flex-1 text-[15px] " + setupTitle, MaxLines: 1}}),
 			downloadPreference(cx, locales.DownloadConcurrency(cx), lucide.Layers(), "bg-indigo-500",
 				downloadPicker(cx, "download-concurrency", locales.DownloadConcurrency(cx), slots, queue.slots.Get, queue.setSlots)),
 			downloadPreference(cx, locales.DownloadQuota(cx), lucide.HardDrive(), "bg-sky-500",
@@ -287,7 +358,11 @@ func (a *application) downloadRow(cx *core.Scope, entry downloadEntry, confirm *
 	}
 	data := []core.Node{core.Text{Content: title, Class: "text-sm " + setupTitle, MaxLines: 1}}
 	if entry.State == downloadComplete {
-		state += " · " + locales.OriginalQuality(cx) + " · " + mediaBytes(entry.Total)
+		quality := locales.OriginalQuality(cx)
+		if entry.EncodedHeight > 0 {
+			quality = strconv.Itoa(entry.EncodedHeight) + "p"
+		}
+		state += " · " + quality + " · " + mediaBytes(entry.Total)
 	} else if entry.Total > 0 {
 		progress := float32(min(100, 100*float64(entry.Transferred)/float64(entry.Total)))
 		data = append(data, core.View{Class: "overflow-hidden rounded-full", Children: []core.Node{
@@ -295,9 +370,11 @@ func (a *application) downloadRow(cx *core.Scope, entry downloadEntry, confirm *
 				TrackClass: "h-1 bg-zinc-900/10 dark:bg-white/10", IndicatorClass: "h-1 bg-violet-500"},
 		}})
 		state += " · " + mediaBytes(entry.Transferred) + " / " + mediaBytes(entry.Total)
-		if entry.State == downloadRunning && entry.Rate > 0 {
-			state += " · " + mediaBytes(entry.Rate) + "/s"
-		}
+	} else if entry.Transferred > 0 {
+		state += " · " + mediaBytes(entry.Transferred)
+	}
+	if entry.State == downloadRunning && entry.Rate > 0 {
+		state += " · " + mediaBytes(entry.Rate) + "/s"
 	}
 	if entry.Failure != "" {
 		state += " · " + downloadErrorText(cx, entry.Failure)

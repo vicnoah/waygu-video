@@ -105,6 +105,8 @@ var Parameters = map[string][]string{
 	"FileSource":                      {"source"},
 	"FileSubtitleCount":               {"count"},
 	"DownloadPercent":                 {"percent"},
+	"DownloadQualityPreset":           {"height", "bitrate"},
+	"DownloadEstimatedSize":           {"size"},
 	"DownloadStorageUsed":             {"size"},
 	"DownloadStorageAvailable":        {"size"},
 	"DownloadUsage":                   {"size"},
@@ -248,6 +250,8 @@ type Translation struct {
 	FileSource                      func(source string) string
 	FileSubtitleCount               func(count string) string
 	DownloadPercent                 func(percent string) string
+	DownloadQualityPreset           func(height string, bitrate string) string
+	DownloadEstimatedSize           func(size string) string
 	DownloadStorageUsed             func(size string) string
 	DownloadStorageAvailable        func(size string) string
 	DownloadUsage                   func(size string) string
@@ -5991,6 +5995,12 @@ func Supply(lang string, t Translation) {
 	if t.DownloadPercent != nil {
 		s.DownloadPercent = t.DownloadPercent
 	}
+	if t.DownloadQualityPreset != nil {
+		s.DownloadQualityPreset = t.DownloadQualityPreset
+	}
+	if t.DownloadEstimatedSize != nil {
+		s.DownloadEstimatedSize = t.DownloadEstimatedSize
+	}
 	if t.DownloadStorageUsed != nil {
 		s.DownloadStorageUsed = t.DownloadStorageUsed
 	}
@@ -10020,6 +10030,54 @@ func DownloadQuality(cx *core.Scope) string { return For(cx).DownloadQuality() }
 
 // DownloadQuality is the package's DownloadQuality in the language of msgs.
 func (msgs Messages) DownloadQuality() string { return msgs.text(textDownloadQuality) }
+
+// DownloadQualityPreset says "{height}p · {bitrate} Mbps"
+// in the language the app shows under cx.
+func DownloadQualityPreset(cx *core.Scope, height string, bitrate string) string {
+	return For(cx).DownloadQualityPreset(height, bitrate)
+}
+
+// DownloadQualityPreset is the package's DownloadQualityPreset in the language of msgs.
+func (msgs Messages) DownloadQualityPreset(height string, bitrate string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DownloadQualityPreset(height, bitrate))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DownloadQualityPreset; f != nil {
+			return f(height, bitrate)
+		}
+		switch lang {
+		case "", "en":
+			return msgs.arg(height) + "p · " + msgs.arg(bitrate) + " Mbps"
+		case "zh-Hans":
+			return height + "p · " + bitrate + " Mbps"
+		}
+	}
+}
+
+// DownloadEstimatedSize says "Approx. {size}"
+// in the language the app shows under cx.
+func DownloadEstimatedSize(cx *core.Scope, size string) string {
+	return For(cx).DownloadEstimatedSize(size)
+}
+
+// DownloadEstimatedSize is the package's DownloadEstimatedSize in the language of msgs.
+func (msgs Messages) DownloadEstimatedSize(size string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.DownloadEstimatedSize(size))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].DownloadEstimatedSize; f != nil {
+			return f(size)
+		}
+		switch lang {
+		case "", "en":
+			return "Approx. " + msgs.arg(size)
+		case "zh-Hans":
+			return "约 " + size
+		}
+	}
+}
 
 // DownloadConcurrency says "Concurrent downloads"
 // in the language the app shows under cx.

@@ -394,6 +394,9 @@ func TestFlymooGatewayConnectionReview(t *testing.T) {
 			app.Resize(390, height)
 			app.WaitFor("id:detail-download", 5*time.Second)
 			app.Press("id:detail-download")
+			app.Press("id:detail-download-confirm")
+			app.FastForward(350 * time.Millisecond)
+			app.WaitForGone("id:detail-download-quality", 3*time.Second)
 			app.WaitFor("role:button 已下载", 10*time.Second)
 			raw, _ := app.Storage().GetItem(downloadQueueKey)
 			if raw == "" || strings.Contains(raw, reviewFlymooToken) || strings.Contains(raw, gateway.server.URL) {

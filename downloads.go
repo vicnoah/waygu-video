@@ -29,15 +29,18 @@ const (
 )
 
 const (
-	downloadQueueKey = "offline-downloads-v1"
-	downloadSlotsKey = "offline-download-slots-v1"
-	downloadQuotaKey = "offline-download-quota-v1"
+	downloadQueueKey   = "offline-downloads-v1"
+	downloadSlotsKey   = "offline-download-slots-v1"
+	downloadQuotaKey   = "offline-download-quota-v1"
+	downloadQualityKey = "offline-download-quality-v1"
 )
 
 type downloadEntry struct {
 	ID, Account, SourceName string
 	Item                    media.Item
 	Version                 media.PlaybackOptions
+	Height                  int `json:",omitempty"`
+	EncodedHeight           int `json:",omitempty"`
 	State                   downloadState
 	Transferred, Total      int64
 	Rate                    int64 `json:"-"`
@@ -52,6 +55,7 @@ type downloadQueue struct {
 	entries  *core.Signal[[]downloadEntry]
 	slots    *core.Signal[int]
 	quota    *core.Signal[int64]
+	height   *core.Signal[int]
 	failure  *core.Signal[string]
 	running  map[string]context.CancelFunc
 	removing map[string]bool
@@ -72,9 +76,14 @@ func newDownloadQueue(cx *core.Scope, a *application) *downloadQueue {
 	if !slices.Contains(downloadQuotaOptions, quota) {
 		quota = 0
 	}
+	rawHeight, _ := a.storage.GetItem(downloadQualityKey)
+	height, _ := strconv.Atoi(rawHeight)
+	if downloadBitrate(height) == 0 {
+		height = 0
+	}
 	queue := &downloadQueue{app: a, lifetime: cx.Context(), store: downloads.Store{Dir: dir}, running: make(map[string]context.CancelFunc),
 		removing: make(map[string]bool), slots: core.NewSignal(cx, count), quota: core.NewSignal(cx, quota),
-		failure: core.NewSignal(cx, "")}
+		height: core.NewSignal(cx, height), failure: core.NewSignal(cx, "")}
 	var entries []downloadEntry
 	if dir != "" {
 		data, _ := a.storage.GetItem(downloadQueueKey)
@@ -87,6 +96,7 @@ func newDownloadQueue(cx *core.Scope, a *application) *downloadQueue {
 		if _, file, err := queue.store.Open(entry.ID); err == nil {
 			entry.State, entry.Failure = downloadComplete, ""
 			entry.Transferred, entry.Total = file.Size, file.Size
+			entry.EncodedHeight = file.Height
 		} else {
 			entry.Transferred = queue.store.Bytes(entry.ID)
 			switch entry.State {
@@ -151,7 +161,7 @@ func (q *downloadQueue) update(id string, save bool, change func(*downloadEntry)
 	return true
 }
 
-func (q *downloadQueue) enqueue(current route) bool {
+func (q *downloadQueue) enqueue(current route, height int) bool {
 	account := mediaAccountKey(current.source)
 	id := downloadID(account, current.item.ID)
 	entries := q.entries.GetUntracked()
@@ -164,7 +174,7 @@ func (q *downloadQueue) enqueue(current route) bool {
 	options, _ := q.app.initialPlaybackOptions(current)
 	options.AudioIndex, options.SubtitleIndex = nil, nil
 	entry := downloadEntry{ID: id, Account: account, SourceName: current.source.Name, Item: offlineItem(current.item),
-		Version: options, State: downloadQueued, Position: current.item.Position}
+		Version: options, Height: height, State: downloadQueued, Position: current.item.Position}
 	if !q.persist(append(slices.Clone(entries), entry)) {
 		return false
 	}
@@ -201,12 +211,18 @@ func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, curre
 	client, err := q.app.client(ctx, current)
 	if err == nil {
 		negotiation, cancel := context.WithTimeout(ctx, 25*time.Second)
-		stream, openErr := client.Playback(negotiation, entry.Item, entry.Version)
+		var stream media.Stream
+		var input downloads.Source
+		if entry.Height > 0 {
+			stream, err = media.TranscodedDownload(negotiation, client, entry.Item, entry.Version, entry.Height, downloadBitrate(entry.Height))
+			input = downloads.Source{Resource: stream.Resource(), Name: "video.mp4", MediaID: stream.SourceID,
+				MaxHeight: entry.Height, Duration: stream.Duration, Playlist: current.Provider == media.Plex}
+		} else {
+			stream, err = client.Playback(negotiation, entry.Item, entry.Version)
+			input = downloads.Source{Resource: stream.Original(), Name: stream.File.Name, Size: stream.File.Size, MediaID: stream.SourceID}
+		}
 		cancel()
-		err = openErr
 		if err == nil {
-			original := stream.File
-			input := downloads.Source{Resource: stream.Original(), Name: original.Name, Size: original.Size, MediaID: stream.SourceID}
 			if input.URL == "" {
 				err = downloads.ErrInvalidFile
 			}
@@ -214,7 +230,7 @@ func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, curre
 			var lastBytes int64
 			progress := func(bytes, total int64) {
 				now := time.Now()
-				if bytes < total && now.Sub(published) < 250*time.Millisecond {
+				if (total < 0 || bytes < total) && now.Sub(published) < 250*time.Millisecond {
 					return
 				}
 				var rate int64
@@ -247,6 +263,11 @@ func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, curre
 					}
 				}
 			}
+			if input.Playlist {
+				cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), 3*time.Second)
+				media.StopDownloadTranscode(cleanup, client, stream)
+				cancel()
+			}
 		}
 	}
 	bytes := q.store.Bytes(entry.ID)
@@ -257,6 +278,7 @@ func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, curre
 			e.Transferred, e.Rate = bytes, 0
 			if err == nil {
 				e.State, e.Failure, e.Total = downloadComplete, "", file.Size
+				e.EncodedHeight = file.Height
 				return
 			}
 			if e.State == downloadRunning {
@@ -265,6 +287,25 @@ func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, curre
 		})
 		q.pump()
 	})
+}
+
+func downloadBitrate(height int) int {
+	switch height {
+	case 1080:
+		return 10_000_000
+	case 720:
+		return 4_000_000
+	default:
+		return 0
+	}
+}
+
+func (q *downloadQueue) setHeight(value int) {
+	if q.app.storage.SetItem(downloadQualityKey, strconv.Itoa(value)) != nil {
+		q.failure.Set("save")
+		return
+	}
+	q.height.Set(value)
 }
 
 func downloadFailure(err error) string {

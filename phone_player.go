@@ -138,7 +138,8 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 			Max:   func() float64 { return p.duration.Get().Seconds() }, Step: func() float64 { return 1 },
 			Disabled: func() bool { return p.duration.Get() <= 0 }, OnChange: scrubChanged, OnChangeEnd: seekCommit,
 		}, chapters, railDrag, preview, frames),
-		core.Text{Class: "text-xs font-medium text-zinc-300", ContentFunc: func() string { return landscapeClock(p.duration.Get()) }},
+		core.Text{TestID: "phone-player-duration", Class: "text-xs font-medium text-zinc-300",
+			ContentFunc: func() string { return landscapeClock(p.duration.Get()) }},
 	}}
 	danmakuPill := core.View{Class: "h-8 shrink flex-row items-center gap-2 rounded-full border border-white/10 bg-white/15 pr-3 pl-1", Children: []core.Node{
 		base.Button{TestID: "toggle-danmaku", Label: locales.ShowDanmaku(cx), Selected: p.comments.enabled, Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
@@ -213,10 +214,14 @@ func (p phonePlayerControls) render(cx *core.Scope) core.Node {
 }
 
 func (p phonePlayerControls) height() int {
+	stream := p.stream()
+	if stream.Method == media.DirectPlay && stream.Rendition.Height > 0 {
+		return stream.Rendition.Height
+	}
 	if height := p.picture.Get().Height; height > 0 {
 		return int(height)
 	}
-	return p.stream().Rendition.Height
+	return stream.Rendition.Height
 }
 
 func meaningfulVideoRange(r string) bool {

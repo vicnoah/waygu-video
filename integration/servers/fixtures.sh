@@ -10,8 +10,9 @@ tracks='media/Movies/Waygu Track Test (2025)'
 embedded='media/Movies/Waygu Embedded Subtitle Test (2025)'
 portable='media/Movies/Waygu Portable Captions Test (2025)'
 versions='media/Movies/Waygu Version Test (2025)'
+download='media/Movies/Waygu Download Test (2025)'
 series='media/Shows/Waygu Review Series (2025)'
-mkdir -p "$movie" "$season" "$resume" "$resume_pair" "$tracks" "$versions" "$embedded" "$portable" "$tracks/trailers" "$tracks/featurettes"
+mkdir -p "$movie" "$season" "$resume" "$resume_pair" "$tracks" "$versions" "$embedded" "$portable" "$download" "$tracks/trailers" "$tracks/featurettes"
 
 make_clip() {
     picture=$1
@@ -42,6 +43,15 @@ make_clip testsrc2 440 "$movie/Waygu Test Movie (2025).mp4"
 make_clip smptebars 520 "$season/Waygu Test Series - S01E01.mp4"
 make_clip testsrc 660 "$tracks/trailers/Waygu Teaser.mp4"
 make_clip smptebars 720 "$tracks/featurettes/Waygu Behind the Scenes.mp4"
+
+download_clip="$download/Waygu Download Test (2025).mp4"
+if [ ! -s "$download_clip" ]; then
+    ffmpeg -nostdin -hide_banner -loglevel error -y \
+        -f lavfi -i 'testsrc2=size=1920x1080:rate=24' \
+        -f lavfi -i 'sine=frequency=400:sample_rate=48000' \
+        -t 12 -c:v libx264 -threads 2 -preset veryfast -pix_fmt yuv420p \
+        -c:a aac -movflags +faststart "$download_clip"
+fi
 
 make_embedded_subtitle_clip() (
     output="$embedded/Waygu Embedded Subtitle Test (2025).mkv"

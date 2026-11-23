@@ -85,6 +85,11 @@ func waitForHomeCatalogTitle(app *nsgotest.App, title string) {
 
 func homeReviewSources(t *testing.T) (map[string]string, map[string]string) {
 	t.Helper()
+	return dockerReviewSources(t, true)
+}
+
+func dockerReviewSources(t *testing.T, seedResume bool) (map[string]string, map[string]string) {
+	t.Helper()
 	ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 	defer cancel()
 	password := os.Getenv("WAYGU_TEST_PASSWORD")
@@ -119,7 +124,7 @@ func homeReviewSources(t *testing.T) (map[string]string, map[string]string) {
 		}
 		for _, library := range libraries {
 			entry.Libraries = append(entry.Libraries, sourceLibrary{Library: library})
-			if library.Name == "Movies" && entry.Provider != media.Plex {
+			if seedResume && library.Name == "Movies" && entry.Provider != media.Plex {
 				page, err := client.Catalog(ctx, media.Query{LibraryID: library.ID, Search: "Waygu Resume Test"})
 				if err != nil || len(page.Items) != 1 {
 					t.Fatalf("read resume fixture: %v, %d items", err, len(page.Items))

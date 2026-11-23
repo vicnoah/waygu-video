@@ -90,7 +90,7 @@ func TestDockerPhoneLibraryReview(t *testing.T) {
 	if os.Getenv("WAYGU_TEST_SERVERS") != "1" {
 		t.Skip("requires the Docker fixtures")
 	}
-	config, secrets := homeReviewSources(t)
+	config, secrets := dockerReviewSources(t, false)
 	client, movie := reviewFixtureItem(t, config, secrets, "emby", "Waygu Track Test")
 	doc := reviewFixtureTitle(t, config, secrets, "jellyfin", "Waygu Track Test")
 	_, _, show, _ := reviewSeriesFixture(t, config, secrets, "emby")

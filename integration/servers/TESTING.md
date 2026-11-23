@@ -35,6 +35,24 @@ Stop the fixture services with `docker compose -f integration/servers/compose.ya
 
 With the same three fixtures, `TestDockerOfflineDownloadReview` saves an original video from the detail page, restarts the app with the saved data, disconnects the test gateway, opens the cached movie from the library and probes the local file with `ffprobe`. The headless case reconnects and verifies the offline checkpoint in the server's detail response. GTK also advances the native playback clock while the gateway refuses requests. The download store fixture checks byte ranges after cancellation, verifies the supplied response MD5 and final SHA-256, and checks the space limit and deletion.
 
+## Transcoded downloads
+
+`fixtures.sh` adds a generated 12-second 1080p H.264/AAC movie. Run it and refresh the Docker libraries with `bootstrap.py`. `TestDockerTranscodedDownload` sets the default to 1080p and uses the movie picker to download it at 720p from each server. It reopens the app with the server proxy disconnected, confirms the resolution, codecs and full runtime with `ffprobe`, and decodes a point near the end. The native GTK run also advances playback with the system decoder. `TestFiniteMP4DownloadPlaylist` covers authentication, cross-origin references, partial playlists and segment checksums. [Storage design comparison](../../docs/ui-review/storage-downloads.md#download-quality) · [Emby video streaming API](https://dev.emby.media/doc/restapi/Video-Streaming.html) · [Jellyfin video controller](https://github.com/jellyfin/jellyfin/blob/master/Jellyfin.Api/Controllers/VideosController.cs) · [Plex transcoding profile API](https://developer.plex.tv/pms/#section/API-Info/Profile-Augmentations)
+
+```sh
+WAYGU_TEST_SERVERS=1 go tool nsgo test . -run '^TestDockerTranscodedDownload$'
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerTranscodedDownload$' -screenshots .nsgo/ui-review/download-quality
+```
+
+The Android test opens the completed item from Storage after disconnecting its server. It checks the 720p label, the full duration and playback after a timeline drag. Add the three fixture port forwards with `adb reverse` as in the subtitle tests below. Run each provider in its own test activity by substituting `emby`, `jellyfin` or `plex` in the selector.
+
+```sh
+go tool nsgo test -target android -device <serial> -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerTranscodedDownload$/^plex$' -timeout 150s \
+  -screenshots .nsgo/ui-review/android-download-quality
+```
+
 ## Remember playback progress
 
 `TestDockerRememberPlaybackPosition` seeds the same movie at 92 seconds on Emby, Jellyfin and Plex. The phone player seeks to the existing point, then advances and closes while recording is off. The containers retain the previous position and the app saves no pending checkpoint. Turning the setting back on and repeating playback updates each server to 123 seconds.

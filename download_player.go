@@ -31,7 +31,8 @@ func (a *application) downloadedMedia(entry downloadEntry, current source, platf
 		address = (&url.URL{Scheme: "file", Path: filepath.ToSlash(path)}).String()
 	}
 	stream := media.Stream{ItemID: entry.Item.ID, SourceID: file.MediaID, URL: address,
-		Duration: entry.Item.Duration, Position: entry.Position, Method: media.DirectPlay}
+		Duration: entry.Item.Duration, Position: entry.Position, Method: media.DirectPlay,
+		Rendition: media.Version{Height: file.Height}}
 	return playerMedia{client: client, stream: stream, url: address, close: func() {}}, nil
 }
 

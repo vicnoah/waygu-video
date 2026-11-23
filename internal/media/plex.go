@@ -477,6 +477,11 @@ func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOp
 				width := (height*16/9 + 1) &^ 1
 				params.Set("videoResolution", fmt.Sprintf("%dx%d", width, height))
 			}
+			if options.download {
+				params.Set("hasMDE", "1")
+				params.Set("X-Plex-Client-Profile-Name", "Generic")
+				params.Set("X-Plex-Client-Profile-Extra", "add-transcode-target(type=videoProfile&context=streaming&protocol=hls&container=mp4&videoCodec=h264&audioCodec=aac&replace=true)")
+			}
 			stream.URL, stream.Method = p.mediaURL("/video/:/transcode/universal/start.m3u8", params), Transcode
 			stream.Headers = p.auth()
 			transcodeParams = params

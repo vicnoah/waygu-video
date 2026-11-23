@@ -184,6 +184,7 @@ type PlaybackOptions struct {
 	AudioIndex     *int
 	SubtitleIndex  *int
 	Direct         []DirectProfile
+	download       bool
 }
 
 type DirectProfile struct {
