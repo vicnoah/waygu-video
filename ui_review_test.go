@@ -55,6 +55,28 @@ func TestWelcomeReview(t *testing.T) {
 	}
 }
 
+func TestWelcomeScrollKeepsActionsAboveNavigationBar(t *testing.T) {
+	if nsgotest.Target() != "" {
+		t.Skip("requires a simulated navigation bar inset")
+	}
+	app := nsgotest.Start(t, Root, nsgotest.Size(390, 800),
+		nsgotest.Environment(core.Environment{OS: core.OSAndroid, SafeArea: core.Edges{Bottom: 48}}))
+	const safeBottom = 752
+	viewport := app.Find("id:welcome-scroll").Bounds()
+	if got := viewport.Origin.Y + viewport.Size.Height; got != safeBottom {
+		t.Fatalf("Welcome viewport ends at %v, want %v above navigation", got, safeBottom)
+	}
+	app.Scroll("id:welcome-scroll", 1000)
+	for _, id := range []string{"add-source", "onboarding-later"} {
+		bounds := app.Find("id:" + id).Bounds()
+		if bottom := bounds.Origin.Y + bounds.Size.Height; bottom > safeBottom {
+			t.Fatalf("%s ends at %v, below the safe viewport", id, bottom)
+		}
+	}
+	app.Press("id:onboarding-later")
+	app.Find("id:empty-add-source")
+}
+
 func TestSourceReview(t *testing.T) {
 	if nsgotest.Target() == "" {
 		t.Skip("requires a screenshot target")

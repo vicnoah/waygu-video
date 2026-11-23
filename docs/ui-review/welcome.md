@@ -16,14 +16,28 @@ Each strip shows the baseline app on the left, the Scenra reference in the cente
 
 | Area | Baseline | Revised capture and remaining work |
 | --- | --- | --- |
-| Poster wall and background | Narrow columns, shorter crop, and a plain background below the posters. | The wall now uses a 250 pt crop with aligned 112 × 176 pt posters and separate light and dark fades. The reference includes a phone bezel and status bar. Confirm placement and icon color with the real system bar on mobile. |
+| Poster wall and background | Narrow columns, shorter crop, and a plain background below the posters. | The wall now uses a 250 pt crop with aligned 112 × 176 pt posters and separate light and dark fades. The reference includes a phone bezel and status bar. The Android poster wall extends behind the white system status icons in both appearances. [Android phone captures](#android-phone-viewport) |
 | Brand and heading | 36 pt mark, smaller wordmark, and different headline scale. | The mark is now 40 pt and the heading occupies the same two lines as the reference. The localized wordmark reads 肥牛视频. The raster mark, system font, and subpixel rendering retain small edge differences. |
 | Feature card | A single provider row. | Four rows use the reference's spacing, tinted icons, and dividers. Copy shows Emby, Jellyfin, 飞牛影视, and Plex, plus the implemented danmaku, original-file playback, and server-backed progress features. |
 | Actions | A 32 pt flat button and skip action high on the screen. | The 52 pt gradient button and skip action are within 1 px of the reference vertically in the GTK captures. The reference includes a 1 px device frame. |
 
 ## Native interaction checks
 
-`TestWelcomeReview` passed in both appearances. It asserts the hero height, the primary action height, and the four feature rows. It presses **添加媒体源**, confirms the Emby choice is present, goes back, presses **稍后设置**, and checks that the empty home screen offers to add a source. Native phone captures and input checks are still pending.
+`TestWelcomeReview` passed in both appearances. It asserts the hero height, the primary action height, and the four feature rows. It presses **添加媒体源**, confirms the Emby choice is present, goes back, presses **稍后设置**, and checks that the empty home screen offers to add a source. iPhone captures and input checks are still pending.
+
+## Android phone viewport
+
+Scenra is on the left and the Android 35 phone emulator display is on the right. Both show a 390 × 800 pt crop in Simplified Chinese. The emulator uses a 390 × 848 pt display with three-button navigation. The app viewport measures 390 × 800 pt above the system navigation bar. Android clips the poster images to the 16 pt corners and shows white status icons over the top poster wall. Text rendering, system icons and the reference's device frame give the edges different pixels.
+
+![Scenra and the Android phone display in light appearance](images/welcome-android-light.png)
+
+![Scenra and the Android phone display in dark appearance](images/welcome-android-dark.png)
+
+On a 390 × 800 pt display, the 48 pt navigation bar covered the lower edge of **添加媒体源** and all of the **稍后设置** touch target in the baseline. The revised scroll viewport ends above the navigation bar. The three frames show the baseline APK, the revised page at launch and the revised page after scrolling to the actions.
+
+![Compact Android welcome before the navigation inset fix, after the fix and after scrolling](images/welcome-android-compact.png)
+
+The installed x86-64 APK passed a real swipe and tap sequence in the compact viewport. **添加媒体源** opened the provider chooser, Android Back returned to Welcome and **稍后设置** opened the empty Home page. `TestWelcomeScrollKeepsActionsAboveNavigationBar` covers the 48 pt inset and the skip route in the headless runner.
 
 ## Android TV viewport
 

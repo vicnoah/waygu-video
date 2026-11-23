@@ -70,7 +70,7 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 			data, err := welcomePosters.ReadFile("design/assets/posters/" + file)
 			if err == nil {
 				pictures = append(pictures, core.Image{Source: core.ImageSource{Data: data}, ResizeMode: core.Cover,
-					Class: "h-44 w-28 rounded-2xl shadow-lg shadow-black/20", ElementsHidden: true})
+					Class: "h-44 w-28 overflow-hidden rounded-2xl shadow-lg shadow-black/20", ElementsHidden: true})
 			}
 		}
 		offset := []core.Points{40, 0, 64, 16}[col]
@@ -87,12 +87,13 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 			locales.WelcomeContinueWatching(cx), locales.WelcomeContinueWatchingDetail(cx)),
 	}
 	add, later := locales.AddSource(cx), locales.Later(cx)
+	viewportStyle := core.Style{MarginEnv: core.EnvEdges{Bottom: core.EnvSafeArea}}
 	return core.View{Class: "relative flex-1 bg-waygu-page", Style: core.Style{FlexShrink: 1}, Children: []core.Node{
 		core.SVGView{Class: "absolute inset-0 w-full h-full dark:hidden", SVG: welcomeAmbientLight},
 		core.SVGView{Class: "absolute inset-0 hidden w-full h-full dark:flex", SVG: welcomeAmbientDark},
-		core.Scroll{Class: "flex-1", Children: []core.Node{
+		core.Scroll{Class: "flex-1", TestID: "welcome-scroll", Style: viewportStyle, Children: []core.Node{
 			core.View{Class: layoutClass, StyleFunc: func() core.Style {
-				return core.Style{MinHeight: core.Pt(cx.Env().Window().Height)}
+				return core.Style{MinHeight: core.Pt(max(0, cx.Env().Window().Height-core.Insets(cx).Bottom))}
 			}, Children: []core.Node{
 				core.View{TestID: "welcome-hero", Class: heroClass, Children: []core.Node{
 					core.View{Class: wallClass, Children: wall},
@@ -109,7 +110,7 @@ func (a *application) welcome(cx *core.Scope) core.Node {
 					}},
 					core.View{TestID: "welcome-features", Class: "gap-px overflow-hidden rounded-2xl border border-zinc-900/8 bg-zinc-200 shadow-sm shadow-black/5 dark:border-white/8 dark:bg-white/7",
 						Children: features},
-					core.View{Class: actionsClass, Style: core.Style{PaddingEnv: core.EnvEdges{Bottom: core.EnvSafeArea}}, Children: []core.Node{
+					core.View{Class: actionsClass, Children: []core.Node{
 						base.Button{Label: add, TestID: "add-source",
 							Class:   "h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30",
 							Style:   core.Style{FocusVisible: focusRing},

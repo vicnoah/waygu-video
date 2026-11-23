@@ -15,3 +15,4 @@
 - Show a localized banner in the Android TV launcher. [Launcher review](docs/ui-review/welcome.md#android-tv-launcher)
 - Reorder or hide individual media source rows in the TV Home layout. [TV settings review](docs/ui-review/tv-settings.md#home-layout)
 - Play muted server trailers behind the featured titles on TV Home. [TV Home review](docs/ui-review/tv-home.md#silent-background-trailers)
+- Keep the Welcome actions reachable above the phone's navigation bar. [Welcome review](docs/ui-review/welcome.md#android-phone-viewport)
