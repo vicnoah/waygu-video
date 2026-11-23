@@ -233,7 +233,7 @@ func desktopMovieFileRow(label string, value core.Node) core.Node {
 	}}
 }
 
-func desktopVideoFormat(cx *core.Scope, profile media.VideoProfile) string {
+func catalogVideoFormat(cx *core.Scope, profile media.VideoProfile) string {
 	var parts []string
 	if resolution := libraryResolution(profile); resolution > 0 {
 		parts = append(parts, libraryResolutionName(resolution))

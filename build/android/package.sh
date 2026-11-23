@@ -26,6 +26,11 @@ patch -d "$staging/nsgo" -F 0 -p1 < build/android/nsgo-tv.patch
 patch -d "$staging/nsgo" -F 0 -p1 < build/android/nsgo-tv-banner.patch
 cp assets/tv-banner.png assets/tv-banner-zh-Hans.png "$staging/nsgo/cmd/nsgo/"
 patch -d "$staging/nsgo" -F 0 -p1 < build/android/nsgo-playback-manifest.patch
+if [ "$mode" = test ] && [ "${WAYGU_ANDROID_TEST_SYSTEM_INPUT:-}" = 1 ]; then
+    # Let Android deliver real swipes only to this temporary test APK.
+    runtime="$staging/classes-system-input.dex.gz"
+    sh build/android/rebuild-tv-runtime.sh --system-input-test "$runtime"
+fi
 gzip -dc "$runtime" > "$staging/nsgo/internal/platform/android/runtime/classes.dex"
 cp go.mod "$staging/build.mod"
 cp go.sum "$staging/build.sum"

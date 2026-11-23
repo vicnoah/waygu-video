@@ -1,0 +1,9 @@
+--- a/internal/platform/android/java/dev/oneo/nsgo/TestInputGate.java
++++ b/internal/platform/android/java/dev/oneo/nsgo/TestInputGate.java
+@@ -30,5 +30,5 @@
+     /** Reports whether an input event may be delivered right now. */
+     boolean allowInput() {
+-        return !isolated || scriptedDepth > 0;
++        return true;
+     }
+ }

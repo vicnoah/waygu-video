@@ -126,7 +126,7 @@ type application struct {
 	libraryChanges      *core.Signal[uint64]
 	phoneLibrary        *core.Signal[phoneLibraryState]
 	desktopCategory     *core.Signal[libraryCategory]
-	desktopTotals       *core.Resource[map[libraryCategory]int]
+	sidebarTotals       *core.Resource[map[libraryCategory]int]
 	desktopCollapsed    *core.Signal[bool]
 	desktopPlayerVolume *core.Signal[float32]
 	diagnostics         *networkDiagnostics
@@ -277,7 +277,7 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 	a.desktopPlayerVolume = core.NewSignal(cx, float32(0.75))
 	a.desktopLibraryState = core.NewSignal(cx, desktopLibraryState{mode: preferredDesktopLibraryMode(a.appearancePrefs.GetUntracked())})
 	a.initDesktopPreferences(cx, first)
-	a.desktopTotals = a.desktopCatalogTotals(cx)
+	a.sidebarTotals = a.sidebarCatalogTotals(cx)
 	a.desktopCollections = core.NewSignalFunc(cx, readDesktopCollections(storage), nil)
 	a.phoneSearch = newPhoneSearchState(cx)
 	a.scheduleProgressReplay(time.Second)

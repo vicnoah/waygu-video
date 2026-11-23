@@ -31,7 +31,7 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 	})
 	openSearch := func() { a.tab.Set(2) }
 	refresh := func() {
-		a.desktopTotals.Refetch()
+		a.sidebarTotals.Refetch()
 		results.Refetch()
 	}
 	openLibrary := func(filter string, next libraryCategory) {
@@ -301,7 +301,7 @@ func desktopFeaturedFacts(cx *core.Scope, item media.Item) core.Node {
 		add(detailMediaRuntime(cx, item.Duration))
 	}
 	const badge = "shrink-0 rounded border border-white/30 px-1.5 text-[11px] font-semibold text-white"
-	if quality := desktopVideoFormat(cx, highestVideoProfile(item.VideoProfiles)); quality != "" {
+	if quality := catalogVideoFormat(cx, highestVideoProfile(item.VideoProfiles)); quality != "" {
 		facts = append(facts, core.Text{Content: quality, Class: badge, TestID: "desktop-hero-quality"})
 	}
 	if item.DolbyAtmos {

@@ -121,10 +121,17 @@ func (a *application) homeHero(cx *core.Scope, entry catalogItem, tablet bool) c
 	if tablet && len(item.Genres) > 0 {
 		meta = append(meta, strings.Join(item.Genres[:min(2, len(item.Genres))], " / "))
 	}
-	if minutes := int(item.Duration / time.Minute); minutes > 0 {
+	if tablet {
+		if item.Duration > 0 {
+			meta = append(meta, detailMediaRuntime(cx, item.Duration))
+		}
+		if quality := catalogVideoFormat(cx, highestVideoProfile(item.VideoProfiles)); quality != "" {
+			meta = append(meta, quality)
+		}
+	} else if minutes := int(item.Duration / time.Minute); minutes > 0 {
 		meta = append(meta, locales.HomeDuration(cx, strconv.Itoa(minutes)))
 	}
-	if item.Rating > 0 {
+	if !tablet && item.Rating > 0 {
 		meta = append(meta, strconv.FormatFloat(item.Rating, 'f', 1, 64))
 	}
 	genreNames := item.Genres
@@ -158,7 +165,7 @@ func (a *application) homeHero(cx *core.Scope, entry catalogItem, tablet bool) c
 			core.View{Class: "absolute bottom-0 left-0 w-[460px] max-w-full gap-3 p-8", Children: []core.Node{
 				core.View{Class: "flex-row items-center gap-2", Children: byline},
 				core.Text{Content: item.Title, TestID: "home-hero-title", Class: "text-4xl font-bold tracking-tight text-white", MaxLines: 2},
-				core.Text{Content: strings.Join(meta, " · "), Class: "text-sm text-white/80", MaxLines: 1},
+				core.Text{Content: strings.Join(meta, " · "), TestID: "tablet-hero-facts", Class: "text-sm text-white/80", MaxLines: 1},
 				core.View{Class: "flex-row gap-3 pt-1", Children: actions},
 			}},
 		}}
@@ -225,7 +232,8 @@ func (a *application) homePosterCard(cx *core.Scope, entry catalogItem) core.Nod
 
 func (a *application) homePoster(cx *core.Scope, entry catalogItem, prefix string) core.Node {
 	item := entry.item
-	desktop := appLayoutIdiom(cx) == core.IdiomDesktop
+	idiom := appLayoutIdiom(cx)
+	desktop, tablet := idiom == core.IdiomDesktop, idiom == core.IdiomTablet
 	prefs := a.appearancePrefs.Get()
 	width, height := "w-28", "h-40"
 	if desktop {
@@ -239,9 +247,20 @@ func (a *application) homePoster(cx *core.Scope, entry catalogItem, prefix strin
 		cover.Children = append(cover.Children, core.View{Class: "absolute top-1.5 right-1.5 size-5 items-center justify-center rounded-full bg-waygu-control shadow-md",
 			Children: []core.Node{core.Icon{SVG: lucide.Check(), Class: "size-3 text-white"}}})
 	}
-	if quality := tvQuality(entry); desktop && quality != "" && prefs.ShowQuality {
-		cover.Children = append(cover.Children, core.Text{Content: quality, Class: "absolute top-2 left-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-white"})
-	} else if homeIsFresh(cx, item) {
+	quality := tvQuality(entry)
+	if tablet {
+		quality = ""
+		if resolution := libraryResolution(highestVideoProfile(item.VideoProfiles)); resolution > 0 {
+			quality = libraryResolutionName(resolution)
+		}
+	}
+	if (desktop || tablet) && quality != "" && prefs.ShowQuality {
+		class := "absolute top-2 left-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-white"
+		if tablet {
+			class = "absolute top-1.5 left-1.5 rounded-md bg-black/55 px-1.5 py-0.5 text-[9px] font-bold text-white"
+		}
+		cover.Children = append(cover.Children, core.Text{Content: quality, TestID: "poster-quality", Class: class})
+	} else if !tablet && homeIsFresh(cx, item) {
 		cover.Children = append(cover.Children, core.Text{Content: locales.HomeNewShort(cx), Class: "absolute top-1.5 left-1.5 rounded-md bg-violet-500 px-1.5 py-0.5 text-[9px] font-bold text-white"})
 	}
 	if item.Duration > 0 && item.Position > 0 && !item.Watched {
@@ -251,7 +270,9 @@ func (a *application) homePoster(cx *core.Scope, entry catalogItem, prefix strin
 	if item.Year > 0 {
 		meta = append(meta, strconv.Itoa(item.Year))
 	}
-	if item.Rating > 0 {
+	if tablet && len(item.Genres) > 0 {
+		meta = append(meta, item.Genres[0])
+	} else if !tablet && item.Rating > 0 {
 		meta = append(meta, strconv.FormatFloat(item.Rating, 'f', 1, 64))
 	}
 	return base.Button{Label: item.Title, Hint: entry.source.Name, TestID: a.catalogEntryID(prefix, entry),

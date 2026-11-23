@@ -1,13 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/nsgo-dev/nsgo/core"
 	"github.com/nsgo-dev/nsgo/nsgotest"
+
+	"waygu-video/internal/media"
 )
 
 func TestDockerTabletHomeReview(t *testing.T) {
@@ -38,9 +42,20 @@ func TestDockerTabletHomeReview(t *testing.T) {
 			app.WaitFor("text:最近添加", 10*time.Second)
 			app.WaitFor("text:继续观看", 5*time.Second)
 			allSources(app)
+			for _, category := range []libraryCategory{libraryMovies, librarySeries, libraryAnime, libraryDocumentaries} {
+				app.WaitFor("id:tablet-category-count-"+string(category), 8*time.Second)
+			}
 			if nsgotest.Target() != "" {
 				app.Advance(500 * time.Millisecond)
 				app.Screenshot("tablet-home-" + variant.name)
+			} else {
+				want := core.StatusBarDark
+				if variant.appearance == core.AppearanceDark {
+					want = core.StatusBarLight
+				}
+				if got := app.StatusBar.Style; got != want {
+					t.Errorf("status bar foreground = %v, want %v", got, want)
+				}
 			}
 			if width := app.Find("id:tablet-sidebar").Frame.Size.Width; width != 224 {
 				t.Errorf("tablet sidebar width = %v, want 224", width)
@@ -106,11 +121,27 @@ func TestDockerTabletHomeReview(t *testing.T) {
 		app := start(t, core.AppearanceLight, 820, 1180)
 		app.WaitFor("id:home-hero", 10*time.Second)
 		app.WaitFor("id:tablet-sidebar-open", time.Second)
-		app.Drag("id:tablet-drawer-edge", core.Point{X: 100})
-		app.WaitFor("id:tablet-drawer", time.Second)
+		physical := nsgotest.Target() == "android" && os.Getenv("WAYGU_TEST_ANDROID_TABLET_EDGE") == "1"
+		if physical {
+			app.Screenshot("tablet-home-portrait-closed")
+			edge := app.Find("id:tablet-drawer-edge").Bounds()
+			if edge.Size.Width != 12 || edge.Size.Height != 192 {
+				t.Fatalf("Android drawer edge = %v, want 12 × 192", edge)
+			}
+			fmt.Printf("waygu-tablet-edge %d\n", int(edge.Origin.Y+edge.Size.Height/2))
+			app.WaitFor("id:tablet-drawer", 15*time.Second)
+		} else {
+			app.Drag("id:tablet-drawer-edge", core.Point{X: 100})
+			app.WaitFor("id:tablet-drawer", time.Second)
+		}
 		if nsgotest.Target() != "" {
 			app.Advance(250 * time.Millisecond)
 			app.Screenshot("tablet-home-portrait-drawer")
+		}
+		if physical {
+			fmt.Println("waygu-tablet-back")
+			app.WaitForGone("id:tablet-drawer", 10*time.Second)
+			app.Press("id:tablet-sidebar-open")
 		}
 		app.Press("id:tablet-drawer-backdrop")
 		app.WaitForGone("id:tablet-drawer", time.Second)
@@ -124,5 +155,41 @@ func TestDockerTabletHomeReview(t *testing.T) {
 		app.Press("id:tablet-sidebar-open")
 		app.DragAt("id:tablet-sidebar", core.Point{X: 180, Y: 300}, core.Point{X: -100})
 		app.WaitForGone("id:tablet-drawer", time.Second)
+		if physical {
+			app.Press("id:tablet-sidebar-open")
+			app.WaitFor("id:tablet-drawer", time.Second)
+			fmt.Println("waygu-tablet-rotate")
+			app.WaitForGone("id:tablet-drawer", 15*time.Second)
+			app.WaitFor("id:tablet-sidebar", 5*time.Second)
+			app.WaitForGone("id:tablet-drawer-edge", time.Second)
+			app.WaitFor("id:bitrate-limit", time.Second)
+		}
 	})
+}
+
+func TestTabletHomeCatalogFormats(t *testing.T) {
+	item := media.Item{ID: "film", Title: "Fixture Film", Kind: media.Movie, Year: 2024,
+		Genres: []string{"科幻", "冒险"}, Duration: 2*time.Hour + 46*time.Minute,
+		VideoProfiles: []media.VideoProfile{{Width: 3840, Height: 2160, Range: "DOVI"}}}
+	entry := source{ID: "fixture", Name: "Fixture Emby", Address: "http://fixture.example", Provider: media.Emby,
+		Libraries: []sourceLibrary{{Library: media.Library{ID: "movies", Name: "Movies", Kind: "movies"}}}}
+	config := map[string]string{sourcesKey: downloadFixtureJSON(t, []source{entry})}
+	pages := map[string][]media.Item{"movies": {item}}
+	var favorite atomic.Bool
+	app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
+		shellIdiom.Provide(cx, core.IdiomTablet)
+		return appRoot(cx, func(_ media.Provider, _ string, _ media.Device, session media.Session) (media.Client, error) {
+			return desktopSidebarCatalog{fixtureServer{session: session}, pages, &favorite}, nil
+		}, nil)
+	}, nsgotest.Size(1180, 820), nsgotest.Environment(core.Environment{Locale: "zh-Hans"}),
+		nsgotest.Storage(config), nsgotest.Secrets(map[string]string{"fixture": "fixture-token"}))
+	if count := app.WaitFor("id:tablet-category-count-movies", 5*time.Second).Text; count != "1" {
+		t.Fatalf("tablet movie count = %q", count)
+	}
+	if facts := app.WaitFor("id:tablet-hero-facts", 5*time.Second).Text; facts != "2024 · 科幻 / 冒险 · 2 小时 46 分 · 4K 杜比视界" {
+		t.Fatalf("tablet hero facts = %q", facts)
+	}
+	if quality := app.WaitFor("id:poster-quality", 5*time.Second).Text; quality != "4K" {
+		t.Fatalf("tablet poster quality = %q", quality)
+	}
 }

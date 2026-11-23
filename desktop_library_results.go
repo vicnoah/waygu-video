@@ -160,7 +160,7 @@ func (a *application) desktopLibraryListCard(cx *core.Scope, row desktopLibraryR
 	description, progress := libraryCardDetails(cx, entry, bookmarks)
 	metadata := []string{entry.source.Name}
 	prefs := a.appearancePrefs.Get()
-	if quality := desktopVideoFormat(cx, row.picture); quality != "" && prefs.ShowQuality {
+	if quality := catalogVideoFormat(cx, row.picture); quality != "" && prefs.ShowQuality {
 		metadata = append(metadata, quality)
 	}
 	if row.size > 0 {

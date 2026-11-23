@@ -12,21 +12,26 @@ import (
 	"waygu-video/locales"
 )
 
-func (a *application) desktopCatalogTotals(cx *core.Scope) *core.Resource[map[libraryCategory]int] {
+func (a *application) sidebarCatalogTotals(cx *core.Scope) *core.Resource[map[libraryCategory]int] {
 	type query struct {
 		catalogRequest
 		combine bool
 	}
 	source := core.NewMemo(cx, a.desktopDefaultSource)
 	return core.NewResource(cx, func() (query, bool) {
-		if appLayoutIdiom(cx) != core.IdiomDesktop {
+		var filter string
+		switch appLayoutIdiom(cx) {
+		case core.IdiomDesktop:
+			filter = source.Get()
+		case core.IdiomTablet:
+		default:
 			return query{}, false
 		}
 		sources := a.sources.Get()
 		a.libraryChanges.Get()
 		return query{
 			catalogRequest: catalogRequest{sources: sources, parental: a.parentalRules(),
-				filter: source.Get(), scan: true, categorize: true},
+				filter: filter, scan: true, categorize: true},
 			combine: a.mergeTitles.Get(),
 		}, len(sources) != 0
 	}, func(ctx context.Context, q query, _ core.ResourceInfo) (map[libraryCategory]int, error) {
@@ -51,7 +56,7 @@ func (a *application) desktopCatalogTotals(cx *core.Scope) *core.Resource[map[li
 	})
 }
 
-func appendDesktopCategoryCount(cx *core.Scope, link *base.Button, totals *core.Resource[map[libraryCategory]int], category libraryCategory) {
+func appendSidebarCategoryCount(cx *core.Scope, link *base.Button, totals *core.Resource[map[libraryCategory]int], category libraryCategory, testID string) {
 	count := func() string {
 		if totals.State() != core.ResourceReady {
 			return ""
@@ -69,7 +74,7 @@ func appendDesktopCategoryCount(cx *core.Scope, link *base.Button, totals *core.
 		Then: func(*core.Scope) core.Node {
 			return core.View{Class: "shrink-0", AccessibilityElementsHidden: func() bool { return true },
 				Children: []core.Node{core.Text{ContentFunc: count, Class: "text-xs opacity-70 " + setupMuted,
-					TestID: "desktop-category-count-" + string(category)}}}
+					TestID: testID}}}
 		},
 	})
 }

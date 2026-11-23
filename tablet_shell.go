@@ -16,6 +16,16 @@ import (
 )
 
 func (a *application) tabletShell(cx *core.Scope) core.Node {
+	cx.Effect(func() {
+		foreground := core.StatusBarDark
+		if cx.Dark() {
+			foreground = core.StatusBarLight
+		}
+		cx.SetStatusBar(core.StatusBarSetting{Foreground: foreground})
+	})
+	cx.Cleanup(func() {
+		cx.SetStatusBar(core.StatusBarSetting{Foreground: core.StatusBarAuto})
+	})
 	category := core.NewSignal(cx, libraryCategory(""))
 	collapsed := core.NewSignal(cx, false)
 	drawer := core.NewSignal(cx, false)
@@ -76,15 +86,8 @@ func (a *application) tabletShell(cx *core.Scope) core.Node {
 					}
 				}),
 			}},
-			core.Show{When: func() bool { return !inline() }, Then: func(cx *core.Scope) core.Node {
-				cx.DeferSystemGestures(core.SystemGestureOptions{IOSEdges: core.GestureEdgeLeft})
-				return core.View{Class: "absolute bottom-0 left-0 top-12 w-3", TestID: "tablet-drawer-edge",
-					PanActivation: homeHorizontalPan, OnPan: func(event core.PanEvent) {
-						if event.Phase == core.GestureEnded && event.Translation.X >= 44 {
-							openPanel()
-						}
-					},
-				}
+			core.Show{When: func() bool { return !inline() && !drawer.Get() }, Then: func(cx *core.Scope) core.Node {
+				return tabletDrawerEdge(cx, openPanel)
 			}},
 		}},
 		core.Show{When: func() bool { return portrait.Get() && drawer.Get() }, Then: func(cx *core.Scope) core.Node {
@@ -105,6 +108,40 @@ func (a *application) tabletShell(cx *core.Scope) core.Node {
 				}}
 		}},
 	}}
+}
+
+func tabletDrawerEdge(cx *core.Scope, open func()) core.Node {
+	edge := core.View{
+		Class: "absolute left-0 w-3", TestID: "tablet-drawer-edge",
+		PanActivation: homeHorizontalPan,
+		OnPan: func(event core.PanEvent) {
+			if event.Phase == core.GestureEnded && event.Translation.X >= 44 {
+				open()
+			}
+		},
+	}
+	if cx.Env().OS() != core.OSAndroid {
+		cx.DeferSystemGestures(core.SystemGestureOptions{IOSEdges: core.GestureEdgeLeft})
+		edge.Class += " top-12 bottom-0"
+		return edge
+	}
+	// Android budgets left-edge Back exclusions. Keep the drawer target
+	// inside a single band and leave the rest of the edge with the system.
+	bounds := core.NewMemo(cx, func() core.Bounds {
+		insets := core.Insets(cx)
+		available := max(0, cx.Env().Window().Height-insets.Top-insets.Bottom)
+		height := min(192, available)
+		return core.Bounds{Origin: core.Point{Y: insets.Top + (available-height)/2},
+			Size: core.Size{Width: 12, Height: height}}
+	})
+	cx.Effect(func() {
+		cx.DeferSystemGestures(core.SystemGestureOptions{AndroidRects: []core.Bounds{bounds.Get()}})
+	})
+	edge.StyleFunc = func() core.Style {
+		frame := bounds.Get()
+		return core.Style{Top: core.Pt(frame.Origin.Y), Height: core.Pt(frame.Size.Height)}
+	}
+	return edge
 }
 
 func tabletBrand(cx *core.Scope) core.Node {
@@ -194,9 +231,11 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 				return a.tab.Get() == 1 && a.libraryView.Get() == screenLibrary && category.Get() == option.Value &&
 					(!wide || a.desktopLibraryState.Get().collection == "")
 			}, func() { open(1, option.Value) })
+		countID := "tablet-category-count-"
 		if wide {
-			appendDesktopCategoryCount(cx, &link, a.desktopTotals, option.Value)
+			countID = "desktop-category-count-"
 		}
+		appendSidebarCategoryCount(cx, &link, a.sidebarTotals, option.Value, countID+string(option.Value))
 		browsing = append(browsing, link)
 	}
 	return core.View{Class: width + " shrink-0 border-r border-zinc-900/8 bg-[#e9e9f0]/40 dark:border-white/8 dark:bg-[#1a1b25]/40", TestID: id,
