@@ -298,7 +298,7 @@ func desktopFeaturedFacts(cx *core.Scope, item media.Item) core.Node {
 		add(strings.Join(item.Genres[:min(2, len(item.Genres))], " / "))
 	}
 	if item.Duration > 0 {
-		add(desktopMediaRuntime(cx, item.Duration))
+		add(detailMediaRuntime(cx, item.Duration))
 	}
 	const badge = "shrink-0 rounded border border-white/30 px-1.5 text-[11px] font-semibold text-white"
 	if quality := desktopVideoFormat(cx, highestVideoProfile(item.VideoProfiles)); quality != "" {

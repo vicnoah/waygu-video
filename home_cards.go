@@ -201,11 +201,16 @@ func homeHeroAction(cx *core.Scope, id, label string, icon *core.SVG, primary, t
 }
 
 func homeArtwork(url, class string) core.Node {
+	return artworkWithIconSize(url, class, 28)
+}
+
+func artworkWithIconSize(url, class string, iconSize core.Points) core.Node {
 	if url != "" {
 		return core.Image{Class: class + " bg-zinc-100 dark:bg-[#272831]", Source: core.Src(url), ResizeMode: core.Cover, ElementsHidden: true}
 	}
 	return core.View{Class: class + " items-center bg-zinc-100 dark:bg-[#272831]", Children: []core.Node{
-		core.Icon{SVG: lucide.Image(), Class: "m-auto size-7 text-zinc-500 dark:text-zinc-400"},
+		core.Icon{SVG: lucide.Image(), Class: "m-auto text-zinc-500 dark:text-zinc-400",
+			Style: core.Style{Width: core.Pt(iconSize), Height: core.Pt(iconSize)}},
 	}}
 }
 

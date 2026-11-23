@@ -203,7 +203,7 @@ jobs:
             set -- -timeout 2m
             if [[ "$kind" == Apple-TV ]]; then
               target=tvos_simulator
-              tests+='|TestTVNavigation|TestTVHomeNativeFixture'
+              tests+='|TestTVNavigation|TestTVHomeNativeFixture|TestDetailBadges'
               screenshots=dist/apple-tv-review
               mkdir -p "$screenshots"
               capture_tv_preview "$simulator" "$screenshots" &

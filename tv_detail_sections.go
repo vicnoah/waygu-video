@@ -30,9 +30,9 @@ func tvDetailVersionChooser(cx *core.Scope, l tvLayout, current route, state mov
 	}
 	title := l.text("", 24, "font-medium text-white")
 	title.ContentFunc, title.TestID = label, "playback-version-value"
-	trigger := core.View{Class: "flex-row items-center justify-center rounded-full border border-white/20 bg-white/15",
+	trigger := core.View{Class: "flex-row items-center justify-center rounded-full border-white/20 bg-white/15",
 		TestID: "playback-version", Role: core.RoleButton, Ref: triggerRef, LabelFunc: label,
-		Style: core.Style{Height: l.length(80), Gap: l.points(12), Padding: l.padding(32, 0), FocusVisible: l.focusRing()},
+		Style: core.Style{Height: l.length(80), Gap: l.points(12), Padding: l.padding(32, 0), BorderWidth: l.points(1), FocusVisible: l.focusRing()},
 		Disabled: func() bool {
 			versions, _ := state.available.Get()
 			return len(versions) == 0 && state.available.Err() == nil && (copies == nil || len(copies()) <= 1)
@@ -124,9 +124,9 @@ func tvDetailCast(cx *core.Scope, l tvLayout, people []media.Person) core.Node {
 		case person.Kind == "composer":
 			role = locales.TvComposer(cx)
 		}
-		portrait := core.View{Class: "relative overflow-hidden rounded-full border-4 border-white dark:border-[#1a1b25]",
-			Style: core.Style{Width: l.length(144), Height: l.length(144)}, Children: []core.Node{
-				homeArtwork(person.Portrait, "absolute inset-0"),
+		portrait := core.View{Class: "relative items-center justify-center overflow-hidden rounded-full border-white dark:border-[#1a1b25]",
+			Style: core.Style{Width: l.length(144), Height: l.length(144), BorderWidth: l.points(4)}, Children: []core.Node{
+				artworkWithIconSize(person.Portrait, "flex-1 w-full rounded-full overflow-hidden", l.points(28)),
 			}}
 		opened := core.NewSignal(cx, false)
 		ref := &core.Ref{}

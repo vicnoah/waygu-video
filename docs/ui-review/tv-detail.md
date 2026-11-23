@@ -1,6 +1,6 @@
 # TV detail review
 
-The left frames are Scenra and the right frames are the app on Linux GTK, both using the Simplified Chinese layout at 1920 × 1640 pt. The app displays two movies from the Emby Docker fixture. Scenra shows its title graphic and image placeholders. The app uses a test clip as the backdrop and displays a text title when the server has no logo tag. [Scenra design](../../design/tv-detail.scenra)
+The left frames are Scenra and the right frames are the app on Linux GTK. Both use the 1920 × 1640 pt Simplified Chinese layout and show the top 1563 pt in the main comparison. The app displays two movies from the Emby Docker fixture. Scenra shows its title graphic and image placeholders. The app uses a test clip as the backdrop and displays a text title when the server has no logo tag. [Scenra design](../../design/tv-detail.scenra)
 
 ## Light
 
@@ -27,9 +27,9 @@ The reference and app crops show the playback row and its progress in light and 
 | Area | Comparison |
 | --- | --- |
 | Hero and back row | The hero is 980 pt high. The left overlay spans 1440 pt, and the top and bottom gradients span 192 and 80 pt. Back, its remote hint and the clock share the 96 pt insets. The 480 × 112 pt logo slot takes a tagged Emby or Jellyfin title image and falls back to text. The Docker capture shows that fallback. |
-| Metadata | The title block begins 170 pt below the top. The app shows attributed IMDb and TMDB scores or a generic server rating, year, genres, duration, certification, selected version formats and source. [Rating and format comparison](#ratings-and-formats) |
-| Actions and progress | The 80 pt pill row uses a white primary control with a violet focus ring. A bookmark adds Resume, From beginning and a 620 × 8 pt progress track. The Trailer button opens a playable clip tagged as a trailer. Favorites reflect the current provider's capabilities. Version opens separate choices for media sources and the selected server's playable files. |
-| Cast and recommendation shelves | Cast cells use 144 pt avatars, 160 pt cells and a 40 pt gap. The recommendation rail reuses the 220 × 330 pt TV posters and 32 pt spacing. A credit opens its full name and role. A poster opens that title's details. |
+| Metadata | The title block begins 170 pt below the top. The app shows attributed IMDb and TMDB scores or a generic server rating, year, genres, duration, certification, selected version formats and source. Durations over an hour use hours and minutes. The badge corners and borders scale with the viewport alongside the text. [Rating and format comparison](#ratings-and-formats) |
+| Actions and progress | The 80 pt pill row uses a white primary control with a violet focus ring. The outlined controls use a 1 pt border at the design size. A bookmark adds Resume, From beginning and a 620 × 8 pt progress track. The Trailer button opens a playable clip tagged as a trailer. Favorites reflect the current provider's capabilities. Version opens separate choices for media sources and the selected server's playable files. |
+| Cast and recommendation shelves | Cast cells use 144 pt avatars, 160 pt cells and a 40 pt gap. The portrait fits inside its 4 pt border at the design size. The recommendation rail reuses the 220 × 330 pt TV posters and 32 pt spacing. A credit opens its full name and role. A poster opens that title's details. |
 | Device coverage | GTK captures use the design-sized viewport. Android TV uses the 1920 × 1080 operating viewport. Physical TV and tvOS validation remain pending. |
 
 `TestDockerTVDetailReview` verifies the geometry, credit dialog, related-title route, trailer playback route, saved resume position, version selection and reopening the same version. Its headless case switches a shared title from Emby to Jellyfin. `TestDockerMovieFeatures` exercises the extras and recommendation endpoints on all three Docker servers. `TestDetailUsesTaggedLogo` verifies the Emby and Jellyfin image routes with a tagged data fixture.
@@ -48,7 +48,11 @@ The installed Leanback APK was checked on a 1920 × 1080 Android TV emulator aga
 
 ![Scenra and Android TV showing the same attributed ratings and selected video formats](images/tv-detail-badges-android.png)
 
-The dark Android TV crop uses the same 4K fixture as the GTK comparison. NSGo 0.3 captures the rendered window, which shows thicker badge borders and larger corner radii at Android TV's display density. The emulator also selects the 1080p SDR version and checks that the 4K format badges disappear. [Android capture method](../../build/android/PACKAGING.md)
+The dark crops show Scenra, the previous Android TV window and the updated window, from left to right. All use the same pixel scale. The top edge of the 4K badge measures one physical pixel after scaling, compared with two in the previous capture. The native test switches to the 1080p SDR version and checks that the 4K format badges disappear. The geometry assertions also run locally at 1920 and 960 logical points. [Android capture method](../../build/android/PACKAGING.md)
+
+![Scenra and Android TV cast shelves at the same scale](images/tv-detail-credits-android.png)
+
+The cast comparison shows Scenra on the left and the scrolled Android TV window on the right. The portrait ring stays outside the artwork, and the empty portrait's image icon scales to 28 px in the 1920 px Android TV capture.
 
 The installed NSGo 0.3.0 APK also passed Leanback launch, onboarding, server setup and Settings navigation with the D-pad. [Android packaging](../../build/android/PACKAGING.md)
 

@@ -39,7 +39,8 @@ func (l tvLayout) action(id, label string, icon *core.SVG, kind tvActionKind, pr
 		style.Padding = l.padding(48, 0)
 		tint, size = "text-black", 32
 	case tvDetailAction, tvIconAction:
-		class += " border border-white/20 bg-white/15"
+		class += " border-white/20 bg-white/15"
+		style.BorderWidth = l.points(1)
 		if kind == tvIconAction {
 			style.Width, style.Padding, size = l.length(80), core.Edges{}, 32
 		}

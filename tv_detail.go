@@ -97,7 +97,7 @@ func (a *application) tvMediaDetail(cx *core.Scope, current route, copies func()
 func (a *application) tvDetailHero(cx *core.Scope, l tvLayout, current route, state movieDetailState, trailer func() media.Item,
 	copies func() []ui.Option[copyKey], selectCopy func(copyKey), chooseDownload func()) core.Node {
 	back := l.action("back", locales.Back(cx), lucide.ArrowLeft(), tvDetailAction, a.back)
-	back.Class = "flex-row items-center justify-center rounded-full border border-white/20 bg-black/35"
+	back.Class = "flex-row items-center justify-center rounded-full border-white/20 bg-black/35"
 	back.Style.Height, back.Style.Padding, back.Style.Gap = l.length(42), l.padding(16, 0), l.points(8)
 	back.Children = []core.Node{l.icon(lucide.ArrowLeft(), 20, "text-white"), l.text(locales.Back(cx), 18, "font-medium text-white")}
 	whenPlayable := playable(current.item)
@@ -111,7 +111,7 @@ func (a *application) tvDetailHero(cx *core.Scope, l tvLayout, current route, st
 	return core.View{Class: "relative bg-[#171720]", TestID: "tv-detail-hero", Style: core.Style{Height: l.length(980)}, Children: []core.Node{
 		core.Dynamic(func(*core.Scope) core.Node {
 			item := state.item()
-			return homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0")
+			return artworkWithIconSize(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0", l.points(28))
 		}),
 		core.View{Class: "absolute inset-y-0 left-0 bg-linear-to-r from-black/85 via-black/60 to-transparent", Style: core.Style{Width: l.length(1440)}},
 		core.View{Class: "absolute inset-x-0 top-0 bg-linear-to-b from-black/55 to-transparent", Style: core.Style{Height: l.length(192)}},
@@ -164,7 +164,7 @@ func tvDetailFacts(cx *core.Scope, l tvLayout, src source, item media.Item, vers
 		meta = append(meta, strings.Join(item.Genres[:min(len(item.Genres), 2)], " / "))
 	}
 	if item.Duration > 0 {
-		meta = append(meta, seriesDuration(cx, item.Duration))
+		meta = append(meta, detailMediaRuntime(cx, item.Duration))
 	}
 	if item.ContentRating != "" {
 		meta = append(meta, item.ContentRating)
@@ -172,7 +172,8 @@ func tvDetailFacts(cx *core.Scope, l tvLayout, src source, item media.Item, vers
 	detailMeta := l.text(strings.Join(meta, " · "), 24, "text-white/80 min-w-0 shrink")
 	facts := core.View{Class: "flex-row items-center", Style: core.Style{Gap: l.points(20)}, TestID: "tv-detail-facts"}
 	ratingBadge := func(name, score, tint string) core.Node {
-		label := l.text(name, 16, "rounded font-bold "+tint)
+		label := l.text(name, 16, "font-bold "+tint)
+		label.Style.CornerRadius = l.points(4)
 		label.Style.Padding = l.padding(8, 2)
 		return core.View{Class: "flex-row shrink-0 items-center", Style: core.Style{Gap: l.points(8)}, Children: []core.Node{
 			label, l.text(score, 24, "font-semibold text-white"),
@@ -189,14 +190,15 @@ func tvDetailFacts(cx *core.Scope, l tvLayout, src source, item media.Item, vers
 	}
 	facts.Children = append(facts.Children, detailMeta)
 	dotClass, _ := tvProviderStyle(src.Provider)
-	tag := core.View{Class: "flex-row items-center rounded-md border border-emerald-400/30 bg-emerald-500/25",
-		Style: core.Style{Gap: l.points(8), Padding: l.padding(10, 4)}, Children: []core.Node{
+	tag := core.View{Class: "flex-row items-center border-emerald-400/30 bg-emerald-500/25",
+		Style: core.Style{Gap: l.points(8), Padding: l.padding(10, 4), CornerRadius: l.points(6), BorderWidth: l.points(1)}, Children: []core.Node{
 			core.View{Class: "rounded-full " + dotClass, Style: core.Style{Width: l.length(8), Height: l.length(8)}},
 			l.text(src.Name, 18, "font-medium text-emerald-200"),
 		}}
 	badges := core.View{Class: "flex-row flex-wrap items-center", Style: core.Style{Gap: l.points(12)}, TestID: "tv-detail-formats"}
 	for _, format := range tvDetailFormats(cx, version) {
-		badge := l.text(format, 18, "rounded-md border border-white/40 font-bold text-white")
+		badge := l.text(format, 18, "border-white/40 font-bold text-white")
+		badge.Style.CornerRadius, badge.Style.BorderWidth = l.points(6), l.points(1)
 		badge.Style.Padding = l.padding(10, 4)
 		badges.Children = append(badges.Children, badge)
 	}
@@ -308,7 +310,7 @@ func tvDetailActions(cx *core.Scope, l tvLayout, a *application, current route, 
 			if item.Duration <= 0 || !canResume(item) {
 				return nil
 			}
-			label := locales.TvDetailProgress(cx, playbackClock(item.Position), seriesDuration(cx, item.Duration-item.Position))
+			label := locales.TvDetailProgress(cx, playbackClock(item.Position), detailMediaRuntime(cx, item.Duration-item.Position))
 			return core.View{Class: "flex-row items-center", Style: core.Style{Gap: l.points(16), Width: l.length(1200)}, Children: []core.Node{
 				core.View{Class: "overflow-hidden rounded-full", Style: core.Style{Width: l.length(620)}, Children: []core.Node{
 					base.Progress{TestID: "detail-progress", Label: label, Value: func() float32 { return episodeProgress(item) },

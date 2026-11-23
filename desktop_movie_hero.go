@@ -158,7 +158,7 @@ func desktopMovieHeroFacts(cx *core.Scope, item media.Item) core.Node {
 		add(strings.Join(item.Genres, " / "), standard)
 	}
 	if item.Duration > 0 {
-		add(desktopMediaRuntime(cx, item.Duration), standard)
+		add(detailMediaRuntime(cx, item.Duration), standard)
 	}
 	if item.ContentRating != "" {
 		add(item.ContentRating, "rounded border border-white/30 px-1.5 text-[11px] text-zinc-300")
@@ -169,7 +169,7 @@ func desktopMovieHeroFacts(cx *core.Scope, item media.Item) core.Node {
 	return core.View{Class: "flex-row flex-wrap items-center gap-3", Children: facts}
 }
 
-func desktopMediaRuntime(cx *core.Scope, duration time.Duration) string {
+func detailMediaRuntime(cx *core.Scope, duration time.Duration) string {
 	if hours := duration / time.Hour; hours > 0 {
 		minutes := duration % time.Hour / time.Minute
 		return locales.DesktopMovieRuntime(cx, strconv.Itoa(int(hours)), strconv.Itoa(int(minutes)))
