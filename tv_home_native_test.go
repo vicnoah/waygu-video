@@ -78,6 +78,9 @@ func TestTVHomeNativeFixture(t *testing.T) {
 	switch target {
 	case "linux":
 		height += 37
+	case "tvos_simulator":
+		// The test model uses these values to recognize remote focus commands.
+		env.OS, env.Idiom = core.OSIOS, core.IdiomTV
 	case "":
 		env.OS = core.OSLinux
 	}
@@ -90,6 +93,13 @@ func TestTVHomeNativeFixture(t *testing.T) {
 	}, nsgotest.Idiom(core.IdiomTV), nsgotest.Size(1920, height), nsgotest.Environment(env),
 		nsgotest.Storage(cfg), nsgotest.Secrets(secrets))
 
+	if target == "tvos_simulator" {
+		t.Cleanup(func() {
+			if t.Failed() {
+				app.Screenshot("tv-home-test-failure")
+			}
+		})
+	}
 	expectFocus := func(id string) {
 		t.Helper()
 		selector := "id:" + id

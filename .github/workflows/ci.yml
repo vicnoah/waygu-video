@@ -7,7 +7,7 @@ on:
         description: Verification scope
         type: choice
         default: all
-        options: [all, apple]
+        options: [all, apple, apple-tv]
 
 permissions:
   contents: read
@@ -79,7 +79,14 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Check Apple device targets
-        run: go tool nsgo check -target ios,tvos,ios_simulator,tvos_simulator -jobs 2
+        env:
+          SCOPE: ${{ inputs.scope }}
+        run: |
+          targets=ios,tvos,ios_simulator,tvos_simulator
+          if [[ "$SCOPE" == apple-tv ]]; then
+            targets=tvos,tvos_simulator
+          fi
+          go tool nsgo check -target "$targets" -jobs 2
       - name: Package macOS for Intel and Apple silicon
         if: inputs.scope == 'apple'
         run: |
@@ -93,24 +100,31 @@ jobs:
           retention-days: 7
           if-no-files-found: error
       - name: Build unsigned device IPAs
+        if: inputs.scope != 'apple-tv'
         run: go tool nsgo build -target ios,tvos -output dist/apple-devices -jobs 2 -installers=false
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: inputs.scope != 'apple-tv'
         with:
           name: waygu-video-apple-device-unsigned
           path: dist/apple-devices/releases/
           retention-days: 7
           if-no-files-found: error
       - name: Build simulator apps
+        if: inputs.scope != 'apple-tv'
         run: go tool nsgo build -target ios_simulator,tvos_simulator -output dist/apple-simulators -jobs 2 -installers=false
       - name: Archive simulator apps
+        if: inputs.scope != 'apple-tv'
         run: tar -czf waygu-video-apple-simulators.tar.gz -C dist/apple-simulators .
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: inputs.scope != 'apple-tv'
         with:
           name: waygu-video-apple-simulators
           path: waygu-video-apple-simulators.tar.gz
           retention-days: 7
           if-no-files-found: error
-      - name: Test on iPhone, iPad and Apple TV
+      - name: Test Apple simulators
+        env:
+          SCOPE: ${{ inputs.scope }}
         run: |
           set -euo pipefail
           device() {
@@ -145,7 +159,11 @@ jobs:
             done
           }
           failed=0
-          for kind in iPhone iPad Apple-TV; do
+          devices=(iPhone iPad Apple-TV)
+          if [[ "$SCOPE" == apple-tv ]]; then
+            devices=(Apple-TV)
+          fi
+          for kind in "${devices[@]}"; do
             if ! simulator=$(device "$kind"); then
               echo "::error::No available $kind simulator"
               failed=1
