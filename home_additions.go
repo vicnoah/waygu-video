@@ -19,13 +19,17 @@ func calendarHomeDay(now time.Time) homeDay {
 	return homeDay{start: start, end: start.AddDate(0, 0, 1)}
 }
 
-func (a *application) homeDailyAdditions(cx *core.Scope) *core.Resource[int] {
+func currentHomeDay(cx *core.Scope) *core.Signal[homeDay] {
 	day := core.NewSignal(cx, calendarHomeDay(cx.WallTime()))
 	cx.Effect(func() {
 		cx.AfterFunc(day.Get().end.Sub(cx.WallTime()), func() {
 			day.Set(calendarHomeDay(cx.WallTime()))
 		})
 	})
+	return day
+}
+
+func (a *application) homeDailyAdditions(cx *core.Scope, day *core.Signal[homeDay]) *core.Resource[int] {
 	return core.NewResource(cx, func() (catalogRequest, bool) {
 		a.libraryChanges.Get()
 		sources := a.sources.Get()

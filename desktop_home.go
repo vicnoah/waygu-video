@@ -22,6 +22,7 @@ import (
 func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalogResult], limit *core.Signal[int]) core.Node {
 	notices := core.NewSignal(cx, false)
 	favorites := a.homeFavorites(cx)
+	seriesUpdates := a.homeSeriesUpdates(cx, func() int { return 36 }, core.IdiomDesktop)
 	seed := rand.Uint64()
 	backdrop := core.NewSignal(cx, homeBackdrop{})
 	glow := homePosterGlow(cx, func() (homeBackdrop, bool) {
@@ -33,6 +34,7 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 	refresh := func() {
 		a.sidebarTotals.Refetch()
 		results.Refetch()
+		seriesUpdates.Refetch()
 	}
 	openLibrary := func(filter string, next libraryCategory) {
 		a.openDesktopLibrary(next, filter)
@@ -95,14 +97,7 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 			}
 			return cards
 		}
-		var films, shows []catalogItem
-		for _, entry := range recent {
-			if entry.item.Kind == media.Series {
-				shows = append(shows, entry)
-			} else {
-				films = append(films, entry)
-			}
-		}
+		films := slices.DeleteFunc(slices.Clone(recent), func(entry catalogItem) bool { return entry.item.Kind == media.Series })
 		if len(resume) > 0 {
 			shelves[homeContinue] = desktopHomeShelf(cx, "desktop-resume", locales.ContinueWatching(cx), nil,
 				build(resume, a.homeResumeCard), func() { a.openPersonalLibrary(screenHistory) })
@@ -111,10 +106,14 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 			shelves[homeRecent] = desktopHomeShelf(cx, "desktop-recent", locales.Recent(cx), nil,
 				build(films, a.homePosterCard), func() { openLibrary(a.sourceFilter.GetUntracked(), "") })
 		}
-		if len(shows) > 0 {
-			shelves[homeSeries] = desktopHomeShelf(cx, "desktop-series", locales.HomeSeriesUpdates(cx), nil,
-				build(shows, a.desktopSeriesCard), func() { openLibrary(a.sourceFilter.GetUntracked(), librarySeries) })
-		}
+		shelves[homeSeries] = core.Dynamic(func(cx *core.Scope) core.Node {
+			updates, ready := seriesUpdates.Get()
+			if !ready || seriesUpdates.Loading() || len(updates.items) == 0 {
+				return nil
+			}
+			return desktopHomeShelf(cx, "desktop-series", locales.HomeSeriesUpdates(cx), nil,
+				build(updates.items, a.desktopSeriesCard), func() { openLibrary(a.sourceFilter.GetUntracked(), librarySeries) })
+		})
 		unmerged := recent
 		if len(result.resumeCatalog) > 0 {
 			unmerged = rules.catalog(result.resumeCatalog)
@@ -319,20 +318,18 @@ func (a *application) desktopSeriesCard(cx *core.Scope, entry catalogItem) core.
 		homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0"),
 		core.View{Class: "absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-black/60 to-transparent"},
 	}
-	if homeIsFresh(cx, item) {
-		art = append(art, core.View{Class: "absolute bottom-3 left-2.5 flex-row items-center gap-1 rounded-full bg-black/55 px-2 py-1",
-			Children: []core.Node{core.Icon{SVG: lucide.Play(), Class: "size-3 text-white"},
-				core.Text{Content: locales.HomeNewRelease(cx), Class: "text-[10px] font-medium text-white"}}})
-	}
-	detail := itemMetadata(cx, item)
-	if item.EpisodeCount > 0 {
-		detail = locales.LibraryEpisodeCount(cx, strconv.Itoa(item.EpisodeCount))
+	art = append(art, core.View{Class: "absolute bottom-3 left-2.5 flex-row items-center gap-1 rounded-full bg-black/55 px-2 py-1",
+		Children: []core.Node{core.Icon{SVG: lucide.Play(), Class: "size-3 text-white"},
+			core.Text{Content: locales.HomeNewEpisode(cx), Class: "text-[10px] font-medium text-white"}}})
+	detail := seriesUpdateCaption(cx, *entry.latest, false)
+	if entry.latest.Episode > 0 {
+		detail = locales.HomeLatestEpisode(cx, strconv.Itoa(entry.latest.Episode))
 	}
 	return base.Button{Label: item.Title, Hint: entry.source.Name, TestID: a.catalogEntryID("title-", entry),
 		Class: "w-72 shrink-0 gap-2 rounded-2xl", Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
 		OnPress: func(core.PressEvent) { a.openCatalogEntry(entry) }, Children: []core.Node{
 			core.View{Class: "relative h-40 overflow-hidden rounded-xl shadow-lg shadow-black/15", Children: art},
 			core.Text{Content: item.Title, Class: "text-sm font-medium " + setupTitle, MaxLines: 1},
-			core.Text{Content: detail, Class: "text-xs " + setupMuted, MaxLines: 1},
+			core.Text{Content: detail, TestID: "series-update-caption", Class: "text-xs " + setupMuted, MaxLines: 1},
 		}}
 }

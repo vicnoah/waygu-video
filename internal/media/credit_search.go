@@ -35,7 +35,7 @@ func (m *mediaBrowser) SearchCreditTitles(ctx context.Context, q Query) (Page, e
 		return Page{}, nil
 	}
 	q.Search, q.CatalogFacts = "", true
-	return m.catalog(ctx, q, ids)
+	return m.catalog(ctx, q, ids, "Movie,Series,Video")
 }
 
 func (p *plexClient) SearchCreditTitles(ctx context.Context, q Query) (Page, error) {

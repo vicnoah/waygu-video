@@ -126,6 +126,10 @@ homeSeriesUpdates: Series updates
 homeSeeAll: See all
 homeCollapse: Show less
 homeEpisode: "Season {season} · Episode {episode}"
+homeEpisodeToday: "Episode {episode} · Today"
+homeSpecialEpisode: "Special · Episode {episode}"
+homeNewEpisode: New episode
+homeLatestEpisode: "Updated to episode {episode}"
 library: Library
 libraryFilters: Library filters
 libraryListView: Switch to list

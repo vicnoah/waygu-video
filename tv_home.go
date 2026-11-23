@@ -214,6 +214,7 @@ func (a *application) tvHome(cx *core.Scope, results *core.Resource[catalogResul
 	options := tvHomeOptions.Use(cx)
 	dismissals, dismiss := a.tvResumeDismissals(cx)
 	favorites := a.homeFavorites(cx)
+	seriesUpdates := a.homeSeriesUpdates(cx, func() int { return 36 }, core.IdiomTV)
 	seed := rand.Uint64()
 	return core.Scroll{Class: "flex-1 " + tvBackground, HideIndicator: true, TestID: "tv-home-scroll", Children: []core.Node{
 		core.Dynamic(func(cx *core.Scope) core.Node {
@@ -267,17 +268,20 @@ func (a *application) tvHome(cx *core.Scope, results *core.Resource[catalogResul
 					total += status.total
 				}
 				all := l.action("tv-recent-all", locales.TvAllTitles(cx, strconv.Itoa(max(total, len(recent)))), lucide.ChevronRight(), tvShelfAction, options.openRecent)
-				movies, series := recent, []catalogItem(nil)
+				movies := recent
 				if settings.HomeOrdered || !settings.enabled(homeRecent) || !settings.enabled(homeSeries) {
 					movies = slices.DeleteFunc(slices.Clone(recent), func(item catalogItem) bool { return item.item.Kind == media.Series })
-					series = slices.DeleteFunc(slices.Clone(recent), func(item catalogItem) bool { return item.item.Kind != media.Series })
 				}
 				if len(movies) > 0 {
 					shelves[homeRecent] = a.tvPosters(cx, l, "tv-recent", locales.Recent(cx), "bg-fuchsia-500", nil, all, movies)
 				}
-				if len(series) > 0 {
-					shelves[homeSeries] = a.tvPosters(cx, l, "tv-series", locales.HomeSeriesUpdates(cx), "bg-violet-500", nil, nil, series)
-				}
+				shelves[homeSeries] = core.Dynamic(func(cx *core.Scope) core.Node {
+					updates, ready := seriesUpdates.Get()
+					if !ready || seriesUpdates.Loading() || len(updates.items) == 0 {
+						return nil
+					}
+					return a.tvPosters(cx, l, "tv-series", locales.HomeSeriesUpdates(cx), "bg-violet-500", nil, nil, updates.items)
+				})
 				unmerged := recent
 				if len(result.resumeCatalog) > 0 {
 					unmerged = rules.catalog(result.resumeCatalog)

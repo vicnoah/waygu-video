@@ -58,6 +58,9 @@ var Parameters = map[string][]string{
 	"HomeItemCount":                   {"count"},
 	"HomeDuration":                    {"minutes"},
 	"HomeEpisode":                     {"season", "episode"},
+	"HomeEpisodeToday":                {"episode"},
+	"HomeSpecialEpisode":              {"episode"},
+	"HomeLatestEpisode":               {"episode"},
 	"LibraryLoadedCount":              {"count"},
 	"LibraryTitleCount":               {"count", "sources"},
 	"LibraryMovieCount":               {"count", "sources"},
@@ -214,6 +217,9 @@ type Translation struct {
 	HomeItemCount                   func(count string) string
 	HomeDuration                    func(minutes string) string
 	HomeEpisode                     func(season string, episode string) string
+	HomeEpisodeToday                func(episode string) string
+	HomeSpecialEpisode              func(episode string) string
+	HomeLatestEpisode               func(episode string) string
 	LibraryLoadedCount              func(count string) string
 	LibraryTitleCount               func(count string, sources string) string
 	LibraryMovieCount               func(count string, sources string) string
@@ -462,6 +468,7 @@ const (
 	textHomeSeriesUpdates
 	textHomeSeeAll
 	textHomeCollapse
+	textHomeNewEpisode
 	textLibrary
 	textLibraryFilters
 	textLibraryListView
@@ -1399,6 +1406,7 @@ var keyOfText = [numTexts]string{
 	"homeSeriesUpdates",
 	"homeSeeAll",
 	"homeCollapse",
+	"homeNewEpisode",
 	"library",
 	"libraryFilters",
 	"libraryListView",
@@ -2334,6 +2342,7 @@ var textsEn = i18n.NewTexts(""+
 	"Series updates"+
 	"See all"+
 	"Show less"+
+	"New episode"+
 	"Library"+
 	"Library filters"+
 	"Switch to list"+
@@ -3266,6 +3275,7 @@ var textsEn = i18n.NewTexts(""+
 		14,
 		7,
 		9,
+		11,
 		7,
 		15,
 		14,
@@ -4201,6 +4211,7 @@ var textsZhHans = i18n.NewTexts(""+
 	"剧集更新"+
 	"全部"+
 	"收起"+
+	"新剧集"+
 	"媒体库"+
 	"媒体库筛选"+
 	"切换为列表"+
@@ -5134,6 +5145,7 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		6,
 		9,
+		9,
 		15,
 		15,
 		18,
@@ -6055,6 +6067,15 @@ func Supply(lang string, t Translation) {
 	}
 	if t.HomeEpisode != nil {
 		s.HomeEpisode = t.HomeEpisode
+	}
+	if t.HomeEpisodeToday != nil {
+		s.HomeEpisodeToday = t.HomeEpisodeToday
+	}
+	if t.HomeSpecialEpisode != nil {
+		s.HomeSpecialEpisode = t.HomeSpecialEpisode
+	}
+	if t.HomeLatestEpisode != nil {
+		s.HomeLatestEpisode = t.HomeLatestEpisode
 	}
 	if t.LibraryLoadedCount != nil {
 		s.LibraryLoadedCount = t.LibraryLoadedCount
@@ -7599,6 +7620,85 @@ func (msgs Messages) HomeEpisode(season string, episode string) string {
 			return "Season " + msgs.arg(season) + " · Episode " + msgs.arg(episode)
 		case "zh-Hans":
 			return "第 " + season + " 季 · 第 " + episode + " 集"
+		}
+	}
+}
+
+// HomeEpisodeToday says "Episode {episode} · Today"
+// in the language the app shows under cx.
+func HomeEpisodeToday(cx *core.Scope, episode string) string {
+	return For(cx).HomeEpisodeToday(episode)
+}
+
+// HomeEpisodeToday is the package's HomeEpisodeToday in the language of msgs.
+func (msgs Messages) HomeEpisodeToday(episode string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.HomeEpisodeToday(episode))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].HomeEpisodeToday; f != nil {
+			return f(episode)
+		}
+		switch lang {
+		case "", "en":
+			return "Episode " + msgs.arg(episode) + " · Today"
+		case "zh-Hans":
+			return "第 " + episode + " 集 · 今天"
+		}
+	}
+}
+
+// HomeSpecialEpisode says "Special · Episode {episode}"
+// in the language the app shows under cx.
+func HomeSpecialEpisode(cx *core.Scope, episode string) string {
+	return For(cx).HomeSpecialEpisode(episode)
+}
+
+// HomeSpecialEpisode is the package's HomeSpecialEpisode in the language of msgs.
+func (msgs Messages) HomeSpecialEpisode(episode string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.HomeSpecialEpisode(episode))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].HomeSpecialEpisode; f != nil {
+			return f(episode)
+		}
+		switch lang {
+		case "", "en":
+			return "Special · Episode " + msgs.arg(episode)
+		case "zh-Hans":
+			return "特别篇 · 第 " + episode + " 集"
+		}
+	}
+}
+
+// HomeNewEpisode says "New episode"
+// in the language the app shows under cx.
+func HomeNewEpisode(cx *core.Scope) string { return For(cx).HomeNewEpisode() }
+
+// HomeNewEpisode is the package's HomeNewEpisode in the language of msgs.
+func (msgs Messages) HomeNewEpisode() string { return msgs.text(textHomeNewEpisode) }
+
+// HomeLatestEpisode says "Updated to episode {episode}"
+// in the language the app shows under cx.
+func HomeLatestEpisode(cx *core.Scope, episode string) string {
+	return For(cx).HomeLatestEpisode(episode)
+}
+
+// HomeLatestEpisode is the package's HomeLatestEpisode in the language of msgs.
+func (msgs Messages) HomeLatestEpisode(episode string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.HomeLatestEpisode(episode))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].HomeLatestEpisode; f != nil {
+			return f(episode)
+		}
+		switch lang {
+		case "", "en":
+			return "Updated to episode " + msgs.arg(episode)
+		case "zh-Hans":
+			return "更新至 第 " + episode + " 集"
 		}
 	}
 }

@@ -21,6 +21,7 @@ import (
 type catalogItem struct {
 	source     source
 	item       media.Item
+	latest     *media.Item
 	category   libraryCategory
 	match      *catalogMatch
 	pending    bool
@@ -602,7 +603,11 @@ func (a *application) hero(cx *core.Scope, entry catalogItem) core.Node {
 }
 
 func (a *application) openCatalogEntry(entry catalogItem) {
-	a.push(route{screen: screenDetail, source: entry.source, item: entry.item, match: entry.match, downloadID: entry.downloadID})
+	next := route{screen: screenDetail, source: entry.source, item: entry.item, match: entry.match, downloadID: entry.downloadID}
+	if entry.latest != nil {
+		next.seriesView.copy = copyKey{sourceID: entry.source.ID, itemID: entry.item.ID}
+	}
+	a.push(next)
 }
 
 func (a *application) playCatalogEntry(entry catalogItem) {

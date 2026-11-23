@@ -208,9 +208,17 @@ func (p *plexClient) Libraries(ctx context.Context) ([]Library, error) {
 }
 
 func (p *plexClient) Catalog(ctx context.Context, q Query) (Page, error) {
+	return p.catalog(ctx, q, "")
+}
+
+func (p *plexClient) RecentEpisodes(ctx context.Context, q Query) (Page, error) {
+	return p.catalog(ctx, q, "4")
+}
+
+func (p *plexClient) catalog(ctx context.Context, q Query, kind string) (Page, error) {
 	offset, limit := q.bounds()
 	search := strings.TrimSpace(q.Search)
-	if search != "" && q.LibraryID == "" {
+	if search != "" && q.LibraryID == "" && kind == "" {
 		return p.search(ctx, search, offset, limit)
 	}
 	params := url.Values{"X-Plex-Container-Start": {strconv.Itoa(offset)}, "X-Plex-Container-Size": {strconv.Itoa(limit)},
@@ -218,8 +226,11 @@ func (p *plexClient) Catalog(ctx context.Context, q Query) (Page, error) {
 	route := "/library/all"
 	if q.LibraryID != "" {
 		route = "/library/sections/" + url.PathEscape(q.LibraryID) + "/all"
-	} else {
-		params.Set("type", "1,2")
+	} else if kind == "" {
+		kind = "1,2"
+	}
+	if kind != "" {
+		params.Set("type", kind)
 	}
 	if search != "" {
 		params.Set("title", search)

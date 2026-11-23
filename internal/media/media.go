@@ -272,6 +272,11 @@ type Client interface {
 	Report(context.Context, PlaybackState) error
 }
 
+// EpisodeCatalogClient lists the episodes of a library by addition time, newest first.
+type EpisodeCatalogClient interface {
+	RecentEpisodes(context.Context, Query) (Page, error)
+}
+
 // LibraryResumeClient supports asking the server for resume items within one library.
 type LibraryResumeClient interface {
 	ResumeLibrary(context.Context, string) ([]Item, error)

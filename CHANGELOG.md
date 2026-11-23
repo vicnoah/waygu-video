@@ -31,6 +31,7 @@
 - Give the primary featured action initial focus on Apple TV Home. [TV Home review](docs/ui-review/tv-home.md#apple-tv-initial-focus)
 - Move from the featured actions to the Home tab with Up on Apple TV. [TV Home review](docs/ui-review/tv-home.md#apple-tv-initial-focus)
 - Use the tvOS default text size for the design's typography. [Apple TV typography review](docs/ui-review/tv-home.md#apple-tv-typography)
+- Order Series Updates by the newest indexed episode and open its source copy. [Phone review](docs/ui-review/home.md) · [Desktop review](docs/ui-review/desktop-home.md#series-updates)
 - Show today’s additions on phone and tablet Home and media format badges on the phone carousel and poster shelves. [Phone home comparison](docs/ui-review/home.md)
 - Show catalog totals, featured video formats and poster resolution badges on tablet Home. [Tablet home comparison](docs/ui-review/tablet-home.md)
 - Open the Android tablet drawer with a left-edge swipe in gesture navigation mode. [Portrait verification](docs/ui-review/tablet-home.md#portrait-drawer)

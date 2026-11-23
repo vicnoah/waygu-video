@@ -21,10 +21,16 @@ The captures show the same app at its normal 1440 × 900 pt window size. The too
 | Sidebar | The 240 pt sidebar has collapsible navigation, a search shortcut, the four library categories, personal items, source status and profile. The category rows include right-aligned, localized totals. [Sidebar comparison](#category-totals-and-atmos) |
 | Toolbar | The 64 pt toolbar includes the aggregate source picker, current online count, search, refresh, source notices and profile. The notice button opens a list of source failures when present. The search labels in the toolbar and sidebar use the Scenra wording. |
 | Carousel | The hero is 380 pt tall with 32 pt margins. The app shows artwork, source, year, genres, localized runtime, picture and sound badges and synopsis when the catalog supplies them. The indicator buttons select a title, and the carousel advances after eight seconds unless reduced motion is enabled. |
-| Shelves | Continue Watching and Series Updates use 288 × 160 pt artwork. Recent titles and source shelves use 144 × 208 pt posters with a quality badge when the source reports a picture format. Series cards use the latest catalog metadata and include an episode count when the server supplies one. |
+| Shelves | Continue Watching and Series Updates use 288 × 160 pt artwork. Recent titles and source shelves use 144 × 208 pt posters with a quality badge when the source reports a picture format. Series Updates uses the latest indexed episode to order its cards and display the “Updated to episode” caption. Cards keep the design’s 288 × 160 pt backdrop and “New episode” pill. |
 | Window controls | Scenra draws the macOS controls. The native comparison images show the application content. |
 
 `TestDockerDesktopHomeReview` checks the sidebar width, hero height, timed and manual selection, collapse and reopen, search, and source filtering. The desktop library, movie detail and settings each have a separate Scenra design.
+
+## Series updates
+
+The crops show the current Series Updates row in Scenra and GTK. The full-page strips above record the previous cards. Provider names, artwork and episode numbers come from the Docker libraries. Tap a card to open the series copy that supplied the newest indexed episode. [Episode selection checks](home.md#interaction-checks)
+
+![Scenra and GTK Series Updates in light and dark appearance](images/desktop-home-series-updates.png)
 
 ## Category totals and Atmos
 

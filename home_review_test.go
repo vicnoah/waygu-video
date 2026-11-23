@@ -33,6 +33,7 @@ func TestDockerHomeReview(t *testing.T) {
 				nsgotest.WallTime(time.Now()), nsgotest.Storage(config), nsgotest.Secrets(secrets))
 			app.WaitFor("text:最近添加", 10*time.Second)
 			app.WaitFor("text:继续观看", 5*time.Second)
+			app.WaitFor("id:home-series-rail >> id:series-update-caption >> nth=0", 15*time.Second)
 			app.WaitUntil(5*time.Second, func() bool {
 				return strings.HasPrefix(app.Find("id:home-summary").Text, "3 个媒体源在线 · 今日新入库 ")
 			})

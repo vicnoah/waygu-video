@@ -271,21 +271,32 @@ func (a *application) homePoster(cx *core.Scope, entry catalogItem, prefix strin
 		cover.Children = append(cover.Children, core.View{Class: "absolute top-1.5 right-1.5 size-5 items-center justify-center rounded-full bg-waygu-control shadow-md",
 			Children: []core.Node{core.Icon{SVG: lucide.Check(), Class: "size-3 text-white"}}})
 	}
-	quality := tvQuality(entry)
+	qualityItem := entry
+	today := false
+	if entry.latest != nil {
+		qualityItem = catalogItem{item: *entry.latest}
+		now := cx.WallTime()
+		day := calendarHomeDay(now)
+		today = !entry.latest.AddedAt.Before(day.start) && !entry.latest.AddedAt.After(now)
+	}
+	quality := tvQuality(qualityItem)
 	if tablet {
 		quality = ""
-		if resolution := libraryResolution(highestVideoProfile(item.VideoProfiles)); resolution > 0 {
+		if resolution := libraryResolution(highestVideoProfile(qualityItem.item.VideoProfiles)); resolution > 0 {
 			quality = libraryResolutionName(resolution)
 		}
 	}
-	if quality != "" && prefs.ShowQuality {
+	showFormat := quality != "" && prefs.ShowQuality
+	legacyFresh := entry.latest == nil && !tablet && (desktop || item.Kind == media.Series) && homeIsFresh(cx, item)
+	if today || legacyFresh && !showFormat {
+		cover.Children = append(cover.Children, core.Text{Content: locales.HomeNewShort(cx), TestID: "poster-new",
+			Class: "absolute top-1.5 left-1.5 rounded-md bg-violet-500 px-1.5 py-0.5 text-[9px] font-bold text-white"})
+	} else if showFormat {
 		class := "absolute top-2 left-2 rounded-md bg-black/55 px-1.5 py-0.5 text-[10px] font-semibold text-white"
 		if !desktop {
 			class = "absolute top-1.5 left-1.5 rounded-md bg-black/55 px-1.5 py-0.5 text-[9px] font-bold text-white"
 		}
 		cover.Children = append(cover.Children, core.Text{Content: quality, TestID: "poster-quality", Class: class})
-	} else if !tablet && (desktop || item.Kind == media.Series) && homeIsFresh(cx, item) {
-		cover.Children = append(cover.Children, core.Text{Content: locales.HomeNewShort(cx), Class: "absolute top-1.5 left-1.5 rounded-md bg-violet-500 px-1.5 py-0.5 text-[9px] font-bold text-white"})
 	}
 	if item.Duration > 0 && item.Position > 0 && !item.Watched {
 		cover.Children = append(cover.Children, homeProgress(cx, "", "absolute inset-x-2 bottom-2", item))
@@ -299,12 +310,19 @@ func (a *application) homePoster(cx *core.Scope, entry catalogItem, prefix strin
 	} else if !tablet && item.Rating > 0 {
 		meta = append(meta, strconv.FormatFloat(item.Rating, 'f', 1, 64))
 	}
-	return base.Button{Label: item.Title, Hint: entry.source.Name, TestID: a.catalogEntryID(prefix, entry),
+	caption := core.Text{Content: strings.Join(meta, " · "), Class: "text-[11px] " + setupMuted, MaxLines: 1}
+	accessibilityHint := entry.source.Name
+	if entry.latest != nil {
+		caption.Content = seriesUpdateCaption(cx, *entry.latest, today)
+		caption.TestID = "series-update-caption"
+		accessibilityHint = desktopMovieFacts(caption.Content, accessibilityHint)
+	}
+	return base.Button{Label: item.Title, Hint: accessibilityHint, TestID: a.catalogEntryID(prefix, entry),
 		Class: width + " shrink-0 gap-1.5 rounded-xl", Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
 		OnPress: func(core.PressEvent) { a.openCatalogEntry(entry) }, Children: []core.Node{
 			cover,
 			core.Text{Content: item.Title, Class: "text-[13px] font-medium " + setupTitle, MaxLines: 1},
-			core.Text{Content: strings.Join(meta, " · "), Class: "text-[11px] " + setupMuted, MaxLines: 1},
+			caption,
 		}}
 }
 

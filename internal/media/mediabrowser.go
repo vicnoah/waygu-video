@@ -179,10 +179,14 @@ func (m *mediaBrowser) itemFields() string {
 }
 
 func (m *mediaBrowser) Catalog(ctx context.Context, q Query) (Page, error) {
-	return m.catalog(ctx, q, nil)
+	return m.catalog(ctx, q, nil, "Movie,Series,Video")
 }
 
-func (m *mediaBrowser) catalog(ctx context.Context, q Query, people []string) (Page, error) {
+func (m *mediaBrowser) RecentEpisodes(ctx context.Context, q Query) (Page, error) {
+	return m.catalog(ctx, q, nil, "Episode")
+}
+
+func (m *mediaBrowser) catalog(ctx context.Context, q Query, people []string, kinds string) (Page, error) {
 	offset, limit := q.bounds()
 	params := m.userQuery()
 	fields := m.itemFields()
@@ -196,7 +200,7 @@ func (m *mediaBrowser) catalog(ctx context.Context, q Query, people []string) (P
 		}
 	}
 	params.Set("Fields", fields)
-	params.Set("IncludeItemTypes", "Movie,Series,Video")
+	params.Set("IncludeItemTypes", kinds)
 	params.Set("Recursive", "true")
 	params.Set("SortBy", "DateCreated,SortName")
 	params.Set("SortOrder", "Descending")

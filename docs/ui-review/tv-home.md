@@ -38,6 +38,8 @@ After adjusting the Home layout, both appearances show Jellyfin above Emby and o
 
 ![Jellyfin above Emby after changing the TV Home layout, light and dark GTK](images/tv-home-custom-source-shelves.png)
 
+A separate Series Updates shelf in a customized layout uses the newest indexed episode for its ordering and caption. [Series update checks](home.md#interaction-checks)
+
 The [screen inventory](screens.md) tracks the detail page and the other TV views.
 
 ## Silent background trailers

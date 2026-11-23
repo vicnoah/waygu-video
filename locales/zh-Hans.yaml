@@ -126,6 +126,10 @@ homeSeriesUpdates: 剧集更新
 homeSeeAll: 全部
 homeCollapse: 收起
 homeEpisode: "第 {season} 季 · 第 {episode} 集"
+homeEpisodeToday: "第 {episode} 集 · 今天"
+homeSpecialEpisode: "特别篇 · 第 {episode} 集"
+homeNewEpisode: 新剧集
+homeLatestEpisode: "更新至 第 {episode} 集"
 library: 媒体库
 libraryFilters: 媒体库筛选
 libraryListView: 切换为列表

@@ -26,6 +26,12 @@ func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult]
 	expansion := core.NewSignal(cx, "")
 	backdrop := core.NewSignal(cx, homeBackdrop{})
 	favoritePage := a.homeFavorites(cx)
+	seriesLimit := core.NewSignal(cx, 36)
+	idiom := core.IdiomPhone
+	if tablet {
+		idiom = core.IdiomTablet
+	}
+	seriesUpdates := a.homeSeriesUpdates(cx, seriesLimit.Get, idiom)
 	randomSeed := rand.Uint64()
 	glow := homePosterGlow(cx, func() (homeBackdrop, bool) {
 		current := backdrop.Get()
@@ -35,13 +41,15 @@ func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult]
 	selectSource := func(id string) {
 		a.sourceFilter.Set(id)
 		limit.Set(36)
+		seriesLimit.Set(36)
 		expansion.Set("")
 	}
 	gap, inset, margins := "gap-8", "px-5", "mx-5"
 	bodyStyle := func() core.Style {
 		return core.Style{Padding: core.Edges{Top: 12, Bottom: 12 + max(tabBarInset(cx), core.Insets(cx).Bottom)}}
 	}
-	summary := a.homeSummary(cx, results, a.homeDailyAdditions(cx))
+	day := currentHomeDay(cx)
+	summary := a.homeSummary(cx, results, a.homeDailyAdditions(cx, day))
 	picker := a.homeSourceSelect(cx, results, selectSource, tablet)
 	header := a.phoneHomeHeader(cx, summary, picker)
 	if tablet {
@@ -107,24 +115,28 @@ func (a *application) home(cx *core.Scope, results *core.Resource[catalogResult]
 					}
 					return homeShelf(id, title, cards, expansion, more, tablet)
 				}
-				var movies, series []catalogItem
-				for _, entry := range recent {
-					if entry.item.Kind == media.Series {
-						series = append(series, entry)
-					} else {
-						movies = append(movies, entry)
-					}
-				}
+				movies := slices.DeleteFunc(slices.Clone(recent), func(entry catalogItem) bool { return entry.item.Kind == media.Series })
 				var more func()
 				if result.hasMore && limit.Get() < 200 {
 					more = func() { limit.Update(func(n int) int { return min(n+36, 200) }) }
 				}
 				// The tablet reference mixes recent films and series in one shelf.
 				if tablet && !settings.HomeOrdered && settings.enabled(homeRecent) && settings.enabled(homeSeries) && !settings.enabled(homeGrouped) {
-					movies, series = recent, nil
+					movies = recent
 				}
 				shelves[homeRecent] = makeShelf("recent", locales.Recent(cx), "title-", movies, more)
-				shelves[homeSeries] = makeShelf("series", locales.HomeSeriesUpdates(cx), "title-", series, more)
+				shelves[homeSeries] = core.Dynamic(func(cx *core.Scope) core.Node {
+					day.Get()
+					result, ready := seriesUpdates.Get()
+					if !ready || seriesUpdates.Loading() {
+						return nil
+					}
+					var next func()
+					if result.hasMore && seriesLimit.Get() < 200 {
+						next = func() { seriesLimit.Update(func(n int) int { return min(n+36, 200) }) }
+					}
+					return makeShelf("series", locales.HomeSeriesUpdates(cx), "title-", result.items, next)
+				})
 				if settings.enabled(homeGrouped) {
 					perSource := result.resumeCatalog
 					if len(perSource) == 0 {

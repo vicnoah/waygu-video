@@ -246,8 +246,13 @@ func (a *application) tvPosters(cx *core.Scope, l tvLayout, id, title, stripe st
 		} else if item.Rating > 0 {
 			details = append(details, strconv.FormatFloat(item.Rating, 'f', 1, 64))
 		}
+		qualityEntry := entry
+		if entry.latest != nil {
+			details = []string{seriesUpdateCaption(cx, *entry.latest, false)}
+			qualityEntry = catalogItem{item: *entry.latest}
+		}
 		cover := []core.Node{homeArtwork(item.Poster, "absolute inset-0")}
-		if quality := tvQuality(entry); quality != "" && a.appearancePrefs.Get().ShowQuality {
+		if quality := tvQuality(qualityEntry); quality != "" && a.appearancePrefs.Get().ShowQuality {
 			tag := l.text(quality, 14, "absolute top-3 left-3 rounded-md bg-black/55 px-2 py-1 font-bold text-white")
 			cover = append(cover, tag)
 		}

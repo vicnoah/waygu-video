@@ -203,6 +203,26 @@ func (f libraryFixtureServer) Catalog(ctx context.Context, q media.Query) (media
 	return media.Page{Items: matches, Total: len(matches)}, nil
 }
 
+func (f libraryFixtureServer) RecentEpisodes(_ context.Context, q media.Query) (media.Page, error) {
+	if f.session.Token != "fixture-token" {
+		return media.Page{}, media.ErrAuthentication
+	}
+	if q.LibraryID != "shows" || q.Offset != 0 {
+		return media.Page{}, nil
+	}
+	episode := media.Item{ID: "shows-episode", LibraryID: "shows", SeriesID: "shows-title",
+		Title: "Shows Episode", Kind: media.Episode, Season: 1, Episode: 1,
+		AddedAt: time.Date(2025, 12, 31, 12, 0, 0, 0, time.UTC)}
+	return media.Page{Items: []media.Item{episode}, Total: 1}, nil
+}
+
+func (f libraryFixtureServer) Detail(ctx context.Context, item media.Item) (media.Item, error) {
+	if item.ID == "shows-title" && item.LibraryID == "shows" {
+		item.Title = "Shows Fixture"
+	}
+	return f.fixtureServer.Detail(ctx, item)
+}
+
 func (f libraryFixtureServer) Resume(ctx context.Context) ([]media.Item, error) {
 	libraries, err := f.Libraries(ctx)
 	if err != nil {
