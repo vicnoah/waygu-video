@@ -133,7 +133,7 @@ func (a *application) compactSearch(cx *core.Scope) core.Node {
 			return !strings.Contains(strings.ToLower(entry.item.Title), needle) &&
 				!strings.Contains(strings.ToLower(entry.item.OriginalTitle), needle)
 		})
-		entries := combinePhoneSearch(q, matched.result.items, people.result.items, local)
+		entries := combineSearchCatalog(q, matched.result.items, people.result.items, local)
 		unrated := a.parentalUnratedResults(cx, matched.result.unrated)
 		if len(entries) == 0 {
 			if unrated != nil {

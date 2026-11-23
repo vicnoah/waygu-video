@@ -32,6 +32,33 @@ func recommendHomeTitles(recent []catalogItem, limit int) []catalogItem {
 
 var homeHorizontalPan = core.PanActivation{ActiveOffsetX: 12, FailOffsetY: 12}
 
+func (a *application) homeHeroFavorite(cx *core.Scope, entry catalogItem,
+	render func(label string, selected bool, disabled func() bool, press func()) core.Node) core.Node {
+	placeholder := func() core.Node {
+		return render(locales.Favorite(cx), false, func() bool { return true }, func() {})
+	}
+	if entry.source.Provider == media.Plex {
+		return placeholder()
+	}
+	current := route{source: entry.source, item: entry.item}
+	loaded := a.detailResource(cx, current)
+	personal := a.detailPersonal(cx, current, loaded)
+	return core.Dynamic(func(cx *core.Scope) core.Node {
+		result, ready := loaded.Get()
+		if !ready || !result.canFavorite || (!playable(result.item) && result.item.Kind != media.Series) {
+			return placeholder()
+		}
+		label := locales.Favorite(cx)
+		if result.item.Favorite {
+			label = locales.RemoveFavorite(cx)
+		}
+		return core.View{Class: "relative shrink-0", Children: []core.Node{
+			render(label, result.item.Favorite, personal.busy, personal.favorite),
+			core.View{Class: "absolute top-full left-0 w-[245px] pt-2", Children: []core.Node{personal.error}},
+		}}
+	})
+}
+
 func (a *application) homeHeroCarousel(cx *core.Scope, titles []catalogItem, tablet bool, changed func(catalogItem)) core.Node {
 	index := core.NewSignal(cx, 0)
 	cx.Effect(func() { changed(titles[index.Get()]) })

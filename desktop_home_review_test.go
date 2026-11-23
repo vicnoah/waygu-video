@@ -17,6 +17,9 @@ func TestDockerDesktopHomeReview(t *testing.T) {
 		t.Skip("desktop design capture runs on Linux GTK")
 	}
 	config, secrets := homeReviewSources(t)
+	embyMovie := reviewFixtureTitle(t, config, secrets, "emby", "Waygu Track Test")
+	jellyfinMovie := reviewFixtureTitle(t, config, secrets, "jellyfin", "Waygu Track Test")
+	plexMovie := reviewFixtureTitle(t, config, secrets, "plex", "Waygu Track Test")
 	for _, theme := range []struct {
 		name       string
 		appearance core.Appearance
@@ -38,6 +41,8 @@ func TestDockerDesktopHomeReview(t *testing.T) {
 			app.WaitFor("id:desktop-resume-rail", 4*time.Second)
 			app.WaitFor("id:desktop-recent-rail", 4*time.Second)
 			app.WaitFor("id:desktop-series-rail", 4*time.Second)
+			app.Find("id:desktop-home-search >> text:搜索电影、剧集、演员")
+			app.Find("id:tab-search >> text:搜索影片、演员")
 			if nsgotest.Target() != "" {
 				app.Screenshot("app-desktop-main-" + theme.name)
 				if theme.name == "light" {
@@ -59,6 +64,27 @@ func TestDockerDesktopHomeReview(t *testing.T) {
 			app.WaitFor("id:desktop-sidebar", 2*time.Second)
 			app.Press("id:desktop-home-search")
 			app.WaitForGone("id:desktop-home", 2*time.Second)
+			if theme.name == "light" {
+				app.Type("id:search-query", "Mei Zhou")
+				app.Press("id:search-submit")
+				app.WaitFor("id:title-emby-"+embyMovie, 8*time.Second)
+				if nsgotest.Target() == "linux" {
+					app.Screenshot("app-desktop-search-actor")
+				}
+				app.Press("id:catalog-source")
+				app.Press("role:option Jellyfin 影视库")
+				app.WaitFor("id:title-jellyfin-"+jellyfinMovie, 8*time.Second)
+				app.WaitForGone("id:title-emby-"+embyMovie, 3*time.Second)
+				app.Clear("id:search-query")
+				app.WaitForGone("id:title-jellyfin-"+jellyfinMovie, 2*time.Second)
+				app.Type("id:search-query", "Waygu Track Test")
+				app.Press("id:search-submit")
+				app.WaitFor("id:title-jellyfin-"+jellyfinMovie, 8*time.Second)
+				app.Press("id:catalog-source")
+				app.Press("role:option Plex 影视库")
+				app.WaitFor("id:title-plex-"+plexMovie, 8*time.Second)
+				app.WaitForGone("id:title-jellyfin-"+jellyfinMovie, 3*time.Second)
+			}
 			app.Press("id:tab-home")
 			app.WaitFor("id:desktop-home", 2*time.Second)
 			app.Press("id:tablet-source-jellyfin")

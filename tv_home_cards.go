@@ -203,35 +203,12 @@ func tvFeaturedFacts(cx *core.Scope, l tvLayout, entry catalogItem) core.Node {
 }
 
 func (a *application) tvHeroFavorite(cx *core.Scope, l tvLayout, entry catalogItem) core.Node {
-	if entry.source.Provider == media.Plex {
-		button := l.action("home-hero-favorite", locales.Favorite(cx), lucide.Heart(), tvIconAction, func() {})
-		button.Disabled = func() bool { return true }
+	return a.homeHeroFavorite(cx, entry, func(label string, selected bool, disabled func() bool, press func()) core.Node {
+		button := l.action("home-hero-favorite", label, lucide.Heart(), tvIconAction, press)
+		button.Disabled = disabled
+		button.Selected = func() bool { return selected }
+		button.Class += " selected:bg-violet-500/50"
 		return button
-	}
-	current := route{source: entry.source, item: entry.item}
-	loaded := a.detailResource(cx, current)
-	personal := a.detailPersonal(cx, current, loaded)
-	return core.Dynamic(func(cx *core.Scope) core.Node {
-		result, ready := loaded.Get()
-		placeholder := l.action("home-hero-favorite", locales.Favorite(cx), lucide.Heart(), tvIconAction, func() {})
-		placeholder.Disabled = func() bool { return true }
-		if !ready || !result.canFavorite {
-			return placeholder
-		}
-		buttons := personal.buttons(cx, result, func(_ *core.Scope, id, label string, icon *core.SVG, selected bool, disabled func() bool, press func()) core.Node {
-			if id != "detail-favorite" {
-				return nil
-			}
-			button := l.action("home-hero-favorite", label, icon, tvIconAction, press)
-			button.Disabled = disabled
-			button.Selected = func() bool { return selected }
-			button.Class += " selected:bg-violet-500/50"
-			return button
-		})
-		if len(buttons) == 0 {
-			return placeholder
-		}
-		return core.View{Class: "relative", Children: []core.Node{buttons[0], core.View{Class: "absolute top-full left-0 w-[245px] pt-2", Children: []core.Node{personal.error}}}}
 	})
 }
 
@@ -289,12 +266,7 @@ func (a *application) tvPosters(cx *core.Scope, l tvLayout, id, title, stripe st
 }
 
 func tvQuality(entry catalogItem) string {
-	var best media.VideoProfile
-	for _, profile := range catalogVideoProfiles(entry) {
-		if libraryResolution(profile) > libraryResolution(best) {
-			best = profile
-		}
-	}
+	best := highestVideoProfile(catalogVideoProfiles(entry))
 	if height := libraryResolution(best); height > 0 {
 		if dynamicRange := detailVideoRange(media.Version{VideoRange: best.Range}); dynamicRange != "" {
 			return dynamicRange

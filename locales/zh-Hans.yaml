@@ -181,6 +181,8 @@ mediaSources: 媒体源
 noSources: 添加媒体源，开始浏览电影与剧集。
 emptyLibrary: 没有找到匹配的影片
 searchHint: 搜索电影和剧集
+desktopSearchHint: 搜索电影、剧集、演员
+desktopSidebarSearchHint: 搜索影片、演员
 searchAllSources: 全部
 searchPhoneHint: 搜索片名或演职人员
 searchRecentQueries: 最近搜索

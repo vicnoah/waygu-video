@@ -44,7 +44,7 @@ func (a *application) desktopHome(cx *core.Scope, results *core.Resource[catalog
 			Class:   "h-9 w-72 shrink flex-row items-center gap-2 rounded-full bg-white px-4 shadow-sm shadow-black/5 dark:bg-[#1a1b25] " + setupBorder,
 			OnPress: func(core.PressEvent) { openSearch() }, Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, Children: []core.Node{
 				core.Icon{SVG: lucide.Search(), Class: "size-4 " + setupMuted},
-				core.Text{Content: locales.SearchHint(cx), Class: "flex-1 text-sm " + setupMuted, MaxLines: 1},
+				core.Text{Content: locales.DesktopSearchHint(cx), Class: "flex-1 text-sm " + setupMuted, MaxLines: 1},
 				core.Text{Content: cx.KeyLabel("mod+k"), Class: "rounded border px-1.5 text-[10px] " + setupBorder + " " + setupMuted},
 			}},
 		desktopToolbarAction(cx, "desktop-home-refresh", locales.RefreshLibraries(cx), lucide.RefreshCw(), func() {
@@ -239,13 +239,6 @@ func (a *application) desktopFeatured(cx *core.Scope, entries []catalogItem, cha
 
 func (a *application) desktopFeaturedTitle(cx *core.Scope, entry catalogItem) core.Node {
 	item := entry.item
-	labels := []string{itemMetadata(cx, item)}
-	if len(item.Genres) > 0 {
-		labels = append(labels, strings.Join(item.Genres[:min(2, len(item.Genres))], " / "))
-	}
-	if minutes := int(item.Duration / time.Minute); minutes > 0 {
-		labels = append(labels, locales.HomeDuration(cx, strconv.Itoa(minutes)))
-	}
 	action := func(id, label, color string, icon *core.SVG, onPress func()) core.Node {
 		return base.Button{Label: label, TestID: id, Class: "h-11 flex-row items-center gap-2 rounded-full px-6 " + color,
 			Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, OnPress: func(core.PressEvent) { onPress() },
@@ -257,29 +250,72 @@ func (a *application) desktopFeaturedTitle(cx *core.Scope, entry catalogItem) co
 			action("home-hero-play", locales.Play(cx), "bg-violet-500 shadow-lg shadow-violet-500/40", lucide.Play(), func() { a.playCatalogEntry(entry) }),
 		}, buttons...)
 	}
-	buttons = append(buttons, a.tvHeroFavorite(cx, tvLayout(.55), entry))
-	meta := []core.Node{core.Text{Content: strings.Join(labels, "    "), Class: "text-sm text-zinc-300", MaxLines: 1}}
-	const badge = "shrink-0 rounded border border-white/30 px-1.5 text-[11px] font-semibold text-white"
-	if quality := tvQuality(entry); quality != "" {
-		meta = append(meta, core.Text{Content: quality, Class: badge})
-	}
-	if item.DolbyAtmos {
-		meta = append(meta, core.Text{Content: "Atmos", Class: badge, TestID: "home-hero-atmos"})
-	}
+	buttons = append(buttons, a.homeHeroFavorite(cx, entry, func(label string, selected bool, disabled func() bool, press func()) core.Node {
+		icon := lucide.Plus()
+		if selected {
+			icon = lucide.Check()
+		}
+		return base.Button{Label: label, TestID: "home-hero-favorite",
+			Class:    "size-11 shrink-0 items-center justify-center rounded-full bg-white/15 selected:bg-violet-500/50",
+			Style:    core.Style{FocusVisible: ui.FocusRing(cx, 2)},
+			Selected: func() bool { return selected }, Disabled: disabled, OnPress: func(core.PressEvent) { press() },
+			Children: []core.Node{core.Icon{SVG: icon, Class: "size-5 text-white"}},
+		}
+	}))
 	return core.View{Class: "absolute inset-0", Children: []core.Node{
-		homeArtwork(cmp.Or(item.Backdrop, item.Poster), "absolute inset-0"),
+		desktopFeaturedArtwork(cmp.Or(item.Backdrop, item.Poster)),
 		core.View{Class: "absolute inset-0 bg-linear-to-r from-black/90 via-black/50 to-transparent"},
-		core.View{Class: "absolute bottom-0 left-0 w-[600px] max-w-full gap-4 p-10", Children: []core.Node{
+		core.View{Class: "absolute inset-y-0 left-0 w-[600px] max-w-full justify-end gap-4 p-10", Children: []core.Node{
 			core.View{Class: "flex-row items-center gap-2", Children: []core.Node{
 				core.Text{Content: locales.Recent(cx), Class: "rounded-full bg-violet-500/20 px-2.5 py-1 text-xs font-medium text-violet-300"},
 				core.Text{Content: entry.source.Name, TestID: "home-hero-source", Class: "rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs text-emerald-400"},
 			}},
 			core.Text{Content: item.Title, Class: "text-5xl font-bold text-white", MaxLines: 2, TestID: "home-hero-title"},
-			core.View{Class: "flex-row items-center gap-3", Children: meta},
+			desktopFeaturedFacts(cx, item),
 			core.Text{Content: item.Overview, Class: "text-sm leading-relaxed text-zinc-300", MaxLines: 2},
 			core.View{Class: "flex-row gap-3 pt-1", Children: buttons},
 		}},
 	}}
+}
+
+func desktopFeaturedArtwork(url string) core.Node {
+	if url != "" {
+		return homeArtwork(url, "absolute inset-0")
+	}
+	return core.View{Class: "absolute inset-x-0 top-0 h-40 items-center justify-center overflow-hidden bg-muted",
+		Children: []core.Node{core.Icon{SVG: lucide.Image(), Class: "size-8 text-muted-foreground"}}}
+}
+
+func desktopFeaturedFacts(cx *core.Scope, item media.Item) core.Node {
+	var facts []core.Node
+	add := func(label string) {
+		facts = append(facts, core.Text{Content: label, Class: "text-sm text-zinc-300", MaxLines: 1})
+	}
+	if item.Year > 0 {
+		add(strconv.Itoa(item.Year))
+	}
+	if len(item.Genres) > 0 {
+		add(strings.Join(item.Genres[:min(2, len(item.Genres))], " / "))
+	}
+	if item.Duration > 0 {
+		add(desktopMediaRuntime(cx, item.Duration))
+	}
+	const badge = "shrink-0 rounded border border-white/30 px-1.5 text-[11px] font-semibold text-white"
+	profile := highestVideoProfile(item.VideoProfiles)
+	if resolution := libraryResolution(profile); resolution > 0 {
+		quality := libraryResolutionName(resolution)
+		if dynamicRange := desktopVideoRange(cx, media.Version{VideoRange: profile.Range}); dynamicRange != "" {
+			quality += " " + dynamicRange
+		}
+		facts = append(facts, core.Text{Content: quality, Class: badge, TestID: "desktop-hero-quality"})
+	}
+	if item.DolbyAtmos {
+		facts = append(facts, core.Text{Content: "Atmos", Class: badge, TestID: "home-hero-atmos"})
+	}
+	if len(facts) == 0 {
+		return nil
+	}
+	return core.View{Class: "flex-row flex-wrap items-center gap-3", TestID: "desktop-hero-facts", Children: facts}
 }
 
 func (a *application) desktopSeriesCard(cx *core.Scope, entry catalogItem) core.Node {

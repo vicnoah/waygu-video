@@ -151,6 +151,7 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 	if page == screenFavorites || page == screenHistory {
 		personal = page
 	}
+	desktopSearch := page == screenSearch && idiom == core.IdiomDesktop
 	results := core.NewResource(cx, func() (catalogRequest, bool) {
 		sources := a.sources.Get()
 		term := query.Get()
@@ -166,6 +167,9 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 		}
 		return request, len(sources) > 0 && (page != screenSearch || term != "")
 	}, func(ctx context.Context, request catalogRequest, _ core.ResourceInfo) (catalogResult, error) {
+		if desktopSearch {
+			return a.loadDesktopSearch(ctx, request), nil
+		}
 		return a.loadCatalog(ctx, request), nil
 	})
 	lastEdit := a.libraryChanges.GetUntracked()
@@ -238,7 +242,7 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 					}
 					choices = append(choices, ui.Option[string]{Label: source.Name, Value: source.ID})
 				}
-				return ui.Select[string]{Label: locales.MediaSources(cx), Options: choices, Value: a.sourceFilter.Get,
+				return ui.Select[string]{Label: locales.MediaSources(cx), TestID: "catalog-source", Options: choices, Value: a.sourceFilter.Get,
 					OnChange: func(id string) { a.sourceFilter.Set(id); library.Set(""); limit.Set(36) }}
 			}),
 		}},
@@ -277,6 +281,10 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 	}
 	if page == screenSearch {
 		input := &core.Ref{}
+		searchHint := locales.SearchHint(cx)
+		if desktopSearch {
+			searchHint = locales.DesktopSearchHint(cx)
+		}
 		submit := func() {
 			if idiom == core.IdiomTV {
 				input.Blur()
@@ -285,7 +293,7 @@ func (a *application) browse(cx *core.Scope, page screen, idiom core.Idiom, cate
 			limit.Set(36)
 		}
 		controls = append(controls, core.View{Class: "flex-row items-center gap-2", Children: []core.Node{
-			ui.Input{Label: locales.SearchHint(cx), Placeholder: locales.SearchHint(cx), TestID: "search-query",
+			ui.Input{Label: searchHint, Placeholder: searchHint, TestID: "search-query",
 				Ref: input, AutoFocus: idiom == core.IdiomTablet, Value: draft.Get, OnChange: func(value string) {
 					draft.Set(value)
 					if strings.TrimSpace(value) == "" {

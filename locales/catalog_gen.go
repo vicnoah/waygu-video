@@ -491,6 +491,8 @@ const (
 	textNoSources
 	textEmptyLibrary
 	textSearchHint
+	textDesktopSearchHint
+	textDesktopSidebarSearchHint
 	textSearchAllSources
 	textSearchPhoneHint
 	textSearchRecentQueries
@@ -1427,6 +1429,8 @@ var keyOfText = [numTexts]string{
 	"noSources",
 	"emptyLibrary",
 	"searchHint",
+	"desktopSearchHint",
+	"desktopSidebarSearchHint",
 	"searchAllSources",
 	"searchPhoneHint",
 	"searchRecentQueries",
@@ -2361,6 +2365,8 @@ var textsEn = i18n.NewTexts(""+
 	"Add a media source to browse your movies and shows."+
 	"No matching titles"+
 	"Search movies and shows"+
+	"Search movies, shows and actors"+
+	"Search titles and actors"+
 	"All"+
 	"Search titles or people"+
 	"Recent searches"+
@@ -3292,6 +3298,8 @@ var textsEn = i18n.NewTexts(""+
 		51,
 		18,
 		23,
+		31,
+		24,
 		3,
 		23,
 		15,
@@ -4226,6 +4234,8 @@ var textsZhHans = i18n.NewTexts(""+
 	"添加媒体源，开始浏览电影与剧集。"+
 	"没有找到匹配的影片"+
 	"搜索电影和剧集"+
+	"搜索电影、剧集、演员"+
+	"搜索影片、演员"+
 	"全部"+
 	"搜索片名或演职人员"+
 	"最近搜索"+
@@ -5156,6 +5166,8 @@ var textsZhHans = i18n.NewTexts(""+
 		9,
 		48,
 		27,
+		21,
+		30,
 		21,
 		6,
 		27,
@@ -8181,6 +8193,22 @@ func SearchHint(cx *core.Scope) string { return For(cx).SearchHint() }
 
 // SearchHint is the package's SearchHint in the language of msgs.
 func (msgs Messages) SearchHint() string { return msgs.text(textSearchHint) }
+
+// DesktopSearchHint says "Search movies, shows and actors"
+// in the language the app shows under cx.
+func DesktopSearchHint(cx *core.Scope) string { return For(cx).DesktopSearchHint() }
+
+// DesktopSearchHint is the package's DesktopSearchHint in the language of msgs.
+func (msgs Messages) DesktopSearchHint() string { return msgs.text(textDesktopSearchHint) }
+
+// DesktopSidebarSearchHint says "Search titles and actors"
+// in the language the app shows under cx.
+func DesktopSidebarSearchHint(cx *core.Scope) string { return For(cx).DesktopSidebarSearchHint() }
+
+// DesktopSidebarSearchHint is the package's DesktopSidebarSearchHint in the language of msgs.
+func (msgs Messages) DesktopSidebarSearchHint() string {
+	return msgs.text(textDesktopSidebarSearchHint)
+}
 
 // SearchAllSources says "All"
 // in the language the app shows under cx.

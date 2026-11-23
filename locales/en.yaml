@@ -181,6 +181,8 @@ mediaSources: Media sources
 noSources: Add a media source to browse your movies and shows.
 emptyLibrary: No matching titles
 searchHint: Search movies and shows
+desktopSearchHint: Search movies, shows and actors
+desktopSidebarSearchHint: Search titles and actors
 searchAllSources: All
 searchPhoneHint: Search titles or people
 searchRecentQueries: Recent searches

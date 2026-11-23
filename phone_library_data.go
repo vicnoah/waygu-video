@@ -190,6 +190,16 @@ func libraryResolutionName(resolution int) string {
 	}
 }
 
+func highestVideoProfile(profiles []media.VideoProfile) media.VideoProfile {
+	var best media.VideoProfile
+	for _, profile := range profiles {
+		if libraryResolution(profile) > libraryResolution(best) {
+			best = profile
+		}
+	}
+	return best
+}
+
 func catalogVideoProfiles(entry catalogItem) []media.VideoProfile {
 	profiles := entry.item.VideoProfiles
 	if entry.match != nil {

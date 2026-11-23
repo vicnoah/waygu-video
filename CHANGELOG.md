@@ -21,3 +21,5 @@
 - Use the tvOS default text size for the design's typography. [Apple TV typography review](docs/ui-review/tv-home.md#apple-tv-typography)
 - Show catalog totals beside the four desktop library categories. [Desktop sidebar comparison](docs/ui-review/desktop-home.md#category-totals-and-atmos)
 - Show an Atmos badge for featured titles with reported Atmos audio. [Desktop Home comparison](docs/ui-review/desktop-home.md#category-totals-and-atmos)
+- Align the desktop carousel metadata and favorite button with the design. [Carousel comparison](docs/ui-review/desktop-home.md#featured-artwork-and-actions)
+- Search the desktop library by title and actor. [Desktop search verification](docs/ui-review/desktop-home.md#search-by-title-and-actor)

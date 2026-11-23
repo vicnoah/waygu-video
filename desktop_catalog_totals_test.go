@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -34,8 +35,11 @@ func TestDesktopSidebarCounts(t *testing.T) {
 		{ID: "mirror", Provider: media.Jellyfin, Name: "Second library", Address: "http://mirror.example.test",
 			Libraries: []sourceLibrary{mirror}},
 	}
-	matching := media.Item{ID: "shared", Title: "Mirror Film", Kind: media.Movie, ExternalIDs: map[string]string{"Tmdb": "101"},
-		AddedAt: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), DolbyAtmos: true,
+	matching := media.Item{ID: "shared", Title: "Mirror Film", Kind: media.Movie, Year: 2024, Genres: []string{"科幻", "冒险"},
+		Duration:    2*time.Hour + 46*time.Minute,
+		Overview:    "两座城市共享一段记忆。一位列车司机沿着旧地图寻找通往另一座城市的车站。沿途的旅客留下不同的线索，她必须在末班车出发前决定相信谁。",
+		ExternalIDs: map[string]string{"Tmdb": "101"},
+		AddedAt:     time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), DolbyAtmos: true,
 		VideoProfiles: []media.VideoProfile{{Width: 3840, Height: 2160, Range: "DOVI"}}}
 	first := []media.Item{matching, {ID: "series", Title: "The Railway", Kind: media.Series}}
 	for i := range 101 {
@@ -53,10 +57,11 @@ func TestDesktopSidebarCounts(t *testing.T) {
 	if nsgotest.Target() == "linux" {
 		height += 37
 	}
+	var favorite atomic.Bool
 	app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
 		shellIdiom.Provide(cx, core.IdiomDesktop)
 		return appRoot(cx, func(_ media.Provider, _ string, _ media.Device, session media.Session) (media.Client, error) {
-			return desktopSidebarCatalog{fixtureServer{session: session}, pages}, nil
+			return desktopSidebarCatalog{fixtureServer{session: session}, pages, &favorite}, nil
 		}, nil)
 	}, nsgotest.Size(1440, height), nsgotest.Environment(core.Environment{OS: core.OSLinux, Locale: "zh-Hans"}),
 		nsgotest.Storage(map[string]string{sourcesKey: saved, appearanceKey: "dark"}),
@@ -71,9 +76,24 @@ func TestDesktopSidebarCounts(t *testing.T) {
 		}
 	}
 	app.WaitFor("id:home-hero-atmos", 5*time.Second)
+	app.Find("id:desktop-hero-facts >> text:2024")
+	app.Find("id:desktop-hero-facts >> text:科幻 / 冒险")
+	app.Find("id:desktop-hero-facts >> text:2 小时 46 分")
+	if quality := app.Find("id:desktop-hero-quality").Text; quality != "4K 杜比视界" {
+		t.Fatalf("desktop hero quality = %q, want 4K 杜比视界", quality)
+	}
+	const favoriteButton = "id:home-hero-favorite"
+	app.WaitUntil(5*time.Second, func() bool { return app.Enabled(favoriteButton) })
+	if size := app.Find(favoriteButton).Frame.Size; size.Width != 44 || size.Height != 44 {
+		t.Fatalf("desktop hero favorite button size = %v, want 44 × 44", size)
+	}
 	if nsgotest.Target() != "" {
 		app.Screenshot("desktop-category-counts")
 	}
+	app.Press(favoriteButton)
+	app.WaitUntil(5*time.Second, func() bool { return favorite.Load() && app.Find(favoriteButton).Props.Selected })
+	app.Press(favoriteButton)
+	app.WaitUntil(5*time.Second, func() bool { return !favorite.Load() && !app.Find(favoriteButton).Props.Selected })
 	app.Press("id:home-hero-dot-1")
 	app.WaitForGone("id:home-hero-atmos", time.Second)
 	app.Press("id:tab-library")
@@ -90,7 +110,22 @@ func TestDesktopSidebarCounts(t *testing.T) {
 
 type desktopSidebarCatalog struct {
 	fixtureServer
-	pages map[string][]media.Item
+	pages    map[string][]media.Item
+	favorite *atomic.Bool
+}
+
+func (f desktopSidebarCatalog) Detail(_ context.Context, item media.Item) (media.Item, error) {
+	item.Favorite = item.ID == "shared" && f.favorite.Load()
+	return item, nil
+}
+
+func (f desktopSidebarCatalog) SetFavorite(_ context.Context, _ media.Item, favorite bool) error {
+	f.favorite.Store(favorite)
+	return nil
+}
+
+func (desktopSidebarCatalog) Favorites(context.Context, media.Query) (media.Page, error) {
+	return media.Page{}, nil
 }
 
 func (f desktopSidebarCatalog) Catalog(_ context.Context, query media.Query) (media.Page, error) {

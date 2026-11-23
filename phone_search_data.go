@@ -124,7 +124,7 @@ func (a *application) searchSourceCredits(ctx context.Context, source source, re
 	return result
 }
 
-func combinePhoneSearch(request *catalogRequest, remote, credited, local []catalogItem) []catalogItem {
+func combineSearchCatalog(request *catalogRequest, remote, credited, local []catalogItem) []catalogItem {
 	var entries []catalogItem
 	indices := make(map[copyKey]int)
 	for _, set := range [][]catalogItem{remote, credited, local} {

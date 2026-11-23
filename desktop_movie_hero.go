@@ -160,14 +160,7 @@ func desktopMovieHeroFacts(cx *core.Scope, item media.Item) core.Node {
 		add(strings.Join(item.Genres, " / "), standard)
 	}
 	if item.Duration > 0 {
-		hours, minutes := item.Duration/time.Hour, item.Duration%time.Hour/time.Minute
-		runtime := playbackClock(item.Duration)
-		if hours > 0 {
-			runtime = locales.DesktopMovieRuntime(cx, strconv.FormatInt(int64(hours), 10), strconv.FormatInt(int64(minutes), 10))
-		} else if minutes > 0 {
-			runtime = locales.HomeDuration(cx, strconv.FormatInt(int64(minutes), 10))
-		}
-		add(runtime, standard)
+		add(desktopMediaRuntime(cx, item.Duration), standard)
 	}
 	if item.ContentRating != "" {
 		add(item.ContentRating, "rounded border border-white/30 px-1.5 text-[11px] text-zinc-300")
@@ -176,6 +169,14 @@ func desktopMovieHeroFacts(cx *core.Scope, item media.Item) core.Node {
 		return nil
 	}
 	return core.View{Class: "flex-row flex-wrap items-center gap-3", Children: facts}
+}
+
+func desktopMediaRuntime(cx *core.Scope, duration time.Duration) string {
+	if hours := duration / time.Hour; hours > 0 {
+		minutes := duration % time.Hour / time.Minute
+		return locales.DesktopMovieRuntime(cx, strconv.Itoa(int(hours)), strconv.Itoa(int(minutes)))
+	}
+	return seriesDuration(cx, duration)
 }
 
 func desktopMovieBadges(cx *core.Scope, item media.Item, version media.Version) core.Node {

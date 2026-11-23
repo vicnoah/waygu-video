@@ -1,6 +1,6 @@
 # Desktop home review
 
-Scenra is on the left and the Linux GTK app is on the right. Both use the Simplified Chinese layout at 1440 × 1500 pt. The initial captures show the libraries, artwork, media providers, profile and watch progress supplied by the local Emby, Jellyfin and Plex fixtures. [Scenra design](../../design/desktop-main.scenra)
+Scenra is on the left and the Linux GTK app is on the right. Both use Simplified Chinese and show the same 1440 × 1403 px region of the 1440 × 1500 pt layout. The app uses the libraries, artwork, media providers, profile and watch progress supplied by the local Emby, Jellyfin and Plex fixtures. [Scenra design](../../design/desktop-main.scenra)
 
 ## Light
 
@@ -19,8 +19,8 @@ The captures show the same app at its normal 1440 × 900 pt window size. The too
 | Area | Comparison |
 | --- | --- |
 | Sidebar | The 240 pt sidebar has collapsible navigation, a search shortcut, the four library categories, personal items, source status and profile. The category rows include right-aligned, localized totals. [Sidebar comparison](#category-totals-and-atmos) |
-| Toolbar | The 64 pt toolbar includes the aggregate source picker, current online count, search, refresh, source notices and profile. The notice button opens a list of source failures when present. |
-| Carousel | The hero is 380 pt tall with 32 pt margins. The app shows actual media artwork, source, metadata, picture format and synopsis when available, and playback, detail and favorite actions. The indicator buttons select a title, and the carousel advances after eight seconds unless reduced motion is enabled. The Atmos badge follows the selected title’s reported audio metadata. |
+| Toolbar | The 64 pt toolbar includes the aggregate source picker, current online count, search, refresh, source notices and profile. The notice button opens a list of source failures when present. The search labels in the toolbar and sidebar use the Scenra wording. |
+| Carousel | The hero is 380 pt tall with 32 pt margins. The app shows artwork, source, year, genres, localized runtime, picture and sound badges and synopsis when the catalog supplies them. The indicator buttons select a title, and the carousel advances after eight seconds unless reduced motion is enabled. |
 | Shelves | Continue Watching and Series Updates use 288 × 160 pt artwork. Recent titles and source shelves use 144 × 208 pt posters with a quality badge when the source reports a picture format. Series cards use the latest catalog metadata and include an episode count when the server supplies one. |
 | Window controls | Scenra draws the macOS controls. The native comparison images show the application content. |
 
@@ -28,7 +28,7 @@ The captures show the same app at its normal 1440 × 900 pt window size. The too
 
 ## Category totals and Atmos
 
-The first two frames compare the light Scenra sidebar with GTK. The next two compare the dark sidebars. The row heights and trailing count alignment follow the reference. The Docker fixture reports 22 movies, nine series, zero anime and zero documentaries. The native search shortcut and focus colors reflect the active platform and page. The search copy and the window decorations remain visible differences.
+The first two frames compare the light Scenra sidebar with GTK. The next two compare the dark sidebars. The row heights, search copy and trailing count alignment follow the reference. The Docker fixture reports 22 movies, nine series, zero anime and zero documentaries. GTK shows Ctrl+K and the active Home row uses the selected tint defined in the sidebar component. Scenra shows macOS window controls and its exported image shows the rows in their default state.
 
 ![Light and dark sidebar count comparisons, Scenra and GTK in each pair](images/desktop-home-sidebar-counts.png)
 
@@ -36,9 +36,32 @@ The totals count titles in accessible imported libraries. They follow the config
 
 ![GTK desktop Home with four category totals and an Atmos badge](images/desktop-home-counts-atmos-gtk.png)
 
-The synthetic catalog shows 103 distinct movies, one series, one anime and one documentary. It shares a movie across two sources and uses multiple pages for the mixed library. `TestDesktopSidebarCounts` confirms the totals against the opened library, confirms the Atmos badge on the marked title, and checks it disappears when the carousel selects another title. Emby and Jellyfin use their catalog audio stream metadata. Plex uses its catalog media and stream labels. The badge appears when metadata identifies Atmos. [Emby catalog fields](https://dev.emby.media/doc/restapi/Item-Information.html)
+The synthetic catalog shows 103 distinct movies, one series, one anime and one documentary. It shares a movie across two sources and uses multiple pages for the mixed library. Emby and Jellyfin use their catalog audio stream metadata. Plex uses its catalog media and stream labels. The Atmos badge follows the audio metadata of the featured item. [Emby catalog fields](https://dev.emby.media/doc/restapi/Item-Information.html)
+
+## Featured artwork and actions
+
+![Dark Scenra carousel above the matching GTK region](images/desktop-home-featured-gtk.png)
+
+The two crops use the same 1168 × 392 px region. The missing-artwork panel, three metadata fields, picture and audio badges and action row follow the reference. The fixture uses the same year, genres, runtime and formats with a different title and synopsis. The first two actions open playback and details. The 44 pt favorite button shows a plus before saving and a check after saving. `TestDesktopSidebarCounts` verifies the text and size, adds and removes the favorite, switches to a title without Atmos, and reconciles the counts with the opened categories.
+
+## Search by title and actor
+
+![GTK desktop search for a fixture actor across sources](images/desktop-home-actor-search.png)
+
+The toolbar and sidebar open search. The Docker check searches for actor Mei Zhou, selects the Jellyfin scope, then submits the movie title and selects the Plex scope. Emby and Jellyfin return the movie by its credited actor. Jellyfin and Plex return it by title. The Plex credit mapping is covered by a wire-format test because the unclaimed Docker server returns an empty credits hub. [Catalog fixture verification](../../integration/servers/TESTING.md#catalog-and-player-fixtures)
+
+To capture both sides on Linux, start the Docker fixtures and run these commands from the repository root with a display large enough for the requested viewport.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_REVIEW_DESIGN=desktop-main.scenra \
+  -run '^TestDesignReferences$' -screenshots .nsgo/ui-review/desktop-reference ./build/ui-review/reference
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^(TestDockerDesktopHomeReview|TestDesktopSidebarCounts)$' -screenshots .nsgo/ui-review/desktop .
+```
 
 ## Desktop runner captures
+
+The runner images below record the earlier category-count and Atmos milestone.
 
 ![Dark Scenra reference at left and the Windows amd64 app at right](images/desktop-home-counts-atmos-windows.png)
 

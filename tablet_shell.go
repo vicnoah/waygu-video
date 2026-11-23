@@ -162,12 +162,16 @@ func (a *application) tabletSidebar(cx *core.Scope, category *core.Signal[librar
 	header := core.View{Class: "flex-row items-center justify-between pr-1", Children: []core.Node{
 		tabletBrand(cx), tabletPanelButton(cx, locales.CloseSidebar(cx), closeID, lucide.PanelLeftClose(), closePanel),
 	}}
+	searchHint := locales.SearchHint(cx)
+	if wide {
+		searchHint = locales.DesktopSidebarSearchHint(cx)
+	}
 	search := base.Button{Label: locales.Search(cx), TestID: "tab-search",
 		Class: "h-9 flex-row items-center gap-2 rounded-lg bg-white px-3 shadow-sm shadow-black/5 dark:bg-[#1a1b25] " + setupBorder,
 		Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)}, OnPress: func(core.PressEvent) { open(2, "") },
 		Children: []core.Node{
 			core.Icon{SVG: lucide.Search(), Class: "size-4 " + setupMuted},
-			core.Text{Content: locales.SearchHint(cx), Class: "min-w-0 flex-1 text-sm " + setupMuted, MaxLines: 1},
+			core.Text{Content: searchHint, Class: "min-w-0 flex-1 text-sm " + setupMuted, MaxLines: 1},
 			core.Text{Content: cx.KeyLabel("mod+k"), Class: "text-xs opacity-70 " + setupMuted, MaxLines: 1},
 		},
 	}
