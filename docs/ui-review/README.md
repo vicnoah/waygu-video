@@ -41,6 +41,8 @@ Use the same client dimensions, appearance, locale, and display scale for the ap
 
 From the repository root, run the native app check. On a Linux machine without a graphical session, run the commands under `xvfb-run` with a display large enough for the requested viewport.
 
+For Android comparisons that depend on clipped outlines or video surfaces, capture the emulator or device display with `adb exec-out screencap -p`. The test framework's Android PNG draws the view tree into a software bitmap.
+
 ```sh
 go tool nsgo test -target linux -run TestWelcomeReview -screenshots .nsgo/ui-review/app
 ```

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -195,6 +196,14 @@ func TestAndroidExpiredDownload(t *testing.T) {
 	app.WaitFor("id:download-expired-"+entry.ID, 3*time.Second)
 	app.Advance(500 * time.Millisecond)
 	app.Screenshot("storage-expired-android")
+	if os.Getenv("WAYGU_CAPTURE_STORAGE_DISPLAY") == "1" {
+		marker := filepath.Join(dir, "storage-capture.ready")
+		if err := os.WriteFile(marker, nil, 0600); err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Remove(marker) })
+		time.Sleep(15 * time.Second)
+	}
 	app.Press("id:download-keep-" + entry.ID)
 	app.WaitFor("text:已保留本地副本", 3*time.Second)
 	app.Press("id:download-play-" + entry.ID)

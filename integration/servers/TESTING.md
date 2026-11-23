@@ -91,6 +91,13 @@ sh build/android/package.sh test -device <serial> -run '^TestAndroidExpiredDownl
   -timeout 150s -screenshots .nsgo/ui-review/android-expired-downloads
 ```
 
+For the Android display capture, add `-env WAYGU_CAPTURE_STORAGE_DISPLAY=1` to the test invocation. The test pauses on the storage page for 15 seconds after writing the marker below. From another shell, capture the frame while the marker is present.
+
+```sh
+adb -s <serial> shell run-as dev.nsgo.wayguvideo.nsgotest find files cache -name storage-capture.ready
+adb -s <serial> exec-out screencap -p > .nsgo/ui-review/storage-expired-android.png
+```
+
 ## Download network transitions
 
 `TestDockerDownloadNetworkPolicy` transfers the Emby download fixture through a rate-limited proxy. The test verifies Wi-Fi to cellular, manual pause during reconnection, loss of all networks, and automatic continuation with validated HTTP ranges. The headless replay also verifies the saved preference, the choice to wait for Wi-Fi and the action to use mobile data for a single copy. The Android replay uses system default-network changes on a phone emulator. [Storage screen comparison](../../docs/ui-review/storage-downloads.md#wi-fi-downloads) · [Android default network](https://developer.android.com/develop/connectivity/network-ops/reading-network-state)

@@ -89,7 +89,7 @@ The Docker cases use actual missing-item responses from Emby, Jellyfin and Plex 
 
 ![Expired download in the storage page on the Android phone emulator](images/storage-expired-android.png)
 
-The Android phone emulator opens a saved expired row, keeps the file, and advances its local playback. Android still draws square corners around some grouped rows where the design shows rounded corners. [Android test command](../../integration/servers/TESTING.md#expired-downloads)
+The Android phone emulator opens a saved expired row, keeps the file, and advances its local playback. The screenshot comes from the emulator display and shows the rounded outlines of both groups. The test framework's software bitmap capture omits that clipping. [Android test command](../../integration/servers/TESTING.md#expired-downloads)
 
 ## Interaction checks
 
