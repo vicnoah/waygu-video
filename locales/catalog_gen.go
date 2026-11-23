@@ -177,6 +177,7 @@ var Parameters = map[string][]string{
 	"MetadataLibraryCount":            {"count"},
 	"MetadataRefreshEvery":            {"minutes"},
 	"SyncLastPaired":                  {"time_"},
+	"OnlineSubtitleAccount":           {"name"},
 }
 
 // Translation is a language's messages another package supplies:
@@ -319,6 +320,7 @@ type Translation struct {
 	MetadataLibraryCount            func(count string) string
 	MetadataRefreshEvery            func(minutes string) string
 	SyncLastPaired                  func(time_ string) string
+	OnlineSubtitleAccount           func(name string) string
 }
 
 var supplied = map[string]Translation{}
@@ -1206,6 +1208,25 @@ const (
 	textSyncThisDevice
 	textSyncCurrentDevice
 	textSyncPairedDevice
+	textOnlineSubtitleSearch
+	textOnlineSubtitleProviders
+	textOnlineSubtitleShooter
+	textOnlineSubtitleTitle
+	textOnlineSubtitleSubmit
+	textOnlineSubtitleEmpty
+	textOnlineSubtitleExact
+	textOnlineSubtitleError
+	textOnlineSubtitleCredentialError
+	textOnlineSubtitleLimit
+	textOnlineSubtitleConfigure
+	textOnlineSubtitleKey
+	textOnlineSubtitleUsername
+	textOnlineSubtitlePassword
+	textOnlineSubtitleCredentialHelp
+	textOnlineSubtitleSave
+	textOnlineSubtitleRemove
+	textOnlineSubtitleEnabled
+	textOnlineSubtitleDisabled
 	numTexts
 )
 
@@ -2093,6 +2114,25 @@ var keyOfText = [numTexts]string{
 	"syncThisDevice",
 	"syncCurrentDevice",
 	"syncPairedDevice",
+	"onlineSubtitleSearch",
+	"onlineSubtitleProviders",
+	"onlineSubtitleShooter",
+	"onlineSubtitleTitle",
+	"onlineSubtitleSubmit",
+	"onlineSubtitleEmpty",
+	"onlineSubtitleExact",
+	"onlineSubtitleError",
+	"onlineSubtitleCredentialError",
+	"onlineSubtitleLimit",
+	"onlineSubtitleConfigure",
+	"onlineSubtitleKey",
+	"onlineSubtitleUsername",
+	"onlineSubtitlePassword",
+	"onlineSubtitleCredentialHelp",
+	"onlineSubtitleSave",
+	"onlineSubtitleRemove",
+	"onlineSubtitleEnabled",
+	"onlineSubtitleDisabled",
 }
 
 // textsEn are the messages without arguments in en.
@@ -2920,7 +2960,7 @@ var textsEn = i18n.NewTexts(""+
 	"Import SRT or WebVTT subtitle files. Available muxed tracks and image subtitles depend on the media server and decoder."+
 	"Import Bilibili-style XML and DandanPlay JSON comments from the player."+
 	"Your server addresses and library preferences are stored on this device. Passwords, tokens and developer secrets use the platform credential store where available."+
-	"The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay."+
+	"The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay. Online subtitle searches send the title or file name and file fingerprints to the selected providers."+
 	"You can turn network logging on under Debugging. It records the provider, HTTP method, status, time and duration on this device. Export saves an archive to the location you choose."+
 	"If you enable sunset-based dark mode, the app may request approximate location. The rounded coordinates stay on your device."+
 	"Bitrate"+
@@ -2977,7 +3017,26 @@ var textsEn = i18n.NewTexts(""+
 	"My devices"+
 	"This device"+
 	"Current device"+
-	"Paired device",
+	"Paired device"+
+	"Search Online Subtitles"+
+	"OpenSubtitles · Shooter"+
+	"Shooter"+
+	"Title"+
+	"Search"+
+	"No matching subtitles found"+
+	"File match"+
+	"Could not search or load online subtitles."+
+	"Check the OpenSubtitles key and account in Subtitle settings."+
+	"The subtitle service limit has been reached."+
+	"Configure OpenSubtitles"+
+	"OpenSubtitles API key"+
+	"OpenSubtitles username"+
+	"OpenSubtitles password"+
+	"Enter your API key. A username and password are optional."+
+	"Save OpenSubtitles"+
+	"Remove OpenSubtitles credentials"+
+	"Enabled"+
+	"Disabled",
 	[]uint16{
 		11,
 		47,
@@ -3802,7 +3861,7 @@ var textsEn = i18n.NewTexts(""+
 		119,
 		71,
 		163,
-		196,
+		298,
 		180,
 		124,
 		7,
@@ -3860,6 +3919,25 @@ var textsEn = i18n.NewTexts(""+
 		11,
 		14,
 		13,
+		23,
+		24,
+		7,
+		5,
+		6,
+		27,
+		10,
+		42,
+		61,
+		44,
+		23,
+		21,
+		22,
+		22,
+		57,
+		18,
+		32,
+		7,
+		8,
 	})
 
 // textsZhHans are the messages without arguments in zh-Hans.
@@ -4687,7 +4765,7 @@ var textsZhHans = i18n.NewTexts(""+
 	"可导入 SRT 或 WebVTT 字幕。内嵌轨道和图像字幕的可用性取决于媒体服务器和解码器。"+
 	"可在播放器导入哔哩哔哩格式的 XML 或弹弹play 格式的 JSON 弹幕。"+
 	"媒体服务器地址和媒体库偏好保存在此设备上。密码、令牌和开发者密钥使用平台提供的凭据存储。"+
-	"应用会连接你添加的媒体服务器，并向对应服务器报告播放进度。启用弹弹play 匹配后，可能向弹弹play 发送片名、文件名和文件指纹。"+
+	"应用会连接你添加的媒体服务器，并向对应服务器报告播放进度。启用弹弹play 匹配后，可能向弹弹play 发送片名、文件名和文件指纹。 在线字幕搜索会向启用的服务发送片名或文件名及文件指纹。"+
 	"可在「调试」里开启网络日志。它只在设备上记录服务类型、HTTP 方法、状态、时间和耗时。导出的压缩包保存到你选择的位置。"+
 	"打开按日落自动切换深色后，应用可能请求大致位置权限，取整后的位置坐标保存在此设备上。"+
 	"码率"+
@@ -4744,7 +4822,26 @@ var textsZhHans = i18n.NewTexts(""+
 	"我的设备"+
 	"本机"+
 	"当前设备"+
-	"已配对设备",
+	"已配对设备"+
+	"在线搜索字幕"+
+	"OpenSubtitles · 射手"+
+	"射手"+
+	"片名"+
+	"搜索"+
+	"没有找到匹配的字幕"+
+	"文件匹配"+
+	"无法搜索或加载在线字幕。"+
+	"请在字幕设置里检查 OpenSubtitles 的密钥和账号。"+
+	"字幕服务额度已用完。"+
+	"设置 OpenSubtitles"+
+	"OpenSubtitles API 密钥"+
+	"OpenSubtitles 用户名"+
+	"OpenSubtitles 密码"+
+	"填写 API 密钥。用户名和密码可选。"+
+	"保存 OpenSubtitles"+
+	"删除 OpenSubtitles 凭据"+
+	"已启用"+
+	"未启用",
 	[]uint16{
 		12,
 		45,
@@ -5569,7 +5666,7 @@ var textsZhHans = i18n.NewTexts(""+
 		112,
 		85,
 		132,
-		178,
+		260,
 		170,
 		126,
 		6,
@@ -5627,6 +5724,25 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		12,
 		15,
+		18,
+		23,
+		6,
+		6,
+		6,
+		27,
+		12,
+		36,
+		63,
+		30,
+		20,
+		24,
+		23,
+		20,
+		47,
+		20,
+		27,
+		9,
+		9,
 	})
 
 // texts returns the messages without arguments in lang, nil for a
@@ -6084,6 +6200,9 @@ func Supply(lang string, t Translation) {
 	}
 	if t.SyncLastPaired != nil {
 		s.SyncLastPaired = t.SyncLastPaired
+	}
+	if t.OnlineSubtitleAccount != nil {
+		s.OnlineSubtitleAccount = t.OnlineSubtitleAccount
 	}
 	supplied[lang] = s
 	Catalog.Add(lang)
@@ -15171,7 +15290,7 @@ func AboutPrivacyServers(cx *core.Scope) string { return For(cx).AboutPrivacySer
 // AboutPrivacyServers is the package's AboutPrivacyServers in the language of msgs.
 func (msgs Messages) AboutPrivacyServers() string { return msgs.text(textAboutPrivacyServers) }
 
-// AboutPrivacyPlayback says "The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay."
+// AboutPrivacyPlayback says "The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay. Online subtitle searches send the title or file name and file fingerprints to the selected providers."
 // in the language the app shows under cx.
 func AboutPrivacyPlayback(cx *core.Scope) string { return For(cx).AboutPrivacyPlayback() }
 
@@ -15646,3 +15765,168 @@ func (msgs Messages) SyncLastPaired(time_ string) string {
 		}
 	}
 }
+
+// OnlineSubtitleSearch says "Search Online Subtitles"
+// in the language the app shows under cx.
+func OnlineSubtitleSearch(cx *core.Scope) string { return For(cx).OnlineSubtitleSearch() }
+
+// OnlineSubtitleSearch is the package's OnlineSubtitleSearch in the language of msgs.
+func (msgs Messages) OnlineSubtitleSearch() string { return msgs.text(textOnlineSubtitleSearch) }
+
+// OnlineSubtitleProviders says "OpenSubtitles · Shooter"
+// in the language the app shows under cx.
+func OnlineSubtitleProviders(cx *core.Scope) string { return For(cx).OnlineSubtitleProviders() }
+
+// OnlineSubtitleProviders is the package's OnlineSubtitleProviders in the language of msgs.
+func (msgs Messages) OnlineSubtitleProviders() string { return msgs.text(textOnlineSubtitleProviders) }
+
+// OnlineSubtitleShooter says "Shooter"
+// in the language the app shows under cx.
+func OnlineSubtitleShooter(cx *core.Scope) string { return For(cx).OnlineSubtitleShooter() }
+
+// OnlineSubtitleShooter is the package's OnlineSubtitleShooter in the language of msgs.
+func (msgs Messages) OnlineSubtitleShooter() string { return msgs.text(textOnlineSubtitleShooter) }
+
+// OnlineSubtitleTitle says "Title"
+// in the language the app shows under cx.
+func OnlineSubtitleTitle(cx *core.Scope) string { return For(cx).OnlineSubtitleTitle() }
+
+// OnlineSubtitleTitle is the package's OnlineSubtitleTitle in the language of msgs.
+func (msgs Messages) OnlineSubtitleTitle() string { return msgs.text(textOnlineSubtitleTitle) }
+
+// OnlineSubtitleSubmit says "Search"
+// in the language the app shows under cx.
+func OnlineSubtitleSubmit(cx *core.Scope) string { return For(cx).OnlineSubtitleSubmit() }
+
+// OnlineSubtitleSubmit is the package's OnlineSubtitleSubmit in the language of msgs.
+func (msgs Messages) OnlineSubtitleSubmit() string { return msgs.text(textOnlineSubtitleSubmit) }
+
+// OnlineSubtitleEmpty says "No matching subtitles found"
+// in the language the app shows under cx.
+func OnlineSubtitleEmpty(cx *core.Scope) string { return For(cx).OnlineSubtitleEmpty() }
+
+// OnlineSubtitleEmpty is the package's OnlineSubtitleEmpty in the language of msgs.
+func (msgs Messages) OnlineSubtitleEmpty() string { return msgs.text(textOnlineSubtitleEmpty) }
+
+// OnlineSubtitleExact says "File match"
+// in the language the app shows under cx.
+func OnlineSubtitleExact(cx *core.Scope) string { return For(cx).OnlineSubtitleExact() }
+
+// OnlineSubtitleExact is the package's OnlineSubtitleExact in the language of msgs.
+func (msgs Messages) OnlineSubtitleExact() string { return msgs.text(textOnlineSubtitleExact) }
+
+// OnlineSubtitleError says "Could not search or load online subtitles."
+// in the language the app shows under cx.
+func OnlineSubtitleError(cx *core.Scope) string { return For(cx).OnlineSubtitleError() }
+
+// OnlineSubtitleError is the package's OnlineSubtitleError in the language of msgs.
+func (msgs Messages) OnlineSubtitleError() string { return msgs.text(textOnlineSubtitleError) }
+
+// OnlineSubtitleCredentialError says "Check the OpenSubtitles key and account in Subtitle settings."
+// in the language the app shows under cx.
+func OnlineSubtitleCredentialError(cx *core.Scope) string {
+	return For(cx).OnlineSubtitleCredentialError()
+}
+
+// OnlineSubtitleCredentialError is the package's OnlineSubtitleCredentialError in the language of msgs.
+func (msgs Messages) OnlineSubtitleCredentialError() string {
+	return msgs.text(textOnlineSubtitleCredentialError)
+}
+
+// OnlineSubtitleLimit says "The subtitle service limit has been reached."
+// in the language the app shows under cx.
+func OnlineSubtitleLimit(cx *core.Scope) string { return For(cx).OnlineSubtitleLimit() }
+
+// OnlineSubtitleLimit is the package's OnlineSubtitleLimit in the language of msgs.
+func (msgs Messages) OnlineSubtitleLimit() string { return msgs.text(textOnlineSubtitleLimit) }
+
+// OnlineSubtitleConfigure says "Configure OpenSubtitles"
+// in the language the app shows under cx.
+func OnlineSubtitleConfigure(cx *core.Scope) string { return For(cx).OnlineSubtitleConfigure() }
+
+// OnlineSubtitleConfigure is the package's OnlineSubtitleConfigure in the language of msgs.
+func (msgs Messages) OnlineSubtitleConfigure() string { return msgs.text(textOnlineSubtitleConfigure) }
+
+// OnlineSubtitleKey says "OpenSubtitles API key"
+// in the language the app shows under cx.
+func OnlineSubtitleKey(cx *core.Scope) string { return For(cx).OnlineSubtitleKey() }
+
+// OnlineSubtitleKey is the package's OnlineSubtitleKey in the language of msgs.
+func (msgs Messages) OnlineSubtitleKey() string { return msgs.text(textOnlineSubtitleKey) }
+
+// OnlineSubtitleUsername says "OpenSubtitles username"
+// in the language the app shows under cx.
+func OnlineSubtitleUsername(cx *core.Scope) string { return For(cx).OnlineSubtitleUsername() }
+
+// OnlineSubtitleUsername is the package's OnlineSubtitleUsername in the language of msgs.
+func (msgs Messages) OnlineSubtitleUsername() string { return msgs.text(textOnlineSubtitleUsername) }
+
+// OnlineSubtitlePassword says "OpenSubtitles password"
+// in the language the app shows under cx.
+func OnlineSubtitlePassword(cx *core.Scope) string { return For(cx).OnlineSubtitlePassword() }
+
+// OnlineSubtitlePassword is the package's OnlineSubtitlePassword in the language of msgs.
+func (msgs Messages) OnlineSubtitlePassword() string { return msgs.text(textOnlineSubtitlePassword) }
+
+// OnlineSubtitleCredentialHelp says "Enter your API key. A username and password are optional."
+// in the language the app shows under cx.
+func OnlineSubtitleCredentialHelp(cx *core.Scope) string {
+	return For(cx).OnlineSubtitleCredentialHelp()
+}
+
+// OnlineSubtitleCredentialHelp is the package's OnlineSubtitleCredentialHelp in the language of msgs.
+func (msgs Messages) OnlineSubtitleCredentialHelp() string {
+	return msgs.text(textOnlineSubtitleCredentialHelp)
+}
+
+// OnlineSubtitleSave says "Save OpenSubtitles"
+// in the language the app shows under cx.
+func OnlineSubtitleSave(cx *core.Scope) string { return For(cx).OnlineSubtitleSave() }
+
+// OnlineSubtitleSave is the package's OnlineSubtitleSave in the language of msgs.
+func (msgs Messages) OnlineSubtitleSave() string { return msgs.text(textOnlineSubtitleSave) }
+
+// OnlineSubtitleRemove says "Remove OpenSubtitles credentials"
+// in the language the app shows under cx.
+func OnlineSubtitleRemove(cx *core.Scope) string { return For(cx).OnlineSubtitleRemove() }
+
+// OnlineSubtitleRemove is the package's OnlineSubtitleRemove in the language of msgs.
+func (msgs Messages) OnlineSubtitleRemove() string { return msgs.text(textOnlineSubtitleRemove) }
+
+// OnlineSubtitleAccount says "Signed in · {name}"
+// in the language the app shows under cx.
+func OnlineSubtitleAccount(cx *core.Scope, name string) string {
+	return For(cx).OnlineSubtitleAccount(name)
+}
+
+// OnlineSubtitleAccount is the package's OnlineSubtitleAccount in the language of msgs.
+func (msgs Messages) OnlineSubtitleAccount(name string) string {
+	if i18n.IsPseudo(msgs.lang) {
+		return i18n.Pseudo(msgs.lang, Messages{lang: Source, mark: true}.OnlineSubtitleAccount(name))
+	}
+	for lang := msgs.lang; ; lang = i18n.Parent(lang) {
+		if f := supplied[lang].OnlineSubtitleAccount; f != nil {
+			return f(name)
+		}
+		switch lang {
+		case "", "en":
+			return "Signed in · " + msgs.arg(name)
+		case "zh-Hans":
+			return "已登录 · " + name
+		}
+	}
+}
+
+// OnlineSubtitleEnabled says "Enabled"
+// in the language the app shows under cx.
+func OnlineSubtitleEnabled(cx *core.Scope) string { return For(cx).OnlineSubtitleEnabled() }
+
+// OnlineSubtitleEnabled is the package's OnlineSubtitleEnabled in the language of msgs.
+func (msgs Messages) OnlineSubtitleEnabled() string { return msgs.text(textOnlineSubtitleEnabled) }
+
+// OnlineSubtitleDisabled says "Disabled"
+// in the language the app shows under cx.
+func OnlineSubtitleDisabled(cx *core.Scope) string { return For(cx).OnlineSubtitleDisabled() }
+
+// OnlineSubtitleDisabled is the package's OnlineSubtitleDisabled in the language of msgs.
+func (msgs Messages) OnlineSubtitleDisabled() string { return msgs.text(textOnlineSubtitleDisabled) }

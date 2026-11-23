@@ -959,7 +959,7 @@ aboutVideoFormats: 支持原生解码的设备可以播放 H.264 和 AAC 编码�
 aboutSubtitleFormats: 可导入 SRT 或 WebVTT 字幕。内嵌轨道和图像字幕的可用性取决于媒体服务器和解码器。
 aboutDanmakuFormats: 可在播放器导入哔哩哔哩格式的 XML 或弹弹play 格式的 JSON 弹幕。
 aboutPrivacyServers: 媒体服务器地址和媒体库偏好保存在此设备上。密码、令牌和开发者密钥使用平台提供的凭据存储。
-aboutPrivacyPlayback: 应用会连接你添加的媒体服务器，并向对应服务器报告播放进度。启用弹弹play 匹配后，可能向弹弹play 发送片名、文件名和文件指纹。
+aboutPrivacyPlayback: 应用会连接你添加的媒体服务器，并向对应服务器报告播放进度。启用弹弹play 匹配后，可能向弹弹play 发送片名、文件名和文件指纹。 在线字幕搜索会向启用的服务发送片名或文件名及文件指纹。
 aboutPrivacyDiagnostics: 可在「调试」里开启网络日志。它只在设备上记录服务类型、HTTP 方法、状态、时间和耗时。导出的压缩包保存到你选择的位置。
 aboutPrivacyLocation: 打开按日落自动切换深色后，应用可能请求大致位置权限，取整后的位置坐标保存在此设备上。
 aboutOverlayBitrate: 码率
@@ -1020,3 +1020,23 @@ syncThisDevice: 本机
 syncCurrentDevice: 当前设备
 syncPairedDevice: 已配对设备
 syncLastPaired: "上次配对 {time}"
+onlineSubtitleSearch: 在线搜索字幕
+onlineSubtitleProviders: OpenSubtitles · 射手
+onlineSubtitleShooter: 射手
+onlineSubtitleTitle: 片名
+onlineSubtitleSubmit: 搜索
+onlineSubtitleEmpty: 没有找到匹配的字幕
+onlineSubtitleExact: 文件匹配
+onlineSubtitleError: 无法搜索或加载在线字幕。
+onlineSubtitleCredentialError: 请在字幕设置里检查 OpenSubtitles 的密钥和账号。
+onlineSubtitleLimit: 字幕服务额度已用完。
+onlineSubtitleConfigure: 设置 OpenSubtitles
+onlineSubtitleKey: OpenSubtitles API 密钥
+onlineSubtitleUsername: OpenSubtitles 用户名
+onlineSubtitlePassword: OpenSubtitles 密码
+onlineSubtitleCredentialHelp: 填写 API 密钥。用户名和密码可选。
+onlineSubtitleSave: 保存 OpenSubtitles
+onlineSubtitleRemove: 删除 OpenSubtitles 凭据
+onlineSubtitleAccount: '已登录 · {name}'
+onlineSubtitleEnabled: 已启用
+onlineSubtitleDisabled: 未启用

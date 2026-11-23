@@ -46,7 +46,7 @@ The quality panel pairs the 48 pt original row with three 40 pt preset rows. The
 
 ![Scenra subtitle picker on the left and GTK with the embedded English track selected on the right](images/phone-embedded-subtitle-picker.png)
 
-Both captures use the 360 pt right-side panel at 844 pt width. The fixture supplies the language names and embedded track labels. The selected row keeps the violet highlight and checkmark. The reference draws one extra action for online search. Changing the primary track updates both lines while playback remains paused, and Off clears both lines. [Scenra subtitle panel](../../design/player-tracks.scenra#L28)
+Both captures use the 360 pt right-side panel at 844 pt width. The fixture supplies the language names and embedded track labels. The selected row keeps the violet highlight and checkmark. The reference shows the online-search action added in the later comparison below. Changing the primary track updates both lines while playback remains paused, and Off clears both lines. [Scenra subtitle panel](../../design/player-tracks.scenra#L28)
 
 ![The native GTK video and both app captions from the Plex MP4](images/phone-embedded-subtitles.png)
 
@@ -71,6 +71,20 @@ GTK sought to three seconds and paused the Plex HLS video. The app read the subt
 ![Android 15 Pixel 7 emulator with English selected during the same Plex HLS playback](images/phone-matroska-subtitle-picker-android.png)
 
 The Android run also decoded the HLS stream, sought using the phone timeline and kept the paused position through track changes. The visible panel starts inside the system insets. NSGo's software capture preserves the controls and both subtitle lines while the underlying Android video texture is black in the image.
+
+### Online subtitle search
+
+![Scenra and GTK subtitle pickers with the online search action](images/phone-online-subtitle-entry.png)
+
+The online action uses the design's 40 pt row, violet search icon and provider names. The fixture shows two embedded tracks and the existing local-file action. The design shows three example tracks. Both place online search last inside the track group.
+
+![GTK search results followed by the selected downloaded subtitle and its saved delay](images/phone-online-subtitle-flow.png)
+
+The results and selection states follow the Scenra subtitle flow. The flow specifies search and download through notes, so the results view uses the existing 360 pt track panel. It opens with the title and preferred languages, identifies exact file matches and keeps the paused position. The selected result appears as an external track. Reopening the same version restores the local subtitle and its delay. [Scenra subtitle flow](../../design/flows/subtitle.scenra) · [Fixture tests](../../integration/servers/TESTING.md#online-subtitles)
+
+![Android 15 emulator showing an exact OpenSubtitles match for the Docker playback fixture](images/phone-online-subtitle-android.png)
+
+The Android result panel sits inside the landscape system insets. The emulator run repeated the search, download, paused-position and cache assertions. NSGo's software capture omits the native video texture. [Android test command](../../integration/servers/TESTING.md#online-subtitles)
 
 ## Danmaku
 
@@ -97,7 +111,7 @@ The first frame is Scenra. The two native frames show the paused Emby fixture in
 | Timeline | The slider draws divisions from Emby, Jellyfin and Plex and opens a chapter at its exact start. On sources with a seek index, the progress slider and horizontal gesture show a real preview. The timestamp is available on the text-only preview. Native buffered ranges remain pending. |
 | Picture ratio | Original, Fill and crop, and Stretch use the native video modes. The three fixed ratios fit a centered frame for the video, captions and danmaku. The geometry checks cover all six options and confirm that changing ratio retains the mounted video. |
 | Playback actions | Playback information and chapters open inside More. The A/B action records the current position for each mark, shows the interval on the timeline and repeats at B. Seeking out of the interval clears it. The 15, 30, 45 and 60 minute sleep timer keeps its deadline across automatic episode changes and pauses at expiry. Leaving the player clears it. Screenshot export and audio/video sync remain unavailable with the current native playback API. |
-| Tracks | Each tab uses the 360 pt right-side panel. The subtitle list uses actual server and decoder tracks. Delay and style changes apply in the current session, and the local subtitle picker occupies the action row. Online subtitle search, audio delay, audio dynamic range controls and complete channel metadata remain pending. |
+| Tracks | Each tab uses the 360 pt right-side panel. The subtitle list uses actual server and decoder tracks. Delay and style changes apply in the current session, and the local subtitle picker occupies the action row. The online-search row opens the provider results and loads selected text subtitles. Audio delay, audio dynamic range controls and complete channel metadata remain pending. |
 | Danmaku display | The sliders and choices update saved rendering preferences. The overlay reads the playback clock and the picture fit mode. The display and filter captures use four generated comments from a local DandanPlay response. Local XML and ASS use the same timeline and display controls. |
 | Danmaku sources and filters | The panel exposes the supported DandanPlay and local sources and their counts, with per-session switches. The import action accepts XML, JSON and ASS. Keyword and regular expression rules use removable chips and the shared settings editor. Deduplication and colored-comment filtering are available. Other online providers, sender blocking controls, comment sending and a quality-level filter remain open. |
 | Platform | GTK verifies rendering and input at the landscape design size. The Android 15 Pixel 7 emulator rotated to landscape, played the embedded clip and verified that the saved brightness and horizontal swipe restrictions leave the right-hand volume gesture and timeline slider usable. Rotation, native Picture in Picture, safe areas and gesture input still need verification on physical phones. [Reproduction commands](README.md) |

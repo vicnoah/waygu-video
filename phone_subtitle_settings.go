@@ -13,12 +13,22 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/language/display"
 
+	"waygu-video/internal/playback"
 	"waygu-video/locales"
 )
 
 func (a *application) phoneSubtitleSettings(cx *core.Scope) core.Node {
 	failure := core.NewSignal[error](cx, nil)
 	prefs := a.subtitlePrefs.Get
+	open := core.NewSignal(cx, "")
+	status := openSubtitleAccountStatus(cx, a.secrets)
+	transport := onlineSubtitleTransport.Use(cx)
+	close := func() {
+		if open.GetUntracked() == playback.OpenSubtitles {
+			status.Refetch()
+		}
+		open.Set("")
+	}
 	save := func(change func(*subtitlePreferences)) {
 		value := a.subtitlePrefs.GetUntracked()
 		change(&value)
@@ -30,22 +40,55 @@ func (a *application) phoneSubtitleSettings(cx *core.Scope) core.Node {
 	unavailableSwitch := func(label, tint string, icon func() *core.SVG) core.Node {
 		return (phoneSetting{label, "", tint, icon}).toggle(cx, "", func() bool { return false }, nil)
 	}
-	return phoneSettingsPage(cx, locales.Subtitles(cx), a.back, "phone-subtitle-settings",
-		subtitleLanguageSettings(cx, prefs, save, func() { a.push(route{screen: screenSubtitleLanguages}) }),
-		setupGroup(locales.SettingsSubtitleStyle(cx), "", subtitleStyleRows(cx, prefs, save)...),
-		setupGroup("ASS / SSA", locales.SettingsSubtitleASSDescription(cx),
-			unavailableSwitch(locales.SettingsSubtitleASS(cx), "bg-fuchsia-500", lucide.Sparkles),
-			unavailableSwitch(locales.SettingsSubtitleEmbeddedFonts(cx), "bg-fuchsia-500", lucide.Type),
-		),
-		setupGroup(locales.SettingsOnlineSubtitles(cx), "",
-			unavailableSwitch(locales.SettingsDownloadSubtitles(cx), "bg-emerald-500", lucide.Download),
-			unavailable("OpenSubtitles", "bg-emerald-600", lucide.Globe),
-			unavailable(locales.SettingsSubtitleShooter(cx), "bg-blue-500", lucide.Globe),
-			unavailable("SubHD", "bg-zinc-500", lucide.Globe),
-			unavailable(locales.SettingsSubtitleSidecar(cx), "bg-zinc-500", lucide.FolderOpen),
-		),
-		settingsFailure(cx, failure),
-	)
+	shooter := func() bool { return !prefs().DisableShooter }
+	shooterName := locales.SettingsSubtitleShooter(cx)
+	return core.Dynamic(func(cx *core.Scope) core.Node {
+		switch open.Get() {
+		case playback.OpenSubtitles:
+			return phoneSettingsPage(cx, playback.OpenSubtitles, close, "opensubtitles-settings",
+				setupGroup("", "", openSubtitleAccountForm(cx, a.secrets, transport, close)))
+		case playback.Shooter:
+			return phoneSettingsPage(cx, shooterName, close, "subtitle-shooter-settings",
+				setupGroup("", "", (phoneSetting{shooterName, "", "bg-blue-500", lucide.Globe}).toggle(cx,
+					"online-subtitle-shooter-enabled", shooter, func(value bool) {
+						save(func(p *subtitlePreferences) { p.DisableShooter = !value })
+					})),
+				settingsFailure(cx, failure))
+		}
+		return phoneSettingsPage(cx, locales.Subtitles(cx), a.back, "phone-subtitle-settings",
+			subtitleLanguageSettings(cx, prefs, save, func() { a.push(route{screen: screenSubtitleLanguages}) }),
+			setupGroup(locales.SettingsSubtitleStyle(cx), "", subtitleStyleRows(cx, prefs, save)...),
+			setupGroup("ASS / SSA", locales.SettingsSubtitleASSDescription(cx),
+				unavailableSwitch(locales.SettingsSubtitleASS(cx), "bg-fuchsia-500", lucide.Sparkles),
+				unavailableSwitch(locales.SettingsSubtitleEmbeddedFonts(cx), "bg-fuchsia-500", lucide.Type),
+			),
+			setupGroup(locales.SettingsOnlineSubtitles(cx), "",
+				(phoneSetting{locales.SettingsDownloadSubtitles(cx), "", "bg-emerald-500", lucide.Download}).toggle(cx, "online-subtitle-automatic",
+					func() bool { return prefs().DownloadMissing }, func(value bool) { save(func(p *subtitlePreferences) { p.DownloadMissing = value }) }),
+				core.Dynamic(func(cx *core.Scope) core.Node {
+					account, _ := status.Get()
+					label := locales.OnlineSubtitleDisabled(cx)
+					if account.Name != "" {
+						label = locales.OnlineSubtitleAccount(cx, account.Name)
+					} else if account.Enabled {
+						label = locales.OnlineSubtitleEnabled(cx)
+					}
+					return (phoneSetting{playback.OpenSubtitles, "", "bg-emerald-600", lucide.Globe}).link(cx, "configure-opensubtitles", label, func() { open.Set(playback.OpenSubtitles) })
+				}),
+				core.Dynamic(func(cx *core.Scope) core.Node {
+					label := locales.OnlineSubtitleDisabled(cx)
+					if shooter() {
+						label = locales.OnlineSubtitleEnabled(cx)
+					}
+					return (phoneSetting{shooterName, "", "bg-blue-500", lucide.Globe}).link(cx, "online-subtitle-shooter", label,
+						func() { open.Set(playback.Shooter) })
+				}),
+				unavailable("SubHD", "bg-zinc-500", lucide.Globe),
+				unavailable(locales.SettingsSubtitleSidecar(cx), "bg-zinc-500", lucide.FolderOpen),
+			),
+			settingsFailure(cx, failure),
+		)
+	})
 }
 
 func subtitleLanguageSettings(cx *core.Scope, prefs func() subtitlePreferences, save func(func(*subtitlePreferences)), edit func()) core.Node {

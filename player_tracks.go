@@ -44,24 +44,38 @@ type subtitleSelection struct {
 
 func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *desktopVideo, waitingForDecoder func() bool, initialSubtitle string, prefs func() subtitlePreferences, position *core.Signal[time.Duration],
 	rate *core.Signal[float32], canChangeRate, switchingPlayback, audioError *core.Signal[bool],
-	chooseAudio func(media.Track), quality, styleSettings func(*core.Scope) core.Node) trackControls {
+	chooseAudio func(media.Track), quality, styleSettings func(*core.Scope) core.Node, online *onlineSubtitlePlayback) trackControls {
 	open := core.NewSignal(cx, false)
 	tab := core.NewSignal(cx, trackSubtitleTab)
 	showingStyle := core.NewSignal(cx, false)
+	showingSearch := core.NewSignal(cx, false)
+	searchError := core.NewSignal[error](cx, nil)
+	savedSubtitle := core.NewSignal[*cachedOnlineSubtitle](cx, nil)
 	close := func() {
 		open.Set(false)
 		showingStyle.Set(false)
+		showingSearch.Set(false)
 	}
 	show := func(tabID int) {
 		tab.Set(tabID)
 		showingStyle.Set(false)
+		showingSearch.Set(false)
 		open.Set(true)
 	}
 	subtitles := core.NewSignal(cx, subtitleSelection{})
 	delay := core.NewSignal(cx, time.Duration(0))
 	loading := core.NewSignal(cx, false)
 	failed := core.NewSignal(cx, false)
-	trackSource := core.NewMemo(cx, func() string { return stream().SourceID })
+	trackSource := core.NewMemo(cx, func() string { return stream().VersionID() })
+	var cached *core.Resource[cachedOnlineSubtitle]
+	if online != nil {
+		cached = core.NewResource(cx, func() (string, bool) {
+			key := online.bind(stream())
+			return key, key != ""
+		}, func(ctx context.Context, key string, _ core.ResourceInfo) (cachedOnlineSubtitle, error) {
+			return online.cached(ctx, key)
+		})
+	}
 	viewContext := cx.Context()
 	var cancelServerSubtitle context.CancelFunc
 	started := false
@@ -72,17 +86,24 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			subtitles.Set(selection)
 		}
 	}
-	applySubtitles := func(selection subtitleSelection) {
+	applySubtitleResult := func(selection subtitleSelection, after func(error)) {
 		started = true
+		finish := func(err error) {
+			finishSubtitles(selection, err)
+			if after != nil {
+				after(err)
+			}
+		}
 		d := core.Untracked(cx, decoder)
 		if d != nil && slices.ContainsFunc(d.tracks.GetUntracked(), selectedSubtitle) {
 			loading.Set(true)
-			d.selectTrack(mpv.SubtitleTrack, 0, func(err error) { finishSubtitles(selection, err) })
+			d.selectTrack(mpv.SubtitleTrack, 0, finish)
 			return
 		}
-		finishSubtitles(selection, nil)
+		finish(nil)
 	}
-	load := func(selection subtitleSelection, read func(context.Context) (*playback.Captions, error)) {
+	applySubtitles := func(selection subtitleSelection) { applySubtitleResult(selection, nil) }
+	load := func(local bool, read func(context.Context) (subtitleSelection, error), after func(error)) {
 		if loading.GetUntracked() {
 			return
 		}
@@ -91,12 +112,12 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		failed.Set(false)
 		requestContext := viewContext
 		var cancel context.CancelFunc
-		if selection.id != "local" {
+		if !local {
 			requestContext, cancel = context.WithCancel(viewContext)
 			cancelServerSubtitle = cancel
 		}
 		go func() {
-			cues, err := read(requestContext)
+			selection, err := read(requestContext)
 			cx.Post(func() {
 				if requestContext.Err() != nil {
 					return
@@ -105,19 +126,70 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 					cancel()
 					cancelServerSubtitle = nil
 				}
-				if err == nil {
-					selection.cues = cues
-					applySubtitles(selection)
-				} else {
-					finishSubtitles(subtitleSelection{}, err)
+				if err == nil && selection.cues != nil {
+					applySubtitleResult(selection, after)
+					return
+				}
+				loading.Set(false)
+				failed.Set(err != nil && after == nil)
+				if after != nil {
+					after(err)
 				}
 			})
 		}()
 	}
 	selectServerSubtitle := func(track media.Track) {
 		current := core.Untracked(cx, stream)
-		load(subtitleSelection{id: track.ID, name: trackLabel(cx, track), language: track.Language}, func(ctx context.Context) (*playback.Captions, error) {
-			return fetchSubtitleTrack(ctx, current, track)
+		name := trackLabel(cx, track)
+		load(false, func(ctx context.Context) (subtitleSelection, error) {
+			cues, err := fetchSubtitleTrack(ctx, current, track)
+			return subtitleSelection{id: track.ID, name: name, language: track.Language, cues: cues}, err
+		}, nil)
+	}
+	activateOnline := func(record cachedOnlineSubtitle) {
+		applySubtitleResult(record.selection(), func(err error) {
+			if err == nil {
+				delay.Set(online.savedDelay(record))
+			}
+		})
+	}
+	loadOnline := func(match *playback.OnlineSubtitle, preferences subtitlePreferences) {
+		current := core.Untracked(cx, stream)
+		key := online.bind(current)
+		var record cachedOnlineSubtitle
+		load(false, func(ctx context.Context) (subtitleSelection, error) {
+			var candidate playback.OnlineSubtitle
+			if match == nil {
+				services, err := online.services(!preferences.DisableShooter)
+				if err != nil {
+					return subtitleSelection{}, err
+				}
+				query := online.query(current, online.title(), preferences.Languages)
+				query.ExactOnly = true
+				matches, err := services.Search(ctx, query)
+				if err != nil || len(matches) == 0 {
+					return subtitleSelection{}, err
+				}
+				candidate = matches[0]
+			} else {
+				candidate = *match
+			}
+			var err error
+			record, err = online.download(ctx, key, candidate)
+			return record.selection(), err
+		}, func(err error) {
+			if err != nil {
+				if match != nil {
+					searchError.Set(err)
+				}
+				return
+			}
+			if record.cues != nil {
+				delay.Set(record.Delay)
+				online.setDelay(key, record.Delay)
+				savedSubtitle.Set(&record)
+				showingSearch.Set(false)
+			}
 		})
 	}
 	selectDecoderSubtitle := func(d *desktopVideo, track mpv.Track) {
@@ -159,6 +231,10 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 				choices = append(choices, trackOption{track.ID == subtitles.GetUntracked().id, func() { selectServerSubtitle(track) }})
 			}
 		}
+		if saved := savedSubtitle.GetUntracked(); saved != nil {
+			choices = append(choices, trackOption{subtitles.GetUntracked().id == onlineSubtitleID,
+				func() { activateOnline(*saved) }})
+		}
 		advance(choices)
 	}
 	cycleAudio := func() {
@@ -186,6 +262,9 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 	}
 	cx.Effect(func() {
 		trackSource.Get()
+		savedSubtitle.Set(nil)
+		showingSearch.Set(false)
+		searchError.Set(nil)
 		if cancelServerSubtitle != nil {
 			cancelServerSubtitle()
 			cancelServerSubtitle = nil
@@ -193,10 +272,12 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		}
 		if choice := subtitles.GetUntracked(); choice.id != "local" {
 			subtitles.Set(subtitleSelection{})
+			started = false
 		}
 	})
 	cx.Effect(func() {
-		if started || (waitingForDecoder != nil && waitingForDecoder()) {
+		trackSource.Get()
+		if started || (waitingForDecoder != nil && waitingForDecoder()) || (cached != nil && cached.Loading()) {
 			return
 		}
 		started = true
@@ -209,6 +290,11 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		if d != nil {
 			embedded = d.tracks.GetUntracked()
 		}
+		if cached != nil {
+			if record, ok := cached.Get(); ok && record.cues != nil && record.Key == online.bind(core.Untracked(cx, stream)) {
+				savedSubtitle.Set(&record)
+			}
+		}
 		if initialSubtitle != "" {
 			for _, track := range available {
 				if track.ID == initialSubtitle && track.ReadableSubtitle() {
@@ -217,10 +303,21 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 				}
 			}
 		}
+		if record := savedSubtitle.GetUntracked(); record != nil {
+			activateOnline(*record)
+			return
+		}
 		preferences := core.Untracked(cx, prefs)
+		findMissing := func(audio []media.Track) {
+			if online != nil && online.allowSearch && preferences.DownloadMissing && automaticSubtitlesAllowed(audio, preferences) {
+				loadOnline(nil, preferences)
+			}
+		}
 		if len(embedded) == 0 {
 			if track := automaticSubtitle(available, preferences); track.ID != "" {
 				selectServerSubtitle(track)
+			} else {
+				findMissing(available)
 			}
 			return
 		}
@@ -244,6 +341,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 				}
 			}
 		}
+		findMissing(audio)
 	})
 	pick := func() {
 		cx.PickFiles(core.PickFilesOptions{Types: []string{".srt", ".vtt"}, Title: locales.OpenSubtitleFile(cx)}, func(files []core.File, err error) {
@@ -255,17 +353,18 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 				return
 			}
 			file := files[0]
-			load(subtitleSelection{id: "local", name: file.Name}, func(context.Context) (*playback.Captions, error) {
+			load(true, func(context.Context) (subtitleSelection, error) {
 				if file.Temporary {
 					defer os.Remove(file.Path)
 				}
 				reader, err := file.Open()
 				if err != nil {
-					return nil, err
+					return subtitleSelection{}, err
 				}
 				defer reader.Close()
-				return playback.ReadCaptions(reader)
-			})
+				cues, err := playback.ReadCaptions(reader)
+				return subtitleSelection{id: "local", name: file.Name, cues: cues}, err
+			}, nil)
 		})
 	}
 	text := playerCaptionText(cx, subtitles, stream, prefs, position, delay, func() activeCaptionLines {
@@ -362,11 +461,24 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			choices = append(choices, playerRadio(cx, ui.Radio{Text: selection.name, Checked: func() bool { return true }},
 				locales.ExternalSubtitle(cx), false))
 		}
+		if record := savedSubtitle.Get(); record != nil {
+			choices = append(choices, playerRadio(cx, ui.Radio{Text: record.Name, TestID: "cached-online-subtitle", Disabled: loading.Get,
+				Checked:  func() bool { return subtitles.Get().id == onlineSubtitleID },
+				OnChange: func(bool) { activateOnline(*record) }}, locales.ExternalSubtitle(cx), false))
+		}
+		openSearch := func() {
+			searchError.Set(nil)
+			showingSearch.Set(true)
+		}
+		canSearch := online != nil && online.allowSearch
 		landscape := phoneLandscape(cx)
 		available := selection.cues != nil || decoderSelected
 		var rows []core.Node
 		if landscape {
 			choices = append(choices, playerPanelAction(cx, "open-subtitle-file", locales.OpenSubtitleFile(cx), lucide.FolderOpen, true, loading.Get, pick))
+			if canSearch {
+				choices = append(choices, onlineSubtitleSearchRow(cx, openSearch))
+			}
 			rows = append(rows, playerRadioList(cx, locales.Subtitles(cx), choices))
 		} else {
 			rows = []core.Node{
@@ -374,12 +486,17 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 				ui.Button{Text: locales.OpenSubtitleFile(cx), Icon: lucide.FolderOpen, Variant: ui.ButtonOutline,
 					Busy: loading.Get, TestID: "open-subtitle-file", OnPress: pick},
 			}
+			if canSearch {
+				rows = append(rows, onlineSubtitleSearchRow(cx, openSearch))
+			}
 		}
 		if landscape || available {
 			shift := func(delta time.Duration) {
-				delay.Update(func(before time.Duration) time.Duration {
-					return min(max(before+delta, -10*time.Second), 10*time.Second)
-				})
+				next := min(max(delay.GetUntracked()+delta, -10*time.Second), 10*time.Second)
+				delay.Set(next)
+				if record := savedSubtitle.GetUntracked(); record != nil && subtitles.GetUntracked().id == onlineSubtitleID {
+					online.setDelay(record.Key, next)
+				}
 			}
 			if landscape {
 				rows = append(rows, playerStepRow(cx, locales.PhonePlayerSubtitleDelay(cx), func() string {
@@ -412,6 +529,21 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		}
 		return core.View{Class: "gap-3", Children: rows}
 	})
+	searchTitle := locales.OnlineSubtitleSearch(cx)
+	backToTracks := func() { showingSearch.Set(false) }
+	content := func(cx *core.Scope) core.Node {
+		if showingSearch.Get() && online != nil {
+			return onlineSubtitleResultView(cx, *online, core.Untracked(cx, stream), core.Untracked(cx, prefs),
+				loading.Get, searchError.Get, func(match playback.OnlineSubtitle) {
+					searchError.Set(nil)
+					loadOnline(&match, core.Untracked(cx, prefs))
+				})
+		}
+		if showingStyle.Get() && styleSettings != nil {
+			return styleSettings(cx)
+		}
+		return rows
+	}
 	sheet := ui.Dialog{Open: open.Get, OnOpenChange: func(show bool, _ base.Reason) {
 		if !show {
 			close()
@@ -420,6 +552,10 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		Title: locales.PlayerTracks(cx), TestID: "player-tracks-dialog",
 		Children: []core.Node{
 			core.Dynamic(func(cx *core.Scope) core.Node {
+				if showingSearch.Get() {
+					return ui.Button{Text: searchTitle, Icon: lucide.ChevronLeft, Variant: ui.ButtonGhost,
+						TestID: "online-subtitle-back", OnPress: backToTracks}
+				}
 				if showingStyle.Get() {
 					return ui.Button{Text: locales.Subtitles(cx), Icon: lucide.ChevronLeft, Variant: ui.ButtonGhost,
 						TestID: "player-subtitle-style-back", OnPress: func() { showingStyle.Set(false) }}
@@ -428,12 +564,7 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 			}),
 			core.Scroll{StyleFunc: func() core.Style {
 				return core.Style{MaxHeight: core.Pt(min(340, max(105, cx.Env().Window().Height*0.44))), FlexShrink: 1}
-			}, TestID: "player-tracks-dialog-scroll", Children: []core.Node{core.Dynamic(func(cx *core.Scope) core.Node {
-				if showingStyle.Get() && styleSettings != nil {
-					return styleSettings(cx)
-				}
-				return rows
-			})}},
+			}, TestID: "player-tracks-dialog-scroll", Children: []core.Node{core.Dynamic(content)}},
 		},
 		Footer: []core.Node{ui.Button{Text: locales.TracksDone(cx), TestID: "close-player-tracks", OnPress: close}},
 	}
@@ -441,21 +572,19 @@ func playerTracks(cx *core.Scope, stream func() media.Stream, decoder func() *de
 		if phoneLandscape(cx) {
 			title := locales.PlayerTracks(cx)
 			heading := core.Dynamic(func(cx *core.Scope) core.Node {
+				if showingSearch.Get() {
+					return playerLabeledAction(cx, "online-subtitle-back", searchTitle, lucide.ChevronLeft, nil, backToTracks)
+				}
 				if showingStyle.Get() {
 					return playerLabeledAction(cx, "player-subtitle-style-back", locales.SettingsSubtitleStyle(cx),
 						lucide.ChevronLeft, nil, func() { showingStyle.Set(false) })
 				}
 				return panelHeading(title)
 			})
-			panelTabs := core.Show{When: func() bool { return !showingStyle.Get() }, Then: func(cx *core.Scope) core.Node {
+			panelTabs := core.Show{When: func() bool { return !showingStyle.Get() && !showingSearch.Get() }, Then: func(cx *core.Scope) core.Node {
 				return playerPanelTabs(cx, "player-track-tabs", title, tabs, tab)
 			}}
-			body := core.Dynamic(func(cx *core.Scope) core.Node {
-				if showingStyle.Get() && styleSettings != nil {
-					return styleSettings(cx)
-				}
-				return rows
-			})
+			body := core.Dynamic(content)
 			return playerSidePanel(cx, "player-tracks-dialog", "close-player-tracks", title, open.Get, close, heading, panelTabs, body)
 		}
 		if cx.Env().OS() == core.OSLinux {

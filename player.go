@@ -629,10 +629,11 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		quality = playerQuality(current, initial.client, activeStream, bitrate, switchingPlayback.Get, qualityError.Get,
 			func(options media.PlaybackOptions) { switchStream(options, qualityError) })
 	}
+	online := newOnlineSubtitlePlayback(cx, a, current.item, current.source.ID, !offline)
 	tracks := playerTracks(cx, activeStream, directDecoder, waitingForDecoder, current.subtitleTrack, a.subtitlePrefs.Get, position,
 		rate, canChangeRate, switchingPlayback, audioError, chooseAudio, quality, func(cx *core.Scope) core.Node {
 			return a.playerSubtitleStyle(cx, directDecoder() != nil)
-		})
+		}, online)
 	toggle := func() {
 		if core.Untracked(cx, blocked) {
 			return

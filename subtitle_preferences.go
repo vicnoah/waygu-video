@@ -33,6 +33,8 @@ type subtitlePreferences struct {
 	DisableBilingual     bool
 	FlattenASS           bool
 	DisableEmbeddedFonts bool
+	DisableShooter       bool
+	DownloadMissing      bool
 }
 
 func readSubtitlePreferences(storage core.Storage) subtitlePreferences {
@@ -79,6 +81,8 @@ func readSubtitlePreferences(storage core.Storage) subtitlePreferences {
 	p.DisableBilingual = saved.DisableBilingual
 	p.FlattenASS = saved.FlattenASS
 	p.DisableEmbeddedFonts = saved.DisableEmbeddedFonts
+	p.DisableShooter = saved.DisableShooter
+	p.DownloadMissing = saved.DownloadMissing
 	return p
 }
 

@@ -959,7 +959,7 @@ aboutVideoFormats: MP4 with H.264 and AAC works on supported native players. MKV
 aboutSubtitleFormats: Import SRT or WebVTT subtitle files. Available muxed tracks and image subtitles depend on the media server and decoder.
 aboutDanmakuFormats: Import Bilibili-style XML and DandanPlay JSON comments from the player.
 aboutPrivacyServers: Your server addresses and library preferences are stored on this device. Passwords, tokens and developer secrets use the platform credential store where available.
-aboutPrivacyPlayback: The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay.
+aboutPrivacyPlayback: The app contacts the media servers you set up and sends them the playback progress for their titles. Configured danmaku matching can send the title, file name and a file fingerprint to DandanPlay. Online subtitle searches send the title or file name and file fingerprints to the selected providers.
 aboutPrivacyDiagnostics: You can turn network logging on under Debugging. It records the provider, HTTP method, status, time and duration on this device. Export saves an archive to the location you choose.
 aboutPrivacyLocation: If you enable sunset-based dark mode, the app may request approximate location. The rounded coordinates stay on your device.
 aboutOverlayBitrate: Bitrate
@@ -1020,3 +1020,23 @@ syncThisDevice: This device
 syncCurrentDevice: Current device
 syncPairedDevice: Paired device
 syncLastPaired: "Last paired {time}"
+onlineSubtitleSearch: Search Online Subtitles
+onlineSubtitleProviders: OpenSubtitles · Shooter
+onlineSubtitleShooter: Shooter
+onlineSubtitleTitle: Title
+onlineSubtitleSubmit: Search
+onlineSubtitleEmpty: No matching subtitles found
+onlineSubtitleExact: File match
+onlineSubtitleError: Could not search or load online subtitles.
+onlineSubtitleCredentialError: Check the OpenSubtitles key and account in Subtitle settings.
+onlineSubtitleLimit: The subtitle service limit has been reached.
+onlineSubtitleConfigure: Configure OpenSubtitles
+onlineSubtitleKey: OpenSubtitles API key
+onlineSubtitleUsername: OpenSubtitles username
+onlineSubtitlePassword: OpenSubtitles password
+onlineSubtitleCredentialHelp: Enter your API key. A username and password are optional.
+onlineSubtitleSave: Save OpenSubtitles
+onlineSubtitleRemove: Remove OpenSubtitles credentials
+onlineSubtitleAccount: 'Signed in · {name}'
+onlineSubtitleEnabled: Enabled
+onlineSubtitleDisabled: Disabled

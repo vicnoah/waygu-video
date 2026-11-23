@@ -120,6 +120,32 @@ go tool nsgo test -target android -device <serial> -env WAYGU_TEST_SERVERS=1 \
 
 The range test retrieves both captions within 8 KiB of an indexed file over 16 MiB. It also exercises a small file without an index and rejects a sequential scan above 16 MiB. The app uses CuePoints with cluster and block positions for indexed files. [Matroska specification](https://www.rfc-editor.org/rfc/rfc9559.html#section-22) · [Phone player comparison](../../docs/ui-review/phone-player.md#plex-matroska-subtitles)
 
+## Online subtitles
+
+The application uses OpenSubtitles.com with an API key and an optional account. It searches the original file hash first and can fall back to IMDb, title, year or season and episode filters. Shooter uses its four-block file hash for Chinese and English. File reads go to the media server. The public providers receive the fingerprint and the search parameters. The selected SRT or WebVTT is cached by source, media item and version. The app restores that subtitle and its delay without another external request. [OpenSubtitles API guide](https://blog.opensubtitles.com/opensubtitles/how-to-build-a-movie-subtitle-finder-cli-with-python-and-the-opensubtitles-api) · [Shooter protocol implementation](https://sources.debian.org/src/deepin-movie-reborn/6.5.60-1/src/libdmr/online_sub.cpp)
+
+`TestDockerOnlineSubtitlePlayback` opens the real Emby, Jellyfin and Plex fixtures in headless mode and uses the Plex copy for native captures. The online provider responses use a local fixture. It checks the original-file hash, language query, selected text, cache reuse and position after changing the subtitle. `TestPhoneOpenSubtitleAccountSettings` checks credentials in the secret store, provider preferences and removing the key. The automatic-download test checks both a matching file and the case without a hash match. A live OpenSubtitles account is still unverified.
+
+```sh
+go tool nsgo test ./internal/playback -run '^TestOnlineSubtitle'
+WAYGU_TEST_SERVERS=1 go tool nsgo test . \
+  -run '^(TestDockerOnlineSubtitlePlayback|TestPhoneOpenSubtitleAccountSettings|TestAutomaticOnlineSubtitleRequiresFileMatch)$'
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^(TestDockerOnlineSubtitlePlayback|TestPhoneOpenSubtitleAccountSettings)$' \
+  -screenshots .nsgo/ui-review/online-subtitles
+```
+
+On Android, forward the three Docker ports as in the MP4 test above before running the same playback flow.
+
+```sh
+go tool nsgo test -target android -device <serial> -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerOnlineSubtitlePlayback$' -timeout 150s \
+  -screenshots .nsgo/ui-review/online-subtitles-android
+```
+
+
+[Player comparison](../../docs/ui-review/phone-player.md#online-subtitle-search) · [Settings comparison](../../docs/ui-review/phone-player-settings.md#online-subtitle-sources)
+
 ## Embedded subtitle tracks
 
 `fixtures.sh` creates `Waygu Embedded Subtitle Test`, an 18-second H.264/AAC Matroska file with Simplified Chinese, English and positioned ASS dialogue. Refresh the media servers with `bootstrap.py` to index it. The desktop GTK test uses libmpv to open each server's original file, shows Chinese converted to Traditional and English below it, promotes the second track, and toggles the ASS rendering preferences while paused. The libmpv test also applies a shared delay and compares frames after toggling a locally attached font.

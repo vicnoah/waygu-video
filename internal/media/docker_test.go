@@ -135,6 +135,12 @@ func TestDockerServers(t *testing.T) {
 				want := []PlaybackMarker{{MarkerIntro, 2 * time.Second, 5 * time.Second},
 					{MarkerCredits, 14 * time.Second, 15500 * time.Millisecond},
 					{MarkerCredits, 16500 * time.Millisecond, 18 * time.Second}}
+				// A final chapter extends to the duration Plex reports for
+				// the file, which can differ slightly from its nominal length.
+				if server.kind == Plex && len(markers) == len(want) && markers[2].End == stream.Duration &&
+					(stream.Duration-want[2].End).Abs() <= time.Second/24 {
+					want[2].End = stream.Duration
+				}
 				if err != nil || !slices.Equal(markers, want) {
 					t.Fatalf("markers from %s: %v, %v, want %v", server.kind, markers, err, want)
 				}
