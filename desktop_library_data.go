@@ -81,28 +81,23 @@ func (a *application) writeDesktopCollections(collections []desktopCollection) e
 	return err
 }
 
-func desktopLibraryMatches(entry catalogItem, filters desktopLibraryFilters) bool {
+func desktopLibraryMatch(entry catalogItem, filters desktopLibraryFilters) (media.VideoProfile, bool) {
 	item := entry.item
 	if filters.Unwatched && catalogWatched(entry) || filters.Year > 0 && item.Year != filters.Year {
-		return false
+		return media.VideoProfile{}, false
 	}
 	if filters.Genre != "" && !slices.ContainsFunc(item.Genres, func(genre string) bool {
 		return strings.EqualFold(strings.TrimSpace(genre), filters.Genre)
 	}) {
-		return false
+		return media.VideoProfile{}, false
 	}
 	if filters.Favorite && !item.Favorite && (entry.match == nil || !slices.ContainsFunc(entry.match.copies, func(copy catalogCopy) bool {
 		return copy.item.Favorite
 	})) {
-		return false
+		return media.VideoProfile{}, false
 	}
-	if filters.Resolution > 0 || filters.HDR {
-		return slices.ContainsFunc(catalogVideoProfiles(entry), func(profile media.VideoProfile) bool {
-			return (filters.Resolution == 0 || libraryResolution(profile) == filters.Resolution) &&
-				(!filters.HDR || detailVideoRange(media.Version{VideoRange: profile.Range}) != "")
-		})
-	}
-	return true
+	picture, matched := libraryMatchingVideoProfile(entry, filters.Resolution, filters.HDR)
+	return picture, matched || (filters.Resolution == 0 && !filters.HDR)
 }
 
 type desktopLibraryRow struct {
@@ -110,6 +105,7 @@ type desktopLibraryRow struct {
 	titleKey string
 	size     int64
 	played   time.Time
+	picture  media.VideoProfile
 }
 
 func desktopLibraryEntries(items []catalogItem) []desktopLibraryRow {
@@ -132,7 +128,8 @@ func desktopLibraryEntries(items []catalogItem) []desktopLibraryRow {
 func desktopLibraryRows(entries []desktopLibraryRow, filters desktopLibraryFilters, sort librarySort) []desktopLibraryRow {
 	rows := make([]desktopLibraryRow, 0, len(entries))
 	for _, row := range entries {
-		if desktopLibraryMatches(row.entry, filters) {
+		if picture, ok := desktopLibraryMatch(row.entry, filters); ok {
+			row.picture = picture
 			rows = append(rows, row)
 		}
 	}
@@ -141,7 +138,7 @@ func desktopLibraryRows(entries []desktopLibraryRow, filters desktopLibraryFilte
 		var order int
 		switch sort {
 		case libraryTitle:
-			order = strings.Compare(a.titleKey, b.titleKey)
+			order = strings.Compare(desktopTitleLetter(a.titleKey), desktopTitleLetter(b.titleKey))
 		case libraryYear:
 			order = desktopReleaseDate(right).Compare(desktopReleaseDate(left))
 		case libraryRating:

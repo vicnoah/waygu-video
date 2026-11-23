@@ -375,10 +375,12 @@ func (a *application) compactLibraryCard(cx *core.Scope, entry catalogItem, book
 	} else if mode == "list" {
 		shape, coverShape = "flex-row items-center gap-3 bg-white px-3 py-2 dark:bg-[#1a1b25]", "w-12 shrink-0 rounded-lg"
 	}
-	return a.compactMediaCard(cx, entry, bookmarks, resolution, shape, coverShape, false, mode == "landscape", func() { a.openCatalogEntry(entry) })
+	profile, _ := libraryMatchingVideoProfile(entry, resolution, false)
+	quality := libraryPosterQuality(profile, resolution > 0)
+	return a.compactMediaCard(cx, entry, bookmarks, quality, shape, coverShape, false, mode == "landscape", func() { a.openCatalogEntry(entry) })
 }
 
-func (a *application) compactMediaCard(cx *core.Scope, entry catalogItem, bookmarks map[copyKey]media.Item, resolution int, shape, coverShape string, desktop, landscape bool, open func()) core.Node {
+func (a *application) compactMediaCard(cx *core.Scope, entry catalogItem, bookmarks map[copyKey]media.Item, quality, shape, coverShape string, desktop, landscape bool, open func()) core.Node {
 	item := entry.item
 	details, progress := libraryCardDetails(cx, entry, bookmarks)
 	if desktop && item.Kind == media.Movie && len(item.Genres) > 0 {
@@ -387,8 +389,6 @@ func (a *application) compactMediaCard(cx *core.Scope, entry catalogItem, bookma
 			details = strconv.Itoa(item.Year) + " · " + details
 		}
 	}
-	watched := catalogWatched(entry)
-	prefs := a.appearancePrefs.Get()
 	art, aspect := item.Poster, float32(.7)
 	if landscape {
 		if item.Backdrop != "" {
@@ -402,36 +402,9 @@ func (a *application) compactMediaCard(cx *core.Scope, entry catalogItem, bookma
 			core.Icon{SVG: lucide.Image(), Class: "size-7 text-[#737373] dark:text-[#a3a3a3]"},
 		}}
 	}
-	cover := []core.Node{artwork, a.downloadBadge(entry)}
-	var best media.VideoProfile
-	for _, profile := range catalogVideoProfiles(entry) {
-		if resolution > 0 && libraryResolution(profile) != resolution {
-			continue
-		}
-		if libraryResolution(profile) > libraryResolution(best) {
-			best = profile
-		}
-	}
-	quality, tint := "", "bg-black/55"
-	if height := libraryResolution(best); height > 0 {
-		quality = libraryResolutionName(height)
-		if resolution == 0 && best.Range != "" {
-			if dynamicRange := detailVideoRange(media.Version{VideoRange: best.Range}); dynamicRange != "" {
-				quality = dynamicRange
-			}
-		}
-	} else if item.Kind == media.Series && homeIsFresh(cx, item) && !watched {
-		quality, tint = locales.HomeNewShort(cx), "bg-violet-500"
-	}
-	if quality != "" && (tint != "bg-black/55" || prefs.ShowQuality) {
-		cover = append(cover, core.Text{Content: quality, TestID: a.catalogEntryID("library-quality-", entry),
-			Class: "absolute top-1.5 left-1.5 rounded-md px-1.5 py-0.5 text-[9px] font-bold text-white " + tint})
-	}
-	if watched && prefs.ShowWatched {
-		cover = append(cover, core.View{Class: "absolute top-1.5 right-1.5 size-5 items-center justify-center rounded-full bg-waygu-control shadow-md",
-			Children: []core.Node{core.Icon{SVG: lucide.Check(), Class: "size-3 text-white"}}})
-	} else if !watched && progress.Duration > 0 && canResume(progress) {
-		cover = append(cover, homeProgress(cx, "", "absolute inset-x-2 bottom-2", progress))
+	cover := append([]core.Node{artwork, a.downloadBadge(entry)}, a.libraryPosterBadges(cx, entry, quality)...)
+	if !catalogWatched(entry) && progress.Duration > 0 && canResume(progress) {
+		cover = append(cover, homeProgress(cx, a.catalogEntryID("library-progress-", entry), "absolute inset-x-2 bottom-2", progress))
 	}
 	return base.Button{Label: item.Title, Hint: entry.source.Name, TestID: a.catalogEntryID("title-", entry),
 		Class: shape, Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
@@ -444,4 +417,38 @@ func (a *application) compactMediaCard(cx *core.Scope, entry catalogItem, bookma
 				core.Text{Content: details, Class: "text-[11px] " + setupMuted, MaxLines: 1},
 			}},
 		}}
+}
+
+func libraryPosterQuality(profile media.VideoProfile, resolutionOnly bool) string {
+	height := libraryResolution(profile)
+	if height <= 0 {
+		return ""
+	}
+	if !resolutionOnly {
+		if dynamicRange := detailVideoRange(media.Version{VideoRange: profile.Range}); dynamicRange != "" {
+			return dynamicRange
+		}
+	}
+	return libraryResolutionName(height)
+}
+
+func (a *application) libraryPosterBadges(cx *core.Scope, entry catalogItem, quality string) []core.Node {
+	watched := catalogWatched(entry)
+	prefs := a.appearancePrefs.Get()
+	var badges []core.Node
+	tint := "bg-black/55"
+	newSeries := quality == "" && entry.item.Kind == media.Series && homeIsFresh(cx, entry.item) && !watched
+	if newSeries {
+		quality, tint = locales.HomeNewShort(cx), "bg-violet-500"
+	}
+	if quality != "" && (newSeries || prefs.ShowQuality) {
+		badges = append(badges, core.Text{Content: quality, TestID: a.catalogEntryID("library-quality-", entry),
+			Class: "absolute top-1.5 left-1.5 rounded-md px-1.5 py-0.5 text-[9px] font-bold text-white " + tint})
+	}
+	if watched && prefs.ShowWatched {
+		badges = append(badges, core.View{Class: "absolute top-1.5 right-1.5 size-5 items-center justify-center rounded-full bg-waygu-control shadow-md",
+			TestID:   a.catalogEntryID("library-watched-", entry),
+			Children: []core.Node{core.Icon{SVG: lucide.Check(), Class: "size-3 text-white"}}})
+	}
+	return badges
 }

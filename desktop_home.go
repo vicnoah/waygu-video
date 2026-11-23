@@ -301,12 +301,7 @@ func desktopFeaturedFacts(cx *core.Scope, item media.Item) core.Node {
 		add(desktopMediaRuntime(cx, item.Duration))
 	}
 	const badge = "shrink-0 rounded border border-white/30 px-1.5 text-[11px] font-semibold text-white"
-	profile := highestVideoProfile(item.VideoProfiles)
-	if resolution := libraryResolution(profile); resolution > 0 {
-		quality := libraryResolutionName(resolution)
-		if dynamicRange := desktopVideoRange(cx, media.Version{VideoRange: profile.Range}); dynamicRange != "" {
-			quality += " " + dynamicRange
-		}
+	if quality := desktopVideoFormat(cx, highestVideoProfile(item.VideoProfiles)); quality != "" {
 		facts = append(facts, core.Text{Content: quality, Class: badge, TestID: "desktop-hero-quality"})
 	}
 	if item.DolbyAtmos {

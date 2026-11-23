@@ -200,6 +200,21 @@ func highestVideoProfile(profiles []media.VideoProfile) media.VideoProfile {
 	return best
 }
 
+func libraryMatchingVideoProfile(entry catalogItem, resolution int, hdr bool) (media.VideoProfile, bool) {
+	var best media.VideoProfile
+	found := false
+	for _, profile := range catalogVideoProfiles(entry) {
+		height := libraryResolution(profile)
+		if resolution > 0 && height != resolution || hdr && detailVideoRange(media.Version{VideoRange: profile.Range}) == "" {
+			continue
+		}
+		if !found || height > libraryResolution(best) {
+			best, found = profile, true
+		}
+	}
+	return best, found
+}
+
 func catalogVideoProfiles(entry catalogItem) []media.VideoProfile {
 	profiles := entry.item.VideoProfiles
 	if entry.match != nil {

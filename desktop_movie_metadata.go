@@ -244,6 +244,17 @@ func desktopVideoRange(cx *core.Scope, version media.Version) string {
 	return value
 }
 
+func desktopVideoFormat(cx *core.Scope, profile media.VideoProfile) string {
+	var parts []string
+	if resolution := libraryResolution(profile); resolution > 0 {
+		parts = append(parts, libraryResolutionName(resolution))
+	}
+	if dynamicRange := desktopVideoRange(cx, media.Version{VideoRange: profile.Range}); dynamicRange != "" {
+		parts = append(parts, dynamicRange)
+	}
+	return strings.Join(parts, " ")
+}
+
 func desktopMovieFileTracks(cx *core.Scope, tracks []media.Track) (string, string) {
 	var audio media.Track
 	var audioCount, embedded, external int

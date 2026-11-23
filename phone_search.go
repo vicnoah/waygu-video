@@ -247,7 +247,8 @@ func (a *application) phoneSearchResults(cx *core.Scope, entries []catalogItem, 
 	if len(movies) > 0 {
 		cards := make([]core.Node, 0, min(len(movies), limit))
 		for _, entry := range movies[:min(len(movies), limit)] {
-			cards = append(cards, a.compactMediaCard(cx, entry, nil, 0, "w-28 shrink-0 gap-1.5 rounded-xl",
+			quality := libraryPosterQuality(highestVideoProfile(catalogVideoProfiles(entry)), false)
+			cards = append(cards, a.compactMediaCard(cx, entry, nil, quality, "w-28 shrink-0 gap-1.5 rounded-xl",
 				"w-full rounded-xl shadow-lg shadow-black/15", false, false, func() {
 					a.savePhoneSearch(term)
 					a.openCatalogEntry(entry)

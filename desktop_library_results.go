@@ -61,18 +61,20 @@ func (a *application) desktopLibraryResults(cx *core.Scope, rows *core.Memo[[]de
 					if index < 0 || index >= len(items) {
 						return nil
 					}
-					entry := items[index].entry
+					item := items[index]
+					entry := item.entry
+					quality := desktopLibraryBadge(cx, item.picture, state.Get().filters.Resolution > 0)
 					switch layout {
 					case desktopList:
-						return a.desktopLibraryListCard(cx, items[index], bookmarks.Get())
+						return a.desktopLibraryListCard(cx, item, bookmarks.Get())
 					case desktopWall:
-						return a.desktopLibraryWallCard(cx, entry)
+						return a.desktopLibraryWallCard(cx, entry, quality, bookmarks.Get())
 					default:
 						shape, cover := "w-36 max-w-full min-w-0 gap-1.5 rounded-xl", "h-52 rounded-xl shadow-lg shadow-black/15"
 						if landscape {
 							shape, cover = "w-56 max-w-full min-w-0 gap-1.5 rounded-xl", "w-full rounded-xl shadow-lg shadow-black/15"
 						}
-						return a.compactMediaCard(cx, entry, bookmarks.Get(), state.Get().filters.Resolution,
+						return a.compactMediaCard(cx, entry, bookmarks.Get(), quality,
 							shape, cover, true, landscape, func() { a.openCatalogEntry(entry) })
 					}
 				})
@@ -144,21 +146,31 @@ func (a *application) desktopLibraryResults(cx *core.Scope, rows *core.Memo[[]de
 	}}
 }
 
+func desktopLibraryBadge(cx *core.Scope, profile media.VideoProfile, resolutionOnly bool) string {
+	if !resolutionOnly {
+		if value := desktopVideoRange(cx, media.Version{VideoRange: profile.Range}); value != "" {
+			return value
+		}
+	}
+	return libraryPosterQuality(profile, true)
+}
+
 func (a *application) desktopLibraryListCard(cx *core.Scope, row desktopLibraryRow, bookmarks map[copyKey]media.Item) core.Node {
 	entry, item := row.entry, row.entry.item
 	description, progress := libraryCardDetails(cx, entry, bookmarks)
 	metadata := []string{entry.source.Name}
 	prefs := a.appearancePrefs.Get()
-	if quality := tvQuality(entry); quality != "" && prefs.ShowQuality {
+	if quality := desktopVideoFormat(cx, row.picture); quality != "" && prefs.ShowQuality {
 		metadata = append(metadata, quality)
 	}
 	if row.size > 0 {
 		metadata = append(metadata, mediaBytes(row.size))
 	}
 	status := []core.Node{}
-	if catalogWatched(entry) && prefs.ShowWatched {
+	watched := catalogWatched(entry)
+	if watched && prefs.ShowWatched {
 		status = append(status, core.Icon{SVG: lucide.Check(), Class: "size-4 " + setupAccent})
-	} else if !catalogWatched(entry) && canResume(progress) {
+	} else if !watched && progress.Duration > 0 && canResume(progress) {
 		status = append(status, core.View{Class: "w-20", Children: []core.Node{homeProgress(cx, "", "", progress)}})
 	}
 	if item.Favorite {
@@ -181,14 +193,19 @@ func (a *application) desktopLibraryListCard(cx *core.Scope, row desktopLibraryR
 		}}
 }
 
-func (a *application) desktopLibraryWallCard(cx *core.Scope, entry catalogItem) core.Node {
+func (a *application) desktopLibraryWallCard(cx *core.Scope, entry catalogItem, quality string, bookmarks map[copyKey]media.Item) core.Node {
 	item := entry.item
+	_, progress := libraryCardDetails(cx, entry, bookmarks)
+	caption := core.View{Class: "absolute inset-x-0 bottom-0 gap-1 bg-linear-to-t from-black/90 to-transparent px-2 pb-2 pt-6",
+		Children: []core.Node{core.Text{Content: item.Title, Class: "text-xs font-semibold text-white", MaxLines: 2}}}
+	if !catalogWatched(entry) && progress.Duration > 0 && canResume(progress) {
+		caption.Children = append(caption.Children, homeProgress(cx, a.catalogEntryID("library-progress-", entry), "", progress))
+	}
+	children := []core.Node{
+		desktopMovieArtwork(item.Poster, "absolute inset-0"),
+		caption,
+	}
 	return base.Button{Label: item.Title, Hint: entry.source.Name, TestID: a.catalogEntryID("title-", entry),
 		Class: "relative h-[156px] min-w-0 overflow-hidden rounded-lg", Style: core.Style{FocusVisible: ui.FocusRing(cx, 2)},
-		OnPress: func(core.PressEvent) { a.openCatalogEntry(entry) }, Children: []core.Node{
-			homeArtwork(item.Poster, "absolute inset-0"),
-			core.View{Class: "absolute inset-x-0 bottom-0 bg-linear-to-t from-black/90 to-transparent px-2 pb-2 pt-6", Children: []core.Node{
-				core.Text{Content: item.Title, Class: "text-xs font-semibold text-white", MaxLines: 2},
-			}},
-		}}
+		OnPress: func(core.PressEvent) { a.openCatalogEntry(entry) }, Children: append(children, a.libraryPosterBadges(cx, entry, quality)...)}
 }

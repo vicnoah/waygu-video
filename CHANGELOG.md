@@ -23,3 +23,5 @@
 - Show an Atmos badge for featured titles with reported Atmos audio. [Desktop Home comparison](docs/ui-review/desktop-home.md#category-totals-and-atmos)
 - Align the desktop carousel metadata and favorite button with the design. [Carousel comparison](docs/ui-review/desktop-home.md#featured-artwork-and-actions)
 - Search the desktop library by title and actor. [Desktop search verification](docs/ui-review/desktop-home.md#search-by-title-and-actor)
+- Show matching video formats across desktop library layouts and retain watch state on the poster wall. [Library comparison](docs/ui-review/desktop-library.md#list-and-poster-wall)
+- Group numeric titles and titles without a Latin initial under the desktop library's `#` index. [Library comparison](docs/ui-review/desktop-library.md)

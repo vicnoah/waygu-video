@@ -110,7 +110,8 @@ func (a *application) desktopMovieRecommendations(cx *core.Scope, source source,
 		}
 		seen[item.ID] = true
 		entry := catalogItem{source: source, item: item}
-		cards = append(cards, a.compactMediaCard(cx, entry, nil, 0, "w-36 shrink-0 gap-1.5 rounded-xl",
+		quality := libraryPosterQuality(highestVideoProfile(item.VideoProfiles), false)
+		cards = append(cards, a.compactMediaCard(cx, entry, nil, quality, "w-36 shrink-0 gap-1.5 rounded-xl",
 			"h-52 rounded-xl shadow-lg shadow-black/15", true, false, func() { a.openCatalogEntry(entry) }))
 	}
 	if len(cards) == 0 {

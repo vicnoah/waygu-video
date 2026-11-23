@@ -33,9 +33,22 @@ func TestDesktopLibraryFiltersAndIndex(t *testing.T) {
 	if rows := desktopLibraryRows(desktopLibraryEntries([]catalogItem{left, right}), state.filters, state.sort); len(rows) != 1 || rows[0].entry.item.ID != "b" {
 		t.Fatalf("stacked UHD and HDR filters matched %+v", rows)
 	}
+	if rows := desktopLibraryRows(desktopLibraryEntries([]catalogItem{left}), desktopLibraryFilters{HDR: true}, libraryTitle); len(rows) != 1 ||
+		libraryResolution(rows[0].picture) != 1080 || rows[0].picture.Range != "HDR10" {
+		t.Fatalf("HDR filter selected the wrong rendition: %+v", rows)
+	}
 	state.filters = desktopLibraryFilters{}
 	if rows := desktopLibraryRows(desktopLibraryEntries([]catalogItem{left, right}), state.filters, state.sort); len(rows) != 2 || rows[0].entry.item.ID != "b" {
 		t.Fatalf("file size order = %+v", rows)
+	}
+	rows := desktopLibraryRows(desktopLibraryEntries([]catalogItem{
+		{item: media.Item{Title: "Zulu"}}, {item: media.Item{Title: "Журавль"}},
+		{item: media.Item{Title: "Été"}}, {item: media.Item{Title: "《1917》"}},
+	}), desktopLibraryFilters{}, libraryTitle)
+	for index, title := range []string{"《1917》", "Журавль", "Été", "Zulu"} {
+		if got := rows[index].entry.item.Title; got != title {
+			t.Fatalf("alphabetical row %d = %q, want %q", index, got, title)
+		}
 	}
 }
 
@@ -104,6 +117,7 @@ func TestDockerDesktopLibraryReview(t *testing.T) {
 			app.Press("id:desktop-library-mode-list")
 			app.WaitFor("id:desktop-library-list", 3*time.Second)
 			app.WaitFor(card, 3*time.Second)
+			app.Find(card + " >> text:/180p/")
 			capture("-list")
 			app.Press(card)
 			app.WaitForGone("id:desktop-library", 5*time.Second)
@@ -114,6 +128,9 @@ func TestDockerDesktopLibraryReview(t *testing.T) {
 			app.Press("id:desktop-library-mode-wall")
 			app.WaitFor("id:desktop-library-wall", 3*time.Second)
 			app.WaitFor(card, 3*time.Second)
+			if quality := app.Find("id:library-quality-emby-" + fixture.ID).Text; quality != "180p" {
+				t.Fatalf("poster wall quality = %q, want 180p", quality)
+			}
 			capture("-wall")
 			app.Press("id:desktop-library-filters-open")
 			app.WaitFor("id:desktop-collection-name", 3*time.Second)
@@ -180,7 +197,7 @@ func (desktopReviewCatalog) Catalog(_ context.Context, q media.Query) (media.Pag
 		"镜中的城", "林间旅途", "南方的雪", "旧日影院", "晴空之后", "热砂", "深夜停车场",
 		"雨过天青", "夏日访客", "暗夜火车", "穿越群山", "低空飞行", "二号月台", "归来的船",
 		"回声之谷", "凌晨的海", "逆流", "破晓花园", "山海渡口", "最后一幕", "南岸",
-		"离岛", "风从北方来", "夜航", "周末放映厅", "午夜茶馆", "1980 年夏",
+		"离岛", "风从北方来", "夜航", "周末放映厅", "Журавль", "1980 年夏",
 	}
 	page := media.Page{Total: len(titles)}
 	for i := q.Offset; i < min(q.Offset+q.Limit, page.Total); i++ {
@@ -188,6 +205,9 @@ func (desktopReviewCatalog) Catalog(_ context.Context, q media.Query) (media.Pag
 			Year: 2025 - i%4, Genres: []string{"剧情"}, AddedAt: time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC).Add(-time.Duration(i) * time.Hour),
 			FileSize: 30 << 30, Watched: i%5 == 2,
 			VideoProfiles: []media.VideoProfile{{Width: 3840, Height: 2160, Range: "HDR10"}}}
+		if i == 0 {
+			item.VideoProfiles = append(item.VideoProfiles, media.VideoProfile{Width: 7680, Height: 4320})
+		}
 		if i%7 == 1 && !item.Watched {
 			item.Position, item.Duration = 28*time.Minute, 114*time.Minute
 		}
@@ -197,8 +217,8 @@ func (desktopReviewCatalog) Catalog(_ context.Context, q media.Query) (media.Pag
 }
 
 func TestDesktopLibraryGridReview(t *testing.T) {
-	if target := nsgotest.Target(); target != "" && target != "linux" {
-		t.Skip("desktop design capture runs on Linux GTK")
+	if target := nsgotest.Target(); target != "" && target != "linux" && target != "macos" && target != "windows" {
+		t.Skip("requires a desktop")
 	}
 	entry := source{ID: "capture", Name: "电影档案", Address: "http://catalog.example.test", Provider: media.Jellyfin,
 		Libraries: []sourceLibrary{{Library: media.Library{ID: "test-library", Name: "Movies"}, Category: libraryMovies}}}
@@ -217,11 +237,16 @@ func TestDesktopLibraryGridReview(t *testing.T) {
 			}, nsgotest.Size(1440, 1500), nsgotest.Environment(core.Environment{OS: core.OSLinux, Locale: "zh-Hans"}),
 				nsgotest.Storage(map[string]string{sourcesKey: string(stored)}), nsgotest.Secrets(map[string]string{"capture": "fixture-token"}))
 			app.Press("id:tab-library")
-			first, seventh := "id:title-0", "id:title-6"
+			const first = "id:title-0"
+			const grid = "id:desktop-library-grid"
 			app.WaitFor(first, 5*time.Second)
-			app.WaitFor(seventh, 5*time.Second)
-			if app.Find(first).Frame.Origin.Y != app.Find(seventh).Frame.Origin.Y {
-				t.Fatal("seven posters did not fit on the first row")
+			width := app.Find(grid).Frame.Size.Width
+			columns := min(7, max(1, int((width+16)/160)))
+			last := app.WaitFor(fmt.Sprintf("id:title-%d", columns-1), 5*time.Second)
+			next := app.WaitFor(fmt.Sprintf("id:title-%d", columns), 5*time.Second)
+			top := app.Find(first).Bounds().Origin.Y
+			if last.Bounds().Origin.Y != top || next.Bounds().Origin.Y <= top {
+				t.Fatalf("a %.0f pt grid did not fit %d posters on the first row", width, columns)
 			}
 			app.Press("id:desktop-filter-resolution")
 			app.Press("role:menuitem 4K")
@@ -234,8 +259,21 @@ func TestDesktopLibraryGridReview(t *testing.T) {
 			if nsgotest.Target() != "" {
 				app.Screenshot("app-desktop-library-grid-" + theme.name)
 			}
+			app.Press("id:desktop-library-mode-list")
+			app.WaitFor("id:desktop-library-list", 3*time.Second)
+			app.Find(first + " >> text:/4K HDR10/")
+			app.Press("id:desktop-library-mode-wall")
+			app.WaitFor("id:desktop-library-wall", 3*time.Second)
+			if quality := app.Find("id:library-quality-0").Text; quality != "4K" {
+				t.Fatalf("poster wall quality = %q, want 4K", quality)
+			}
+			app.Find("id:library-progress-1")
+			app.Find("id:library-watched-2")
+			if nsgotest.Target() != "" {
+				app.Screenshot("app-desktop-library-wall-" + theme.name)
+			}
+			app.Press("id:desktop-library-mode-grid")
 			app.Resize(1440, 900)
-			grid := "id:desktop-library-grid"
 			start := app.Find(grid).Offset.Y
 			app.Press("id:desktop-index-Z")
 			app.WaitUntil(3*time.Second, func() bool { return app.Find(grid).Offset.Y > start })
@@ -243,6 +281,9 @@ func TestDesktopLibraryGridReview(t *testing.T) {
 			if !app.Find("id:desktop-index-Z").Props.Selected {
 				t.Fatal("the native alphabet index did not select Z")
 			}
+			app.Press("id:desktop-index-#")
+			app.WaitFor("id:title-47", 3*time.Second)
+			app.WaitFor("id:title-46", 3*time.Second)
 		})
 	}
 }
