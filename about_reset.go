@@ -38,6 +38,7 @@ func (a *application) resetPreferences(cx *core.Scope) {
 			a.downloads.quota.Set(0)
 			a.downloads.height.Set(0)
 			a.downloads.wifiOnly.Set(true)
+			a.downloads.setDeleteWatched(false)
 			a.downloads.networkChanged()
 		}
 	})

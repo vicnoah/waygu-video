@@ -25,14 +25,25 @@ type detailResult struct {
 
 func (a *application) detail(cx *core.Scope, current route) core.Node {
 	layout := core.NewMemo(cx, func() core.Idiom { return appLayoutIdiom(cx) })
+	downloaded := core.NewMemo(cx, func() bool {
+		if current.downloadID == "" {
+			return false
+		}
+		entry, ok := a.downloads.find(current.downloadID, a.downloads.entries.Get())
+		return ok && entry.State == downloadComplete
+	})
 	return core.Dynamic(func(cx *core.Scope) core.Node {
+		shown := current
+		if !downloaded.Get() {
+			shown.downloadID = ""
+		}
 		idiom := layout.Get()
-		if idiom == core.IdiomDesktop && current.item.Kind == media.Movie {
+		if idiom == core.IdiomDesktop && shown.item.Kind == media.Movie {
 			return a.desktopShell(cx, func(cx *core.Scope) core.Node {
-				return a.detailLayout(cx, current, idiom)
+				return a.detailLayout(cx, shown, idiom)
 			})
 		}
-		return a.detailLayout(cx, current, idiom)
+		return a.detailLayout(cx, shown, idiom)
 	})
 }
 

@@ -675,6 +675,8 @@ const (
 	textDownloadUnlimited
 	textDownloadLocation
 	textDownloadThisDevice
+	textDownloadDeleteWatched
+	textDownloadDeleteWatchedDetail
 	textDownloadDeleteAll
 	textDownloadDeleteAllPrompt
 	textDownloadPause
@@ -1587,6 +1589,8 @@ var keyOfText = [numTexts]string{
 	"downloadUnlimited",
 	"downloadLocation",
 	"downloadThisDevice",
+	"downloadDeleteWatched",
+	"downloadDeleteWatchedDetail",
 	"downloadDeleteAll",
 	"downloadDeleteAllPrompt",
 	"downloadPause",
@@ -2497,6 +2501,8 @@ var textsEn = i18n.NewTexts(""+
 	"Unlimited"+
 	"Download location"+
 	"On this device"+
+	"Automatically delete watched downloads"+
+	"Delete downloaded files 24 hours after playback ends."+
 	"Delete all downloads"+
 	"Remove all saved video files and queued downloads from this device?"+
 	"Pause download"+
@@ -3404,6 +3410,8 @@ var textsEn = i18n.NewTexts(""+
 		9,
 		17,
 		14,
+		38,
+		53,
 		20,
 		67,
 		14,
@@ -4314,6 +4322,8 @@ var textsZhHans = i18n.NewTexts(""+
 	"不限"+
 	"下载位置"+
 	"本机"+
+	"自动删除已看完"+
+	"看完 24 小时后删除下载文件"+
 	"删除全部下载"+
 	"删除本机保存的视频文件及下载队列？"+
 	"暂停下载"+
@@ -5221,6 +5231,8 @@ var textsZhHans = i18n.NewTexts(""+
 		6,
 		12,
 		6,
+		21,
+		37,
 		18,
 		51,
 		12,
@@ -10178,6 +10190,22 @@ func DownloadThisDevice(cx *core.Scope) string { return For(cx).DownloadThisDevi
 
 // DownloadThisDevice is the package's DownloadThisDevice in the language of msgs.
 func (msgs Messages) DownloadThisDevice() string { return msgs.text(textDownloadThisDevice) }
+
+// DownloadDeleteWatched says "Automatically delete watched downloads"
+// in the language the app shows under cx.
+func DownloadDeleteWatched(cx *core.Scope) string { return For(cx).DownloadDeleteWatched() }
+
+// DownloadDeleteWatched is the package's DownloadDeleteWatched in the language of msgs.
+func (msgs Messages) DownloadDeleteWatched() string { return msgs.text(textDownloadDeleteWatched) }
+
+// DownloadDeleteWatchedDetail says "Delete downloaded files 24 hours after playback ends."
+// in the language the app shows under cx.
+func DownloadDeleteWatchedDetail(cx *core.Scope) string { return For(cx).DownloadDeleteWatchedDetail() }
+
+// DownloadDeleteWatchedDetail is the package's DownloadDeleteWatchedDetail in the language of msgs.
+func (msgs Messages) DownloadDeleteWatchedDetail() string {
+	return msgs.text(textDownloadDeleteWatchedDetail)
+}
 
 // DownloadDeleteAll says "Delete all downloads"
 // in the language the app shows under cx.

@@ -53,7 +53,7 @@ func (a *application) player(cx *core.Scope, current route) core.Node {
 		}
 	}
 	var download downloadEntry
-	if offline {
+	if offline && !a.downloads.removing[current.downloadID] {
 		download, _ = a.downloads.find(current.downloadID, a.downloads.entries.GetUntracked())
 	}
 	showTVHints := sync.OnceValue(a.showTVPlayerHints)
@@ -316,6 +316,9 @@ func (a *application) playerView(cx *core.Scope, current route, initial playerMe
 		paused.Set(true)
 		ended.Set(true)
 		report(media.Stopped)
+		if loaded && !failure.GetUntracked() && duration.GetUntracked() > 0 && !prefs.DisableProgressRecording {
+			a.downloads.finishedPlayback(current)
+		}
 	}
 	a.playerSleep(cx, func() {
 		sleepExpired.Set(true)

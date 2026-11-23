@@ -47,6 +47,7 @@ type downloadEntry struct {
 	Rate                    int64 `json:"-"`
 	Position                time.Duration
 	Failure                 string
+	Completion              *downloadCompletion `json:",omitempty"`
 }
 
 type downloadQueue struct {
@@ -58,6 +59,7 @@ type downloadQueue struct {
 	quota    *core.Signal[int64]
 	height   *core.Signal[int]
 	wifiOnly *core.Signal[bool]
+	cleanup  *core.Signal[string]
 	network  *core.Signal[downloadNetwork]
 	failure  *core.Signal[string]
 	running  map[string]context.CancelFunc
@@ -85,9 +87,11 @@ func newDownloadQueue(cx *core.Scope, a *application) *downloadQueue {
 		height = 0
 	}
 	wifiOnly, _ := a.storage.GetItem(downloadWiFiKey)
+	cleanup, _ := a.storage.GetItem(downloadCleanupKey)
 	queue := &downloadQueue{app: a, lifetime: cx.Context(), store: downloads.Store{Dir: dir}, running: make(map[string]context.CancelFunc),
 		removing: make(map[string]bool), slots: core.NewSignal(cx, count), quota: core.NewSignal(cx, quota),
 		height: core.NewSignal(cx, height), wifiOnly: core.NewSignal(cx, wifiOnly != "false"),
+		cleanup: core.NewSignal(cx, cleanup),
 		network: core.NewSignal(cx, downloadNetworkUnknown), failure: core.NewSignal(cx, "")}
 	var entries []downloadEntry
 	if dir != "" {
@@ -103,6 +107,7 @@ func newDownloadQueue(cx *core.Scope, a *application) *downloadQueue {
 			entry.Transferred, entry.Total = file.Size, file.Size
 			entry.EncodedHeight = file.Height
 		} else {
+			entry.Completion = nil
 			entry.Transferred = queue.store.Bytes(entry.ID)
 			switch entry.State {
 			case downloadRunning:

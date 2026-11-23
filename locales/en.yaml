@@ -410,6 +410,8 @@ downloadQuota: Download space limit
 downloadUnlimited: Unlimited
 downloadLocation: Download location
 downloadThisDevice: On this device
+downloadDeleteWatched: Automatically delete watched downloads
+downloadDeleteWatchedDetail: Delete downloaded files 24 hours after playback ends.
 downloadDeleteAll: Delete all downloads
 downloadDeleteAllPrompt: Remove all saved video files and queued downloads from this device?
 downloadStorageUsed: "Waygu uses {size}"

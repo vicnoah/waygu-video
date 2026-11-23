@@ -281,6 +281,7 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 	a.scheduleProgressReplay(time.Second)
 	a.downloads = core.Untracked(cx, func() *downloadQueue { return newDownloadQueue(cx, a) })
 	watchDownloadNetwork(cx, a.downloads.network)
+	a.downloads.watchCompletedDownloads(cx)
 	cx.Effect(func() {
 		a.downloads.network.Get()
 		a.downloads.wifiOnly.Get()

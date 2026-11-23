@@ -126,6 +126,9 @@ func (a *application) detailPersonal(cx *core.Scope, current route, loaded *core
 					} else if watch {
 						a.dropPendingProgress(previous)
 					}
+					if watch && result.item.Watched {
+						a.downloads.clearCompletion(downloadID(account, result.item.ID))
+					}
 					a.libraryChanges.Update(func(count uint64) uint64 { return count + 1 })
 				}
 				cx.Post(func() {
