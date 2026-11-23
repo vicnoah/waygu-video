@@ -103,8 +103,14 @@ func TestTVHomeNativeFixture(t *testing.T) {
 		selector := "id:" + id
 		app.WaitUntil(3*time.Second, func() bool { return app.Exists(selector) && app.Find(selector).Focused })
 	}
-	if title := app.WaitFor("id:home-hero-title", 10*time.Second).Text; title != "The Dune Archive" {
-		t.Fatalf("featured title = %q, want The Dune Archive", title)
+	title := app.WaitFor("id:home-hero-title", 10*time.Second)
+	if title.Text != "The Dune Archive" {
+		t.Fatalf("featured title = %q, want The Dune Archive", title.Text)
+	}
+	if target == "" || (target == "tvos_simulator" && os.Getenv("WAYGU_CAPTURE_TV_DISPLAY") == "1") {
+		if size := title.TextStyle.Font.Size; size != 96 {
+			t.Fatalf("featured title size = %v pt at default text size, want 96 pt", size)
+		}
 	}
 	if target == "" {
 		app.Key("tab")
@@ -155,6 +161,22 @@ func TestTVHomeNativeFixture(t *testing.T) {
 	}
 
 	app.Press("id:tv-tab-settings")
+	app.Press("id:tv-settings-section-danmaku")
+	expectFocus("tv-danmaku-visible")
+	for _, id := range []string{"sources", "opacity", "font-size", "speed", "area"} {
+		app.Key("down")
+		expectFocus("tv-danmaku-" + id)
+	}
+	app.Screenshot("tv-settings-danmaku")
+	app.Key("right")
+	if got := readDanmakuPreferences(app.Storage()).Area; got != 75 {
+		t.Fatalf("danmaku area = %d, want 75 after Right", got)
+	}
+	app.Key("left")
+	if got := readDanmakuPreferences(app.Storage()).Area; got != 50 {
+		t.Fatalf("danmaku area = %d, want 50 after Left", got)
+	}
+
 	app.Press("id:tv-settings-section-appearance")
 	app.Press("id:tv-open-home-layout")
 	expectFocus("tv-layout-module-continue")

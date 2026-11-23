@@ -17,3 +17,5 @@
 - Play muted server trailers behind the featured titles on TV Home. [TV Home review](docs/ui-review/tv-home.md#silent-background-trailers)
 - Keep the Welcome actions reachable above the phone's navigation bar. [Welcome review](docs/ui-review/welcome.md#android-phone-viewport)
 - Give the primary featured action initial focus on Apple TV Home. [TV Home review](docs/ui-review/tv-home.md#apple-tv-initial-focus)
+- Move from the featured actions to the Home tab with Up on Apple TV. [TV Home review](docs/ui-review/tv-home.md#apple-tv-initial-focus)
+- Use the tvOS default text size for the design's typography. [Apple TV typography review](docs/ui-review/tv-home.md#apple-tv-typography)

@@ -1,0 +1,31 @@
+--- a/internal/platform/ios/ios.go
++++ b/internal/platform/ios/ios.go
+@@ -778,9 +778,10 @@
+ 	if scale <= 0 {
+ 		scale = objc.Send[float64](objc.ID(apple.Class("UIScreen")).Send(sel("mainScreen")), sel("scale"))
+ 	}
+-	// The body text style is 17 points at the default text size.
++	// The default Dynamic Type body size is 17 points on iOS and 29 on tvOS.
+ 	body := objc.ID(apple.Class("UIFont")).Send(sel("preferredFontForTextStyle:"),
+ 		apple.Global(uikitPath, "UIFontTextStyleBody"))
++	defaultBodySize := 17.0
+ 	idiom := driver.IdiomPhone
+ 	const pad, tv, mac = 1, 2, 5
+ 	switch objc.Send[int](objc.ID(apple.Class("UIDevice")).Send(sel("currentDevice")), sel("userInterfaceIdiom")) {
+@@ -788,6 +789,7 @@
+ 		idiom = driver.IdiomTablet
+ 	case tv:
+ 		idiom = driver.IdiomTV
++		defaultBodySize = 29
+ 	case mac:
+ 		idiom = driver.IdiomMac
+ 	}
+@@ -806,7 +808,7 @@
+ 		KeyboardHeight:   s.keyboard,
+ 		KeyboardDuration: s.keyboardDuration,
+ 		Dark:             objc.Send[int](traits, sel("userInterfaceStyle")) == dark,
+-		FontScale:        float32(objc.Send[float64](body, sel("pointSize")) / 17),
++		FontScale:        float32(objc.Send[float64](body, sel("pointSize")) / defaultBodySize),
+ 		ReduceMotion:     uiReduceMotion(),
+ 		IncreaseContrast: uiDarkerColors(),
+ 		ScreenReader:     uiVoiceOver(),

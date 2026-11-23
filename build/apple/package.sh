@@ -17,6 +17,7 @@ trap 'rm -rf -- "$staging"' EXIT
 cp -R "$source" "$staging/nsgo"
 chmod -R u+w "$staging/nsgo"
 patch -d "$staging/nsgo" -F 0 -p1 < build/apple/nsgo-tv-focus.patch
+patch -d "$staging/nsgo" -F 0 -p1 < build/apple/nsgo-tv-typography.patch
 cp go.mod "$staging/build.mod"
 cp go.sum "$staging/build.sum"
 go mod edit -modfile="$staging/build.mod" -replace="$module=$staging/nsgo"

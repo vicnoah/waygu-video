@@ -73,6 +73,18 @@ The Apple TV simulator ran the Simplified Chinese layout in a 1920 × 1080 pt vi
 
 ![Apple TV Home before and after the focus fix, showing Search over artwork and Play over the decoded trailer](images/tv-home-tvos-initial-focus.png)
 
-`TestTVHomeNativeFixture` verified the visible Play focus ring, the authorized trailer request, muted cover playback and replacement of the artwork after the native player advanced. The second frame comes from the simulator display. The run stopped when Up from Play left the trailer mounted, so artwork restoration and the Home layout sequence still need Apple TV validation. GTK and Android TV pass that fixture. [Apple TV test result](https://github.com/vicnoah/waygu-video/actions/runs/45145736372)
+`TestTVHomeNativeFixture` verified the Play focus ring, the authorized trailer request and muted cover playback. The earlier run stayed in the featured actions on Up. The current run sends Up from Play to the Home tab, checks that the video closes and waits for the static artwork to return. The capture shows the resulting Home focus ring and cover. GTK and Android TV also pass the fixture. [Apple TV simulator run](https://github.com/vicnoah/waygu-video/actions/runs/45147818852)
+
+![Apple TV Home after pressing Up from the preview, with Home focused and the artwork restored](images/tv-home-tvos-trailer-exit.png)
+
+The same Apple TV run entered **Settings → Appearance → Home layout**, moved Jellyfin above Emby and hid Plex. Returning to Home showed the new order and preserved playback source priority. [Home layout capture](tv-settings.md#home-layout)
 
 The Apple TV build uses `sh build/apple/package.sh build -target tvos`. The package applies a controller-level focus update with the requested view set as the preferred focus. [UIKit focus updates](https://developer.apple.com/documentation/uikit/uifocussystem/requestfocusupdate%28to%3A%29?language=objc)
+
+## Apple TV typography
+
+This strip compares the top 1080 pt of the dark Scenra frame with the Apple TV simulator at its default text size before the typography fix. The larger title and labels widen the navigation pill and push the featured actions down. Both frames use the same 1920 × 1080 pt viewport. The design shows placeholder artwork and a Continue Watching shelf. The simulator shows the synthetic trailer and a library without resume points.
+
+![Dark Scenra TV Home and Apple TV simulator before normalizing the default font scale](images/tv-home-tvos-typography-before.png)
+
+The Apple package now calculates Dynamic Type scaling against the 29 pt default body size on tvOS. The previous 17 pt base applied the iPhone default, inflating the design's 96 pt title to about 164 pt. Size changes selected in system settings still scale relative to the default. The TV fixture checks the title's resolved size on the hosted simulator. A new native capture is pending. [Apple typography specifications](https://developer.apple.com/design/human-interface-guidelines/typography)

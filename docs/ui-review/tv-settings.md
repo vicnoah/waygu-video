@@ -28,7 +28,7 @@ The crop compares the timeline offset row in Scenra and in the settings opened f
 
 The Android TV emulator passed the remote smoke test using a connected Emby fixture. The test opens Settings from Home, moves from the category list into the danmaku options, changes opacity, verifies that the pairing QR is present and returns Home. Run it with `python3 build/android/tv-smoke.py --with-settings`.
 
-Physical phone camera pairing and tvOS remote verification remain pending.
+Physical phone camera pairing and tvOS Danmaku controls remain pending.
 
 ## Home layout
 
@@ -49,4 +49,8 @@ go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
   -run '^TestDockerTVHomeLayout$' -screenshots .nsgo/ui-review/tv-home-layout
 ```
 
-On Android TV, forward the Docker fixture ports 18096, 28096 and 32400 with `adb reverse` and run `sh build/android/package.sh test -device <serial> -env WAYGU_TEST_SERVERS=1 -run '^TestDockerTVHomeLayout$'`. The Apple TV simulator test reached the background trailer and stopped at the Up transition before this panel. [Apple TV run](tv-home.md#apple-tv-initial-focus)
+On Android TV, forward the Docker fixture ports 18096, 28096 and 32400 with `adb reverse` and run `sh build/android/package.sh test -device <serial> -env WAYGU_TEST_SERVERS=1 -run '^TestDockerTVHomeLayout$'`.
+
+![Apple TV Home layout with the Plex source row focused and its switch off](images/tv-settings-home-layout-tvos.png)
+
+The Apple TV simulator moved Jellyfin above Emby, focused the Plex row, hid Plex and used Back to return focus to **Home layout**. Home then displayed only the two enabled source shelves in the saved order. The figure shows the 1920 × 1080 pt client before the tvOS typography correction, at 960 × 540 px. [Apple TV test run](https://github.com/vicnoah/waygu-video/actions/runs/45147818852)
