@@ -1,0 +1,7 @@
+--- a/internal/engine/testhost.go
++++ b/internal/engine/testhost.go
+@@ -57 +57,3 @@
+-	o.Host.Channel = t.Host
++	if t.Host != nil {
++		o.Host.Channel = t.Host
++	}

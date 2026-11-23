@@ -64,6 +64,9 @@ func TestDockerTranscodedDownload(t *testing.T) {
 				t.Fatal(err)
 			}
 			state := map[string]string{sourcesKey: string(encoded), playbackPreferencesKey: `{"DisableProgressRecording":true}`}
+			if target == "android" {
+				state[downloadWiFiKey] = "false"
+			}
 			theme := reviewAppearances[index%len(reviewAppearances)]
 			start := func(state map[string]string, previousDir string, dataDir *string) *nsgotest.App {
 				return nsgotest.Start(t, func(cx *core.Scope) core.Node {

@@ -665,6 +665,11 @@ const (
 	textDownloadNone
 	textDownloadOptions
 	textDownloadQuality
+	textDownloadWiFiOnly
+	textDownloadWaitWiFi
+	textDownloadWaitNetwork
+	textDownloadUseCellular
+	textDownloadCellularNotice
 	textDownloadConcurrency
 	textDownloadQuota
 	textDownloadUnlimited
@@ -1572,6 +1577,11 @@ var keyOfText = [numTexts]string{
 	"downloadNone",
 	"downloadOptions",
 	"downloadQuality",
+	"downloadWiFiOnly",
+	"downloadWaitWiFi",
+	"downloadWaitNetwork",
+	"downloadUseCellular",
+	"downloadCellularNotice",
 	"downloadConcurrency",
 	"downloadQuota",
 	"downloadUnlimited",
@@ -2477,6 +2487,11 @@ var textsEn = i18n.NewTexts(""+
 	"There are no downloads yet."+
 	"Download options"+
 	"Download quality"+
+	"Download over Wi-Fi only"+
+	"Wait for Wi-Fi"+
+	"Wait for a connection"+
+	"Use mobile data now"+
+	"The current connection uses mobile data."+
 	"Concurrent downloads"+
 	"Download space limit"+
 	"Unlimited"+
@@ -3379,6 +3394,11 @@ var textsEn = i18n.NewTexts(""+
 		27,
 		16,
 		16,
+		24,
+		14,
+		21,
+		19,
+		40,
 		20,
 		20,
 		9,
@@ -4284,6 +4304,11 @@ var textsZhHans = i18n.NewTexts(""+
 	"暂无下载。"+
 	"下载选项"+
 	"下载画质"+
+	"仅在 Wi-Fi 下下载"+
+	"等待 Wi-Fi"+
+	"等待网络连接"+
+	"立即使用移动网络"+
+	"当前正在使用移动网络。"+
 	"同时下载数"+
 	"下载空间限制"+
 	"不限"+
@@ -5186,6 +5211,11 @@ var textsZhHans = i18n.NewTexts(""+
 		15,
 		12,
 		12,
+		22,
+		12,
+		18,
+		24,
+		33,
 		15,
 		18,
 		6,
@@ -10030,6 +10060,41 @@ func DownloadQuality(cx *core.Scope) string { return For(cx).DownloadQuality() }
 
 // DownloadQuality is the package's DownloadQuality in the language of msgs.
 func (msgs Messages) DownloadQuality() string { return msgs.text(textDownloadQuality) }
+
+// DownloadWiFiOnly says "Download over Wi-Fi only"
+// in the language the app shows under cx.
+func DownloadWiFiOnly(cx *core.Scope) string { return For(cx).DownloadWiFiOnly() }
+
+// DownloadWiFiOnly is the package's DownloadWiFiOnly in the language of msgs.
+func (msgs Messages) DownloadWiFiOnly() string { return msgs.text(textDownloadWiFiOnly) }
+
+// DownloadWaitWiFi says "Wait for Wi-Fi"
+// in the language the app shows under cx.
+func DownloadWaitWiFi(cx *core.Scope) string { return For(cx).DownloadWaitWiFi() }
+
+// DownloadWaitWiFi is the package's DownloadWaitWiFi in the language of msgs.
+func (msgs Messages) DownloadWaitWiFi() string { return msgs.text(textDownloadWaitWiFi) }
+
+// DownloadWaitNetwork says "Wait for a connection"
+// in the language the app shows under cx.
+func DownloadWaitNetwork(cx *core.Scope) string { return For(cx).DownloadWaitNetwork() }
+
+// DownloadWaitNetwork is the package's DownloadWaitNetwork in the language of msgs.
+func (msgs Messages) DownloadWaitNetwork() string { return msgs.text(textDownloadWaitNetwork) }
+
+// DownloadUseCellular says "Use mobile data now"
+// in the language the app shows under cx.
+func DownloadUseCellular(cx *core.Scope) string { return For(cx).DownloadUseCellular() }
+
+// DownloadUseCellular is the package's DownloadUseCellular in the language of msgs.
+func (msgs Messages) DownloadUseCellular() string { return msgs.text(textDownloadUseCellular) }
+
+// DownloadCellularNotice says "The current connection uses mobile data."
+// in the language the app shows under cx.
+func DownloadCellularNotice(cx *core.Scope) string { return For(cx).DownloadCellularNotice() }
+
+// DownloadCellularNotice is the package's DownloadCellularNotice in the language of msgs.
+func (msgs Messages) DownloadCellularNotice() string { return msgs.text(textDownloadCellularNotice) }
 
 // DownloadQualityPreset says "{height}p · {bitrate} Mbps"
 // in the language the app shows under cx.

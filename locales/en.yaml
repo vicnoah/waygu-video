@@ -398,6 +398,11 @@ downloadTransferError: The download could not be completed.
 downloadNone: There are no downloads yet.
 downloadOptions: Download options
 downloadQuality: Download quality
+downloadWiFiOnly: Download over Wi-Fi only
+downloadWaitWiFi: Wait for Wi-Fi
+downloadWaitNetwork: Wait for a connection
+downloadUseCellular: Use mobile data now
+downloadCellularNotice: The current connection uses mobile data.
 downloadQualityPreset: "{height}p · {bitrate} Mbps"
 downloadEstimatedSize: "Approx. {size}"
 downloadConcurrency: Concurrent downloads

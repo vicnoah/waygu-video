@@ -20,15 +20,7 @@ chmod -R u+w "$stage/nsgo"
 gzip -dc "build/android/classes-$version.dex.gz" > "$stage/nsgo/internal/platform/android/runtime/classes.dex"
 patch -d "$stage/nsgo" -F 0 -p1 < build/android/nsgo-playback-manifest.patch
 # Preserve the real launcher channel when the native test has no simulated host.
-patch -d "$stage/nsgo" -F 0 -p1 <<'PATCH'
---- a/internal/engine/testhost.go
-+++ b/internal/engine/testhost.go
-@@ -57 +57,3 @@
--	o.Host.Channel = t.Host
-+	if t.Host != nil {
-+		o.Host.Channel = t.Host
-+	}
-PATCH
+patch -d "$stage/nsgo" -F 0 -p1 < build/android/nsgo-test-host.patch
 cp go.mod "$stage/test.mod"
 cp go.sum "$stage/test.sum"
 go mod edit -modfile="$stage/test.mod" -replace="$module=$stage/nsgo"

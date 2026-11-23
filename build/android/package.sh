@@ -29,6 +29,7 @@ cp go.mod "$staging/build.mod"
 cp go.sum "$staging/build.sum"
 go mod edit -modfile="$staging/build.mod" -replace="$module=$staging/nsgo"
 if [ "$mode" = test ]; then
+    patch -d "$staging/nsgo" -F 0 -p1 < build/android/nsgo-test-host.patch
     GOFLAGS="${GOFLAGS:+$GOFLAGS }'-modfile=$staging/build.mod'" \
         go tool nsgo test -target android "$@"
 else

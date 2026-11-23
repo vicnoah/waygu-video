@@ -53,6 +53,15 @@ go tool nsgo test -target android -device <serial> -env WAYGU_TEST_SERVERS=1 \
   -screenshots .nsgo/ui-review/android-download-quality
 ```
 
+## Download network transitions
+
+`TestDockerDownloadNetworkPolicy` transfers the Emby download fixture through a rate-limited proxy. The test verifies Wi-Fi to cellular, manual pause during reconnection, loss of all networks, and automatic continuation with validated HTTP ranges. The headless replay also verifies the saved preference, the choice to wait for Wi-Fi and the action to use mobile data for a single copy. The Android replay uses system default-network changes on a phone emulator. [Storage screen comparison](../../docs/ui-review/storage-downloads.md#wi-fi-downloads) · [Android default network](https://developer.android.com/develop/connectivity/network-ops/reading-network-state)
+
+```sh
+WAYGU_TEST_SERVERS=1 go tool nsgo test . -run '^TestDockerDownloadNetworkPolicy$'
+python3 build/android/test-download-network.py <serial>
+```
+
 ## Remember playback progress
 
 `TestDockerRememberPlaybackPosition` seeds the same movie at 92 seconds on Emby, Jellyfin and Plex. The phone player seeks to the existing point, then advances and closes while recording is off. The containers retain the previous position and the app saves no pending checkpoint. Turning the setting back on and repeating playback updates each server to 123 seconds.

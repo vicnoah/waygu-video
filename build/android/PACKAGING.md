@@ -10,7 +10,7 @@ The script stages the pinned NSGo tool with the launcher and media service entri
 
 The APK advertises the normal and Leanback launcher categories. It declares touchscreen, Leanback, camera, and autofocus optional so the QR scanner permission leaves camera-free TV devices eligible. [Android TV hardware requirements](https://developer.android.com/training/tv/get-started/hardware)
 
-The bundled launcher queries Android's current default network for the playback profile and cellular warning. The Go player calls the launcher through NSGo's host channel when opening an online title. [Android network state](https://developer.android.com/reference/android/net/ConnectivityManager)
+The bundled launcher queries Android's current default network for the playback profile and cellular warning. Its default-network callback reports Wi-Fi, wired, cellular and connection loss to the download queue. [Android network state](https://developer.android.com/reference/android/net/ConnectivityManager)
 
 On an Android phone emulator, select Wi-Fi as the default network and run `sh build/android/test-network.sh default <serial>`. Select cellular data and run `sh build/android/test-network.sh cellular <serial>`. The test verifies the launcher response, the two negotiated profiles, and both warning actions. The cellular capture is written to `.nsgo/android-network-cellular/`. [Playback settings evidence](../../docs/ui-review/phone-player-settings.md#playback)
 
@@ -32,3 +32,5 @@ sh build/android/rebuild-tv-runtime.sh
 The installed-APK smoke test launches through the Leanback intent and checks onboarding, server setup, and settings using directional keys, Select, and Back. See the [Android TV focus comparison](../../docs/ui-review/welcome.md#android-tv-remote-focus).
 
 Use the `test` subcommand of `build/android/package.sh` with an Android TV device or emulator. It applies the same pinned Android runtime and manifest as packaging, then passes the arguments to `nsgo test -target android`. [Docker media fixture and replay](../../integration/servers/TESTING.md#tv-next-episode)
+
+Run `python3 build/android/test-download-network.py <serial>` on an Android phone emulator with the Docker fixtures running. The driver switches the emulator between AndroidWifi, mobile data and offline while the app transfers an actual movie. It restores the Wi-Fi and mobile-data settings on exit. [Download network proof](../../docs/ui-review/storage-downloads.md#wi-fi-downloads)

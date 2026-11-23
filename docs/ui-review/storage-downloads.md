@@ -17,7 +17,7 @@
 | Navigation | The Settings back link and leading title follow the reference. The iOS status bar in the design takes 44 pt at the top. The Linux capture has no mobile status bar. |
 | Storage card | The native card shows local download usage, available disk space when the OS reports it, and the violet usage segment. The single legend line makes the card shorter than the reference. Separate image and danmaku cache measurements and cleanup remain pending. |
 | Queue | The completed and transferring rows use the designed thumbnail, status and progress treatments. The test slows one real transfer to capture both states. The queue offers pause, resume, retry, play and confirmed deletion. Transfer size and speed come from the actual response. Completed rows have a separate delete action. Thumbnails use the artwork placeholder because the offline manifest omits signed media URLs. |
-| Options | The app saves download quality, concurrency from one to three, and the disk quota. The quality row uses the violet film icon, trailing preset and chevron from the design. Download location is local to the device. Wi-Fi scheduling, automatic watched-file deletion, and automatic subtitle and danmaku downloads remain pending. |
+| Options | The app saves download quality, Wi-Fi policy, concurrency from one to three, and the disk quota. The quality row uses the violet film icon, trailing preset and chevron from the design. Download location is local to the device. Automatic watched-file deletion and automatic subtitle and danmaku downloads remain pending. |
 | Detail and library | The detail action saves the active version of a movie or individual episode. The tablet sidebar opens the same storage screen. Completed copies display a download badge and remain in the library while an included source is unreachable. Season-wide selection and offline expiration handling remain pending. |
 | Recovery and verification | Queue metadata survives restart. An original-file transfer reuses a partial range when the server supplies a matching validator. A transcoded transfer starts a new encode when resumed. The store checks response sizes when known, verifies supplied MD5 checksums, and records a SHA-256 of each completed file. OS-managed background work during sleep or app suspension remains pending. |
 
@@ -38,6 +38,16 @@ Emby and Jellyfin return progressive H.264/AAC MP4. Plex supplies one finite fra
 ![Android phone emulator playing the downloaded 720p Plex clip at 10 of 12 seconds](images/download-quality-android.png)
 
 The Android 15 x86_64 emulator system screenshot shows the Plex copy after seeking across fragments with the media server disconnected. The same test checks the 720p label, 12-second duration and continued playback after seeking for Emby, Jellyfin and Plex. [Android test command](../../integration/servers/TESTING.md#transcoded-downloads)
+
+## Wi-Fi downloads
+
+The settings use the reference's sky-blue Wi-Fi icon and violet switch directly below Download quality. Wi-Fi only defaults to on. A wired connection also allows downloads. When the app loses the network or the default connection changes to cellular, active restricted tasks return to the queue. Wi-Fi restores automatic transfers. A task paused by the user waits for Resume.
+
+Turning off Wi-Fi only lets the download picker queue a copy for Wi-Fi or start it over mobile data. A copy queued for Wi-Fi can be released individually from Storage. The queue resumes a validated original file from its saved byte range. A paused transcode starts a new encode.
+
+![Storage on Android with the Wi-Fi-only switch enabled and an Emby transfer waiting for Wi-Fi](images/download-waiting-for-wifi-android.png)
+
+On the Android 15 x86_64 emulator, an actual Emby transfer pauses on cellular, keeps a manual pause through reconnection, then pauses and resumes again across complete network loss. The Android capture shows squared group corners where Scenra and GTK clip the rows to rounded corners. Apple platforms use the system's Network framework and still need a device replay. Linux and Windows leave the switch unavailable. The HarmonyOS web host follows the setting when its embedded browser reports the transport type. [Design](../../design/settings-storage.scenra) · [Download flow](../../design/flows/offline-download.scenra) · [Verification commands](../../integration/servers/TESTING.md#download-network-transitions)
 
 ## Interaction checks
 

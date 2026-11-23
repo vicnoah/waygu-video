@@ -280,7 +280,12 @@ func mountApp(cx *core.Scope, factory mediaFactory, plexAccount plexAuthorizer, 
 	a.phoneSearch = newPhoneSearchState(cx)
 	a.scheduleProgressReplay(time.Second)
 	a.downloads = core.Untracked(cx, func() *downloadQueue { return newDownloadQueue(cx, a) })
-	a.downloads.pump()
+	watchDownloadNetwork(cx, a.downloads.network)
+	cx.Effect(func() {
+		a.downloads.network.Get()
+		a.downloads.wifiOnly.Get()
+		cx.Untrack(a.downloads.networkChanged)
+	})
 	cx.OnBackPress(func() bool {
 		if len(a.routes.GetUntracked()) <= 1 {
 			return false

@@ -398,6 +398,11 @@ downloadTransferError: 未能完成下载。
 downloadNone: 暂无下载。
 downloadOptions: 下载选项
 downloadQuality: 下载画质
+downloadWiFiOnly: 仅在 Wi-Fi 下下载
+downloadWaitWiFi: 等待 Wi-Fi
+downloadWaitNetwork: 等待网络连接
+downloadUseCellular: 立即使用移动网络
+downloadCellularNotice: 当前正在使用移动网络。
 downloadQualityPreset: "{height}p · {bitrate} Mbps"
 downloadEstimatedSize: "约 {size}"
 downloadConcurrency: 同时下载数

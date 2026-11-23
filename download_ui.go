@@ -26,7 +26,7 @@ func (a *application) downloadAction(cx *core.Scope, current route, render detai
 		entry, exists := a.downloads.find(id, a.downloads.entries.Get())
 		label, icon := locales.DownloadAction(cx), lucide.Download
 		if exists {
-			label = downloadStateLabel(cx, entry)
+			label = a.downloads.stateLabel(cx, entry)
 			if entry.State == downloadComplete {
 				icon = lucide.CircleCheck
 			} else if entry.State == downloadRunning && entry.Total > 0 {
@@ -56,17 +56,32 @@ func (a *application) downloadAction(cx *core.Scope, current route, render detai
 		}
 		return ui.Button{Text: label, Icon: icon, Variant: ui.ButtonOutline, TestID: "detail-download", OnPress: press}
 	})
-	confirm := func() {
+	confirm := func(waitForWiFi bool) {
 		open.Set(false)
-		if !a.downloads.enqueue(selected.GetUntracked(), height.GetUntracked()) {
+		if !a.downloads.enqueue(selected.GetUntracked(), height.GetUntracked(), waitForWiFi) {
 			a.push(route{screen: screenDownloads})
 		}
+	}
+	queue := a.downloads
+	network := queue.network.Get
+	wait := func() downloadNetworkWait { return downloadWaitFor(network(), queue.wifiOnly.Get()) }
+	allowChoice := func() bool {
+		transport := network()
+		return !queue.wifiOnly.Get() && (transport == downloadNetworkCellular || transport == downloadNetworkOffline)
 	}
 	title := locales.DownloadQuality(cx)
 	dialog := ui.Dialog{Title: title, Open: open.Get, TestID: "detail-download-quality",
 		OnOpenChange: func(show bool, _ base.Reason) { open.Set(show) },
-		OnConfirm:    confirm,
+		OnConfirm:    func() { confirm(false) },
 		Children: []core.Node{core.Dynamic(func(cx *core.Scope) core.Node {
+			if network() == downloadNetworkCellular && allowChoice() {
+				return hint(locales.DownloadCellularNotice(cx))
+			}
+			if waiting := wait(); waiting != downloadNetworkReady {
+				return hint(waiting.label(cx))
+			}
+			return nil
+		}), core.Dynamic(func(cx *core.Scope) core.Node {
 			chosen := selected.Get()
 			options := downloadQualityOptions(cx)
 			if !canDownloadTranscodes(chosen.source.Provider) {
@@ -97,7 +112,19 @@ func (a *application) downloadAction(cx *core.Scope, current route, render detai
 		})},
 		Footer: []core.Node{
 			ui.Button{Text: locales.DesktopSettingsCancel(cx), Variant: ui.ButtonOutline, OnPress: func() { open.Set(false) }},
-			ui.Button{Text: locales.DownloadAction(cx), TestID: "detail-download-confirm", OnPress: confirm},
+			core.Show{When: allowChoice, Then: func(cx *core.Scope) core.Node {
+				return ui.Button{Text: locales.DownloadWaitWiFi(cx), TestID: "detail-download-wait-wifi",
+					Variant: ui.ButtonOutline, OnPress: func() { confirm(true) }}
+			}},
+			ui.Button{TextFunc: func() string {
+				if waiting := wait(); waiting != downloadNetworkReady {
+					return waiting.label(cx)
+				}
+				if network() == downloadNetworkCellular {
+					return locales.DownloadUseCellular(cx)
+				}
+				return locales.DownloadAction(cx)
+			}, TestID: "detail-download-confirm", OnPress: func() { confirm(false) }},
 		},
 	}
 	return core.Group([]core.Node{action, dialog})
@@ -116,9 +143,12 @@ func downloadQualityOptions(cx *core.Scope) []ui.Option[int] {
 	return options
 }
 
-func downloadStateLabel(cx *core.Scope, entry downloadEntry) string {
+func (q *downloadQueue) stateLabel(cx *core.Scope, entry downloadEntry) string {
 	switch entry.State {
 	case downloadQueued:
+		if waiting := q.waitFor(entry); waiting != downloadNetworkReady {
+			return waiting.label(cx)
+		}
 		return locales.DownloadQueued(cx)
 	case downloadRunning:
 		return locales.DownloadRunning(cx)
@@ -210,6 +240,14 @@ func (a *application) downloadStorage(cx *core.Scope) core.Node {
 			settingPicker(cx, "download-quality", locales.DownloadQuality(cx), downloadQualityOptions(cx), queue.height.Get, queue.setHeight,
 				[]core.Node{setupBadge(lucide.Film(), "bg-violet-500"),
 					core.Text{Content: locales.DownloadQuality(cx), Class: "min-w-0 flex-1 text-[15px] " + setupTitle, MaxLines: 1}}),
+			core.Dynamic(func(cx *core.Scope) core.Node {
+				set := queue.setWiFiOnly
+				if queue.network.Get() == downloadNetworkUnobserved {
+					set = nil
+				}
+				return (phoneSetting{locales.DownloadWiFiOnly(cx), "", "bg-sky-500", lucide.Wifi}).
+					toggle(cx, "download-wifi-only", queue.wifiOnly.Get, set)
+			}),
 			downloadPreference(cx, locales.DownloadConcurrency(cx), lucide.Layers(), "bg-indigo-500",
 				downloadPicker(cx, "download-concurrency", locales.DownloadConcurrency(cx), slots, queue.slots.Get, queue.setSlots)),
 			downloadPreference(cx, locales.DownloadQuota(cx), lucide.HardDrive(), "bg-sky-500",
@@ -348,7 +386,7 @@ func downloadUsageCard(cx *core.Scope, queue *downloadQueue) core.Node {
 
 func (a *application) downloadRow(cx *core.Scope, entry downloadEntry, confirm *core.Signal[string]) core.Node {
 	queue, id := a.downloads, entry.ID
-	state := downloadStateLabel(cx, entry)
+	state := queue.stateLabel(cx, entry)
 	art := core.View{Class: "relative h-12 w-20 shrink-0 overflow-hidden rounded-lg", Children: []core.Node{
 		homeArtwork("", "absolute inset-0"),
 	}}
@@ -402,8 +440,16 @@ func (a *application) downloadRow(cx *core.Scope, entry downloadEntry, confirm *
 	if queue.running[id] == nil && entry.State != downloadRunning {
 		actions = append(actions, setupIconButton(cx, locales.DownloadRemove(cx), "download-remove-"+id, lucide.Trash(), nil, func() { confirm.Set(id) }))
 	}
+	useCellular := core.Show{When: func() bool {
+		return entry.State == downloadQueued && entry.WaitForWiFi && !queue.wifiOnly.Get() &&
+			queue.network.Get() == downloadNetworkCellular
+	}, Then: func(cx *core.Scope) core.Node {
+		return ui.Button{Text: locales.DownloadUseCellular(cx), TestID: "download-cellular-" + id,
+			Variant: ui.ButtonOutline, OnPress: func() { queue.useCellular(id) }}
+	}}
 	return core.View{Class: "gap-2 bg-white px-4 py-3 dark:bg-[#1a1b25]", TestID: "download-row-" + id, Children: []core.Node{
 		core.View{Class: "flex-row items-center gap-2", Children: actions},
+		useCellular,
 		core.Show{When: func() bool { return confirm.Get() == id }, Then: func(cx *core.Scope) core.Node {
 			return core.View{Class: "flex-row items-center justify-end gap-2", Children: []core.Node{
 				ui.Button{Text: locales.Back(cx), Variant: ui.ButtonGhost, OnPress: func() { confirm.Set("") }},

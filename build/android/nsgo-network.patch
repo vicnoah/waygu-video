@@ -1,18 +1,42 @@
 --- a/internal/platform/android/java/dev/oneo/nsgo/NsgoActivity.java
 +++ b/internal/platform/android/java/dev/oneo/nsgo/NsgoActivity.java
-@@ -10,0 +11,3 @@
-+import android.net.ConnectivityManager;
-+import android.net.Network;
+@@ -72,0 +73,2 @@
++        view.handle("waygu.network.type", (data, reply) -> reply.resolve(view.defaultNetworkType()));
++        view.handle("waygu.network.cellular", (data, reply) -> reply.resolve("cellular".equals(view.defaultNetworkType())));
+--- a/internal/platform/android/java/dev/oneo/nsgo/NsgoView.java
++++ b/internal/platform/android/java/dev/oneo/nsgo/NsgoView.java
+@@ -36,0 +37 @@
 +import android.net.NetworkCapabilities;
-@@ -72,0 +76 @@
-+        view.handle("waygu.network.cellular", (data, reply) -> reply.resolve(isCellularNetwork()));
-@@ -76,0 +81,9 @@
+@@ -1501,0 +1503,16 @@
++            private Network current;
++
++            @Override
++            public void onCapabilitiesChanged(Network n, NetworkCapabilities capabilities) {
++                current = n;
++                send("waygu.network.changed", networkType(capabilities));
++            }
++
++            @Override
++            public void onLost(Network n) {
++                if (current == null || current.equals(n)) {
++                    current = null;
++                    send("waygu.network.changed", "offline");
++                }
++            }
++
+@@ -1512,0 +1530,15 @@
 +    }
 +
-+    private boolean isCellularNetwork() {
-+        ConnectivityManager connectivity = getSystemService(ConnectivityManager.class);
-+        if (connectivity == null) return false;
++    String defaultNetworkType() {
++        ConnectivityManager connectivity = getContext().getSystemService(ConnectivityManager.class);
++        if (connectivity == null) return "unknown";
 +        Network active = connectivity.getActiveNetwork();
-+        if (active == null) return false;
-+        NetworkCapabilities capabilities = connectivity.getNetworkCapabilities(active);
-+        return capabilities != null && capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
++        return active == null ? "offline" : networkType(connectivity.getNetworkCapabilities(active));
++    }
++
++    private static String networkType(NetworkCapabilities capabilities) {
++        if (capabilities == null) return "unknown";
++        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) return "cellular";
++        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return "wifi";
++        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) return "wired";
++        return "unknown";

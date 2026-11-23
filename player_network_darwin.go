@@ -3,15 +3,17 @@ package main
 import (
 	"context"
 	"sync"
-	"sync/atomic"
 
 	"github.com/ebitengine/purego"
 	"github.com/ebitengine/purego/objc"
+	"github.com/nsgo-dev/nsgo/core"
 )
 
 var (
-	appleCellular  atomic.Bool
-	applePathReady = make(chan struct{})
+	applePathMu    sync.Mutex
+	applePath      downloadNetwork
+	applePathSeen  bool
+	applePathEvent = make(chan struct{})
 	appleMonitor   uintptr
 	applePathWatch = sync.OnceValue(startApplePathMonitor)
 )
@@ -21,13 +23,42 @@ func init() {
 		if !applePathWatch() {
 			return false
 		}
-		select {
-		case <-applePathReady:
-			return appleCellular.Load()
-		case <-ctx.Done():
-			return false
+		for {
+			network, seen, changed := appleNetworkSnapshot()
+			if seen {
+				return network == downloadNetworkCellular
+			}
+			select {
+			case <-changed:
+			case <-ctx.Done():
+				return false
+			}
 		}
 	}
+	watchNativeDownloadNetwork = func(cx *core.Scope, update func(downloadNetwork)) {
+		lifetime := cx.Context()
+		go func() {
+			if !applePathWatch() {
+				cx.Post(func() { update(downloadNetworkUnobserved) })
+				return
+			}
+			for {
+				network, _, changed := appleNetworkSnapshot()
+				cx.Post(func() { update(network) })
+				select {
+				case <-changed:
+				case <-lifetime.Done():
+					return
+				}
+			}
+		}()
+	}
+}
+
+func appleNetworkSnapshot() (downloadNetwork, bool, <-chan struct{}) {
+	applePathMu.Lock()
+	defer applePathMu.Unlock()
+	return applePath, applePathSeen, applePathEvent
 }
 
 func startApplePathMonitor() bool {
@@ -59,12 +90,29 @@ func startApplePathMonitor() bool {
 	}
 	const (
 		nwPathSatisfied     = 1
+		nwInterfaceWiFi     = 1
 		nwInterfaceCellular = 2
+		nwInterfaceEthernet = 3
 	)
-	var observed sync.Once
 	handler := objc.NewBlock(func(_ objc.Block, path uintptr) {
-		appleCellular.Store(status(path) == nwPathSatisfied && usesInterface(path, nwInterfaceCellular))
-		observed.Do(func() { close(applePathReady) })
+		var network downloadNetwork
+		switch {
+		case status(path) != nwPathSatisfied:
+			network = downloadNetworkOffline
+		case usesInterface(path, nwInterfaceCellular):
+			network = downloadNetworkCellular
+		case usesInterface(path, nwInterfaceWiFi):
+			network = downloadNetworkWiFi
+		case usesInterface(path, nwInterfaceEthernet):
+			network = downloadNetworkWired
+		}
+		applePathMu.Lock()
+		if !applePathSeen || applePath != network {
+			applePath, applePathSeen = network, true
+			close(applePathEvent)
+			applePathEvent = make(chan struct{})
+		}
+		applePathMu.Unlock()
 	})
 	setQueue(appleMonitor, createQueue("dev.nsgo.wayguvideo.network", 0))
 	setHandler(appleMonitor, handler)
