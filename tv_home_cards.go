@@ -70,7 +70,12 @@ func (a *application) tvFeatured(cx *core.Scope, l tvLayout, titles []catalogIte
 	index := core.NewSignal(cx, 0)
 	focused := core.NewSignal(cx, false)
 	firstAction := &core.Ref{}
-	cx.Post(firstAction.Focus)
+	// tvOS chooses its first focus after the window becomes active.
+	// Hand off after that report so UIKit can honor the request.
+	waitingForInitialFocus := cx.Env().OS() == core.OSIOS
+	if !waitingForInitialFocus {
+		cx.Post(firstAction.Focus)
+	}
 	carouselActive := func() bool {
 		return focused.Get() && !cx.Env().ReduceMotion() && cx.Env().Lifecycle() == core.LifecycleActive
 	}
@@ -101,7 +106,14 @@ func (a *application) tvFeatured(cx *core.Scope, l tvLayout, titles []catalogIte
 	}))
 
 	return core.View{TestID: "tv-featured", Class: "relative bg-[#171720]",
-		Style: core.Style{Height: l.length(900)}, Children: []core.Node{
+		Style: core.Style{Height: l.length(900)}, OnFocusIn: func() {
+			if waitingForInitialFocus {
+				waitingForInitialFocus = false
+				if !firstAction.HoldsFocus() {
+					cx.Post(firstAction.Focus)
+				}
+			}
+		}, Children: []core.Node{
 			core.Dynamic(func(cx *core.Scope) core.Node {
 				return a.tvFeaturedBackdrop(cx, titles[index.Get()], carouselActive)
 			}),

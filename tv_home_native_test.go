@@ -78,11 +78,9 @@ func TestTVHomeNativeFixture(t *testing.T) {
 	switch target {
 	case "linux":
 		height += 37
-	case "tvos_simulator":
+	case "", "tvos_simulator":
 		// The test model uses these values to recognize remote focus commands.
 		env.OS, env.Idiom = core.OSIOS, core.IdiomTV
-	case "":
-		env.OS = core.OSLinux
 	}
 	app := nsgotest.Start(t, func(cx *core.Scope) core.Node {
 		shellIdiom.Provide(cx, core.IdiomTV)
@@ -108,10 +106,20 @@ func TestTVHomeNativeFixture(t *testing.T) {
 	if title := app.WaitFor("id:home-hero-title", 10*time.Second).Text; title != "The Dune Archive" {
 		t.Fatalf("featured title = %q, want The Dune Archive", title)
 	}
-	if target == "" || (target == "linux" && !app.Find("id:home-hero-play").Focused) {
+	if target == "" {
+		app.Key("tab")
+	} else if target == "linux" && !app.Find("id:home-hero-play").Focused {
 		app.Focus("id:home-hero-play")
 	}
 	expectFocus("home-hero-play")
+	if target == "tvos_simulator" {
+		// Wait for the app to style its native focus before advancing its clock.
+		ring := core.Ring(4, core.RGB(0x8b5cf6))
+		app.WaitUntil(3*time.Second, func() bool {
+			effects := app.Find("id:home-hero-play").Style.Effects
+			return effects != nil && slices.Contains(effects.Shadows, ring)
+		})
+	}
 	app.Advance(tvTrailerDwell + 100*time.Millisecond)
 	const preview = "id:tv-featured-trailer"
 	video := app.WaitFor(preview, 5*time.Second).Video
@@ -129,8 +137,8 @@ func TestTVHomeNativeFixture(t *testing.T) {
 	if target != "" && clipReads.Load() == 0 {
 		t.Fatal("the native player did not read the authorized trailer")
 	}
-	captureTVReviewDisplay(t)
 	app.Screenshot("tv-home-trailer")
+	captureTVReviewDisplay(t)
 	app.Find(preview)
 	if target == "tvos_simulator" || target == "android" {
 		app.Key("up")
@@ -139,6 +147,9 @@ func TestTVHomeNativeFixture(t *testing.T) {
 	}
 	app.WaitForGone(preview, 3*time.Second)
 	app.WaitFor(artwork, 3*time.Second)
+	if target == "" {
+		expectFocus("tv-tab-home")
+	}
 
 	app.Press("id:tv-tab-settings")
 	app.Press("id:tv-settings-section-appearance")
