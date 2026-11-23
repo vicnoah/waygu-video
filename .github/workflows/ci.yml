@@ -50,7 +50,7 @@ jobs:
           sudo apt-get install -y fonts-noto-cjk libgtk-4-1 xvfb xauth gstreamer1.0-plugins-good gstreamer1.0-libav
       - name: Native window smoke test on Linux
         if: runner.os == 'Linux'
-        run: xvfb-run -a go tool nsgo test -target linux -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes|TestDesktopSidebarCounts)$' -timeout 2m -screenshots desktop-review .
+        run: xvfb-run -a -s '-screen 0 1600x1000x24' go tool nsgo test -target linux -run '^(TestChineseAppName|TestSkipOnboarding|TestNativeVideoDecodes|TestDesktopSidebarCounts)$' -timeout 2m -screenshots desktop-review .
       - name: Native window smoke test
         if: runner.os != 'Linux'
         env:
