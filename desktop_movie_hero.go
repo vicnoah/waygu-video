@@ -212,7 +212,11 @@ func desktopMovieBadges(cx *core.Scope, item media.Item, version media.Version) 
 		}
 	}
 	var tech []core.Node
-	for _, badge := range []string{detailResolution(version), desktopVideoRange(cx, version), atmos, strings.ToUpper(version.VideoCodec), chinese} {
+	compatible := version.CompatibleRange
+	if compatible == "SDR" {
+		compatible = ""
+	}
+	for _, badge := range []string{detailResolution(version), desktopVideoRange(cx, version), compatible, atmos, strings.ToUpper(version.VideoCodec), chinese} {
 		if badge != "" {
 			tech = append(tech, core.Text{Content: badge,
 				Class: "rounded border border-white/30 px-1.5 py-0.5 text-[11px] font-semibold text-white"})

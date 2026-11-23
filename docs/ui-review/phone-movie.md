@@ -22,7 +22,7 @@
 | Actions | The test measures the 52 pt play button. The action strip uses the design's five cells with Emby. Source capabilities control favorite and watched actions. The tested resume sheet starts from zero. Sharing sends the title through the system share sheet. The more menu reloads details and offers restart when applicable. Editing, metadata rematching, and server deletion remain pending. |
 | Playback options | The five stacked rows use the settings colors and icons. Sources, versions, audio and subtitle choices pass through to the shared playback resolver. Chevrons indicate available choices. The danmaku row names matched sources and opens the DandanPlay and configured Logvar search forms. [Danmaku counts](#danmaku-counts) |
 | Credits and rails | Credits, the cast list, playable server extras and same-library recommendations use real fixture data. The recommendation rail falls back to titles sharing a genre from the same library when the server supplies no relevant items. Card quantities and artwork vary with the source. |
-| File information | The card shows video dimensions and codec, available track descriptions, bitrate, size and container. It shows the media file's name. Full path, frame-rate and profile details remain pending. |
+| File information | The card shows codec, dimensions, frame rate, dynamic range and Dolby Vision profile when available. It includes the track descriptions, bitrate, size, container and file name. [Video range](#video-range) |
 
 ![Restart choice after holding the play action on a resumable movie](images/phone-movie-resume.png)
 
@@ -46,3 +46,13 @@ sh build/android/package.sh test -device <serial> \
 ## Danmaku counts
 
 The fuchsia pill in the hero comparisons shows 1.2万 from a fixture with 12,000 playable comments. It sums the known counts from matched DandanPlay and Logvar sources. A downloaded title shows the number of comments saved with its local file. The matching test verifies changes and unbinding through the movie detail dialog. [Desktop card and tests](desktop-movie.md#danmaku-counts)
+
+## Video range
+
+![Scenra and GTK file information showing Dolby Vision P7 and its HDR10 base](images/phone-movie-file-range.png)
+
+Scenra is on the left in both comparisons. The GTK crops show light above dark. The selected version reports 23.976 fps, Dolby Vision P7 and a compatible HDR10 layer. The phone hero uses the short Dolby Vision badge. [Desktop comparison and media server tests](desktop-movie.md#video-range)
+
+![Scenra and Android 15 file information showing Dolby Vision P7 and its HDR10 base](images/phone-movie-file-range-android.png)
+
+The Android 15 crop is scaled to the 390 pt reference width. Android draws the card heading heavier than Scenra and wraps the video row after the plus sign. The GTK and Android fixture responses have no phone file name, so their cards end at the bitrate row.

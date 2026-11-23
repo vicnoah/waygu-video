@@ -47,6 +47,15 @@ Stop the fixture services with `docker compose -f integration/servers/compose.ya
 
 With the same three fixtures, `TestDockerOfflineDownloadReview` saves an original video from the detail page, restarts the app with the saved data, disconnects the test gateway, opens the cached movie from the library and probes the local file with `ffprobe`. The headless case reconnects and verifies the offline checkpoint in the server's detail response. GTK also advances the native playback clock while the gateway refuses requests. The download store fixture checks byte ranges after cancellation, verifies the supplied response MD5 and final SHA-256, and checks the space limit and deletion.
 
+## Video range
+
+`fixtures.sh` uses FFmpeg with libx265 to generate `Waygu Dynamic Range Test`, a two-second 10-bit HEVC clip with BT.2020 primaries, PQ transfer and HDR10 mastering metadata. Run `bootstrap.py` to index it in the three Docker libraries. `TestDockerMovieVideoRange` checks HDR10 in the title detail and playback version for each server. `TestServerVideoRanges` exercises the documented Dolby Vision and compatible-layer fields with local HTTP responses. [Detail comparisons](../../docs/ui-review/desktop-movie.md#video-range)
+
+```sh
+WAYGU_TEST_SERVERS=1 go tool nsgo test . -run '^TestDockerMovieVideoRange$'
+go tool nsgo test ./internal/media -run '^TestServerVideoRanges$'
+```
+
 ## Transcoded downloads
 
 `fixtures.sh` adds a generated 12-second 1080p H.264/AAC movie. Run it and refresh the Docker libraries with `bootstrap.py`. `TestDockerTranscodedDownload` sets the default to 1080p and uses the movie picker to download it at 720p from each server. It reopens the app with the server proxy disconnected, confirms the resolution, codecs and full runtime with `ffprobe`, and decodes a point near the end. The native GTK run also advances playback with the system decoder. `TestFiniteMP4DownloadPlaylist` covers authentication, cross-origin references, partial playlists and segment checksums. [Storage design comparison](../../docs/ui-review/storage-downloads.md#download-quality) · [Emby video streaming API](https://dev.emby.media/doc/restapi/Video-Streaming.html) · [Jellyfin video controller](https://github.com/jellyfin/jellyfin/blob/master/Jellyfin.Api/Controllers/VideosController.cs) · [Plex transcoding profile API](https://developer.plex.tv/pms/#section/API-Info/Profile-Augmentations)

@@ -102,6 +102,10 @@ def setup_media_browser(provider, base):
     user_id = user["User"]["Id"]
     wait_for_fixture_identity(base, user_id, headers)
     wait_for_browser_chapters(base, user_id, headers)
+    wait_until_ready(lambda: request(base, "/Items", headers=headers, params={
+        "UserId": user_id, "Recursive": "true", "IncludeItemTypes": "Movie",
+        "SearchTerm": "Waygu Dynamic Range Test",
+    })["Items"] or None, timeout=120)
     setup_browser_previews(provider, base, user_id, headers)
     print(f"{provider} {info['Version']}: configured fixture libraries")
 
@@ -246,6 +250,9 @@ def setup_plex(base):
             request(base, f"/library/sections/{section['key']}/refresh")
         if section["title"] == "Movies":
             group_plex_versions(base, section["key"])
+            wait_until_ready(lambda: request(base, f"/library/sections/{section['key']}/all", params={
+                "title": "Waygu Dynamic Range Test",
+            })["MediaContainer"].get("Metadata"), timeout=120)
             setup_plex_previews(base, section["key"])
         if section["title"] == "Shows":
             setup_plex_audio_series(base, section["key"])

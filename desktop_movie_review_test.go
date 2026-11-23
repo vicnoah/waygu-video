@@ -17,6 +17,28 @@ import (
 	"waygu-video/internal/media"
 )
 
+func TestDockerMovieVideoRange(t *testing.T) {
+	if os.Getenv("WAYGU_TEST_SERVERS") != "1" {
+		t.Skip("requires the Docker dynamic range fixture")
+	}
+	config, secrets := dockerReviewSources(t, false)
+	for _, provider := range []string{"emby", "jellyfin", "plex"} {
+		t.Run(provider, func(t *testing.T) {
+			client, item := reviewFixtureItem(t, config, secrets, provider, "Waygu Dynamic Range Test")
+			versions, err := client.(media.VersionClient).Versions(t.Context(), item)
+			if err != nil || !slices.ContainsFunc(versions, func(v media.Version) bool {
+				return v.Width == 320 && v.Height == 180 && v.VideoRange == "HDR10" && v.DolbyVisionProfile == 0 && v.CompatibleRange == ""
+			}) {
+				t.Fatalf("fixture metadata does not identify standalone HDR10: %+v, %v", versions, err)
+			}
+			detail, err := client.Detail(t.Context(), item)
+			if err != nil || !slices.ContainsFunc(detail.VideoProfiles, func(p media.VideoProfile) bool { return p.Range == "HDR10" }) {
+				t.Fatalf("fixture detail profiles = %+v, %v", detail.VideoProfiles, err)
+			}
+		})
+	}
+}
+
 func TestDockerDesktopMovieReview(t *testing.T) {
 	if os.Getenv("WAYGU_TEST_SERVERS") != "1" {
 		t.Skip("requires the Docker media fixtures")
@@ -210,7 +232,8 @@ func (desktopMovieFixture) Detail(_ context.Context, item media.Item) (media.Ite
 func (desktopMovieFixture) Versions(context.Context, media.Item) ([]media.Version, error) {
 	return []media.Version{
 		{ID: "4k", Width: 3840, Height: 2160, Container: "mkv", VideoCodec: "hevc", FilePath: "/电影档案/山海之外 (2024)/beyond-the-coast.mkv",
-			FrameRate: 23.976, VideoRange: "DOVI", Size: 58 << 30, Bitrate: 46_800_000, Method: media.DirectPlay,
+			FrameRate: 23.976, VideoRange: "DOVI", DolbyVisionProfile: 7, CompatibleRange: "HDR10",
+			Size: 58 << 30, Bitrate: 46_800_000, Method: media.DirectPlay,
 			Tracks: []media.Track{{Type: "audio", ID: "1", Title: "中文 · TrueHD 7.1 Atmos", Default: true},
 				{Type: "audio", ID: "2", Title: "Japanese · AAC"}, {Type: "subtitle", ID: "3", Language: "zh", Title: "简体中文 · ASS", URL: "http://catalog.example.test/subtitle.vtt"},
 				{Type: "subtitle", ID: "4", Language: "eng", Title: "English", External: true, URL: "http://catalog.example.test/english.vtt"}}},
@@ -301,6 +324,9 @@ func TestDesktopMovieDesignReview(t *testing.T) {
 			app.WaitFor("id:detail-trailer", 5*time.Second)
 			app.WaitFor("id:detail-progress", 5*time.Second)
 			app.WaitFor("text:已匹配 3,812 条 · 弹弹play", 5*time.Second)
+			app.WaitFor("id:desktop-movie-hero >> text:杜比视界", 5*time.Second)
+			app.WaitFor("id:desktop-movie-hero >> text:HDR10", 5*time.Second)
+			app.WaitFor("id:detail-file >> text:杜比视界 P7 + HDR10", 5*time.Second)
 			pick := func(id, match string) {
 				t.Helper()
 				app.Press("id:" + id)
@@ -350,6 +376,8 @@ func TestDesktopMovieDesignReview(t *testing.T) {
 			app.Press("id:back")
 			app.WaitFor("id:playback-version", 3*time.Second)
 			pick("playback-version", "1080p")
+			app.WaitForGone("id:desktop-movie-hero >> text:HDR10", 3*time.Second)
+			app.WaitForGone("id:detail-file >> text:杜比视界 P7 + HDR10", 3*time.Second)
 			if got := app.Find("id:playback-version-value").Text; !strings.Contains(got, "1080p") {
 				t.Fatalf("version display = %q", got)
 			}

@@ -23,11 +23,17 @@ The application capture shows a real library's artwork and the available metadat
 | Ratings | IMDb uses the amber badge and one decimal place. TMDB uses the sky-blue badge and a percentage, as in both designs. A server score appears beside a star when it is the only available rating. A data source for the Douban badge remains pending. [Rating data and tests](#rating-badges) |
 | Versions and tracks | Three equal-width controls select the version, audio and subtitles available before playback. The version choice persists when reopening a title. Embedded-only subtitles remain selectable in the libmpv player. |
 | Synopsis and shelves | The overview includes available directors, writers and production countries. Cast portraits and recommended posters scroll horizontally. A recommendation opens another detail page inside the window. |
-| File information | The 320 pt card shows the selected copy and available path, container, size, codec, dimensions, frame rate, range, bitrate and track counts. The source control switches between matched server copies. The fixture reports Dolby Vision without the profile and HDR10 compatibility shown in the design. |
+| File information | The 320 pt card shows the selected copy and available path, container, size, codec, dimensions, frame rate, range, bitrate and track counts. The source control switches between matched server copies. The fixture shows Dolby Vision P7 with HDR10 compatibility. [Video range](#video-range) |
 | Danmaku and more actions | The danmaku card shows the matched provider and its comment count. The Change action opens the DandanPlay and configured Logvar match forms. The more menu marks watched or unwatched, reloads details, and opens the DLNA picker. Server-side metadata editing and rescanning remain pending. [Danmaku counts](#danmaku-counts) · [Casting comparison](casting.md) |
 | Window controls | Scenra draws macOS window controls. The comparison captures GTK, and native macOS and Windows captures remain pending. A separate comparison covers the sidebar category totals. [Sidebar review](desktop-home.md#category-totals-and-atmos) |
 
 `TestDesktopMovieDesignReview` covers both appearances, version and track controls, version persistence, and the sidebar at two window widths. `TestDockerDesktopMovieReview` verifies file data in all three providers, favorite and watched changes, the matching dialog, trailer playback, start from the beginning, recommendations, and switching a matched copy from Emby to Jellyfin.
+
+## Video range
+
+The 4K fixture shows separate Dolby Vision and HDR10 badges in the hero and `杜比视界 P7 + HDR10` in the file card, matching both Scenra appearances. The details test switches to the 1080p SDR version and checks that the previous range information disappears. Phone and tablet file information use the same version metadata. [Phone file comparison](phone-movie.md#video-range)
+
+The local Docker test reads a generated 10-bit HEVC HDR10 clip through Emby, Jellyfin and Plex and verifies the range in each version and detail payload. Protocol fixtures cover Dolby Vision profile data, HDR10 and HDR10+ compatible layers, HLG and a rejected Dolby Vision label with independently identified HDR10. Flymoo's reference stream mapping supplies dimensions and codec. Its range metadata and physical HDR output verification remain open. [Test setup](../../integration/servers/TESTING.md#video-range) · [Jellyfin classifier](https://github.com/jellyfin/jellyfin/blob/master/MediaBrowser.Model/Entities/MediaStream.cs) · [Emby stream schema](https://dev.emby.media/reference/pluginapi/MediaBrowser.Model.Entities.MediaStream.html)
 
 ## Rating badges
 

@@ -32,12 +32,16 @@ func TestPhoneMovieRatingReview(t *testing.T) {
 				app.WaitFor("id:phone-movie-hero >> text:"+label, 5*time.Second)
 			}
 			app.WaitFor("text:弹弹play · 已匹配", 3*time.Second)
+			app.WaitFor("id:detail-file >> text:/23\\.976 fps.*Dolby Vision P7 \\+ HDR10/", 5*time.Second)
 			if app.Exists("id:phone-movie-hero >> text:9.6") {
 				t.Fatal("the hero mixed the generic star with named ratings")
 			}
 			if nsgotest.Target() != "" {
 				app.Advance(750 * time.Millisecond)
 				app.Screenshot("phone-movie-ratings-" + theme.name)
+				app.Scroll("id:phone-movie-scroll", 1500)
+				app.Advance(450 * time.Millisecond)
+				app.Screenshot("phone-movie-file-" + theme.name)
 			}
 		})
 	}

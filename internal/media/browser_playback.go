@@ -10,21 +10,56 @@ import (
 )
 
 type browserStream struct {
-	Index            int
-	Type             string
-	Codec            string
-	Language         string
-	Title            string
-	Profile          string
-	DisplayTitle     string
-	VideoRangeType   string
-	Width            int
-	Height           int
-	RealFrameRate    float64
-	AverageFrameRate float64
-	IsExternal       bool
-	IsDefault        bool
-	IsForced         bool
+	Index                                   int
+	Type                                    string
+	Codec                                   string
+	Language                                string
+	Title                                   string
+	Profile                                 string
+	DisplayTitle                            string
+	VideoRange                              string
+	VideoRangeType                          string
+	ExtendedVideoType, ExtendedVideoSubType string
+	ColorTransfer, ColorPrimaries           string
+	DvProfile, DvBlSignalCompatibilityId    int
+	Width                                   int
+	Height                                  int
+	RealFrameRate                           float64
+	AverageFrameRate                        float64
+	IsExternal                              bool
+	IsDefault                               bool
+	IsForced                                bool
+}
+
+func (stream browserStream) videoRange() videoRangeInfo {
+	rangeType := strings.TrimSpace(stream.VideoRangeType)
+	reported := namedVideoRange(rangeType)
+	if strings.EqualFold(rangeType, "DOVIInvalid") {
+		if fallback := transferVideoRange(stream.ColorTransfer, stream.ColorPrimaries); fallback.name != "" {
+			return fallback
+		}
+		return namedVideoRange(stream.VideoRange)
+	}
+	if reported.name == "" {
+		reported = namedVideoRange(stream.ExtendedVideoType)
+	}
+	profile, compatibilityID := stream.DvProfile, stream.DvBlSignalCompatibilityId
+	if profile == 0 {
+		if suffix, ok := strings.CutPrefix(strings.ToLower(stream.ExtendedVideoSubType), "doviprofile"); ok && len(suffix) == 2 {
+			if code, err := strconv.Atoi(suffix); err == nil {
+				profile, compatibilityID = code/10, code%10
+			}
+		}
+	}
+	if reported.name == "" {
+		reported = namedVideoRange(stream.VideoRange)
+		if reported.name == "" || reported.name == "HDR" {
+			if fallback := transferVideoRange(stream.ColorTransfer, stream.ColorPrimaries); fallback.name != "" {
+				reported = fallback
+			}
+		}
+	}
+	return reported.withDolbyVision(profile, compatibilityID)
 }
 
 type browserSource struct {
@@ -77,7 +112,7 @@ func (source browserSource) version() Version {
 	for _, stream := range source.MediaStreams {
 		if strings.EqualFold(stream.Type, "video") {
 			version.Width, version.Height, version.VideoCodec = stream.Width, stream.Height, stream.Codec
-			version.VideoRange = stream.VideoRangeType
+			version.setVideoRange(stream.videoRange())
 			version.FrameRate = stream.RealFrameRate
 			if version.FrameRate <= 0 {
 				version.FrameRate = stream.AverageFrameRate

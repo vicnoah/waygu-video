@@ -195,12 +195,9 @@ func desktopMovieFile(cx *core.Scope, current route, item media.Item, version me
 	if file == "" {
 		pathLabel, file = locales.MovieFileName(cx), version.FileName
 	}
-	dimensions, rate, bitrate, added := "", "", "", ""
+	dimensions, bitrate, added := "", "", ""
 	if version.Width > 0 && version.Height > 0 {
 		dimensions = fmt.Sprintf("%d×%d", version.Width, version.Height)
-	}
-	if version.FrameRate > 0 {
-		rate = strings.TrimRight(strings.TrimRight(strconv.FormatFloat(version.FrameRate, 'f', 3, 64), "0"), ".") + " fps"
 	}
 	if version.Bitrate > 0 {
 		bitrate = locales.BitrateMegabits(cx, strconv.FormatFloat(float64(version.Bitrate)/1_000_000, 'f', 1, 64))
@@ -212,8 +209,8 @@ func desktopMovieFile(cx *core.Scope, current route, item media.Item, version me
 	for _, fact := range []struct{ label, value string }{
 		{pathLabel, file},
 		{locales.DesktopMovieContainer(cx), desktopMovieFacts(strings.ToUpper(version.Container), positiveMediaBytes(version.Size))},
-		{locales.MovieFileVideo(cx), desktopMovieFacts(strings.ToUpper(version.VideoCodec), dimensions, rate)},
-		{locales.DesktopMovieDynamicRange(cx), desktopVideoRange(cx, version)},
+		{locales.MovieFileVideo(cx), desktopMovieFacts(strings.ToUpper(version.VideoCodec), dimensions, videoFrameRate(version))},
+		{locales.DesktopMovieDynamicRange(cx), describeVideoRange(desktopVideoRange(cx, version), version)},
 		{locales.MovieFileBitrate(cx), bitrate},
 		{locales.DetailAudio(cx), audio},
 		{locales.Subtitles(cx), subtitles},

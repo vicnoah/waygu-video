@@ -564,7 +564,7 @@ func phoneMovieFile(cx *core.Scope, version media.Version) core.Node {
 	return core.View{Class: "mx-4 gap-3 rounded-2xl bg-white p-4 shadow-sm shadow-black/5 dark:bg-[#1a1b25] " + setupBorder, TestID: "detail-file",
 		Children: []core.Node{
 			core.Text{Content: locales.FileInfo(cx), Class: "text-sm font-semibold " + setupTitle},
-			row(locales.MovieFileVideo(cx), strings.ToUpper(version.VideoCodec), dimensions, detailVideoRange(version)),
+			row(locales.MovieFileVideo(cx), strings.ToUpper(version.VideoCodec), dimensions, videoFrameRate(version), describeVideoRange(detailVideoRange(version), version)),
 			row(locales.DetailAudio(cx), audio...),
 			row(locales.Subtitles(cx), subtitles...),
 			row(locales.MovieFileBitrate(cx), bitrate, size, strings.ToUpper(version.Container)),

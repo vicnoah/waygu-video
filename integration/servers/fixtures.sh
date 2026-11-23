@@ -11,8 +11,9 @@ embedded='media/Movies/Waygu Embedded Subtitle Test (2025)'
 portable='media/Movies/Waygu Portable Captions Test (2025)'
 versions='media/Movies/Waygu Version Test (2025)'
 download='media/Movies/Waygu Download Test (2025)'
+hdr='media/Movies/Waygu Dynamic Range Test (2025)'
 series='media/Shows/Waygu Review Series (2025)'
-mkdir -p "$movie" "$season" "$resume" "$resume_pair" "$tracks" "$versions" "$embedded" "$portable" "$download" "$tracks/trailers" "$tracks/featurettes"
+mkdir -p "$movie" "$season" "$resume" "$resume_pair" "$tracks" "$versions" "$embedded" "$portable" "$download" "$hdr" "$tracks/trailers" "$tracks/featurettes"
 
 make_clip() {
     picture=$1
@@ -51,6 +52,17 @@ if [ ! -s "$download_clip" ]; then
         -f lavfi -i 'sine=frequency=400:sample_rate=48000' \
         -t 12 -c:v libx264 -threads 2 -preset veryfast -pix_fmt yuv420p \
         -c:a aac -movflags +faststart "$download_clip"
+fi
+
+hdr_clip="$hdr/Waygu Dynamic Range Test (2025).mp4"
+if [ ! -s "$hdr_clip" ]; then
+    ffmpeg -nostdin -hide_banner -loglevel error -y \
+        -f lavfi -i 'testsrc2=size=320x180:rate=24' \
+        -f lavfi -i 'sine=frequency=400:sample_rate=48000' \
+        -t 2 -c:v libx265 -preset fast -pix_fmt yuv420p10le \
+        -color_primaries bt2020 -color_trc smpte2084 -colorspace bt2020nc \
+        -x265-params 'pools=none:frame-threads=1:log-level=error:hdr10=1:master-display=G(13250,34500)B(7500,3000)R(34000,16000)WP(15635,16450)L(10000000,50):max-cll=1000,400' \
+        -tag:v hvc1 -c:a aac -movflags +faststart "$hdr_clip"
 fi
 
 make_embedded_subtitle_clip() (

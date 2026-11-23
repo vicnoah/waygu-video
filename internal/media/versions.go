@@ -14,6 +14,8 @@ import (
 type Version struct {
 	ID, Name, VideoCodec   string
 	Container, VideoRange  string
+	CompatibleRange        string `json:",omitempty"`
+	DolbyVisionProfile     int    `json:",omitempty"`
 	FileName, FilePath     string
 	FrameRate              float64
 	Tracks                 []Track

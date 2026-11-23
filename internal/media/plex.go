@@ -114,20 +114,23 @@ type plexPart struct {
 }
 
 type plexTrack struct {
-	ID           int
-	Index        *int
-	StreamType   int
-	Codec        string
-	Language     string
-	LanguageCode string
-	Title        string
-	DisplayTitle string
-	ColorTrc     string
-	FrameRate    json.Number
-	Key          string
-	Default      bool
-	Forced       bool
-	Selected     bool
+	ID                          int
+	Index                       *int
+	StreamType                  int
+	Codec                       string
+	Language                    string
+	LanguageCode                string
+	Title                       string
+	DisplayTitle                string
+	ColorTrc                    string
+	ColorPrimaries              string
+	DOVIProfile, DOVIBLCompatID json.Number
+	DOVIPresent                 json.RawMessage
+	FrameRate                   json.Number
+	Key                         string
+	Default                     bool
+	Forced                      bool
+	Selected                    bool
 }
 
 func (p *plexClient) auth() http.Header {
@@ -373,7 +376,7 @@ func (p *plexClient) item(entry plexMetadata) Item {
 		size, videoRange, _ := medium.videoFacts()
 		item.FileSize = max(item.FileSize, size)
 		if medium.Width > 0 || medium.Height > 0 {
-			item.addVideoProfile(VideoProfile{Width: medium.Width, Height: medium.Height, Range: videoRange})
+			item.addVideoProfile(VideoProfile{Width: medium.Width, Height: medium.Height, Range: videoRange.name})
 		}
 		item.DolbyAtmos = item.DolbyAtmos || atmosMetadata(medium.AudioCodec, medium.AudioProfile)
 		if !item.DolbyAtmos {
@@ -447,7 +450,9 @@ func (p *plexClient) Versions(ctx context.Context, item Item) ([]Version, error)
 func (m plexMedia) version() Version {
 	version := Version{ID: strconv.Itoa(m.ID), Width: m.Width, Height: m.Height, Bitrate: m.Bitrate * 1000,
 		VideoCodec: m.VideoCodec, Container: m.Container}
-	version.Size, version.VideoRange, version.FrameRate = m.videoFacts()
+	size, videoRange, fps := m.videoFacts()
+	version.Size, version.FrameRate = size, fps
+	version.setVideoRange(videoRange)
 	if len(m.Part) == 1 {
 		version.FileName = videoFileName(m.Part[0].File)
 		version.FilePath = localMediaPath(m.Part[0].File)
@@ -455,7 +460,7 @@ func (m plexMedia) version() Version {
 	return version
 }
 
-func (m plexMedia) videoFacts() (size int64, videoRange string, fps float64) {
+func (m plexMedia) videoFacts() (size int64, videoRange videoRangeInfo, fps float64) {
 	for _, part := range m.Part {
 		size += max(0, part.Size)
 		for _, stream := range part.Stream {
@@ -465,18 +470,39 @@ func (m plexMedia) videoFacts() (size int64, videoRange string, fps float64) {
 			if fps == 0 {
 				fps, _ = stream.FrameRate.Float64()
 			}
-			title := strings.ToLower(stream.DisplayTitle)
-			switch {
-			case strings.Contains(title, "dolby vision") || strings.Contains(title, "dovi"):
-				videoRange = "DOVI"
-			case videoRange == "" && stream.ColorTrc == "smpte2084":
-				videoRange = "HDR10"
-			case videoRange == "" && stream.ColorTrc == "arib-std-b67":
-				videoRange = "HLG"
+			if videoRange.name == "" {
+				videoRange = stream.videoRange()
 			}
 		}
 	}
 	return
+}
+
+func (stream plexTrack) videoRange() videoRangeInfo {
+	title := strings.ToLower(stream.DisplayTitle)
+	profile, _ := stream.DOVIProfile.Int64()
+	compatibilityID, _ := stream.DOVIBLCompatID.Int64()
+	var reported videoRangeInfo
+	switch {
+	case strings.Contains(title, "hdr10+") || strings.Contains(title, "hdr10plus"):
+		reported.name = "HDR10+"
+	case strings.Contains(title, "hdr10"):
+		reported.name = "HDR10"
+	case strings.Contains(title, "hlg"):
+		reported.name = "HLG"
+	}
+	dolbyVision := profile > 0 || strings.Contains(title, "dolby vision") || strings.Contains(title, "dovi")
+	switch string(stream.DOVIPresent) {
+	case "true", "1", `"1"`, `"true"`:
+		dolbyVision = true
+	}
+	if dolbyVision {
+		reported = videoRangeInfo{name: "DOVI", compatible: reported.name}
+	}
+	if reported.name == "" {
+		reported = transferVideoRange(stream.ColorTrc, stream.ColorPrimaries)
+	}
+	return reported.withDolbyVision(int(profile), int(compatibilityID))
 }
 
 func (p *plexClient) Playback(ctx context.Context, item Item, options PlaybackOptions) (Stream, error) {

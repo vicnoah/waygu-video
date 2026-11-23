@@ -402,13 +402,33 @@ func detailResolution(version media.Version) string {
 
 func detailVideoRange(version media.Version) string {
 	rangeType := version.VideoRange
-	if strings.HasPrefix(strings.ToLower(rangeType), "dovi") {
+	if lower := strings.ToLower(rangeType); lower != "doviinvalid" && strings.HasPrefix(lower, "dovi") {
 		return "Dolby Vision"
 	}
 	if strings.HasPrefix(strings.ToUpper(rangeType), "HDR") || strings.EqualFold(rangeType, "HLG") {
 		return rangeType
 	}
 	return ""
+}
+
+func describeVideoRange(label string, version media.Version) string {
+	if label == "" {
+		return ""
+	}
+	if version.DolbyVisionProfile > 0 {
+		label += " P" + strconv.Itoa(version.DolbyVisionProfile)
+	}
+	if version.CompatibleRange != "" {
+		label += " + " + version.CompatibleRange
+	}
+	return label
+}
+
+func videoFrameRate(version media.Version) string {
+	if version.FrameRate <= 0 {
+		return ""
+	}
+	return strings.TrimRight(strings.TrimRight(strconv.FormatFloat(version.FrameRate, 'f', 3, 64), "0"), ".") + " fps"
 }
 
 func tabletDetailHeading(label string) core.Node {
@@ -463,7 +483,7 @@ func tabletDetailFile(cx *core.Scope, source string, version media.Version) core
 	if version.Width > 0 && version.Height > 0 {
 		video = append(video, strconv.Itoa(version.Width)+"×"+strconv.Itoa(version.Height))
 	}
-	if name := detailVideoRange(version); name != "" {
+	if name := describeVideoRange(detailVideoRange(version), version); name != "" {
 		video = append(video, name)
 	}
 	subtitles := 0
