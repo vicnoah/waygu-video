@@ -311,7 +311,7 @@ func (q *downloadQueue) transfer(ctx context.Context, entry downloadEntry, curre
 			}
 			if input.Playlist {
 				cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), 3*time.Second)
-				media.StopDownloadTranscode(cleanup, client, stream)
+				_ = media.StopPrivateTranscode(cleanup, client, stream)
 				cancel()
 			}
 		}

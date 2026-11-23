@@ -24,11 +24,19 @@ func TranscodedDownload(ctx context.Context, client Client, item Item, version P
 	return client.Playback(ctx, item, version)
 }
 
-// StopDownloadTranscode releases a segmented download's private session
-// without reporting it as a playback event.
-func StopDownloadTranscode(ctx context.Context, client Client, stream Stream) {
-	if plex, ok := client.(*plexClient); ok {
-		query := url.Values{"session": {stream.SessionID}}
-		_ = plex.request(ctx, http.MethodGet, "/video/:/transcode/universal/stop", query, plex.auth(), nil, nil)
+// StopPrivateTranscode releases a preview or download's encoding session
+// without reporting a playback event.
+func StopPrivateTranscode(ctx context.Context, client Client, stream Stream) error {
+	if stream.SessionID == "" || (stream.Method != Transcode && stream.Method != DirectStream) {
+		return nil
 	}
+	switch server := client.(type) {
+	case *mediaBrowser:
+		query := url.Values{"DeviceId": {server.device.ID}, "PlaySessionId": {stream.SessionID}}
+		return server.request(ctx, http.MethodDelete, "Videos/ActiveEncodings", query, server.auth(), nil, nil)
+	case *plexClient:
+		query := url.Values{"session": {stream.SessionID}}
+		return server.request(ctx, http.MethodGet, "/video/:/transcode/universal/stop", query, server.auth(), nil, nil)
+	}
+	return nil
 }

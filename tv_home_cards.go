@@ -71,9 +71,12 @@ func (a *application) tvFeatured(cx *core.Scope, l tvLayout, titles []catalogIte
 	focused := core.NewSignal(cx, false)
 	firstAction := &core.Ref{}
 	cx.Post(firstAction.Focus)
+	carouselActive := func() bool {
+		return focused.Get() && !cx.Env().ReduceMotion() && cx.Env().Lifecycle() == core.LifecycleActive
+	}
 	cx.Effect(func() {
 		current := index.Get()
-		if focused.Get() && len(titles) > 1 && !cx.Env().ReduceMotion() {
+		if len(titles) > 1 && carouselActive() {
 			stop := cx.AfterFunc(6*time.Second, func() {
 				if focused.GetUntracked() && current == index.GetUntracked() {
 					index.Set((current + 1) % len(titles))
@@ -100,8 +103,7 @@ func (a *application) tvFeatured(cx *core.Scope, l tvLayout, titles []catalogIte
 	return core.View{TestID: "tv-featured", Class: "relative bg-[#171720]",
 		Style: core.Style{Height: l.length(900)}, Children: []core.Node{
 			core.Dynamic(func(cx *core.Scope) core.Node {
-				entry := titles[index.Get()]
-				return homeArtwork(cmp.Or(entry.item.Backdrop, entry.item.Poster), "absolute inset-0")
+				return a.tvFeaturedBackdrop(cx, titles[index.Get()], carouselActive)
 			}),
 			core.View{Class: "absolute inset-y-0 left-0 bg-linear-to-r from-black/85 via-black/55 to-transparent", Style: core.Style{Width: l.length(1360)}},
 			core.View{Class: "absolute inset-x-0 top-0 bg-linear-to-b from-black/60 to-transparent", Style: core.Style{Height: l.length(224)}},

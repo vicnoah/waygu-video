@@ -28,7 +28,7 @@ The design frame clips the first source shelf at 1760 pt. To compare this sectio
 | Continue watching | Cards use 420 × 236 pt artwork, a 32 pt gap, a source badge over the top-left corner and a 6 pt progress line. The fixture shows five saved bookmarks. The horizontal viewport clips the next card at the 96 pt right inset. |
 | Recently added and source shelves | The shelves use 220 × 330 pt artwork, 32 pt gaps and section markers. The fixture's available source names, provider badges and media count determine the labels. Content cards link to their media copy. |
 | Source shelf settings | **Settings → Appearance → Home layout** controls the visibility and order of each source row. The catalog and playback keep their original source priority. [Settings captures and checks](tv-settings.md#home-layout) |
-| Remaining checks | Silent background trailers remain pending. Native input verification is recorded separately from the GTK geometry. |
+| Background trailers | The focused featured panel can play a server trailer behind its metadata and actions. The image fills the 900 pt panel and uses the same scrims. [Playback checks](#silent-background-trailers) |
 
 ## Interaction checks
 
@@ -39,6 +39,25 @@ After adjusting the Home layout, both appearances show Jellyfin above Emby and o
 ![Jellyfin above Emby after changing the TV Home layout, light and dark GTK](images/tv-home-custom-source-shelves.png)
 
 The [screen inventory](screens.md) tracks the detail page and the other TV views.
+
+## Silent background trailers
+
+After 750 ms of focus in the featured actions, Waygu looks for a trailer attached to the title. It keeps the artwork until the native player advances, then puts the muted frame under the same title, scrims, indicator and focus ring. The next recommendation still appears after six seconds. Leaving the actions or the foreground restores the artwork and closes the stream. An unavailable trailer retains the artwork. Reduced motion, parental controls, and a reported cellular or offline connection keep the background static. [Scenra background and timing note](../../design/tv-home.scenra#L4)
+
+![TV Home playing a silent trailer, light and dark GTK](images/tv-home-silent-trailer-gtk.png)
+
+![Android TV emulator display playing a silent trailer with Play focused](images/tv-home-silent-trailer-android.png)
+
+The test footage uses a synthetic color chart, and the buttons and scrims occupy the same positions as in the artwork captures. GTK elides the fixture title sooner than Android because of native font metrics. The Android image comes from the emulator display. The native test host's software snapshot omits the video texture.
+
+`TestDockerTVSilentTrailer` uses Emby and Jellyfin trailer fixtures and checks mute, fill mode, focus and artwork restoration. The GTK and Android TV runs decode the Emby trailer. The preview has its own encoding session and creates no viewing history. Plex supplies trailers when present in Extras. Its unclaimed Docker fixture has no trailer. Flymoo displays artwork because its adapter has no trailer endpoint. tvOS preview decoding remains to be verified.
+
+```sh
+go tool nsgo test -target linux -env WAYGU_TEST_SERVERS=1 \
+  -run '^TestDockerTVSilentTrailer$' -screenshots .nsgo/ui-review/tv-trailer
+```
+
+Use `-env WAYGU_REVIEW_APPEARANCE=light` for the light capture. For Android TV, forward the fixture ports 18096, 28096 and 32400 with `adb reverse` and use `sh build/android/package.sh test -device <serial> -env WAYGU_TEST_SERVERS=1 -run '^TestDockerTVSilentTrailer$'`.
 
 ## Android TV
 
